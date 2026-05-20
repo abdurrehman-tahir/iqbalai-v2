@@ -1,0 +1,23 @@
+{
+  "app": {
+    "name": "IqbalAI",
+    "tagline": "AI-powered education for every student"
+  },
+  "nav": {
+    "home": "Home",
+    "login": "Login",
+    "signup": "Sign Up"
+  },
+  "landing": {
+    "hero_title": "Learn smarter with IqbalAI",
+    "hero_subtitle": "Personalized AI tutoring in your language",
+    "cta_button": "Get Started",
+    "language_switcher": "Change Language"
+  },
+  "common": {
+    "loading": "Loading...",
+    "error": "Something went wrong",
+    "retry": "Try again",
+    "no_data": "No data available"
+  }
+}
