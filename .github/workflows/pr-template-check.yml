@@ -1,0 +1,77 @@
+name: pr-template-check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [staging, main]
+
+permissions:
+  pull-requests: read
+
+jobs:
+  check:
+    name: PR template completeness
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Check required sections are filled
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || "";
+
+            // Required headers with non-empty content under them.
+            const requiredSections = [
+              { name: "Summary", header: "## Summary" },
+              { name: "Type", header: "## Type" },
+              { name: "Phase & feature reference", header: "## Phase & feature reference" },
+              { name: "Stack compliance", header: "## Stack compliance" },
+              { name: "Testing", header: "## Testing" },
+              { name: "Open questions for @abdurrehman", header: "## Open questions for @abdurrehman" },
+            ];
+
+            const missing = [];
+            const empty = [];
+
+            for (const section of requiredSections) {
+              const idx = body.indexOf(section.header);
+              if (idx === -1) {
+                missing.push(section.name);
+                continue;
+              }
+              // Find next ## header or end of body
+              const rest = body.slice(idx + section.header.length);
+              const nextHeader = rest.search(/\n##\s/);
+              const content = (nextHeader === -1 ? rest : rest.slice(0, nextHeader))
+                .replace(/<!--[\s\S]*?-->/g, "")
+                .trim();
+
+              if (!content || content.length < 5) {
+                empty.push(section.name);
+              }
+            }
+
+            if (missing.length || empty.length) {
+              let msg = "❌ PR template incomplete.\n";
+              if (missing.length) msg += `\nMissing sections: ${missing.join(", ")}`;
+              if (empty.length) msg += `\nEmpty sections: ${empty.join(", ")}`;
+              msg += "\n\nFill all required sections in the PR description, then push or update to re-trigger this check.";
+              core.setFailed(msg);
+            } else {
+              console.log("✅ All required PR template sections are filled.");
+            }
+
+      - name: Check at least one "Type" checkbox is ticked
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = context.payload.pull_request.body || "";
+            const tickedTypes = (body.match(/- \[x\] (feat|fix|chore|docs|refactor|test|perf|deviation|release)/gi) || []);
+
+            if (tickedTypes.length === 0) {
+              core.setFailed("❌ No PR type checked. Tick exactly one box under '## Type'.");
+            } else if (tickedTypes.length > 1) {
+              core.setFailed(`❌ Multiple PR types checked (${tickedTypes.length}). Tick exactly one.`);
+            } else {
+              console.log(`✅ PR type: ${tickedTypes[0]}`);
+            }

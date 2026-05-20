@@ -1,0 +1,29 @@
+# CODEOWNERS for IqbalAI v2
+#
+# Every PR will automatically request review from the listed owners.
+# On free private GitHub, this assigns reviewers but doesn't BLOCK merge
+# (that requires paid Branch Protection / Rulesets). It's a soft signal
+# that combined with BRANCHING.md and the PR template forms our review
+# workflow. Treat any PR that merges without @abdurrehman-tahir approval
+# as a process violation.
+#
+# Syntax: <pattern>  <owner1> <owner2> ...
+# Patterns follow .gitignore syntax.
+# Last matching pattern wins, so put broad rules first, narrow ones last.
+
+# Default owner for everything
+*                                @abdurrehman-tahir
+
+# Stack and architecture docs — extra explicit (any change requires approval)
+/docs/STACK_LOCK.md              @abdurrehman-tahir
+/docs/ARCHITECTURE.md            @abdurrehman-tahir
+/docs/DEVIATIONS.md              @abdurrehman-tahir
+/docs/BRANCHING.md               @abdurrehman-tahir
+
+# Enforcement scripts — touching these affects every other PR
+/scripts/                        @abdurrehman-tahir
+/.pre-commit-config.yaml         @abdurrehman-tahir
+/.github/                        @abdurrehman-tahir
+
+# Claude Code instructions
+/.claude/                        @abdurrehman-tahir

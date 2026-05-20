@@ -1,0 +1,108 @@
+# Pre-commit hooks for IqbalAI v2.
+# Install: pip install pre-commit && pre-commit install && pre-commit install --hook-type commit-msg
+# See: docs/STACK_LOCK.md §8
+
+default_install_hook_types: [pre-commit, commit-msg]
+default_stages: [pre-commit]
+
+repos:
+  # ------------------------------------------------------------------
+  # Built-in basic hygiene
+  # ------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+        exclude: ^docker-compose.*\.yml$  # compose files use anchors and tabs sometimes
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ["--maxkb=1024"]
+      - id: check-merge-conflict
+      - id: detect-private-key
+      - id: mixed-line-ending
+        args: ["--fix=lf"]
+
+  # ------------------------------------------------------------------
+  # Python: ruff (lint + format)
+  # ------------------------------------------------------------------
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.6.9
+    hooks:
+      - id: ruff
+        args: [--fix, --exit-non-zero-on-fix]
+      - id: ruff-format
+
+  # ------------------------------------------------------------------
+  # Python: mypy strict
+  # ------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: v1.11.2
+    hooks:
+      - id: mypy
+        args: [--strict, --ignore-missing-imports]
+        # mypy needs project deps; the user must `uv sync` first.
+        # In CI we run mypy via uv directly (see .github/workflows/ci.yml).
+        additional_dependencies: []
+        files: ^app/
+
+  # ------------------------------------------------------------------
+  # Stack-lock enforcement (local custom scripts)
+  # ------------------------------------------------------------------
+  - repo: local
+    hooks:
+      - id: check-stack-lock
+        name: STACK_LOCK forbidden-import check
+        entry: python scripts/check_stack_lock.py
+        language: system
+        types: [python]
+        pass_filenames: true
+
+      - id: check-imports
+        name: Import-shape check (no star imports, no deep relatives)
+        entry: python scripts/check_imports.py
+        language: system
+        types: [python]
+        pass_filenames: true
+
+      - id: check-envvars
+        name: Hardcoded URLs / secrets check
+        entry: python scripts/check_envvars.py
+        language: system
+        types_or: [python, ts, tsx, javascript, jsx]
+        pass_filenames: true
+
+  # ------------------------------------------------------------------
+  # Frontend: prettier (when frontend/ exists)
+  # ------------------------------------------------------------------
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: v4.0.0-alpha.8
+    hooks:
+      - id: prettier
+        files: ^frontend/
+        types_or: [javascript, jsx, ts, tsx, json, css, scss, html, yaml, markdown]
+
+  # ------------------------------------------------------------------
+  # Conventional Commits enforcement
+  # ------------------------------------------------------------------
+  - repo: https://github.com/compilerla/conventional-pre-commit
+    rev: v3.4.0
+    hooks:
+      - id: conventional-pre-commit
+        stages: [commit-msg]
+        args:
+          - feat
+          - fix
+          - chore
+          - docs
+          - refactor
+          - test
+          - perf
+          - build
+          - ci
+          - revert
+          - hotfix
+          - deviation
+          - release

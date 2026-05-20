@@ -1,0 +1,141 @@
+name: ci
+
+on:
+  pull_request:
+    branches: [staging, main]
+  push:
+    branches: [staging, main]
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # --------------------------------------------------------------------
+  # Backend: lint, type, stack-lock, tests
+  # --------------------------------------------------------------------
+  backend:
+    name: Backend checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: pip install uv
+
+      - name: Set up pre-commit cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pre-commit
+          key: pre-commit-${{ runner.os }}-${{ hashFiles('.pre-commit-config.yaml') }}
+
+      - name: Install pre-commit
+        run: pip install pre-commit
+
+      - name: Run STACK_LOCK forbidden-import check
+        run: python scripts/check_stack_lock.py
+
+      - name: Run import-shape check
+        run: python scripts/check_imports.py
+
+      - name: Run hardcoded-URL/secret check
+        run: python scripts/check_envvars.py
+
+      - name: Run pre-commit on all files (except mypy — needs deps)
+        run: |
+          pre-commit run --all-files --show-diff-on-failure \
+            --hook-stage manual \
+            ruff ruff-format trailing-whitespace end-of-file-fixer \
+            check-yaml check-json check-toml check-added-large-files \
+            check-merge-conflict detect-private-key mixed-line-ending \
+            check-stack-lock check-imports check-envvars || true
+        # Soft-fail during bootstrap; will be enforced once app/ exists.
+
+      - name: Skip mypy and pytest (no app/ yet)
+        if: ${{ hashFiles('app/**/*.py') == '' }}
+        run: echo "ℹ️  No app/ directory yet; skipping mypy and pytest. These will run once the scaffold lands."
+
+      - name: mypy (if app/ exists)
+        if: ${{ hashFiles('app/**/*.py') != '' }}
+        run: |
+          uv sync
+          uv run mypy --strict app/
+
+      - name: pytest (if tests/ exists)
+        if: ${{ hashFiles('tests/**/*.py') != '' }}
+        run: |
+          uv sync
+          uv run pytest --cov=app --cov-report=term-missing
+
+  # --------------------------------------------------------------------
+  # Frontend: lint, type, build (only when frontend/ exists)
+  # --------------------------------------------------------------------
+  frontend:
+    name: Frontend checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ hashFiles('frontend/package.json') != '' }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Type-check
+        working-directory: frontend
+        run: pnpm typecheck
+
+      - name: Lint
+        working-directory: frontend
+        run: pnpm lint
+
+      - name: Build
+        working-directory: frontend
+        run: pnpm build
+
+  # --------------------------------------------------------------------
+  # Docs: just sanity-check that referenced files exist
+  # --------------------------------------------------------------------
+  docs:
+    name: Docs integrity
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Verify required docs exist
+        run: |
+          set -e
+          for f in docs/STACK_LOCK.md docs/BRANCHING.md docs/DEVIATIONS.md .claude/CLAUDE.md README.md; do
+            if [ ! -f "$f" ]; then
+              echo "❌ Missing required file: $f"
+              exit 1
+            fi
+          done
+          echo "✅ All required docs present."
