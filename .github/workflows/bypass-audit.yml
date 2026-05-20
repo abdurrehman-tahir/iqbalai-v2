@@ -1,0 +1,38 @@
+name: Bypass Audit
+
+on:
+  push:
+    branches: [main, staging]
+  schedule:
+    - cron: "0 8 * * 1"  # Monday 8am UTC
+
+jobs:
+  audit-direct-push:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - name: Check for direct push (not a merge commit)
+        run: |
+          PARENTS=$(git log --pretty=format:"%P" -1)
+          PARENT_COUNT=$(echo "$PARENTS" | wc -w)
+          if [ "$PARENT_COUNT" -lt 2 ]; then
+            echo "::warning::Direct push to protected branch detected by ${{ github.actor }}. Per BRANCHING.md this is a process violation."
+            gh issue create \
+              --title "Direct push to ${{ github.ref_name }} by ${{ github.actor }}" \
+              --body "A direct push was made to \`${{ github.ref_name }}\` by \`${{ github.actor }}\` at ${{ github.event.head_commit.timestamp }}. This bypasses the PR review process. Commit: ${{ github.sha }}" \
+              --label "process-violation" || true
+          else
+            echo "Merge commit detected — OK."
+          fi
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  weekly-summary:
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Weekly bypass summary
+        run: echo "Weekly audit complete. Check GitHub issues for any process-violation labels."
