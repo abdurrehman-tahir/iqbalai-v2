@@ -17,7 +17,9 @@ _PII_PATTERNS = [
 ]
 
 
-def _scrub_pii(event_dict: dict[str, object]) -> dict[str, object]:
+def _scrub_pii(
+    logger: object, method: str, event_dict: dict[str, object]
+) -> dict[str, object]:
     """Remove PII from log events before they are written."""
     message = str(event_dict.get("event", ""))
     for pattern, replacement in _PII_PATTERNS:
