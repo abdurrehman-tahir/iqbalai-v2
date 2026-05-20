@@ -89,6 +89,6 @@ Once M-00 ships, all of these appear. Until then, this is a docs-and-skills-only
 
 ## Contact
 
-- Abd. (founder, FCTO) — code owner for ARCHITECTURE, WORKFLOW, STACK_LOCK, all spec/process docs
+- Abd. (FCTO) — code owner for ARCHITECTURE, WORKFLOW, STACK_LOCK, all spec/process docs
 - Hamza (team lead developer) — primary implementer
 - Awais (COO) — flow spec product review
