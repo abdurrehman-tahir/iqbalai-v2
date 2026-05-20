@@ -1,0 +1,44 @@
+{
+  "streams": [
+    {
+      "name": "IQBALAI_SYSTEM",
+      "subjects": ["system.>"],
+      "retention": "limits",
+      "max_age": 604800000000000,
+      "storage": "file",
+      "description": "System-level events (smoke tests, health)"
+    },
+    {
+      "name": "IQBALAI_USERS",
+      "subjects": ["users.>"],
+      "retention": "limits",
+      "max_age": 604800000000000,
+      "storage": "file",
+      "description": "User lifecycle events"
+    },
+    {
+      "name": "IQBALAI_LECTURES",
+      "subjects": ["lectures.>"],
+      "retention": "limits",
+      "max_age": 604800000000000,
+      "storage": "file",
+      "description": "Lecture generation and ingestion events"
+    },
+    {
+      "name": "IQBALAI_SESSIONS",
+      "subjects": ["sessions.>"],
+      "retention": "limits",
+      "max_age": 604800000000000,
+      "storage": "file",
+      "description": "Student study session events"
+    },
+    {
+      "name": "IQBALAI_NOTIFICATIONS",
+      "subjects": ["notifications.>"],
+      "retention": "limits",
+      "max_age": 86400000000000,
+      "storage": "file",
+      "description": "Notification delivery events"
+    }
+  ]
+}
