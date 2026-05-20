@@ -86,35 +86,50 @@ jobs:
     name: Frontend checks
     runs-on: ubuntu-latest
     timeout-minutes: 15
-    if: ${{ hashFiles('frontend/package.json') != '' }}
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
+      - name: Detect frontend
+        id: detect
+        run: |
+          if [ -f frontend/package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "frontend/ not present yet — skipping frontend checks (pre-M-00)."
+          fi
+
       - name: Set up Node 20
+        if: steps.detect.outputs.exists == 'true'
         uses: actions/setup-node@v4
         with:
           node-version: "20"
 
       - name: Install pnpm
+        if: steps.detect.outputs.exists == 'true'
         uses: pnpm/action-setup@v4
         with:
           version: 9
 
       - name: Install dependencies
+        if: steps.detect.outputs.exists == 'true'
         working-directory: frontend
         run: pnpm install --frozen-lockfile
 
       - name: Type-check
+        if: steps.detect.outputs.exists == 'true'
         working-directory: frontend
         run: pnpm typecheck
 
       - name: Lint
+        if: steps.detect.outputs.exists == 'true'
         working-directory: frontend
         run: pnpm lint
 
       - name: Build
+        if: steps.detect.outputs.exists == 'true'
         working-directory: frontend
         run: pnpm build
 
