@@ -13,8 +13,8 @@
 | M-00 | Foundation: infra + containers + base code | 0 | T-001 to T-015 | 3-4 weeks | todo | All services run locally; smoke-test API returns 200 |
 | M-01 | Platform Setup: Platform Admin + ToS + personas + langs | 1 | T-016 to T-027 | 2-3 weeks | todo | Platform Admin logs in, configures personas, exam syllabi, languages |
 | M-02 | School Onboarding: District + School + role hierarchy | 1 | T-028 to T-040 | 2-3 weeks | todo | Platform Admin creates a District, then School, then School Admin who logs in |
-| M-03 | Subjects + Grade/Section/Subject offerings | 2 | T-041 to T-052 | 2 weeks | todo | School Admin creates Coordinator, Coordinator creates Grade/Section/Subjects, assigns Teacher |
-| M-04 | Teacher Onboarding + Content Library (school-tier) | 2 | T-053 to T-068 | 2-3 weeks | todo | Teacher logs in, uploads curriculum, sees it ingest + appear in their library |
+| M-03 | Subjects + Grade/Section/Subject offerings | 2 | T-041 to T-052 | 2 weeks | drafted | School Admin creates Coordinator, Coordinator creates Grade/Section/Subjects, assigns Teacher |
+| M-04 | Teacher Onboarding + Content Library (school-tier) | 2 | T-053 to T-068 | 2-3 weeks | drafted | Teacher logs in, uploads curriculum, sees it ingest + appear in their library |
 | M-05 | Independent Users: signup + Platform Library | 2 | T-069 to T-076 | 2 weeks | todo | Independent teacher self-signs up, accesses Platform Library |
 | M-06 | Student Onboarding (school) + Parent Linking | 2 | T-077 to T-090 | 2-3 weeks | todo | Coordinator enrolls students into Grade-Section; parents link to children |
 | M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | 2-3 weeks | todo | Platform Admin triggers AI research; approves; students can select framework |
