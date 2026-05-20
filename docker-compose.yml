@@ -15,6 +15,7 @@ volumes:
   minio_data:
   qdrant_data:
   infinity_models:
+  celery_beat_data:
 
 services:
   postgres:
@@ -241,6 +242,48 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
+
+  celery-worker:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: celery -A app.tasks.celery_app worker --loglevel=info --queues=default,ingestion,ml,notifications
+    environment:
+      DB_URL: ${DB_URL}
+      REDIS_URL: ${REDIS_URL}
+      NATS_URL: ${NATS_URL}
+      LLM_PROVIDER: ${LLM_PROVIDER}
+      LLM_BASE_URL: ${LLM_BASE_URL}
+      LLM_API_KEY: ${LLM_API_KEY}
+      LLM_MODEL: ${LLM_MODEL}
+    volumes:
+      - ./api:/app
+    networks:
+      - iqbalai_net
+    depends_on:
+      redis:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  celery-beat:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    command: celery -A app.tasks.celery_app beat --loglevel=info --scheduler celery.beat.PersistentScheduler
+    environment:
+      DB_URL: ${DB_URL}
+      REDIS_URL: ${REDIS_URL}
+    volumes:
+      - ./api:/app
+      - celery_beat_data:/var/run/celery
+    networks:
+      - iqbalai_net
+    depends_on:
+      redis:
+        condition: service_healthy
 
   frontend:
     build:
