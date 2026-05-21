@@ -1750,7 +1750,7 @@ Replaces the v1 "Class" model. Canonical entities for school structure (Flow 2 v
 
 | Entity | Definition | Owner |
 |---|---|---|
-| `Subject` | School-scoped catalog entry (e.g., "Physics" for School X). Includes language. Independent of any specific Grade. | Created by Coordinator (within scope) or any higher role per §6.16. |
+| `Subject` | School-scoped catalog entry (e.g., "Physics" for School X). Includes language. Independent of any specific Grade. | Created by Coordinator (within scope) or any higher role per §6.19. |
 | `Grade` | An instance of a year-level for a specific academic session (e.g., "Grade 9" at School X for "2025-2026"). Has `promoted_from_grade_id` linking to previous-year Grade. | Coordinator within scope. |
 | `Section` (optional) | Sub-grouping within a Grade (e.g., "A", "B", "C"). A Grade may have 0 Sections; default-internal section used for enrollment when none exist. | Coordinator within scope. |
 | `GradeSubjectOffering` | Links a Subject to a Grade for that session. Teacher is assigned at this level (NOT at Section level). One (grade_id, subject_id) per session — unique constraint. | Coordinator within scope. |
@@ -1758,7 +1758,7 @@ Replaces the v1 "Class" model. Canonical entities for school structure (Flow 2 v
 
 **Teacher capacity** (per Flow 3 v3 §3.5): the number of Grade-Subject assignments a teacher holds — NOT the number of students. Default cap = 5, range [1, 20]. Coordinator's attempt to assign beyond cap → `PRECONDITION_FAILED`; School Admin can override (audit-logged).
 
-**Cross-grade unidirectional rule:** Grade N can ACCESS / link material from grades ≤ N (lower grades). The reverse is BLOCKED at API. Applies to library content retrieval (§7.13) and lecture linking (Flow 5 #21).
+**Cross-grade unidirectional rule:** Grade N can ACCESS / link material from grades ≤ N (lower grades). The reverse is BLOCKED at API. Applies to library content retrieval (§7.21) and lecture linking (Flow 5 #21).
 
 ### 3.19 Exam Framework engine
 
@@ -1766,7 +1766,7 @@ Platform-tier, AI-generated, quarterly-refreshed study plans for specific exam t
 
 **Definition** (Flow 4 v3 §3.5):
 - A framework is created by Platform Admin as a thin metadata record: name, exam target, region, target grade range, language.
-- Triggering AI research starts a Pattern-A agentic LLM run (per §7.12 + §8.17) that produces a versioned study plan.
+- Triggering AI research starts a Pattern-A agentic LLM run (per §7.12 + §8.21) that produces a versioned study plan.
 - Each version stored as `framework_study_plans` with JSONB content (topics, priority weights, exam patterns, practice problems, weekly pacing, exam strategy).
 - Platform Admin manually approves each version before students see it.
 - Quarterly refresh via Celery beat `framework.refresh_quarterly` (cadence: `FRAMEWORK_REFRESH_DAYS` env var, default 90).
