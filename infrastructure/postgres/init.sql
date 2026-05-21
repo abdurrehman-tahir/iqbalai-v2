@@ -1,6 +1,9 @@
 -- IqbalAI dual-schema initialization
 -- Runs once on first Postgres container start
 
+-- Authentik IdP (separate database; see docker-compose authentik-server)
+CREATE DATABASE authentik OWNER iqbalai;
+
 CREATE SCHEMA IF NOT EXISTS school;
 CREATE SCHEMA IF NOT EXISTS independent;
 
