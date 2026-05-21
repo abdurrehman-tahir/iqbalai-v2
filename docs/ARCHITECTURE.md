@@ -1766,7 +1766,7 @@ Platform-tier, AI-generated, quarterly-refreshed study plans for specific exam t
 
 **Definition** (Flow 4 v3 §3.5):
 - A framework is created by Platform Admin as a thin metadata record: name, exam target, region, target grade range, language.
-- Triggering AI research starts a Pattern-A agentic LLM run (per §7.12 + §8.17) that produces a versioned study plan.
+- Triggering AI research starts a Pattern-A agentic LLM run (per §7.12 + §8.21) that produces a versioned study plan.
 - Each version stored as `framework_study_plans` with JSONB content (topics, priority weights, exam patterns, practice problems, weekly pacing, exam strategy).
 - Platform Admin manually approves each version before students see it.
 - Quarterly refresh via Celery beat `framework.refresh_quarterly` (cadence: `FRAMEWORK_REFRESH_DAYS` env var, default 90).
