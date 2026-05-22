@@ -41,3 +41,8 @@ class User(AuditMixin, SoftDeleteMixin, Base):
     district_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     # Scoped IDs: comma-separated list of IDs the user is scoped to (e.g., class IDs for teacher)
     scoped_ids: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        super().__init__(**kwargs)
