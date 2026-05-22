@@ -32,8 +32,7 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 - `flow-3-teacher-onboarding.md` §3.2, `flow-4-student-onboarding.md` §3.2 (public signup)
 
 ### ARCH source
-- `ARCHITECTURE.md` §6.20 (independent user signup path), §3.16 (separate-schema tenant model)
-- `ARCHITECTURE.md` §6.17 (Authentik IDP issues both JWT kinds)
+- `ARCHITECTURE.md` §6.20 (independent user signup path), §3.16 (separate-schema tenant model — same Authentik IDP issues both JWT kinds)
 
 ### Depends on
 - T-005 (Authentik, M-00), T-003 (dual schemas, M-00), T-007 (auth middleware, M-00)
