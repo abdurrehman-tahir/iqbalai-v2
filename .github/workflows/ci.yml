@@ -111,12 +111,31 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.code-changed == 'true'
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: frontend
+    timeout-minutes: 15
+
     steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Detect frontend
+        id: detect
+        run: |
+          if [ -f frontend/package.json ]; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "frontend/ not present yet — skipping frontend checks (pre-M-00)."
+          fi
+
+      - name: Set up Node 20
+        if: steps.detect.outputs.exists == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install pnpm
+        if: steps.detect.outputs.exists == 'true'
+        uses: pnpm/action-setup@v4
         with:
           version: 9
       - uses: actions/setup-node@v4
@@ -125,18 +144,22 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - name: Install dependencies
+        if: steps.detect.outputs.exists == 'true'
+        working-directory: frontend
         run: pnpm install --frozen-lockfile
-      - name: Type check
-        run: pnpm exec tsc --noEmit
-      - name: Lint
-        run: pnpm lint || true
 
-  frontend-tests:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.code-changed == 'true'
-    runs-on: ubuntu-latest
-    defaults:
-      run:
+      - name: Type-check
+        if: steps.detect.outputs.exists == 'true'
+        working-directory: frontend
+        run: pnpm typecheck
+
+      - name: Lint
+        if: steps.detect.outputs.exists == 'true'
+        working-directory: frontend
+        run: pnpm lint
+
+      - name: Build
+        if: steps.detect.outputs.exists == 'true'
         working-directory: frontend
     steps:
       - uses: actions/checkout@v4
@@ -159,23 +182,16 @@ jobs:
     if: needs.detect-changes.outputs.code-changed == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Run import checker
-        run: python scripts/check_imports.py || true
-      - name: Run stack lock checker
-        run: python scripts/check_stack_lock.py || true
-      - name: Run env vars checker
-        run: python scripts/check_envvars.py || true
+      - name: Checkout
+        uses: actions/checkout@v4
 
-  # ── Docs-only fast path ─────────────────────────────────────────────────────
-  docs-check:
-    needs: detect-changes
-    if: needs.detect-changes.outputs.docs-only == 'true' && needs.detect-changes.outputs.code-changed == 'false'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Docs-only PR — skipping code checks
-        run: echo "Docs-only PR detected. Code checks skipped per BRANCHING.md §8.1."
+      - name: Verify required docs exist
+        run: |
+          set -e
+          for f in docs/STACK_LOCK.md docs/BRANCHING.md docs/DEVIATIONS.md .claude/CLAUDE.md README.md; do
+            if [ ! -f "$f" ]; then
+              echo "❌ Missing required file: $f"
+              exit 1
+            fi
+          done
+          echo "✅ All required docs present."

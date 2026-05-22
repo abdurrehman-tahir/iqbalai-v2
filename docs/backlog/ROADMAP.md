@@ -13,21 +13,21 @@
 | M-00 | Foundation: infra + containers + base code | 0 | T-001 to T-015 | 3-4 weeks | todo | All services run locally; smoke-test API returns 200 |
 | M-01 | Platform Setup: Platform Admin + ToS + personas + langs | 1 | T-016 to T-027 | 2-3 weeks | todo | Platform Admin logs in, configures personas, exam syllabi, languages |
 | M-02 | School Onboarding: District + School + role hierarchy | 1 | T-028 to T-040 | 2-3 weeks | todo | Platform Admin creates a District, then School, then School Admin who logs in |
-| M-03 | Subjects + Grade/Section/Subject offerings | 2 | T-041 to T-052 | 2 weeks | todo | School Admin creates Coordinator, Coordinator creates Grade/Section/Subjects, assigns Teacher |
-| M-04 | Teacher Onboarding + Content Library (school-tier) | 2 | T-053 to T-068 | 2-3 weeks | todo | Teacher logs in, uploads curriculum, sees it ingest + appear in their library |
-| M-05 | Independent Users: signup + Platform Library | 2 | T-069 to T-076 | 2 weeks | todo | Independent teacher self-signs up, accesses Platform Library |
-| M-06 | Student Onboarding (school) + Parent Linking | 2 | T-077 to T-090 | 2-3 weeks | todo | Coordinator enrolls students into Grade-Section; parents link to children |
-| M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | 2-3 weeks | todo | Platform Admin triggers AI research; approves; students can select framework |
-| M-08 | Student Mode + Diagnostic + Cognitive DNA seed | 3 | T-101 to T-112 | 2-3 weeks | todo | Student picks mode, takes diagnostic, cognitive DNA initialized |
-| M-09 | Lecture Wizard + AI Generation (Pattern S RAG) | 4 | T-113 to T-128 | 3-4 weeks | todo | Teacher generates first lecture; sees streaming output with source badges |
+| M-03 | Subjects + Grade/Section/Subject offerings | 2 | T-041 to T-052 | 2 weeks | drafted | School Admin creates Coordinator, Coordinator creates Grade/Section/Subjects, assigns Teacher |
+| M-04 | Teacher Onboarding + Content Library (school-tier) | 2 | T-053 to T-068 | 2-3 weeks | drafted | Teacher logs in, uploads curriculum, sees it ingest + appear in their library |
+| M-05 | Independent Users: signup + Platform Library | 2 | T-069 to T-076 | 2 weeks | drafted | Independent teacher self-signs up, accesses Platform Library |
+| M-06 | Student Onboarding (school) + Parent Linking | 2 | T-077 to T-090 | 2-3 weeks | drafted | Coordinator enrolls students into Grade-Section; parents link to children |
+| M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | 2-3 weeks | drafted | Platform Admin triggers AI research; approves; students can select framework |
+| M-08 | Student Mode + Diagnostic + Cognitive DNA seed | 3 | T-101 to T-112 | 2-3 weeks | drafted | Student picks mode, takes diagnostic, cognitive DNA initialized |
+| M-09 | Lecture Wizard + AI Generation (Pattern S RAG) | 4 | T-113 to T-128 | 3-4 weeks | drafted | Teacher generates first lecture; sees streaming output with source badges |
 | M-10 | Lecture Edit + Versions + 7-Dim Scoring | 4 | T-129 to T-140 | 2-3 weeks | todo | Teacher edits lecture; sees score timeline + Innovation Record suggestions |
 | M-11 | Auto-quiz Per Student + Publish Lecture | 4 | T-141 to T-150 | 2 weeks | todo | Lecture publishes; auto-quizzes generate per student; students see quizzes |
 | M-12 | Lecture Mode Viewer + Highlight + Q&A + Voice | 5 | T-151 to T-165 | 3-4 weeks | todo | Student opens lecture; voice-reads; highlights; asks questions w/ AI answers |
 | M-13 | Hybrid Widget + Multimodal Image + Vision LLM | 5 | T-166 to T-172 | 2 weeks | todo | Student attaches image to question; gets vision-LLM answer |
 | M-14 | Live Feedback Panel + NATS Event Pipeline + Adaptation | 5 | T-173 to T-184 | 2-3 weeks | todo | Live feedback updates; stuck nudge fires; AI adapts angle on repeat |
 | M-15 | Flashcards + Concept Enrichment + Lecture Rating | 5 | T-185 to T-194 | 2 weeks | todo | Highlights become flashcards; concepts have career links; ratings flow to teacher |
-| M-16 | Next-Day Review (Flow 7) | 6 | (BLOCKED — needs flow-7) | TBD | blocked | (TBD per flow-7 spec) |
-| M-17 | Self-Study Mode (Flow 8) | 6 | (BLOCKED — needs flow-8) | TBD | blocked | (TBD per flow-8 spec) |
+| M-16 | Next-Day Review (Flow 7) | 6 | (unblocked — flow-7 drafted; tickets TBD) | ~2-3 weeks | todo | Teacher gets next-day review; publishes targeted mini-lecture |
+| M-17 | Self-Study Mode (Flow 8) | 6 | (unblocked — flow-8 drafted; tickets TBD) | ~2-3 weeks | todo | Student builds study plan from prep book; adherence tracked |
 | M-18 | AI Intelligence Layer / Cognitive DNA (Flow 9) | 6 | (BLOCKED — needs flow-9) | TBD | blocked | (TBD per flow-9 spec) |
 | M-19 | Parent Monitoring (Flow 10) | 6 | (BLOCKED — needs flow-10) | TBD | blocked | (TBD per flow-10 spec) |
 | M-20 | Group Study + Dashboards (Flow 11) | 6 | (BLOCKED — needs flow-11) | TBD | blocked | (TBD per flow-11 spec) |
@@ -61,7 +61,7 @@ M-00 ████████████████ Foundation (3-4w)
                                                                                                                                                                                                                                                                                                      M-22 ████████ Promotion (2w)
                                                                                                                                                                                                                                                                                                                     M-23 ████ Subscriptions (1w)
 
-(M-16 to M-21 unscheduled — blocked on flows 7-12 not yet drafted)
+(M-18 to M-21 unscheduled — blocked on flows 9-12 not yet drafted; M-16/M-17 now unblocked — flows 7/8 drafted)
 ```
 
 **Approximate total to launch-ready core:** 7-9 months for M-00 through M-15 + M-22 + M-23.
@@ -97,8 +97,8 @@ If multiple milestones say `todo`, pick the lowest M-NN number unless blocked. N
 
 | Milestone | Blocked on | How to unblock |
 |---|---|---|
-| M-16 Next-Day Review | flow-7-next-day-review.md not drafted | Abd. + Awais draft flow-7 spec in a chat session → merge → backlog gets tickets |
-| M-17 Self-Study | flow-8-self-study.md not drafted | Same — draft + merge flow-8 |
+| M-16 Next-Day Review | flow-7-next-day-review.md DRAFTED (v1) | Unblocked — ready for backlog ticket drafting |
+| M-17 Self-Study | flow-8-self-study.md DRAFTED (v1) | Unblocked — ready for backlog ticket drafting |
 | M-18 Cognitive DNA | flow-9-ai-intelligence.md not drafted | Same — draft + merge flow-9 |
 | M-19 Parent Monitoring | flow-10-parent-monitoring.md not drafted | Same — draft + merge flow-10 |
 | M-20 Group Study + Dashboards | flow-11-group-study-dashboards.md not drafted | Same |
