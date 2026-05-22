@@ -122,6 +122,16 @@ If the PR body has an optional **"Sections NOT read (justification)"** block (so
 
 Run these only for areas the PR touches. Skip irrelevant ones to save effort.
 
+### Checklist CI — GitHub Actions workflows (`.github/workflows/`)
+
+If the PR touches any file under `.github/workflows/`:
+
+- [ ] **Dev deps installed before tools** — every lint/test/type/coverage job has a dependency-sync step (Python: `uv sync` incl. dev group/extras; frontend: `pnpm install` against a real `frontend/package.json`) BEFORE any `uv run ruff|pytest|mypy` / `pnpm lint|test|build`. A `Failed to spawn`/`No such file or directory` for a tool = FAIL. (CLAUDE.md CI invariant 1)
+- [ ] **Commands match the manifest** — job script/command/group names match `pyproject.toml` + `frontend/package.json` exactly. (invariant 2)
+- [ ] **Edited, not regenerated** — the workflow was amended, not wholesale-replaced. (invariant 3)
+- [ ] **Frontend jobs guard correctly** — `frontend/` existence is detected via a post-checkout step output, NOT a job-level `if: hashFiles(...)`. (invariant 4)
+- [ ] **CI change called out** — the PR description explicitly states the CI change and why. (invariant 5)
+
 ### Checklist A — Multi-tenancy (§3)
 
 If the PR adds/modifies anything user-data-touching:

@@ -103,6 +103,16 @@ When the user asks for a feature:
 9. **Every secret or external URL** is read from an env var. Never hardcode.
 10. **Every database schema change** has an Alembic migration in the same PR.
 
+## CI invariants (non-negotiable)
+
+`.github/workflows/*.yml` evolves as the codebase grows — you may amend it — but these rules are hard and must hold in every PR that touches CI:
+
+1. **Dev dependencies are installed before any tool runs.** Every lint / test / type-check / coverage job MUST sync the dev dependency group BEFORE invoking the tool. For Python: a `uv sync` step that includes the dev group/extras (e.g. `uv sync --all-extras --dev`, or the named group your `pyproject.toml` declares) precedes any `uv run ruff|pytest|mypy`. For frontend: `pnpm install` against a real `frontend/package.json` precedes any `pnpm lint|test|build|typecheck`. A job that calls `ruff`/`pytest`/`mypy`/`eslint`/`vitest` without first installing it is broken — the `Failed to spawn: ruff` / `No such file or directory` class of error means this rule was violated.
+2. **Job commands match the manifest exactly.** Script and command names invoked in CI MUST match exactly what `pyproject.toml` and `frontend/package.json` declare (same group/extras names, same `scripts` keys, same paths). If you rename a script or change a dependency group, update CI in the same PR.
+3. **Edit, don't wholesale-replace.** Never regenerate `.github/workflows/*.yml` from scratch. Amend the existing file. Wholesale regeneration is how invariants silently get dropped.
+4. **Frontend jobs guard on `frontend/` existing** via a post-checkout detect step that sets an output, NOT a job-level `if: hashFiles(...)` (which fails to parse — `hashFiles` is unavailable before checkout). Gate the real steps on the detect output.
+5. **Any CI change is called out in the PR description.** If a PR touches `.github/workflows/`, say so explicitly and state what changed and why.
+
 ## Coding conventions
 
 - **Python:** Python 3.12, async/await everywhere, type hints on every function signature, Pydantic v2 for all I/O models. Format with `ruff format`. Lint with `ruff check`. Type-check with `mypy --strict`.
