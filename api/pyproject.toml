@@ -43,6 +43,13 @@ select = ["E", "F", "I"]
 strict = true
 python_version = "3.12"
 
+[[tool.mypy.overrides]]
+# qdrant-client stubs don't expose AsyncQdrantClient.search() but it exists at runtime.
+# warn_unused_ignores is suppressed here so the # type: ignore[attr-defined] on that
+# call doesn't cause a false "unused" error in envs where qdrant-client isn't installed.
+module = "app.infrastructure.rag.retriever"
+warn_unused_ignores = false
+
 [tool.pytest.ini_options]
 asyncio_mode = "auto"
 testpaths = ["tests", "app"]

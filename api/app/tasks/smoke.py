@@ -5,7 +5,7 @@ from __future__ import annotations
 from celery import shared_task
 
 
-@shared_task(name="tasks.smoke.ping", queue="default")  # type: ignore[misc]
+@shared_task(name="tasks.smoke.ping", queue="default")  # type: ignore[untyped-decorator]
 def ping() -> str:
     """Simple ping task to verify Celery worker is running."""
     return "pong"
