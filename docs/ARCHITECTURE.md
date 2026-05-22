@@ -1711,7 +1711,7 @@ IqbalAI supports two distinct tenant types:
 - True DB-level isolation: independent user data can never leak into school queries even with a logic bug
 - Separate Alembic migration heads (per §4.21) — independent schema evolves at its own pace
 - Same Postgres instance, same operational stack, single backup
-- Same Authentik IDP issues both kinds of JWTs (per §6.17)
+- Same Authentik IDP issues both kinds of JWTs (per §6.20)
 - Schema selection happens via SQLAlchemy `schema_translate_map` based on JWT `tenant_type` claim
 
 **Routing:**
