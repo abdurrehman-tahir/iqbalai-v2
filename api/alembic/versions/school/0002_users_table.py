@@ -8,6 +8,7 @@ Create Date: 2026-05-20
 from __future__ import annotations
 
 import sqlalchemy as sa
+
 from alembic import op
 
 revision: str = "school_0002"
@@ -18,7 +19,12 @@ depends_on: str | None = None
 
 def upgrade() -> None:
     # Create the userrole enum type
-    op.execute("CREATE TYPE school.userrole AS ENUM ('platform_admin', 'district_admin', 'school_admin', 'coordinator', 'teacher', 'student', 'parent')")
+    op.execute(
+        "CREATE TYPE school.userrole AS ENUM ("
+        "'platform_admin', 'district_admin', 'school_admin', "
+        "'coordinator', 'teacher', 'student', 'parent')"
+        ")"
+    )
 
     op.create_table(
         "users",
@@ -35,7 +41,9 @@ def upgrade() -> None:
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
         schema="school",
     )
-    op.create_index("ix_users_authentik_id", "users", ["authentik_id"], unique=True, schema="school")
+    op.create_index(
+        "ix_users_authentik_id", "users", ["authentik_id"], unique=True, schema="school"
+    )
     op.create_index("ix_users_email", "users", ["email"], schema="school")
     op.create_index("ix_users_school_id", "users", ["school_id"], schema="school")
     op.create_index("ix_users_district_id", "users", ["district_id"], schema="school")

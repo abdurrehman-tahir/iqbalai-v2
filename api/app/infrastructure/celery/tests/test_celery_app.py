@@ -4,7 +4,6 @@ from __future__ import annotations
 from app.infrastructure.celery.celery_app import celery_app, configure_celery
 from app.tasks.smoke import ping
 
-
 # ---------------------------------------------------------------------------
 # Smoke task — direct call (no broker required)
 # ---------------------------------------------------------------------------

@@ -27,5 +27,7 @@ async def rerank(query: str, documents: list[str], top_k: int = 5) -> list[int]:
         # Sort by relevance score descending, return top_k indices
         results = sorted(data["results"], key=lambda x: x["relevance_score"], reverse=True)
         indices: list[int] = [r["index"] for r in results[:top_k]]
-        logger.debug("reranked_documents", input_count=len(documents), top_k=top_k, model=_RERANKER_MODEL)
+        logger.debug(
+            "reranked_documents", input_count=len(documents), top_k=top_k, model=_RERANKER_MODEL
+        )
         return indices

@@ -7,9 +7,10 @@ import os
 from logging.config import fileConfig
 from typing import Any
 
-from alembic import context
 from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
+
+from alembic import context
 
 # this is the Alembic Config object
 config = context.config

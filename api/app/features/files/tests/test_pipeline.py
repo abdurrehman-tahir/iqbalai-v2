@@ -3,8 +3,8 @@ from __future__ import annotations
 
 import pytest
 
+from app.features.files.pipeline import _build_minio_key, _validate_magic_bytes
 from app.features.files.profiles import RECOVERY_BUNDLE, get_profile, list_profiles
-from app.features.files.pipeline import _validate_magic_bytes, _build_minio_key
 
 
 def test_get_profile_recovery_bundle() -> None:

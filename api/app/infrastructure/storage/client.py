@@ -41,7 +41,9 @@ def ensure_bucket(bucket: str) -> None:
         logger.info("bucket_created", bucket=bucket)
 
 
-def upload_bytes(bucket: str, key: str, data: bytes, content_type: str = "application/octet-stream") -> str:
+def upload_bytes(
+    bucket: str, key: str, data: bytes, content_type: str = "application/octet-stream"
+) -> str:
     """Upload raw bytes to MinIO. Returns the object key."""
     client = get_s3_client()
     ensure_bucket(bucket)

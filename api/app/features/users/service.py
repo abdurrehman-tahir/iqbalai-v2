@@ -6,7 +6,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
-from app.features.users.schemas import UserCreate
 
 logger = structlog.get_logger(__name__)
 

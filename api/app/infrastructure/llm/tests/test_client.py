@@ -7,7 +7,6 @@ import pytest
 
 from app.infrastructure.llm.client import _resolve_model, chat
 
-
 # ---------------------------------------------------------------------------
 # _resolve_model — task routing (pure logic, no network)
 # ---------------------------------------------------------------------------

@@ -1,11 +1,7 @@
 """Tests for permission dependency primitives per T-008 acceptance criteria."""
 from __future__ import annotations
 
-import pytest
-from unittest.mock import MagicMock
-
-from app.core.dependencies import ROLE_HIERARCHY, require_role
-from app.core.exceptions import PermissionDeniedError
+from app.core.dependencies import ROLE_HIERARCHY
 
 
 def _make_claims(role: str) -> dict[str, object]:

@@ -2,13 +2,11 @@
 from __future__ import annotations
 
 import json
-from datetime import timezone
 from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
 from app.infrastructure.events.publisher import _build_envelope, publish
-
 
 # ---------------------------------------------------------------------------
 # _build_envelope — pure function, no network
@@ -25,7 +23,10 @@ def test_envelope_contains_all_required_fields() -> None:
         user_id="user-xyz",
         session_id="sess-001",
     )
-    required_fields = {"tenant_id", "tenant_type", "user_id", "session_id", "occurred_at", "event_type", "payload"}
+    required_fields = {
+        "tenant_id", "tenant_type", "user_id", "session_id",
+        "occurred_at", "event_type", "payload",
+    }
     assert required_fields.issubset(envelope.keys())
 
 
@@ -45,7 +46,9 @@ def test_envelope_user_id_set_correctly() -> None:
 
 
 def test_envelope_event_type_set_correctly() -> None:
-    envelope = _build_envelope("system.smoke_test", {}, tenant_id="", tenant_type="school", user_id="")
+    envelope = _build_envelope(
+        "system.smoke_test", {}, tenant_id="", tenant_type="school", user_id=""
+    )
     assert envelope["event_type"] == "system.smoke_test"
 
 
@@ -82,7 +85,9 @@ def test_envelope_is_json_serialisable() -> None:
 # ---------------------------------------------------------------------------
 
 
-def _make_nats_mocks(js_publish_side_effect: BaseException | None = None) -> tuple[AsyncMock, AsyncMock]:
+def _make_nats_mocks(
+    js_publish_side_effect: BaseException | None = None,
+) -> tuple[AsyncMock, AsyncMock]:
     """Build (mock_nc, mock_js) where jetstream() is synchronous (as nats-py requires)."""
     mock_js = AsyncMock()
     if js_publish_side_effect is not None:

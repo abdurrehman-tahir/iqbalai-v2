@@ -5,10 +5,9 @@ tenant_task decorator, Redis broker.
 """
 from __future__ import annotations
 
+import structlog
 from celery import Celery
 from celery.signals import task_failure, task_success
-
-import structlog
 
 logger = structlog.get_logger(__name__)
 

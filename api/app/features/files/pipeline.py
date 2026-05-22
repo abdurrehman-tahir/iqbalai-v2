@@ -16,7 +16,9 @@ from app.infrastructure.storage.client import sha256_of_bytes, upload_bytes
 logger = structlog.get_logger(__name__)
 
 
-def _build_minio_key(profile: UploadProfile, filename: str, upload_id: str, school_id: str | None) -> str:
+def _build_minio_key(
+    profile: UploadProfile, filename: str, upload_id: str, school_id: str | None
+) -> str:
     """Build the MinIO object key per ARCH §11.4 strategy.
 
     Format: {key_prefix}/{school_id or 'global'}/{date}/{upload_id}/{filename}

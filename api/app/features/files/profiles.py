@@ -5,7 +5,7 @@ New profiles are added here as features land (one profile per upload surface).
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 
 @dataclass(frozen=True)
