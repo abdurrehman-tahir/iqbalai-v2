@@ -1,4 +1,5 @@
 """Tests for permission dependency primitives per T-008 acceptance criteria."""
+
 from __future__ import annotations
 
 from app.core.dependencies import ROLE_HIERARCHY

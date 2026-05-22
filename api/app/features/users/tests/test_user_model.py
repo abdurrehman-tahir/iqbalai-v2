@@ -1,4 +1,5 @@
 """Tests for User model basics."""
+
 from __future__ import annotations
 
 from app.features.users.models import User, UserRole

@@ -1,4 +1,5 @@
 """ASGI middleware — AuthMiddleware validates JWT on every non-public request."""
+
 from __future__ import annotations
 
 import structlog

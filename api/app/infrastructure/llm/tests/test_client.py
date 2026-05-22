@@ -1,4 +1,5 @@
 """Tests for LLM client per T-010 acceptance criteria."""
+
 from __future__ import annotations
 
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -110,9 +111,10 @@ def _fake_completion(content: str) -> MagicMock:
 async def test_chat_returns_response_text() -> None:
     fake_completion = _fake_completion("Hello from LLM")
 
-    with patch("app.infrastructure.llm.client.get_settings", return_value=_fake_settings()), patch(
-        "app.infrastructure.llm.client.AsyncOpenAI"
-    ) as mock_openai_cls:
+    with (
+        patch("app.infrastructure.llm.client.get_settings", return_value=_fake_settings()),
+        patch("app.infrastructure.llm.client.AsyncOpenAI") as mock_openai_cls,
+    ):
         mock_client = MagicMock()
         mock_client.chat.completions.create = AsyncMock(return_value=fake_completion)
         mock_openai_cls.return_value = mock_client
@@ -126,9 +128,10 @@ async def test_chat_returns_response_text() -> None:
 async def test_chat_calls_create_with_correct_model() -> None:
     fake_completion = _fake_completion("ok")
 
-    with patch("app.infrastructure.llm.client.get_settings", return_value=_fake_settings()), patch(
-        "app.infrastructure.llm.client.AsyncOpenAI"
-    ) as mock_openai_cls:
+    with (
+        patch("app.infrastructure.llm.client.get_settings", return_value=_fake_settings()),
+        patch("app.infrastructure.llm.client.AsyncOpenAI") as mock_openai_cls,
+    ):
         mock_client = MagicMock()
         mock_client.chat.completions.create = AsyncMock(return_value=fake_completion)
         mock_openai_cls.return_value = mock_client
@@ -141,9 +144,10 @@ async def test_chat_calls_create_with_correct_model() -> None:
 
 @pytest.mark.asyncio
 async def test_chat_raises_on_provider_error() -> None:
-    with patch("app.infrastructure.llm.client.get_settings", return_value=_fake_settings()), patch(
-        "app.infrastructure.llm.client.AsyncOpenAI"
-    ) as mock_openai_cls:
+    with (
+        patch("app.infrastructure.llm.client.get_settings", return_value=_fake_settings()),
+        patch("app.infrastructure.llm.client.AsyncOpenAI") as mock_openai_cls,
+    ):
         mock_client = MagicMock()
         mock_client.chat.completions.create = AsyncMock(side_effect=RuntimeError("provider down"))
         mock_openai_cls.return_value = mock_client
@@ -162,9 +166,10 @@ async def test_chat_with_attached_images_still_returns_response() -> None:
     """Vision routing stub: images present, call still completes."""
     fake_completion = _fake_completion("I see an image")
 
-    with patch("app.infrastructure.llm.client.get_settings", return_value=_fake_settings()), patch(
-        "app.infrastructure.llm.client.AsyncOpenAI"
-    ) as mock_openai_cls:
+    with (
+        patch("app.infrastructure.llm.client.get_settings", return_value=_fake_settings()),
+        patch("app.infrastructure.llm.client.AsyncOpenAI") as mock_openai_cls,
+    ):
         mock_client = MagicMock()
         mock_client.chat.completions.create = AsyncMock(return_value=fake_completion)
         mock_openai_cls.return_value = mock_client

@@ -1,4 +1,5 @@
 """Response envelope helpers per ARCH §5."""
+
 from __future__ import annotations
 
 from typing import Any

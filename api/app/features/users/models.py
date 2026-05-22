@@ -1,4 +1,5 @@
 """User ORM model — lives in the school schema."""
+
 from __future__ import annotations
 
 import enum
@@ -12,6 +13,7 @@ from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7
 
 class UserRole(str, enum.Enum):
     """Six-level role hierarchy per ARCH §6.7."""
+
     PLATFORM_ADMIN = "platform_admin"
     DISTRICT_ADMIN = "district_admin"
     SCHOOL_ADMIN = "school_admin"

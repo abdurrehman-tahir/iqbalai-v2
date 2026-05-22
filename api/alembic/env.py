@@ -23,6 +23,7 @@ if config.config_file_name is not None:
 # (models will be added as features are implemented)
 try:
     from app.db.base import Base
+
     target_metadata = Base.metadata
 except ImportError:
     target_metadata = None

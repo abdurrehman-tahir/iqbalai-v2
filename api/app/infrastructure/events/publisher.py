@@ -3,6 +3,7 @@
 Per ARCH §9: all events use the standard envelope with tenant_id, tenant_type,
 user_id, session_id, occurred_at, event_type, payload.
 """
+
 from __future__ import annotations
 
 import json

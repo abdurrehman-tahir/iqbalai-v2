@@ -5,6 +5,7 @@ Revises: school_0001
 Create Date: 2026-05-20
 
 """
+
 from __future__ import annotations
 
 import sqlalchemy as sa

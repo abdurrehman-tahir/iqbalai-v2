@@ -1,4 +1,5 @@
 """bge-reranker-v2-m3 reranker via Infinity server."""
+
 from __future__ import annotations
 
 import httpx

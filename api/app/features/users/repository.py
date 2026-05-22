@@ -1,4 +1,5 @@
 """User repository — all SQLAlchemy queries for users."""
+
 from __future__ import annotations
 
 import structlog

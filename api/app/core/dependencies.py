@@ -1,4 +1,5 @@
 """Shared FastAPI dependencies — auth, DB session, permission checks."""
+
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator

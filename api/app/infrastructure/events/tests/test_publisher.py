@@ -1,4 +1,5 @@
 """Tests for NATS event publisher per T-012 acceptance criteria."""
+
 from __future__ import annotations
 
 import json
@@ -24,8 +25,13 @@ def test_envelope_contains_all_required_fields() -> None:
         session_id="sess-001",
     )
     required_fields = {
-        "tenant_id", "tenant_type", "user_id", "session_id",
-        "occurred_at", "event_type", "payload",
+        "tenant_id",
+        "tenant_type",
+        "user_id",
+        "session_id",
+        "occurred_at",
+        "event_type",
+        "payload",
     }
     assert required_fields.issubset(envelope.keys())
 
@@ -102,8 +108,9 @@ def _make_nats_mocks(
 async def test_publish_calls_js_publish_with_correct_subject() -> None:
     mock_nc, mock_js = _make_nats_mocks()
 
-    with patch("app.infrastructure.events.publisher.get_settings") as mock_settings, patch(
-        "app.infrastructure.events.publisher.nats.connect", return_value=mock_nc
+    with (
+        patch("app.infrastructure.events.publisher.get_settings") as mock_settings,
+        patch("app.infrastructure.events.publisher.nats.connect", return_value=mock_nc),
     ):
         mock_settings.return_value = MagicMock(NATS_URL="nats://localhost:4222")
         await publish(
@@ -124,8 +131,9 @@ async def test_publish_calls_js_publish_with_correct_subject() -> None:
 async def test_publish_sends_valid_json_bytes() -> None:
     mock_nc, mock_js = _make_nats_mocks()
 
-    with patch("app.infrastructure.events.publisher.get_settings") as mock_settings, patch(
-        "app.infrastructure.events.publisher.nats.connect", return_value=mock_nc
+    with (
+        patch("app.infrastructure.events.publisher.get_settings") as mock_settings,
+        patch("app.infrastructure.events.publisher.nats.connect", return_value=mock_nc),
     ):
         mock_settings.return_value = MagicMock(NATS_URL="nats://localhost:4222")
         await publish(
@@ -144,8 +152,9 @@ async def test_publish_sends_valid_json_bytes() -> None:
 async def test_publish_closes_nats_connection_on_success() -> None:
     mock_nc, _ = _make_nats_mocks()
 
-    with patch("app.infrastructure.events.publisher.get_settings") as mock_settings, patch(
-        "app.infrastructure.events.publisher.nats.connect", return_value=mock_nc
+    with (
+        patch("app.infrastructure.events.publisher.get_settings") as mock_settings,
+        patch("app.infrastructure.events.publisher.nats.connect", return_value=mock_nc),
     ):
         mock_settings.return_value = MagicMock(NATS_URL="nats://localhost:4222")
         await publish("system.smoke_test", "system.smoke_test", {})
@@ -158,8 +167,9 @@ async def test_publish_closes_nats_connection_on_error() -> None:
     """Connection must be closed even when js.publish raises."""
     mock_nc, _ = _make_nats_mocks(js_publish_side_effect=RuntimeError("nats unavailable"))
 
-    with patch("app.infrastructure.events.publisher.get_settings") as mock_settings, patch(
-        "app.infrastructure.events.publisher.nats.connect", return_value=mock_nc
+    with (
+        patch("app.infrastructure.events.publisher.get_settings") as mock_settings,
+        patch("app.infrastructure.events.publisher.nats.connect", return_value=mock_nc),
     ):
         mock_settings.return_value = MagicMock(NATS_URL="nats://localhost:4222")
         with pytest.raises(RuntimeError, match="nats unavailable"):

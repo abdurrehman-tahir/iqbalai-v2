@@ -1,4 +1,5 @@
 """File upload endpoints per ARCH §11.16."""
+
 from __future__ import annotations
 
 import structlog

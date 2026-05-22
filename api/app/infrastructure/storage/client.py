@@ -1,4 +1,5 @@
 """MinIO / S3-compatible storage client wrapper."""
+
 from __future__ import annotations
 
 import hashlib

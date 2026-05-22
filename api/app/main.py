@@ -1,4 +1,5 @@
 """IqbalAI v2 — FastAPI application factory."""
+
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator

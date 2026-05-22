@@ -1,4 +1,5 @@
 """Structlog configuration + PII scrubbing."""
+
 from __future__ import annotations
 
 import logging
@@ -16,9 +17,7 @@ _PII_PATTERNS = [
 ]
 
 
-def _scrub_pii(
-    logger: object, method: str, event_dict: dict[str, object]
-) -> dict[str, object]:
+def _scrub_pii(logger: object, method: str, event_dict: dict[str, object]) -> dict[str, object]:
     """Remove PII from log events before they are written."""
     message = str(event_dict.get("event", ""))
     for pattern, replacement in _PII_PATTERNS:
@@ -38,9 +37,7 @@ def configure_logging(log_level: str = "INFO") -> None:
             structlog.processors.StackInfoRenderer(),
             structlog.processors.JSONRenderer(),
         ],
-        wrapper_class=structlog.make_filtering_bound_logger(
-            logging.getLevelName(log_level)
-        ),
+        wrapper_class=structlog.make_filtering_bound_logger(logging.getLevelName(log_level)),
         context_class=dict,
         logger_factory=structlog.PrintLoggerFactory(),
         cache_logger_on_first_use=True,

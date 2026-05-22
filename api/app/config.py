@@ -1,4 +1,5 @@
 """Application settings via Pydantic Settings."""
+
 from __future__ import annotations
 
 from functools import lru_cache

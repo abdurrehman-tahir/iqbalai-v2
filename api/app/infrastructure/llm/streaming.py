@@ -1,4 +1,5 @@
 """SSE / async generator helpers for streaming LLM responses."""
+
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator

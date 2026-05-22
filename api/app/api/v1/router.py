@@ -1,4 +1,5 @@
 """API v1 router — mounts all feature routers."""
+
 from __future__ import annotations
 
 from fastapi import APIRouter

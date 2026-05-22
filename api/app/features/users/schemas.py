@@ -1,4 +1,5 @@
 """User Pydantic schemas."""
+
 from __future__ import annotations
 
 from datetime import datetime
@@ -10,6 +11,7 @@ from app.features.users.models import UserRole
 
 class UserRead(BaseModel):
     """User response schema."""
+
     id: str
     authentik_id: str
     email: str
@@ -24,6 +26,7 @@ class UserRead(BaseModel):
 
 class UserCreate(BaseModel):
     """User creation schema (called on first OIDC login)."""
+
     authentik_id: str
     email: str
     display_name: str
@@ -34,6 +37,7 @@ class UserCreate(BaseModel):
 
 class UserUpdate(BaseModel):
     """User update schema."""
+
     display_name: str | None = None
     school_id: str | None = None
     district_id: str | None = None

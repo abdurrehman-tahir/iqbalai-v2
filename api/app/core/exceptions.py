@@ -1,4 +1,5 @@
 """Custom exception classes and FastAPI exception handlers."""
+
 from __future__ import annotations
 
 import structlog
@@ -55,9 +56,7 @@ def setup_exception_handlers(app: FastAPI) -> None:
     """Register all exception handlers on the FastAPI app."""
 
     @app.exception_handler(IqbalAIError)
-    async def iqbalai_error_handler(
-        request: Request, exc: IqbalAIError
-    ) -> JSONResponse:
+    async def iqbalai_error_handler(request: Request, exc: IqbalAIError) -> JSONResponse:
         logger.warning(
             "application_error",
             code=exc.code,
@@ -70,9 +69,7 @@ def setup_exception_handlers(app: FastAPI) -> None:
         )
 
     @app.exception_handler(Exception)
-    async def unhandled_exception_handler(
-        request: Request, exc: Exception
-    ) -> JSONResponse:
+    async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
         logger.error(
             "unhandled_exception",
             exc_type=type(exc).__name__,
@@ -80,7 +77,5 @@ def setup_exception_handlers(app: FastAPI) -> None:
         )
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            content=_error_envelope(
-                "INTERNAL_SERVER_ERROR", "An unexpected error occurred"
-            ),
+            content=_error_envelope("INTERNAL_SERVER_ERROR", "An unexpected error occurred"),
         )

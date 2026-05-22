@@ -1,4 +1,5 @@
 """BGE-M3 embedder via Infinity server."""
+
 from __future__ import annotations
 
 import httpx

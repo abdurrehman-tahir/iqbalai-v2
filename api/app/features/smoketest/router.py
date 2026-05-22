@@ -3,6 +3,7 @@
 These endpoints exist purely for M-00 acceptance testing.
 They will be removed or gated behind platform_admin in M-01.
 """
+
 from __future__ import annotations
 
 import structlog
@@ -19,6 +20,7 @@ async def smoketest_rag(body: dict[str, str]) -> dict[str, object]:
     query = body.get("query", "sample")
     # Import inline to avoid circular imports during app init
     from app.infrastructure.rag.retriever import retrieve
+
     try:
         # Try to retrieve — will return [] if collection doesn't exist yet
         chunks = await retrieve(query, collection_name="curriculum")
@@ -32,6 +34,7 @@ async def smoketest_llm(body: dict[str, str]) -> dict[str, object]:
     """Run a sample LLM call."""
     prompt = body.get("prompt", "Say hello in one sentence.")
     from app.infrastructure.llm.client import chat
+
     try:
         response = await chat(
             messages=[{"role": "user", "content": prompt}],

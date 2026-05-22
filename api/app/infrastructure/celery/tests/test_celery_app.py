@@ -1,4 +1,5 @@
 """Tests for Celery configuration and smoke task per T-011 acceptance criteria."""
+
 from __future__ import annotations
 
 from app.infrastructure.celery.celery_app import celery_app, configure_celery

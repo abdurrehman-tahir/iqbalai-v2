@@ -1,4 +1,5 @@
 """SQLAlchemy declarative base + shared mixins."""
+
 from __future__ import annotations
 
 import uuid

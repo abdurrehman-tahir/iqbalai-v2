@@ -1,4 +1,5 @@
 """SQLAlchemy async engine."""
+
 from __future__ import annotations
 
 from sqlalchemy.ext.asyncio import AsyncEngine, create_async_engine

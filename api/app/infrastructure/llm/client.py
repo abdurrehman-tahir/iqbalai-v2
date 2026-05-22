@@ -3,6 +3,7 @@
 Per ARCH §8.1: every LLM call goes through this module. Never import openai,
 groq, anthropic, or any provider SDK outside this file and its providers/ submodule.
 """
+
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator

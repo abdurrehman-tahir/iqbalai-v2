@@ -3,6 +3,7 @@
 Per ARCH §10: four queues (default, ingestion, ml, notifications),
 tenant_task decorator, Redis broker.
 """
+
 from __future__ import annotations
 
 import structlog

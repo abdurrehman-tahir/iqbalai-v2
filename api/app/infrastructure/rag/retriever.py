@@ -1,4 +1,5 @@
 """Qdrant hybrid retriever (dense + sparse via BGE-M3)."""
+
 from __future__ import annotations
 
 import structlog
@@ -43,10 +44,7 @@ async def retrieve(
             limit=top_k,
             with_payload=True,
         )
-        items = [
-            {"id": str(r.id), "score": r.score, "payload": r.payload or {}}
-            for r in results
-        ]
+        items = [{"id": str(r.id), "score": r.score, "payload": r.payload or {}} for r in results]
         logger.debug("qdrant_retrieved", collection=collection_name, count=len(items))
         return items
     except Exception as exc:

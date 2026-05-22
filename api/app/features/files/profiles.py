@@ -3,6 +3,7 @@
 Each profile defines: allowed MIME types, magic bytes, max size, bucket, key prefix.
 New profiles are added here as features land (one profile per upload surface).
 """
+
 from __future__ import annotations
 
 from dataclasses import dataclass

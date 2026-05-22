@@ -1,4 +1,5 @@
 """JWT validation primitives."""
+
 from __future__ import annotations
 
 import structlog
