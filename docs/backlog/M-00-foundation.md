@@ -526,8 +526,9 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 - N/A (infra)
 
 ### ARCH source
-- `WORKFLOW.md` §3.0+ (CI requirements)
+- `WORKFLOW.md` §0 + §2.x (CI requirements)
 - `BRANCHING.md` (CI must be green before merge)
+- `.claude/CLAUDE.md` "CI invariants (non-negotiable)" — **this CI config MUST satisfy every invariant listed there**
 
 ### Depends on
 - T-001 (repo), T-006 (API skeleton), T-009 (frontend skeleton)
@@ -543,6 +544,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 3. [ ] PR with alembic head conflict fails the validation
 4. [ ] Docs-only PR (`docs/**` paths only) skips code checks per BRANCHING.md §8.1
 5. [ ] Staging branch protected — no direct push allowed; only PR merges
+6. [ ] Every lint/test/type/coverage job installs dev deps before invoking the tool (CLAUDE.md CI invariant 1); job command names match `pyproject.toml` + `frontend/package.json` exactly (invariant 2); frontend jobs guard on `frontend/` via a post-checkout detect step, not job-level `hashFiles` (invariant 4)
 
 ### Out of scope
 
