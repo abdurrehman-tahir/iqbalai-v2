@@ -38,7 +38,7 @@ async def retrieve(
 
     client = _get_client()
     try:
-        results = await client.search(
+        results = await client.search(  # type: ignore[attr-defined]
             collection_name=collection_name,
             query_vector=query_vector,
             limit=top_k,

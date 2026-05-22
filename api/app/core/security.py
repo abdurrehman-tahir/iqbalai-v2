@@ -21,7 +21,7 @@ def decode_jwt(token: str) -> dict[str, object] | None:
     try:
         claims: dict[str, object] = jwt.decode(
             token,
-            settings.OIDC_JWKS_URL,  # type: ignore[arg-type]
+            settings.OIDC_JWKS_URL,
             algorithms=["RS256"],
             options={"verify_aud": False},  # TODO: enable when OIDC fully wired
         )

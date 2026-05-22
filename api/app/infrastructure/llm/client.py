@@ -115,7 +115,7 @@ async def stream_chat(
             max_tokens=max_tokens,
             stream=True,
         )
-        async for chunk in stream:
+        async for chunk in stream:  # type: ignore[union-attr]
             delta = chunk.choices[0].delta.content
             if delta:
                 yield delta

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import logging
 import re
+from typing import Any, MutableMapping
 
 import structlog
 
@@ -17,7 +18,9 @@ _PII_PATTERNS = [
 ]
 
 
-def _scrub_pii(logger: object, method: str, event_dict: dict[str, object]) -> dict[str, object]:
+def _scrub_pii(
+    logger: Any, method: str, event_dict: MutableMapping[str, Any]
+) -> MutableMapping[str, Any]:
     """Remove PII from log events before they are written."""
     message = str(event_dict.get("event", ""))
     for pattern, replacement in _PII_PATTERNS:

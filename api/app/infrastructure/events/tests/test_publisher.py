@@ -66,7 +66,7 @@ def test_envelope_payload_is_passed_through() -> None:
 
 def test_envelope_occurred_at_is_utc_iso_format() -> None:
     envelope = _build_envelope("evt", {}, tenant_id="", tenant_type="school", user_id="")
-    occurred_at: str = envelope["occurred_at"]  # type: ignore[assignment]
+    occurred_at: str = envelope["occurred_at"]
     # Must be parseable and timezone-aware (ends with +00:00 or Z)
     assert "T" in occurred_at
     assert occurred_at.endswith("+00:00") or occurred_at.endswith("Z")

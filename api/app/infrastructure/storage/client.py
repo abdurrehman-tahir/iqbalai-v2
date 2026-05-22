@@ -57,7 +57,7 @@ def download_bytes(bucket: str, key: str) -> bytes:
     """Download an object from MinIO as bytes."""
     client = get_s3_client()
     response = client.get_object(Bucket=bucket, Key=key)
-    return response["Body"].read()
+    return bytes(response["Body"].read())
 
 
 def delete_object(bucket: str, key: str) -> None:

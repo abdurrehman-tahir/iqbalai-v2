@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from collections.abc import Awaitable, Callable
+
 import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
@@ -35,9 +37,11 @@ class AuthMiddleware(BaseHTTPMiddleware):
     On failure: returns 401 JSON error envelope immediately.
     """
 
-    async def dispatch(self, request: Request, call_next: object) -> Response:
+    async def dispatch(
+        self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
+    ) -> Response:
         if request.url.path in PUBLIC_PATHS:
-            return await call_next(request)  # type: ignore[operator]
+            return await call_next(request)
 
         authorization = request.headers.get("Authorization", "")
         if not authorization.startswith("Bearer "):
@@ -65,4 +69,4 @@ class AuthMiddleware(BaseHTTPMiddleware):
             )
 
         request.state.claims = claims
-        return await call_next(request)  # type: ignore[operator]
+        return await call_next(request)

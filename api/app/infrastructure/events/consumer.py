@@ -28,7 +28,7 @@ async def consume(
     nc = await nats.connect(settings.NATS_URL)
     js = nc.jetstream()
 
-    async def _message_handler(msg: nats.aio.client.Msg) -> None:
+    async def _message_handler(msg: Any) -> None:
         try:
             envelope = json.loads(msg.data.decode())
             logger.debug("event_received", subject=subject, event_type=envelope.get("event_type"))
