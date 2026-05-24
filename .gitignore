@@ -152,3 +152,4 @@ secrets/
 
 # ---------- Generated ----------
 *.generated.*
+celerybeat-schedule
