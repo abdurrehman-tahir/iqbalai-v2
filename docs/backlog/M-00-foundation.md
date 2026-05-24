@@ -46,6 +46,7 @@ Initialize the monorepo. Create folder structure per ARCH §2: `api/` (FastAPI b
 3. [ ] Bootstrap contents (this `docs/` folder) committed
 4. [ ] `.github/PULL_REQUEST_TEMPLATE.md` exists per WORKFLOW.md §1.3 (PR description format) + .github/PULL_REQUEST_TEMPLATE.md
 5. [ ] `.gitignore` excludes `node_modules`, `.env`, `__pycache__`, `.venv`, `*.pyc`, `dist/`, `build/`
+6. [ ] `pyproject.toml` defines `[tool.ruff]` (line-length 100, double quotes, isort first-party `app`) + `[tool.mypy]` strict, with ruff/mypy versions matching `.pre-commit-config.yaml` exactly (STACK_LOCK §8 pinned versions); `frontend/.prettierrc` present. These are the authoritative format/lint config — identical config + versions across pre-commit, `uv run`, and CI (CLAUDE.md CI invariant 6).
 
 ### Out of scope for this ticket
 
@@ -545,6 +546,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 4. [ ] Docs-only PR (`docs/**` paths only) skips code checks per BRANCHING.md §8.1
 5. [ ] Staging branch protected — no direct push allowed; only PR merges
 6. [ ] Every lint/test/type/coverage job installs dev deps before invoking the tool (CLAUDE.md CI invariant 1); job command names match `pyproject.toml` + `frontend/package.json` exactly (invariant 2); frontend jobs guard on `frontend/` via a post-checkout detect step, not job-level `hashFiles` (invariant 4)
+7. [ ] ruff/mypy/prettier versions in CI equal those in `.pre-commit-config.yaml` and `pyproject.toml` (CLAUDE.md CI invariant 6 + STACK_LOCK §8) — verified: running the format gate locally produces no diff that CI would then flag
 
 ### Out of scope
 

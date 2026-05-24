@@ -178,7 +178,18 @@ The `phase-complete-review` skill compares declared "Sections read" against the 
 
 Read it. Add it to your "Sections read" list. The point isn't to read less; it's to read only what's needed and declare it.
 
-### 1.7 Conventional Commits per ticket
+### 1.7 Format gate — run before every commit
+
+Before committing a ticket's work, run the SAME format/lint/type commands CI runs, and commit the settled output (per CLAUDE.md "Format gate"):
+
+```bash
+uv run ruff format . && uv run ruff check --fix . && uv run mypy --strict app/
+# + pnpm --dir frontend format && pnpm --dir frontend lint   (if frontend changed)
+```
+
+Because pre-commit, `uv run`, and CI all pin the same tool versions + config (STACK_LOCK §8), passing this gate locally means CI's format/lint checks pass. Never commit code "blind" and let CI surface formatting — that creates rework. Never use `git commit --no-verify`.
+
+### 1.8 Conventional Commits per ticket
 
 Commit per ticket with conventional commit messages:
 

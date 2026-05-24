@@ -112,14 +112,31 @@ When the user asks for a feature:
 3. **Edit, don't wholesale-replace.** Never regenerate `.github/workflows/*.yml` from scratch. Amend the existing file. Wholesale regeneration is how invariants silently get dropped.
 4. **Frontend jobs guard on `frontend/` existing** via a post-checkout detect step that sets an output, NOT a job-level `if: hashFiles(...)` (which fails to parse — `hashFiles` is unavailable before checkout). Gate the real steps on the detect output.
 5. **Any CI change is called out in the PR description.** If a PR touches `.github/workflows/`, say so explicitly and state what changed and why.
+6. **Lint/format/type tool versions are identical across pre-commit, `uv run`, and CI.** The ruff / mypy / prettier versions pinned in `.pre-commit-config.yaml`, resolved by `uv run` (via `pyproject.toml`), and used in CI MUST be the same (per STACK_LOCK §8). A version mismatch means local autofix and CI disagree on formatting → the write→CI-fail→reformat churn loop. If you bump a tool version, bump it in all three places in the same PR.
 
 ## Coding conventions
 
-- **Python:** Python 3.12, async/await everywhere, type hints on every function signature, Pydantic v2 for all I/O models. Format with `ruff format`. Lint with `ruff check`. Type-check with `mypy --strict`.
-- **TypeScript:** strict mode, no `any`, prefer functional components, hooks for state, server components by default in Next.js App Router.
+- **Python:** Python 3.12, async/await everywhere, type hints on every function signature, Pydantic v2 for all I/O models. Format with `ruff format`. Lint with `ruff check`. Type-check with `mypy --strict`. **Concrete style (write to these so the formatter barely changes your output):** line length 100; double quotes; sorted imports (ruff isort, first-party `app`); trailing commas in multi-line collections; no `print()` (use `structlog`). The authoritative rule set + tool versions live in `pyproject.toml` and are pinned identically to `.pre-commit-config.yaml` and CI (see STACK_LOCK §8) — when in doubt, run the format gate below and let it settle.
+- **TypeScript:** strict mode, no `any`, prefer functional components, hooks for state, server components by default in Next.js App Router. Format with `prettier`; lint with `eslint`.
 - **File naming:** snake_case for Python files, kebab-case for TypeScript files, PascalCase for React components.
 - **Folder structure:** locked in `docs/ARCHITECTURE.md` §2. Don't create new top-level folders without asking.
 - **Tests:** pytest for backend, with at minimum a happy-path test and one failure-mode test per service function. Coverage target 70% for `app/features/<feature>/`.
+
+## Format gate — run before EVERY commit (non-negotiable)
+
+Code is written *to* the rules and formatted *before* committing — never written blind and reformatted after CI fails. Before every commit, run the SAME commands CI runs, in this order, and commit the settled result:
+
+```bash
+# Backend
+uv run ruff format .
+uv run ruff check --fix .
+uv run mypy --strict app/
+# Frontend (if frontend/ changed)
+pnpm --dir frontend format
+pnpm --dir frontend lint
+```
+
+Because `pyproject.toml`, `.pre-commit-config.yaml`, and CI all pin the **same** ruff/mypy/prettier versions + config (STACK_LOCK §8), the output of these commands is byte-identical to what CI checks — so if the gate passes locally, CI's format/lint checks pass. Pre-commit hooks run the same tools on `git commit`; do NOT bypass them with `--no-verify`. If you ever see CI reformat code that passed locally, the versions have drifted — fix the version alignment, don't hand-patch the formatting.
 
 ## Git workflow
 
@@ -179,7 +196,8 @@ Just do these. They're table stakes.
 
 - **No hallucinated APIs.** If you don't know how a library works, read the docs or ask the user. Do not invent function signatures.
 - **No "TODO" placeholders in committed code.** If you can't implement something now, raise the gap in the PR description and let the user decide.
-- **No commented-out code.** If it's not used, delete it.
+- **No commented-out code.** Dead code that's been replaced or disabled must be deleted, not left commented.
+- **Comment the *why*, not the *what* — and comments are encouraged where they help.** Add comments at the places they genuinely add value: non-obvious decisions and trade-offs, edge-case or gotcha warnings, section dividers in long config/YAML files (e.g. `ci.yml`, `docker-compose.yml`), and references to the governing ticket / spec / ARCHITECTURE § that drove a choice. Do NOT add noise comments that merely restate what the next line obviously does. **Critically: never strip existing explanatory or section comments as a side effect of an unrelated change** (e.g. a CI fix must not delete the section-divider comments in the workflow). Only remove a comment when the code it described is itself gone. A blanket "no comments" stance is wrong — under-commenting non-obvious logic is as much a defect as over-commenting the obvious.
 - **No `print()` for debugging.** Use `structlog` per ARCHITECTURE.md §16.6.
 - **No silently catching exceptions.** Log + re-raise, or handle deliberately with a comment explaining why.
 - **No bypassing the LLM abstraction.** All LLM calls go through `app/infrastructure/llm/client.py`. Never `import openai`, `import anthropic`, `import groq` outside that file.

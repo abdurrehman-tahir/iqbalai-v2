@@ -278,6 +278,19 @@ These are external services. The application must work without them — degrade 
 | PR template | `.github/PULL_REQUEST_TEMPLATE.md` | — | Auto-filled by `phase-complete-review` skill. |
 | Skills | `.claude/skills/` | — | `stack-enforcer`, `frontend-master`, `phase-complete-review`. |
 
+### Pinned tool versions (single source of truth)
+
+Lint/format/type tools are pinned to ONE version each, used identically in `.pre-commit-config.yaml`, `pyproject.toml` (`uv run`), and CI. This alignment is mandatory (CLAUDE.md CI invariant 6) — drift causes the write→CI-fail→reformat loop.
+
+| Tool | Pinned version | Config home | Used by |
+|---|---|---|---|
+| ruff (lint + format) | **0.6.9** | `[tool.ruff]` in `pyproject.toml` (authoritative rules) | pre-commit, `uv run ruff`, CI |
+| mypy (strict) | **1.11.2** | `[tool.mypy]` in `pyproject.toml` | pre-commit, `uv run mypy`, CI |
+| prettier | **mirrors-prettier v4.0.0-alpha.8** (frontend) | `frontend/.prettierrc` | pre-commit, `pnpm format`, CI |
+| pre-commit framework | per `.pre-commit-config.yaml` | repo root | local + CI (`pre-commit run`) |
+
+**Canonical ruff config** (`[tool.ruff]`): `line-length = 100`, double quotes, isort with first-party `app`, the rule set declared in `pyproject.toml`. When bumping any version, bump it in all three locations in the same PR.
+
 ---
 
 ## 9. Forbidden imports (machine-enforced)
