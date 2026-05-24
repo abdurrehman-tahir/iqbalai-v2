@@ -45,7 +45,7 @@ def configure_celery(broker_url: str, result_backend: str) -> None:
     )
 
 
-@task_failure.connect  # type: ignore[untyped-decorator]
+@task_failure.connect  # type: ignore[misc]
 def on_task_failure(
     task_id: str,
     exception: Exception,
@@ -62,7 +62,7 @@ def on_task_failure(
     )
 
 
-@task_success.connect  # type: ignore[untyped-decorator]
+@task_success.connect  # type: ignore[misc]
 def on_task_success(
     result: object,
     sender: object,

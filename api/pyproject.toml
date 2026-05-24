@@ -28,16 +28,22 @@ dev = [
     "pytest>=8.2.0",
     "pytest-asyncio>=0.23.0",
     "pytest-cov>=5.0.0",
-    "mypy>=1.10.0",
-    "ruff>=0.4.0",
+    "mypy==1.11.2",
+    "ruff==0.6.9",
 ]
 
 [tool.ruff]
 line-length = 100
 target-version = "py312"
 
+[tool.ruff.format]
+quote-style = "double"
+
 [tool.ruff.lint]
 select = ["E", "F", "I"]
+
+[tool.ruff.lint.isort]
+known-first-party = ["app"]
 
 [tool.mypy]
 strict = true
@@ -48,6 +54,12 @@ python_version = "3.12"
 # warn_unused_ignores is suppressed here so the # type: ignore[attr-defined] on that
 # call doesn't cause a false "unused" error in envs where qdrant-client isn't installed.
 module = "app.infrastructure.rag.retriever"
+warn_unused_ignores = false
+
+[[tool.mypy.overrides]]
+# openai's create() messages param + streaming union-attr need type: ignore when openai
+# is installed (CI), but those ignores appear unused locally (no openai in dev venv).
+module = "app.infrastructure.llm.client"
 warn_unused_ignores = false
 
 [tool.pytest.ini_options]
