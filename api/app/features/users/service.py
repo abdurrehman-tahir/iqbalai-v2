@@ -17,12 +17,15 @@ class UserService:
     def __init__(self, session: AsyncSession) -> None:
         self._repo = UserRepository(session)
 
-    async def get_or_create_from_jwt(self, claims: dict[str, object]) -> User:
-        """Upsert a user record from JWT claims on first OIDC login."""
+    async def get_or_create_from_jwt(self, claims: dict[str, object]) -> tuple[User, bool]:
+        """Upsert a user record from JWT claims on first OIDC login.
+
+        Returns (user, is_first_login). is_first_login=True when a new row was created.
+        """
         authentik_id = str(claims.get("sub", ""))
         existing = await self._repo.get_by_authentik_id(authentik_id)
         if existing:
-            return existing
+            return existing, False
 
         user = User(
             authentik_id=authentik_id,
@@ -34,4 +37,8 @@ class UserService:
         )
         created = await self._repo.create(user)
         logger.info("user_created", user_id=created.id, role=created.role.value)
-        return created
+        return created, True
+
+    async def get_me(self, authentik_id: str) -> User | None:
+        """Return the User record for the currently authenticated user."""
+        return await self._repo.get_by_authentik_id(authentik_id)
