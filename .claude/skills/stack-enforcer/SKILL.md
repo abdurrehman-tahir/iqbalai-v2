@@ -3,11 +3,13 @@ name: stack-enforcer
 description: |
   Validate that backend code complies with STACK_LOCK.md (allowed libraries, forbidden
   imports, layer-purity rules) and ARCHITECTURE.md (no bypassing the LLM / voice / RAG /
-  events / storage / cache abstractions). Use this skill before writing or modifying any
-  Python file under api/app/, before adding a dependency, before importing anything that
-  touches an external service, and before opening a PR that includes backend changes.
-  Trigger whenever Hamza or another contributor asks Claude Code to "add a feature",
-  "write an endpoint", "make a Celery task", "add a NATS event", "add a database table",
+  events / storage / cache abstractions). Load this skill ONLY when the change matches at
+  least one of: (a) adds or modifies a Python import that resolves OUTSIDE the standard
+  library; (b) adds a new dependency to pyproject.toml; (c) touches any file under
+  api/app/infrastructure/{rag,ml,llm,voice,storage,events,cache}/. Do NOT load it for
+  routine route/repo/schema/test files that only use the standard library + already-
+  approved dependencies — pre-commit check_imports.py + check_stack_lock.py + CI catch
+  forbidden imports regardless, so a missed trigger costs a re-commit, not a shipped bug.
   "fix this import error", or any backend-coding action — even when the request doesn't
   explicitly mention the stack. Triggers also on phrases like "use openai", "use groq",
   "import from langchain", "talk to redis", or any direct mention of a third-party library.

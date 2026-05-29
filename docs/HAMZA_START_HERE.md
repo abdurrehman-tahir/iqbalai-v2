@@ -37,6 +37,12 @@ Then skim:
 
 ---
 
+## 1.1 Claude Code model + effort settings (one-time)
+
+Use **Opus 4.8** as your default model (`/model claude-opus-4-8` in Claude Code). It's a drop-in replacement for 4.7 at the same price, with two things that matter for our workflow: (a) it's roughly 4× less likely to let flaws in its own code slip past unmentioned — it surfaces uncertainty instead of confidently guessing — which fits the new "flag uncertainty rather than guess" rule in `.claude/CLAUDE.md`; (b) better agentic coding, especially on multi-file vertical slices (i.e. our tickets). Leave Claude Code on its default effort level for routine tickets. For genuinely hard tickets — RAG pipelines, complex migrations, anything touching `app/infrastructure/{rag,ml,llm,voice}/`, or the heaviest tickets in M-09+ (e.g. T-116, T-121) — use `/effort xhigh` at the start of the session for that ticket; revert afterwards. Skip Claude Code's `/fast` mode for our work — speed isn't worth the quality drop on architecture-critical code.
+
+---
+
 ## 2. The loop you'll repeat for every milestone
 
 ```

@@ -7,7 +7,12 @@ description: |
   by default with "use client" pushed down, TanStack Query for server state, react-hook-form
   with Zod for forms, Zustand only when justified, shadcn/ui primitives only, RTL-aware
   logical Tailwind utilities (me-/ms-/text-start), performance budgets, next/image, and
-  responsiveness across all viewport sizes from 320px (small Android phone) to 2560px+
+  responsiveness across all viewport sizes from 320px (small Android phone) to 2560px+.
+  Load this skill ONLY when working on .tsx files under frontend/src/ AND the change is
+  one of: a form, a data-fetching component, an accessibility-sensitive interaction, a new
+  visible page or screen, or adding a frontend dependency. Do NOT load it for trivial
+  label/copy/text edits, prop renames, simple style-token swaps, or test-only changes —
+  those go straight through pre-commit + CI.
   (large desktop) with WCAG 2.5.5 touch targets (≥44×44px). Use this skill before writing
   ANY .tsx file under frontend/src/, before adding a frontend dependency, before writing
   a form, before writing a component that fetches data, before adding a new page/route.
