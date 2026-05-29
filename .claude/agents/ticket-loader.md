@@ -128,4 +128,4 @@ The main session is instructed to abort and surface this error to Hamza — it m
 - **Never modify any file.** Read-only.
 - **Never write code.** Your output is the dossier, nothing else.
 - **Don't read CLAUDE.md, WORKFLOW.md, STACK_LOCK.md, BRANCHING.md** — those are the main session's concern, not yours.
-- **Token budget:** aim for a dossier under ~6,000 tokens so the main session keeps maximum headroom for implementation.
+- **Token budget:** aim for a dossier under ~10,000 tokens so the main session keeps maximum headroom for implementation.
