@@ -7,16 +7,7 @@
 
 This document defines the **only** way we move from the v2 product doc to merged code in `staging`. Every milestone of v2 follows this exact loop. No skipping steps.
 
-If you (Claude Code) are reading this for the first time in a session, also read:
-- `docs/STACK_LOCK.md` — what tools we use
-- `docs/ARCHITECTURE.md` **§0 Quick Index** — task → required sections lookup (**always read §0; never read all of ARCHITECTURE.md**)
-- `docs/DEVIATIONS.md` — pre-approved exceptions
-- `docs/AMENDMENTS.md` — architecture decisions that changed after launch
-- `docs/BRANCHING.md` — branch + PR rules
-- `docs/ENV_VARS.md` — canonical env var reference
-- `.claude/CLAUDE.md` — your behavioral instructions
-- `docs/backlog/README.md` — the implementation backlog system
-- `docs/backlog/ROADMAP.md` — milestone overview, current state
+If you (Claude Code) are reading this for the first time in a session, the read-rules live in `.claude/CLAUDE.md` (auto-loaded). Do NOT pre-load reference docs from this file — `CLAUDE.md` has the conditional-trigger table.
 
 **The §0 rule (enforced):** ARCHITECTURE.md is ~9,800 lines. You read **§0 + only the sections §0 lists for your task** — nothing else unless you follow an explicit cross-reference. Every PR description must list which sections were read; mismatch with the code changes is a PR-blocker.
 

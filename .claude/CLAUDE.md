@@ -18,32 +18,55 @@ If your task isn't in §0.1: read §0.2 (it tells you what to do). Often the ans
 
 ## The three project skills — when each fires
 
-Three skills are installed at `.claude/skills/`. Each has a YAML-frontmatter description that tells you when to apply it. Read the SKILL.md when its trigger conditions match what you're doing.
+Three skills are installed at `.claude/skills/`. **Skills are heavy — read each SKILL.md ONLY when its narrow trigger truly fires.** Pre-commit hooks + CI catch any forbidden imports / stack violations regardless, so a missed trigger costs a re-commit, not a shipped bug.
 
-| Skill | Apply when |
+| Skill | Apply ONLY when |
 |---|---|
-| **stack-enforcer** | Before writing or modifying ANY backend Python file under `api/app/`, before adding a dependency, before importing anything that touches an external service. Catches forbidden imports, layer-purity violations, and abstraction bypasses. |
-| **frontend-master** | Before writing or modifying ANY `.tsx` file under `frontend/src/`, before adding a frontend dependency, before writing a form, before any data-fetching component. Enforces the four UI states, accessibility, design tokens, i18n keys, Server-Component-first, RTL-aware utilities. |
-| **phase-complete-review** | At the END of feature implementation, BEFORE opening a PR for Abd.'s review. Audits the PR's declared "Sections read" against the actual file changes, then runs section-specific checklists (multi-tenancy, schema, API design, auth, RAG, LLM, events, tasks, uploads, frontend, observability, deployment). |
+| **stack-enforcer** | The change does **at least one** of: (a) adds/modifies a Python import that resolves OUTSIDE the standard library; (b) adds a new dependency to `pyproject.toml`; (c) touches any file under `app/infrastructure/{rag,ml,llm,voice,storage,events,cache}/`. Do NOT load it for routine route/repo/schema/test files that only use standard library + already-approved deps. |
+| **frontend-master** | The change touches `.tsx` under `frontend/src/` AND is doing one of: writing a form, a data-fetching component, an accessibility-sensitive interaction, a new visible page/screen, or adding a frontend dependency. Trivial label/text edits do NOT trigger it. |
+| **phase-complete-review** | At PR time only. Prefer invoking the `pre-pr-reviewer` sub-agent (see "Sub-agents" below) so this 448-line skill runs in its own context, not the main session. |
 
 **Skill priority over body rules:** when the body of this CLAUDE.md and a skill's SKILL.md both speak to the same concern, the skill's guidance is more specific and wins. The body rules below remain in force as the default; the skills add depth.
 
-## Critical: read these BEFORE writing any code
+## Sub-agents — your first action on any ticket
 
-Before generating any code, before scaffolding, before installing any package, you MUST read:
+Claude Code can spawn **sub-agents** that run in their own context window and return only a compact result to this main session. Use them to keep the main context lean. The agents live in `.claude/agents/`.
 
-1. **`docs/STACK_LOCK.md`** — The non-negotiable technology stack. Every library, service, and tool you use must appear here. If a library is not in `STACK_LOCK.md`, you are forbidden from using it unless an explicit deviation exists in `docs/DEVIATIONS.md`.
-2. **`docs/ARCHITECTURE.md` §0 Quick Index** — then the specific sections §0 lists for your task. **Never read the full file.** If a section is needed because of a cross-reference, read that one too.
-3. **`docs/WORKFLOW.md`** — **The only way features get built.** Every milestone follows this exact loop: pull latest → pick milestone → implement ticket-by-ticket → milestone PR + demo. **Tickets atomize the work — no feature is built outside its ticket.**
-4. **`docs/DEVIATIONS.md`** — Approved exceptions to `STACK_LOCK.md`. Read this to know what's been pre-approved.
-5. **`docs/AMENDMENTS.md`** — Architecture decisions that have been **changed** since launch. If something in ARCHITECTURE.md is amended, this file says so. **Always check AMENDMENTS.md before treating an ARCHITECTURE.md section as authoritative.**
-6. **`docs/feature-specs/<flow>.md`** — When implementing or modifying a feature, the business rules live here, organized by FLOW (not per individual feature). A ticket cites which flow + section. **If the cited flow spec doesn't exist, STOP** — the ticket is blocked. See `docs/feature-specs/README.md` for the system.
-7. **`docs/backlog/`** — The implementation backlog. Tickets are the unit of work. Hamza asks you to implement a specific ticket (T-NNN); you read the ticket's `Spec source:` + `ARCH source:` citations and implement. See `docs/backlog/README.md`.
-8. **`docs/BRANCHING.md`** — How branches, PRs, and merges work. Follow exactly.
-9. **`docs/TODO.md`** — Deferred work. Anything explicitly deferred lives here. Do not implement deferred items unless explicitly asked.
-10. **`docs/ENV_VARS.md`** — Canonical env var reference. Before introducing a new env var, check here. New env vars require an entry in this file + `api/app/config.py` + `.env.example`.
+**MANDATORY first action when implementing any ticket:** when Hamza says any variant of `"Implement T-XXX"` (with or without a milestone path), your FIRST action — before any file read, any plan, any code — is to invoke the **`ticket-loader`** sub-agent:
 
-If any of these files is missing, stop and tell the user. Do not improvise.
+> Use the `ticket-loader` agent to prepare ticket T-XXX.
+
+The sub-agent locates the ticket, reads the cited spec § + cited ARCH §§ in its own context, and returns a compact **Ticket Dossier** (ticket body, rule excerpts, ARCH summaries, deps, acceptance criteria) to you. From that point you work from the dossier. **Reading the full milestone file, the full flow spec, or wide ranges of ARCHITECTURE.md directly in this main session is forbidden** — the only exception is following a specific cross-reference the dossier explicitly flagged. If the dossier is malformed or missing a field, abort and tell Hamza; do not paper over it by reading the source files yourself.
+
+Other available sub-agents (use when relevant):
+
+| Sub-agent | Use when |
+|---|---|
+| `ticket-loader` | MANDATORY first action on any "Implement T-XXX" request (above). |
+
+**Prefer sub-agents / dynamic workflows for parallel exploration.** Opus 4.8 ships with dynamic workflows in Claude Code — if a task has multiple independent searches, audits, or extractions to do (e.g. "find every place a deprecated API is used," "verify acceptance items 1-8 in parallel"), spawn sub-agents/workflows instead of doing them serially in the main session. Each sub-agent runs in its own context and returns only the result.
+
+## Session-state recovery (compaction)
+
+This main session may be auto-compacted mid-work. To recover cleanly without re-reading everything, maintain `.claude/session-state.md` — a short file (≤30 lines) you update after each meaningful step (ticket loaded, file edited, tests written, commit made). Format: current ticket ID, status, last file edited, next intended step, dossier-source list. After a compaction, read this file first; it replaces the need to re-fetch the milestone/spec/ARCH from scratch.
+
+## What to read — and when (conditional, not pre-loaded)
+
+The ONLY files you load at session start are this CLAUDE.md (auto) and `docs/ARCHITECTURE.md` §0 (the task→sections quick-index). Every other reference doc is loaded **conditionally**, the moment its concern triggers — never pre-emptively. This keeps the main context lean and is essential for fitting a milestone's worth of tickets in one Claude Code session.
+
+| File | Read only when |
+|---|---|
+| `docs/STACK_LOCK.md` | About to add/modify a dependency, an import touching an external service, or any change under `app/infrastructure/{rag,ml,llm,voice,storage,events,cache}/`. Otherwise: don't load it. (Pre-commit `check_imports.py` + `check_stack_lock.py` enforce it on every commit regardless.) |
+| `docs/WORKFLOW.md` | Hamza's very first day, OR you can't recall a specific process step. The day-to-day loop is summarized in this CLAUDE.md ("Workflow you must follow" below). Don't reload WORKFLOW per ticket. |
+| `docs/DEVIATIONS.md` | You're reading STACK_LOCK and you notice a possible deviation. Otherwise skip. |
+| `docs/AMENDMENTS.md` | About to follow an ARCH § as authoritative — sanity-check it isn't amended. Use grep for the §-number rather than reading the whole file. |
+| `docs/BRANCHING.md` | At PR time, or naming a feature branch. |
+| `docs/ENV_VARS.md` | About to add or use a new env var. |
+| `docs/TODO.md` | A feature seems missing or deferred — confirm before improvising. |
+| `docs/feature-specs/<flow>.md` | The dossier (from `ticket-loader`) cites it AND the excerpt the dossier returned is insufficient — read only the cited section via line-range, never the whole file. |
+| `docs/backlog/M-NN-*.md` | The `ticket-loader` sub-agent reads this for you. Reading it directly in the main session is forbidden (see "Sub-agents" below). |
+
+**ARCHITECTURE.md is governed separately by the §0 rule above — read §0 + cited §§ only, never the whole file.**
 
 ## Two tenant types — fundamental architecture you must understand
 
@@ -65,15 +88,18 @@ This split affects EVERYTHING:
 
 The unit of work is a **ticket** (T-NNN) inside a **milestone** (M-NN).
 
-1. **Hamza tells you which ticket to implement** (e.g., "Implement T-016 per docs/backlog/M-01-platform-setup.md").
-2. **Read the ticket file** — its `Spec source:` (flow spec sections to read), `ARCH source:` (ARCHITECTURE subsections), `Depends on:` (prior tickets — verify they're done), `Acceptance:` (demo script you must satisfy).
-3. **Read cited sections only** — use line-range `view` for spec sections; never read whole flow specs or whole ARCHITECTURE.md. Per the §0 rule.
-4. **Read relevant skills** — `frontend-master` if the ticket has UI; `stack-enforcer` always; `phase-complete-review` checklist N (spec-set additions) where applicable.
+1. **Hamza tells you which ticket to implement** (e.g., "Implement T-016").
+2. **Your literal first action: invoke the `ticket-loader` sub-agent** with the ticket ID. The sub-agent returns a compact Ticket Dossier (ticket body, cited spec excerpts, ARCH summaries, deps, acceptance). Do NOT read the milestone / spec / ARCH directly in this main session.
+3. **Verify deps:** the dossier lists `Depends on:` — confirm those tickets are marked done before proceeding.
+4. **Read narrow skills only if their trigger fires** (see skill table above). Update `.claude/session-state.md` with the ticket ID + intended next step.
 5. **Implement** — backend + frontend + migrations + tests as the ticket specifies. A ticket is a vertical slice.
-6. **Verify acceptance** — each step in the ticket's `Acceptance:` block must be checkable.
+6. **Verify acceptance** — each item in the dossier's `Acceptance:` block must be checkable.
+7. **Run the format gate before committing** (see "Format gate" below). Then commit per Conventional Commits.
+8. **Update `.claude/session-state.md`** with current status; mark ticket done in the milestone file at milestone close.
 
 **Never:**
 - Implement work without a ticket reference
+- Read whole milestone files, whole flow specs, or wide ARCH ranges in the main session (use `ticket-loader`)
 - Re-read whole ARCHITECTURE.md (use §0 + cited subsections only)
 - Skip writing tests (tests live with the ticket)
 - Modify a spec to match your code (code follows spec; spec changes via Awais + Abd. review first)
@@ -173,7 +199,7 @@ Stop and ask the user when:
 - A pattern in `ARCHITECTURE.md` would need to be **changed** (not just followed) to ship the feature — propose an amendment via `docs/AMENDMENTS.md`.
 - Your task isn't in `ARCHITECTURE.md` §0.1's task table and you're unsure which sections apply.
 - A pre-commit hook fails in a way that suggests the stack itself needs revision (rare).
-- You'd be touching more than 5 files in a single change.
+- You'd be touching more than 5 files in a single change AND the changes are not a single coherent vertical slice already authorised by the ticket (Opus 4.8 self-decides well on coherent changes — don't ask for permission on routine ticket implementation).
 - You'd be modifying `docs/STACK_LOCK.md`, `docs/ARCHITECTURE.md`, `docs/DEVIATIONS.md`, `docs/AMENDMENTS.md`, or `docs/BRANCHING.md`.
 
 ## When NOT to ask
@@ -194,6 +220,8 @@ Just do these. They're table stakes.
 
 ## Behavioral rules
 
+- **Flag uncertainty rather than guess.** If the ticket dossier, the cited spec, or the cited ARCH section leaves a decision genuinely ambiguous — or you're not confident about an API/signature/edge case — say so explicitly in chat and ask, rather than producing confident code that might be wrong. Opus 4.8 is specifically trained to surface uncertainty; lean into that. Unsupported claims and silently-buggy code are worse than a one-line "I'm not sure about X — confirm before I proceed."
+
 - **No hallucinated APIs.** If you don't know how a library works, read the docs or ask the user. Do not invent function signatures.
 - **No "TODO" placeholders in committed code.** If you can't implement something now, raise the gap in the PR description and let the user decide.
 - **No commented-out code.** Dead code that's been replaced or disabled must be deleted, not left commented.
@@ -204,13 +232,9 @@ Just do these. They're table stakes.
 - **No bypassing the voice abstraction.** All TTS/STT goes through `app/infrastructure/voice/router.py`.
 - **No reading all of ARCHITECTURE.md.** Follow §0.
 
-## Acknowledgment
+## Session start (silent)
 
-When you start a session, your first message should confirm:
-
-> "I've read CLAUDE.md, STACK_LOCK.md, ARCHITECTURE.md §0 (Quick Index), WORKFLOW.md, DEVIATIONS.md, AMENDMENTS.md, BRANCHING.md. For this task ('<task summary>'), §0 directs me to read: [list sections]. If implementing a feature, I'll also read its `docs/feature-specs/<feature>.md`. Reading those now."
-
-Then proceed.
+At session start, this CLAUDE.md auto-loads and you read `docs/ARCHITECTURE.md` §0. **Do NOT print a confirmation message** listing what you read. **Do NOT pre-load** STACK_LOCK / WORKFLOW / DEVIATIONS / AMENDMENTS / BRANCHING / ENV_VARS — load each only when its trigger fires (table above). Wait for Hamza's first ticket instruction, then your literal first action is to invoke the `ticket-loader` sub-agent. After a context compaction, read `.claude/session-state.md` first to recover (do NOT re-fetch the milestone/spec/ARCH from scratch).
 
 ---
 
