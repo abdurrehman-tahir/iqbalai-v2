@@ -20,8 +20,8 @@
 | M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | 2-3 weeks | drafted | Platform Admin triggers AI research; approves; students can select framework |
 | M-08 | Student Mode + Diagnostic + Cognitive DNA seed | 3 | T-101 to T-112 | 2-3 weeks | drafted | Student picks mode, takes diagnostic, cognitive DNA initialized |
 | M-09 | Lecture Wizard + AI Generation (Pattern S RAG) | 4 | T-113 to T-128 | 3-4 weeks | drafted | Teacher generates first lecture; sees streaming output with source badges |
-| M-10 | Lecture Edit + Versions + 7-Dim Scoring | 4 | T-129 to T-140 | 2-3 weeks | todo | Teacher edits lecture; sees score timeline + Innovation Record suggestions |
-| M-11 | Auto-quiz Per Student + Publish Lecture | 4 | T-141 to T-150 | 2 weeks | todo | Lecture publishes; auto-quizzes generate per student; students see quizzes |
+| M-10 | Lecture Edit + Versions + 7-Dim Scoring | 4 | T-129 to T-140 | 2-3 weeks | drafted | Teacher edits lecture; sees score timeline + Innovation Record suggestions |
+| M-11 | Auto-quiz Per Student + Publish Lecture | 4 | T-141 to T-150 | 2 weeks | drafted | Lecture publishes; auto-quizzes generate per student; students see quizzes |
 | M-12 | Lecture Mode Viewer + Highlight + Q&A + Voice | 5 | T-151 to T-165 | 3-4 weeks | todo | Student opens lecture; voice-reads; highlights; asks questions w/ AI answers |
 | M-13 | Hybrid Widget + Multimodal Image + Vision LLM | 5 | T-166 to T-172 | 2 weeks | todo | Student attaches image to question; gets vision-LLM answer |
 | M-14 | Live Feedback Panel + NATS Event Pipeline + Adaptation | 5 | T-173 to T-184 | 2-3 weeks | todo | Live feedback updates; stuck nudge fires; AI adapts angle on repeat |

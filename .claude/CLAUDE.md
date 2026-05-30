@@ -24,7 +24,7 @@ Three skills are installed at `.claude/skills/`. **Skills are heavy — read eac
 |---|---|
 | **stack-enforcer** | The change does **at least one** of: (a) adds/modifies a Python import that resolves OUTSIDE the standard library; (b) adds a new dependency to `pyproject.toml`; (c) touches any file under `app/infrastructure/{rag,ml,llm,voice,storage,events,cache}/`. Do NOT load it for routine route/repo/schema/test files that only use standard library + already-approved deps. |
 | **frontend-master** | The change touches `.tsx` under `frontend/src/` AND is doing one of: writing a form, a data-fetching component, an accessibility-sensitive interaction, a new visible page/screen, or adding a frontend dependency. Trivial label/text edits do NOT trigger it. |
-| **phase-complete-review** | At PR time only. Prefer invoking the `pre-pr-reviewer` sub-agent (see "Sub-agents" below) so this 448-line skill runs in its own context, not the main session. |
+| **phase-complete-review** | At PR time only — load this skill before opening the milestone PR. (It's the heaviest skill at 448 lines; it loads once per milestone at PR time, not per ticket.) |
 
 **Skill priority over body rules:** when the body of this CLAUDE.md and a skill's SKILL.md both speak to the same concern, the skill's guidance is more specific and wins. The body rules below remain in force as the default; the skills add depth.
 
