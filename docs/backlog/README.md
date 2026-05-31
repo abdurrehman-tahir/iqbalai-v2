@@ -104,6 +104,26 @@ Each ticket has this shape:
 - Tickets dependent on unfinalized flow specs are marked `BLOCKED: needs flow-N spec finalized`
 - As Awais reviews + finalizes Flows 7-12, corresponding tickets unblock
 
+### Mandatory pre-draft audit (run BEFORE drafting any milestone)
+
+Drafting a milestone is not allowed to start until this audit has run. It is the mechanism that stops deferred cross-milestone work from being lost. Steps, in order:
+
+1. **Verify sources exist on disk** — the milestone's anchoring flow spec + the ARCHITECTURE §§ its tickets will cite. If the flow spec isn't finalized, the milestone stays `blocked` — do not draft.
+2. **Pull inherited hooks.** `grep -rn "BLOCKED-HOOK" docs/backlog/ docs/feature-specs/_CHANGE_LEDGER.md` and read every hit whose target milestone is the one being drafted. **Each matching hook MUST be folded into this milestone as a real ticket** (or, if consciously re-deferred, re-marked with a new `BLOCKED-HOOK` line pointing at the later milestone — never silently dropped). **Also** `grep -rn "Flow <N>" docs/backlog/` for the flow this milestone implements, to catch forward hooks deferred *before* that flow was drafted (these were never `BLOCKED-HOOK`-tagged because their target was draftable, not blocked — e.g. a "→ Flow 8" hook planted while Flow 8 was still unwritten). Fold those in too.
+3. **Stale-reference pass** — confirm every cited ARCH §/flow § still resolves to the right content (T0-renumbering and post-amendment drift happen); fix or flag mismatches.
+4. **Dependency sanity** — confirm `Depends on:` tickets all exist and precede this milestone; no forward references to unborn tickets.
+5. Only then draft the tickets, append the `_CHANGE_LEDGER` entry, and flip the ROADMAP status to `drafted`.
+
+### Standardized deferral marker (so the audit's grep is reliable)
+
+Whenever a ticket defers work that belongs to a not-yet-draftable milestone, write **exactly** this greppable line in the ticket's `Notes / known gotchas` AND in the milestone's soft-dependency block:
+
+```
+BLOCKED-HOOK: <what is stubbed> → <target flow / milestone> (built against <interim source> for now)
+```
+
+Example (M-11 T-144): `BLOCKED-HOOK: full Cognitive DNA calibration → Flow 9 / M-18 (built against M-08 diagnostic seed for now)`. One consistent phrase means a single `grep -rn "BLOCKED-HOOK"` always finds the complete set — no dedicated index file required.
+
 ---
 
 ## Relationship to other docs

@@ -155,7 +155,7 @@ The milestone PR (Step 2) will list, per ticket completed:
 - [x] Step 3 of demo
 ```
 
-Hamza updates the ticket's status to `done` in the milestone file as each one completes. Commits the change as `chore(backlog): mark T-XXX done`.
+As each ticket completes, its `Status:` is set to `done` in the milestone file **and the commit SHA is recorded on the ticket** (commit the change as `chore(backlog): mark T-XXX done`). This is mandatory per ticket, not deferred to milestone close — the milestone file is the **durable per-ticket ledger a fresh Claude Code session resumes from** (it reads ROADMAP → active milestone → first ticket not `done`). `.claude/session-state.md` is only a fast within-session hint; if the two disagree, the milestone file wins.
 
 ### 1.4 Section-tracking is enforced
 

@@ -95,6 +95,7 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 
 ### Notes / known gotchas
 - Do NOT build the full DNA engine here. Minimal seed only. Flow 9 owns the real structure; coordinate when M-18 is unblocked.
+- BLOCKED-HOOK: `cognitive_dna` schema extension (mistake history, predictions, spaced-repetition state) → Flow 9 / M-18 (provisional diagnostic-seed schema for now)
 
 ---
 
@@ -164,6 +165,9 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 ### Out of scope
 - Question Bank implementation (#74, Flow 9 / M-18)
 
+### Notes / known gotchas
+- BLOCKED-HOOK: Question Bank #74 (banked diagnostic questions) → Flow 9 / M-18 (LLM-generated questions for now; hook prefers banked when present)
+
 ---
 
 ## T-105 — Diagnostic taking UI + coaching results (never grades)
@@ -232,6 +236,9 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 
 ### Out of scope
 - Flow 9 consuming the event (M-18)
+
+### Notes / known gotchas
+- BLOCKED-HOOK: `student.diagnostic_completed` event consumer → Flow 9 / M-18 (event emitted now; no consumer until Flow 9)
 
 ---
 
@@ -435,6 +442,9 @@ The single milestone PR per `WORKFLOW.md` Step 2: open the M-08 branch PR, fill 
 ## Milestone notes
 
 - **⚠ Cognitive DNA is SEED-ONLY here.** The full intelligence engine (mistake tracking, pass probability, spaced repetition, forgetting curve, Question Bank #74) is **Flow 9 / M-18**, which is **blocked (Flow 9 not yet drafted)**. M-08 builds a minimal `cognitive_dna` store the diagnostic initializes. **Soft dependency:** when Flow 9 is drafted, the DNA schema will be extended — a follow-up migration may be needed. Tracked in TODO. Do not over-build the DNA engine here.
+- BLOCKED-HOOK: full Cognitive DNA engine + cognitive_dna schema extension → Flow 9 / M-18 (built as a minimal diagnostic-seeded store for now)
+- BLOCKED-HOOK: Question Bank #74 (banked diagnostic questions) → Flow 9 / M-18 (LLM-generated for now)
+- BLOCKED-HOOK: `student.diagnostic_completed` event consumer → Flow 9 / M-18 (emitted now; no consumer yet)
 - **Diagnostic questions are LLM-generated** at launch; the Question Bank (#74) is a deferred hook (Flow 9).
 - **Coaching, never grading** — diagnostic results are focus areas only; no grade/score/percentage anywhere. This is a hard CXO rule (T-105).
 - **Mode Switcher** is fully built here; M-06 only shipped the minimal onboarding mode pick.
