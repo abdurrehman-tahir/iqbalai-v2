@@ -7,16 +7,7 @@
 
 This document defines the **only** way we move from the v2 product doc to merged code in `staging`. Every milestone of v2 follows this exact loop. No skipping steps.
 
-If you (Claude Code) are reading this for the first time in a session, also read:
-- `docs/STACK_LOCK.md` — what tools we use
-- `docs/ARCHITECTURE.md` **§0 Quick Index** — task → required sections lookup (**always read §0; never read all of ARCHITECTURE.md**)
-- `docs/DEVIATIONS.md` — pre-approved exceptions
-- `docs/AMENDMENTS.md` — architecture decisions that changed after launch
-- `docs/BRANCHING.md` — branch + PR rules
-- `docs/ENV_VARS.md` — canonical env var reference
-- `.claude/CLAUDE.md` — your behavioral instructions
-- `docs/backlog/README.md` — the implementation backlog system
-- `docs/backlog/ROADMAP.md` — milestone overview, current state
+If you (Claude Code) are reading this for the first time in a session, the read-rules live in `.claude/CLAUDE.md` (auto-loaded). Do NOT pre-load reference docs from this file — `CLAUDE.md` has the conditional-trigger table.
 
 **The §0 rule (enforced):** ARCHITECTURE.md is ~9,800 lines. You read **§0 + only the sections §0 lists for your task** — nothing else unless you follow an explicit cross-reference. Every PR description must list which sections were read; mismatch with the code changes is a PR-blocker.
 
@@ -164,7 +155,7 @@ The milestone PR (Step 2) will list, per ticket completed:
 - [x] Step 3 of demo
 ```
 
-Hamza updates the ticket's status to `done` in the milestone file as each one completes. Commits the change as `chore(backlog): mark T-XXX done`.
+As each ticket completes, its `Status:` is set to `done` in the milestone file **and the commit SHA is recorded on the ticket** (commit the change as `chore(backlog): mark T-XXX done`). This is mandatory per ticket, not deferred to milestone close — the milestone file is the **durable per-ticket ledger a fresh Claude Code session resumes from** (it reads ROADMAP → active milestone → first ticket not `done`). `.claude/session-state.md` is only a fast within-session hint; if the two disagree, the milestone file wins.
 
 ### 1.4 Section-tracking is enforced
 

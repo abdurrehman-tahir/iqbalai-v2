@@ -21,9 +21,10 @@
 - [ ] deviation — adds an entry to docs/DEVIATIONS.md
 - [ ] release — staging → main release
 
-## Phase & feature reference
+## Milestone & feature reference
 
-- **Phase:** <!-- e.g., Phase 2 — Teacher Onboarding -->
+- **Milestone:** <!-- e.g., M-04 — Teacher Onboarding -->
+- **Ticket(s):** <!-- e.g., T-077, T-078 — every ticket this PR closes -->
 - **Feature(s) from v2 doc:** <!-- e.g., #17 Curriculum vs Reference Book, #18 Curriculum Structured Parsing -->
 
 ## Stack compliance
@@ -34,7 +35,7 @@
 - [ ] If schema changed, an Alembic migration is included.
 - [ ] If visible text was added, translation keys (not raw English) are used.
 
-**Architecture decisions touched** (list section references from `docs/ARCHITECTURE.md` once it exists):
+**Architecture decisions touched** (list the `docs/ARCHITECTURE.md` §§ read for this work):
 
 <!-- e.g., ARCHITECTURE.md §3.2 RAG pipeline, §5.1 Multi-tenancy -->
 
@@ -64,6 +65,12 @@
 - [ ] ruff check passes
 - [ ] Coverage: <!-- N% -->
 
+## Ticket close-out
+
+<!-- The CI `ticket-status-check` job fails this PR if any ticket above is not marked done. -->
+
+- [ ] Every ticket listed under "Milestone & feature reference" is marked `Status: done` in its `docs/backlog/M-NN-*.md` file
+
 ## Testing
 
 <!-- How did you verify this works? Manual steps + automated tests -->
@@ -86,5 +93,5 @@
 - [ ] Pre-commit hooks pass locally
 - [ ] No merge conflicts with `staging`
 - [ ] PR targets `staging` (not `main`)
-- [ ] Branch name follows `feature/phase<N>-<short-name>` / `fix/<name>` / `hotfix/<name>`
+- [ ] Branch name follows `milestone/M-NN-<short-name>` / `fix/<name>` / `hotfix/<name>`
 - [ ] Commits follow Conventional Commits format

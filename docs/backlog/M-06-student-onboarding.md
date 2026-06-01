@@ -508,6 +508,7 @@ The single milestone PR per `WORKFLOW.md` Step 2: open the M-06 branch PR, fill 
 
 - **School students + parents only.** Independent students were M-05.
 - **Deferred to later milestones:** Exam Framework engine → M-07; Diagnostic execution + full Mode Switcher → M-08; lecture creation → M-09+; parent monitoring dashboards → Flow 10.
+- BLOCKED-HOOK: parent read-only monitoring surface (dashboards, digests; the parent-link access-state flag is the gate) → Flow 10 / M-19 (link + revocation + access-state flag built now; the monitoring views are Flow 10)
 - **Highest-risk ticket is T-086 (auto-migration)** — atomicity is non-negotiable; a half-migrated student is the worst outcome. Single transaction, bounded retries, Platform Admin escalation, never a partial state.
 - **Onboarding fields are deliberately trimmed** (§3.1): only name + language + ToS are mandatory. Don't expand the mandatory set.
 - **Parent linking is consent-first** (§6.13): student-side approval always required; never auto-link; never leak account existence on failed requests.

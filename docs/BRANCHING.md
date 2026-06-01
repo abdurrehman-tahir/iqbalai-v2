@@ -28,11 +28,11 @@ This document defines how branches, PRs, and merges work in this repo. Read it b
 - **CI:** Full test suite runs on every PR targeting `staging`.
 - **Protection rules:** Same as `main`.
 
-### Feature, fix, and hotfix branches
+### Milestone, fix, and hotfix branches
 - **Created from:** `staging`
-- **Merged into:** `staging` via squash merge
+- **Merged into:** `staging`
 - **Naming convention:**
-  - `feature/phase<N>-<short-name>` — new features (e.g., `feature/phase1-rbac-roles`)
+  - `milestone/M-NN-<short-name>` — the work branch for a milestone; one PR per milestone, and the tickets are the commits on it (e.g., `milestone/M-03-grade-section-subject`)
   - `fix/<short-name>` — bug fixes (e.g., `fix/lecture-version-rollback`)
   - `hotfix/<short-name>` — urgent fixes to production (rare; cherry-picked back to `staging` after)
 - **Lifetime:** Delete after merge.
@@ -43,8 +43,8 @@ This document defines how branches, PRs, and merges work in this repo. Read it b
 
 | From | To | Strategy | Why |
 |---|---|---|---|
-| `feature/*` → `staging` | Squash merge | Clean linear history on `staging`. One commit per feature. |
-| `fix/*` → `staging` | Squash merge | Same. |
+| `milestone/*` → `staging` | Merge commit (preserve ticket commits) | One PR per milestone, but **tickets are the commits** and the backlog ledger records each ticket's commit SHA — squashing would destroy that per-ticket history. Preserve it. |
+| `fix/*` → `staging` | Squash merge | Single-purpose; one commit is correct. |
 | `hotfix/*` → `staging` | Squash merge | Same. |
 | `staging` → `main` | Merge commit | Preserves the release boundary as a visible commit in `main`'s history. |
 
@@ -91,23 +91,23 @@ PRs that touch ONLY `docs/` (no code changes) follow a lighter path:
 git checkout staging
 git pull origin staging
 
-# Start a new feature
-git checkout -b feature/phase2-curriculum-parser
+# Start a new milestone
+git checkout -b milestone/M-03-grade-section-subject
 
 # Tell Claude Code what to build (Claude reads CLAUDE.md + STACK_LOCK.md automatically)
-# Claude writes code, runs pre-commit locally, commits
+# Claude writes code, runs pre-commit locally, commits — one commit per ticket
 
 # Push and open PR
-git push -u origin feature/phase2-curriculum-parser
-gh pr create --base staging --title "feat(curriculum): structured parsing of curriculum PDFs"
+git push -u origin milestone/M-03-grade-section-subject
+gh pr create --base staging --title "feat(milestone): M-03 — Grade / Section / Subject + GSO"
 
 # Wait for CI + @abdurrehman approval
-# After approval, squash merge via GitHub UI
+# After approval, merge via GitHub UI (merge commit — preserve ticket commits)
 
 # Delete the local branch
 git checkout staging
 git pull
-git branch -d feature/phase2-curriculum-parser
+git branch -d milestone/M-03-grade-section-subject
 ```
 
 ---
