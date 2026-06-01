@@ -9,6 +9,7 @@ from app.features.auth.router import router as auth_router
 from app.features.exam_syllabi.router import router as syllabi_router
 from app.features.files.router import router as uploads_router
 from app.features.health.router import router as health_router
+from app.features.library.router import router as library_router
 from app.features.notifications.router import router as notifications_router
 from app.features.personas.router import router as personas_router
 from app.features.smoketest.router import router as smoketest_router
@@ -27,5 +28,6 @@ router.include_router(tos_router)
 router.include_router(syllabi_router)
 router.include_router(personas_router)
 router.include_router(subscriptions_router)
+router.include_router(library_router)
 router.include_router(notifications_router)
 router.include_router(audit_router)
