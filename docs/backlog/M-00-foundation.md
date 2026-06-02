@@ -1,6 +1,6 @@
 # M-00 — Foundation: infra + containers + base code
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 3-4 weeks
 **Tickets:** T-001 through T-015
 
@@ -23,7 +23,7 @@ Stand up the entire technical foundation IqbalAI runs on. By milestone end: ever
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (purely infra; no spec)
@@ -60,7 +60,7 @@ Initialize the monorepo. Create folder structure per ARCH §2: `api/` (FastAPI b
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 1-2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (infra)
@@ -97,7 +97,7 @@ Per STACK_LOCK §1.4 + ARCH §15.4: create **ONE `docker-compose.yml` at the rep
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.1 (role hierarchy mentions tenant types)
@@ -137,7 +137,7 @@ Create two Postgres schemas: `school` and `independent`. Set up Alembic with dua
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 2-3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.1 (role hierarchy — users come from Authentik)
@@ -177,7 +177,7 @@ Add Authentik container to `docker-compose.yml`. Configure: OIDC application for
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (infra)
@@ -214,7 +214,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 2-3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (infra layer)
@@ -253,7 +253,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 2-3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.1 (role hierarchy enum)
@@ -293,7 +293,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 1-2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.1 (role hierarchy)
@@ -331,7 +331,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 2-3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.2 (4 launch languages: en, ur, sd, ps)
@@ -369,7 +369,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 3-4 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (infra; specific feature use comes later)
@@ -409,7 +409,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (infra)
@@ -446,7 +446,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 1-2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (infra)
@@ -482,7 +482,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 2-3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (infra; per-profile specs come with each feature)
@@ -521,7 +521,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (infra)
@@ -560,7 +560,7 @@ Add Redis, NATS (JetStream enabled per STACK_LOCK §4), MinIO, Qdrant to `docker
 **Layer:** Foundation
 **Milestone:** M-00
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - N/A (infra)
