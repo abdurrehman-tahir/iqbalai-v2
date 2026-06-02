@@ -442,7 +442,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done — spec written at frontend/e2e/platform-admin-smoke.spec.ts; requires @playwright/test installation (not yet in STACK_LOCK)
 
 ### Spec source
 - `flow-1-platform-setup.md` §11 (acceptance criteria)
