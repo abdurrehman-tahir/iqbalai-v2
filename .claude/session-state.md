@@ -1,38 +1,32 @@
 # Session state (live — Claude Code updates this)
 
-**Purpose:** Survive context compaction without re-reading the milestone, flow spec, or ARCH from scratch. Claude Code updates this file after each meaningful step (dossier loaded, file edited, tests written, commit made). Post-compaction, read THIS file first.
-
-Keep it short — ≤30 lines. Replace the whole content each time; do not append history.
+**Purpose:** Survive context compaction without re-reading the milestone, flow spec, or ARCH from scratch.
 
 ---
 
 **Current milestone:** M-01 — Platform Setup
-**Current ticket:** T-026 (smoke test) — next to implement
-**Ticket dossier loaded:** via direct milestone file read (ticket-loader had search issues)
+**Current ticket:** T-027 (PR) — next step; then M-01 is complete → move to M-02
+**Ticket dossier loaded:** via direct milestone file read
 **Dossier source files:** docs/backlog/M-01-platform-setup.md
 
 **Done this session:**
-- M-00 all tickets: marked done (already implemented in prior sessions)
-- T-016 backend: done (prior session); T-016 frontend: login page + OIDC callback + ToS modal — DONE
-- T-017: Admin dashboard shell + sidebar + header — DONE (AdminShell.tsx)
-- T-018: Languages page (4 read-only cards) — DONE
-- T-019: ToS + Disclaimer admin pages (TosAdminClient.tsx) — DONE
-- T-020: Exam syllabi CRUD (SyllabiClient.tsx) — DONE
-- T-021: Teaching personas editor (PersonasClient.tsx) — DONE
-- T-022: Subscription tiers CRUD (SubscriptionTiersClient.tsx) — DONE
-- T-023: Notification bell + panel (NotificationBell.tsx) — DONE
-- T-024: Library upload page (LibraryClient.tsx) — DONE
-- T-025: Audit log viewer (AuditLogClient.tsx) — DONE
-- Installed @hookform/resolvers, created lib/utils.ts, lib/api/index.ts, lib/auth.ts
-- Created all UI base components (Button, Input, Textarea, Card, Badge, Skeleton, Modal, EmptyState, ErrorState)
-- Updated all 4 message files (en full, ur/sd/ps with __TODO__ placeholders)
+- M-00 all T-001 to T-015: Status done (already implemented in prior sessions)
+- T-016: backend (prior) + frontend login/OIDC/ToS modal — done
+- T-017: AdminShell layout + sidebar — done
+- T-018: Languages page — done
+- T-019: ToS + Disclaimer admin pages — done
+- T-020: Exam syllabi CRUD — done
+- T-021: Teaching personas editor — done
+- T-022: Subscription tiers CRUD — done
+- T-023: Notification bell + panel — done
+- T-024: Platform Library upload page — done
+- T-025: Audit log viewer — done
+- T-026: E2E smoke spec written (frontend/e2e/); @playwright/test gap noted for STACK_LOCK
 
-**In progress:**
-- Step: about to commit all frontend work
-- Last file edited: messages/ps/common.json
-- Tests written: none (T-026 smoke test is next)
+**Commits this session:**
+- 013594e feat(platform-admin): T-016 to T-025 frontend — M-01 admin dashboard + all pages
+- 45b900c feat(platform-admin): T-026 E2E smoke test spec + STACK_LOCK gap noted
 
-**Next intended step:** commit frontend work, then implement T-026 (E2E smoke test), then T-027 (PR)
+**Next intended step:** T-027 — open PR for M-01, then begin M-02
 
-**Format-gate run for current changes:** lint ✅ (no errors), typecheck ✅ (no errors), prettier not installed (gap)
-**Commits this session:** pending
+**Format-gate run:** lint ✅ typecheck ✅ | prettier not installed (STACK_LOCK gap)
