@@ -6,7 +6,9 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.core.exceptions import NotFoundError, ValidationError
+from pydantic import ValidationError as PydanticValidationError
+
+from app.core.exceptions import NotFoundError
 from app.features.personas.models import TeachingPersona
 from app.features.personas.schemas import PersonaUpdate
 from app.features.personas.service import PersonaService
@@ -32,21 +34,15 @@ def _make_persona() -> TeachingPersona:
     )
 
 
-@pytest.mark.asyncio
-async def test_update_persona_prompt_too_long_raises_validation_error(
-    mock_session: AsyncMock,
-) -> None:
-    """system_prompt_en longer than 8000 characters must raise ValidationError."""
-    svc = PersonaService(mock_session)
-    repo_mock = AsyncMock()
-    repo_mock.get_by_id.return_value = _make_persona()
-    svc._repo = repo_mock
+def test_update_persona_prompt_too_long_raises_validation_error() -> None:
+    """system_prompt_en longer than 8000 characters must be rejected by the schema.
 
+    The max_length=8000 constraint lives on PersonaUpdate, so Pydantic rejects
+    the oversized input at the API boundary before the service is ever called.
+    """
     oversized_prompt = "x" * 8001
-    payload = PersonaUpdate(system_prompt_en=oversized_prompt)
-
-    with pytest.raises(ValidationError):
-        await svc.update_persona("persona-001", payload, updated_by="admin-001")
+    with pytest.raises(PydanticValidationError):
+        PersonaUpdate(system_prompt_en=oversized_prompt)
 
 
 @pytest.mark.asyncio
