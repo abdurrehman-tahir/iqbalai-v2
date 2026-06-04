@@ -1,7 +1,6 @@
 """Celery worker entrypoint — configures broker and registers tasks."""
 
 import app.tasks.smoke  # noqa: F401
-
 from app.infrastructure.celery.celery_app import celery_app
 
 # Ingestion tasks pull optional PDF/langchain deps — register when available.
