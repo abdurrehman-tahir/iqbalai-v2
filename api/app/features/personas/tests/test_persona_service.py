@@ -19,7 +19,7 @@ def mock_session() -> AsyncMock:
 
 def _make_persona() -> TeachingPersona:
     """Build a TeachingPersona instance without touching the DB."""
-    p = TeachingPersona.__new__(TeachingPersona)
+    p = TeachingPersona()
     p.id = "persona-001"
     p.name = "Socratic"
     p.slug = "socratic"

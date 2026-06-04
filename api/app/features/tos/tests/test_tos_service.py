@@ -22,7 +22,7 @@ class TestTosService:
     def _make_tos(self, version: int = 1) -> TosVersion:
         from datetime import datetime, timezone
 
-        t = TosVersion.__new__(TosVersion)
+        t = TosVersion()
         t.id = f"tos-v{version}"
         t.version_number = version
         t.content_md = "# ToS"

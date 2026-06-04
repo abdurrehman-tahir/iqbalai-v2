@@ -19,7 +19,7 @@ def mock_session() -> AsyncMock:
 
 def _make_syllabus(version: int = 1) -> ExamSyllabus:
     """Build an ExamSyllabus instance without touching the DB."""
-    s = ExamSyllabus.__new__(ExamSyllabus)
+    s = ExamSyllabus()
     s.id = "syllabus-001"
     s.name = "AKU-EB Grade 9 Urdu"
     s.exam_board = "AKU-EB"
@@ -35,7 +35,7 @@ def _make_syllabus(version: int = 1) -> ExamSyllabus:
 
 def _make_topic(depth: int = 0) -> SyllabusTopic:
     """Build a SyllabusTopic instance without touching the DB."""
-    t = SyllabusTopic.__new__(SyllabusTopic)
+    t = SyllabusTopic()
     t.id = "topic-001"
     t.syllabus_id = "syllabus-001"
     t.parent_id = None
