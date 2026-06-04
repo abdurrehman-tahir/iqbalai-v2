@@ -6,7 +6,7 @@ import { useTranslations } from "next-intl";
 import { useFormatter } from "next-intl";
 import { Library, Upload, Trash2, FileText } from "lucide-react";
 import { libraryApi, type LibraryBook } from "@/lib/api";
-import { getToken } from "@/lib/auth";
+import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
@@ -30,7 +30,7 @@ export function LibraryClient() {
   const t = useTranslations("admin.library");
   const format = useFormatter();
   const qc = useQueryClient();
-  const token = getToken();
+  const { mounted, token } = useClientAuth();
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [uploadModal, setUploadModal] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<LibraryBook | null>(null);
@@ -45,8 +45,8 @@ export function LibraryClient() {
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["library", "list"],
-    queryFn: () => libraryApi.list(token ?? ""),
-    enabled: !!token,
+    queryFn: () => libraryApi.list(token!),
+    enabled: mounted && !!token,
     refetchInterval: 10_000, // Poll while items are ingesting
   });
 
@@ -119,7 +119,7 @@ export function LibraryClient() {
     setUploadFile(file);
   }
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">

@@ -103,8 +103,8 @@ class ExamSyllabiService:
     async def delete_syllabus(self, id: str) -> None:
         """Soft-delete a syllabus.
 
-        TODO(T-020): Before deleting, check whether any students have this syllabus
-        pinned to their profile. Raise PreconditionFailedError if active pins exist.
+        Student-pin guard deferred: before deleting, check whether any students have
+        this syllabus pinned to their profile and raise PreconditionFailedError if so.
         Skipped at launch — student-syllabus linking is implemented in a later ticket.
         """
         syllabus = await self.get_syllabus(id)
@@ -163,8 +163,8 @@ class ExamSyllabiService:
     async def delete_topic(self, topic_id: str) -> None:
         """Soft-delete a topic.
 
-        TODO(T-020): Before deleting, verify no student progress records reference
-        this topic. Raise PreconditionFailedError if active progress exists.
+        Progress guard deferred: before deleting, verify no student progress records
+        reference this topic and raise PreconditionFailedError if so.
         Skipped at launch — student progress model is implemented in a later milestone.
         """
         topic = await self._repo.get_topic_by_id(topic_id)

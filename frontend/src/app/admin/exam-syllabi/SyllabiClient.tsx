@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { BookOpen, Plus, Pencil, Trash2 } from "lucide-react";
 import { syllabiApi, type Syllabus } from "@/lib/api";
-import { getToken } from "@/lib/auth";
+import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
@@ -29,15 +29,15 @@ type SyllabusFormValues = z.infer<typeof syllabusSchema>;
 export function SyllabiClient() {
   const t = useTranslations("admin.exam_syllabi");
   const qc = useQueryClient();
-  const token = getToken();
+  const { mounted, token } = useClientAuth();
   const [editTarget, setEditTarget] = useState<Syllabus | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Syllabus | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["exam-syllabi", "list"],
-    queryFn: () => syllabiApi.list(token ?? ""),
-    enabled: !!token,
+    queryFn: () => syllabiApi.list(token!),
+    enabled: mounted && !!token,
   });
 
   const createMutation = useMutation({
@@ -89,7 +89,7 @@ export function SyllabiClient() {
     }
   }
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">

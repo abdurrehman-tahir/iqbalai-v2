@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Pencil, Users2 } from "lucide-react";
 import { personasApi, type Persona } from "@/lib/api";
-import { getToken } from "@/lib/auth";
+import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
@@ -28,13 +28,13 @@ type EditValues = z.infer<typeof editSchema>;
 export function PersonasClient() {
   const t = useTranslations("admin.personas");
   const qc = useQueryClient();
-  const token = getToken();
+  const { mounted, token } = useClientAuth();
   const [editTarget, setEditTarget] = useState<Persona | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["personas", "list"],
-    queryFn: () => personasApi.list(token ?? ""),
-    enabled: !!token,
+    queryFn: () => personasApi.list(token!),
+    enabled: mounted && !!token,
   });
 
   const updateMutation = useMutation({
@@ -61,7 +61,7 @@ export function PersonasClient() {
     await updateMutation.mutateAsync({ id: editTarget.id, values });
   }
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />

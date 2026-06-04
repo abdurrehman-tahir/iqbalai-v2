@@ -5,7 +5,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Bell, X } from "lucide-react";
 import { notificationsApi, type Notification } from "@/lib/api";
-import { getToken } from "@/lib/auth";
+import { useClientAuth } from "@/hooks/use-client-auth";
 import { cn } from "@/lib/utils";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
@@ -17,12 +17,12 @@ export function NotificationBell() {
   const t = useTranslations("admin.notifications");
   const qc = useQueryClient();
 
-  const token = getToken();
+  const { mounted, token } = useClientAuth();
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["notifications", "list"],
-    queryFn: () => notificationsApi.list(token ?? ""),
-    enabled: !!token,
+    queryFn: () => notificationsApi.list(token!),
+    enabled: mounted && !!token,
     refetchInterval: 60_000, // poll every 60s
   });
 
@@ -58,7 +58,7 @@ export function NotificationBell() {
         className="relative"
       >
         <Bell className="size-5" aria-hidden="true" />
-        {unreadCount > 0 && (
+        {mounted && unreadCount > 0 && (
           <span
             className="absolute top-1 end-1 flex size-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white"
             aria-hidden="true"

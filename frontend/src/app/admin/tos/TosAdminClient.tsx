@@ -9,7 +9,7 @@ import { z } from "zod";
 import { FileText, Plus } from "lucide-react";
 import { useFormatter } from "next-intl";
 import { tosApi } from "@/lib/api";
-import { getToken } from "@/lib/auth";
+import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
@@ -37,7 +37,7 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
   const t = useTranslations(type === "tos" ? "admin.tos" : "admin.disclaimer");
   const format = useFormatter();
   const qc = useQueryClient();
-  const token = getToken();
+  const { mounted, token } = useClientAuth();
   const [showPublish, setShowPublish] = useState(false);
 
   const charLimit = type === "tos" ? TOS_CHAR_LIMIT : DISCLAIMER_CHAR_LIMIT;
@@ -55,9 +55,9 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
     queryKey: [type, "list"],
     queryFn: () =>
       type === "tos"
-        ? tosApi.list(token ?? "")
-        : tosApi.listDisclaimer(token ?? ""),
-    enabled: !!token,
+        ? tosApi.list(token!)
+        : tosApi.listDisclaimer(token!),
+    enabled: mounted && !!token,
   });
 
   const publishMutation = useMutation({
@@ -82,7 +82,7 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
     setShowPublish(true);
   }
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">

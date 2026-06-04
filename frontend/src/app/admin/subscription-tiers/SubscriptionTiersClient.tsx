@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CreditCard, Plus, Pencil, Trash2 } from "lucide-react";
 import { subscriptionsApi, type SubscriptionTier } from "@/lib/api";
-import { getToken } from "@/lib/auth";
+import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
@@ -31,15 +31,15 @@ type TierFormValues = z.infer<typeof tierSchema>;
 export function SubscriptionTiersClient() {
   const t = useTranslations("admin.subscription_tiers");
   const qc = useQueryClient();
-  const token = getToken();
+  const { mounted, token } = useClientAuth();
   const [editTarget, setEditTarget] = useState<SubscriptionTier | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<SubscriptionTier | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["subscription-tiers", "list"],
-    queryFn: () => subscriptionsApi.list(token ?? ""),
-    enabled: !!token,
+    queryFn: () => subscriptionsApi.list(token!),
+    enabled: mounted && !!token,
   });
 
   const createMutation = useMutation({
@@ -124,7 +124,7 @@ export function SubscriptionTiersClient() {
     }
   }
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">

@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useTranslations, useFormatter } from "next-intl";
 import { ClipboardList } from "lucide-react";
 import { auditApi, type AuditEntry } from "@/lib/api";
-import { getToken } from "@/lib/auth";
+import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
@@ -16,7 +16,7 @@ import { Button } from "@/components/ui/button";
 export function AuditLogClient() {
   const t = useTranslations("admin.audit_log");
   const format = useFormatter();
-  const token = getToken();
+  const { mounted, token } = useClientAuth();
 
   const [actorFilter, setActorFilter] = useState("");
   const [actionFilter, setActionFilter] = useState("");
@@ -25,11 +25,11 @@ export function AuditLogClient() {
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["audit-log", "list", submitted.actor, submitted.action],
     queryFn: () =>
-      auditApi.list(token ?? "", {
+      auditApi.list(token!, {
         actor: submitted.actor || undefined,
         action: submitted.action || undefined,
       }),
-    enabled: !!token,
+    enabled: mounted && !!token,
   });
 
   function handleFilter(e: React.FormEvent) {
@@ -37,7 +37,7 @@ export function AuditLogClient() {
     setSubmitted({ actor: actorFilter, action: actionFilter });
   }
 
-  if (isLoading) {
+  if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
         <Skeleton className="h-8 w-48" />

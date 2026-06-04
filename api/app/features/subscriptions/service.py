@@ -88,9 +88,8 @@ class SubscriptionService:
     async def delete_tier(self, id: str) -> None:
         """Soft-delete a subscription tier.
 
-        TODO(T-022): Before deleting, check whether any Subscription rows are
-        currently active against this tier (status='active'). Raise
-        PreconditionFailedError if active subscriptions exist.
+        Active-subscription guard deferred: before deleting, check whether any
+        Subscription rows are active against this tier and raise PreconditionFailedError.
         Skipped at launch — Subscription write path is deferred to Phase 2
         per ARCH §3.17 (no Stripe at launch).
         """

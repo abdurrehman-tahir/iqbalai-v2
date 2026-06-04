@@ -275,13 +275,16 @@ services:
       context: ./api
       dockerfile: Dockerfile
     restart: unless-stopped
-    command: celery -A app.tasks.celery_app beat --loglevel=info --scheduler celery.beat.PersistentScheduler
+    command: >
+      celery -A app.tasks.celery_app beat --loglevel=info
+      --scheduler celery.beat.PersistentScheduler
+      --schedule /home/app/celerybeat/celerybeat-schedule
     environment:
       DB_URL: ${DB_URL}
       REDIS_URL: ${REDIS_URL}
     volumes:
       - ./api:/app
-      - celery_beat_data:/var/run/celery
+      - celery_beat_data:/home/app/celerybeat
     networks:
       - iqbalai_net
     depends_on:
