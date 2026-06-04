@@ -35,6 +35,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 - `ARCHITECTURE.md` §3.9 (RLS policies)
 
 ### Depends on
+- M-01a (foundation remediation + FE/integration enforcement merged — all M-02 tickets build under the new gates)
 - T-007 (DB mixins)
 
 ### What this ticket builds

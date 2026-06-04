@@ -32,7 +32,7 @@ To deviate from anything in this file:
 | Dependency manager | **uv** (Astral) | Apache-2.0/MIT | Replaces pip + pip-tools + venv. Single `pyproject.toml`. Lockfile committed. |
 | Linter / formatter | **ruff** (lint + format both) | MIT | Replaces black, isort, flake8. |
 | Type checker | **mypy** in `--strict` mode | MIT | Enforced in CI. |
-| Validation / models | **Pydantic v2** | MIT | Every API request/response model is a Pydantic model. |
+| Validation / models | **Pydantic v2** | MIT | Every API request/response model is a Pydantic model. **Every endpoint MUST declare `response_model=`** so the generated OpenAPI (and the FE typed client) stays accurate. Missing `response_model` fails CI. |
 | Testing | **pytest** + **pytest-asyncio** + **pytest-cov** | MIT | Coverage target: 70% on `app/services/`, 50% overall. |
 | HTTP client | **httpx** (async) | BSD-3 | `requests` is forbidden. |
 
@@ -52,12 +52,16 @@ To deviate from anything in this file:
 | Primitives | **Radix UI** (via shadcn) | MIT | Accessibility foundation. |
 | State management | **Zustand** for client state, **TanStack Query** for server state | MIT | No Redux. No MobX. |
 | Forms | **react-hook-form** + **Zod** validation | MIT | Every form uses both. |
+| Rich-text editor | **TipTap** (core + free extensions only) | MIT | Headless, ProseMirror-based; emits JSON stored as `lecture_versions.content_jsonb` (immutable version-on-save, Flow 5). No CRDT/real-time co-editing for lectures. (Group collaborative notes use Yjs — separate scoped deviation, see below.) |
+| Collaborative notes (Flow 11 only) | **Yjs** (CRDT) | MIT | Group shared notes #103 **only**; syncs over FastAPI WebSocket + Redis; persisted as binary doc in `group_notes.yjs_doc`. Authorized via DEVIATIONS.md; NOT for lecture editing. |
 | Charts | **Recharts** (standard charts) + **Apache ECharts** (heatmaps, complex viz) | MIT / Apache-2.0 | ECharts only where Recharts can't do the job (e.g., geographic heatmap). |
 | Calendar | **FullCalendar** (MIT core only, no premium plugins) | MIT | Used for study plan view. |
 | Icons | **lucide-react** | ISC | Default icon set. |
 | Animation | **Framer Motion** (sparingly) + Tailwind transitions | MIT | No bouncing, no fade-everything. Purposeful only. |
 | i18n | **next-intl** | MIT | All visible strings via translation keys. No hardcoded English in JSX. |
 | Voice UI | Native Web Speech API (browser) + WebRTC for streaming | — | STT/TTS wrappers in `frontend/src/lib/voice/`. |
+| FE testing | **Vitest** + **React Testing Library** (component/unit); **Playwright** (E2E) | MIT | `pnpm test` = Vitest+RTL (components/hooks); `pnpm e2e` = Playwright. Coverage target: 60% on `frontend/src/features/`. Playwright smoke-on-PR, full suite nightly. |
+| API types | **openapi-typescript** (generated from FastAPI OpenAPI) | MIT | `frontend/src/lib/api/schema.d.ts` generated from `/openapi.json`; feature `types.ts` re-exports from it. Hand-mirrored request/response types forbidden (see AMENDMENTS A-002). Regenerated in CI; drift fails the build. |
 
 **Forbidden:** Material UI, Chakra UI, Ant Design, Bootstrap, plain CSS modules, styled-components, Redux, MobX, Recoil, Jotai, react-query (use TanStack Query v5).
 
@@ -271,7 +275,7 @@ These are external services. The application must work without them — degrade 
 | Concern | Locked Choice | License | Notes |
 |---|---|---|---|
 | Pre-commit framework | **pre-commit** | MIT | `.pre-commit-config.yaml` at repo root. |
-| Git hooks | ruff, mypy, custom `check_imports.py`, custom `check_envvars.py`, custom `check_stack_lock.py`, pytest collect-only, conventional-commits check | — | All enforced locally + in CI. |
+| Git hooks | ruff, mypy, custom `check_imports.py`, custom `check_envvars.py`, custom `check_stack_lock.py`, custom `update_ticket_status.py` (post-commit ledger writer), pytest collect-only, conventional-commits check | — | All enforced locally + in CI. Ticket-status also verified at PR time by `check_ticket_status.py`. |
 | CI | **GitHub Actions** (free tier on private repo) | — | 2000 minutes/month sufficient. |
 | Commit convention | **Conventional Commits** | — | `feat:`, `fix:`, `chore:`, `docs:`, `refactor:`, `test:`. Stack-touching commits must include `## Stack-touching` section. |
 | Branching | trunk-based with feature branches | — | Base: `staging`. Feature branches: `feature/<phase>-<name>`. |
@@ -365,23 +369,23 @@ langchain.text_splitter  # only in app/services/ingestion/chunker.py (pre-approv
 
 These are real decisions but they're *design decisions* not *stack decisions* — they belong in `ARCHITECTURE.md`. Listed here so they're not forgotten:
 
-- [ ] Multi-tenancy data isolation strategy (schema-per-school vs row-level scope vs hybrid)
-- [ ] Database connection pooling sizing
-- [ ] Qdrant collection design (one collection per knowledge type? per tenant?)
-- [ ] Chunking strategy (size, overlap, semantic vs fixed)
-- [ ] Embedding cache strategy
-- [ ] Real-time event topic taxonomy in NATS
-- [ ] WebSocket connection lifecycle (auth, reconnect, heartbeat)
-- [ ] File upload pipeline (direct-to-MinIO vs through-API)
-- [ ] Background job priority tiers (Celery queues)
-- [ ] API versioning strategy
-- [ ] Frontend folder structure (feature-based vs layer-based)
-- [ ] Design tokens specification
-- [ ] i18n key structure and translation workflow
-- [ ] Audit log schema
-- [ ] PII handling for Pakistan PDPB 2025 compliance
-- [ ] Rate limiting strategy per role
-- [ ] Backup and restore procedures
+- [x] Multi-tenancy data isolation strategy — **RESOLVED:** dual Postgres schemas + 3-layer defense (router dep → repo filter → RLS) per ARCH §3.16 (AMENDMENTS A-001 #13).
+- [ ] Database connection pooling sizing — **DEFER · owner: Abd. · resolve-before pilot** (PgBouncer locked; only sizing numbers are tuning).
+- [ ] Qdrant collection design — **NEEDS-TRIAGE · owner: Abd. · resolve-before M-09** (first heavy RAG retrieval milestone).
+- [x] Chunking strategy — **RESOLVED:** `RecursiveCharacterTextSplitter` (DEVIATIONS `langchain.text_splitter`) + sizes/overlap per ARCH §7.
+- [ ] Embedding cache strategy — **DEFER · owner: Abd. · resolve-before pilot.**
+- [ ] Real-time event topic taxonomy in NATS — **DEFER · owner: Abd. · resolve-before M-12** (first real-time milestone).
+- [ ] WebSocket connection lifecycle (auth, reconnect, heartbeat) — **DEFER · owner: Abd. · resolve-before M-12.**
+- [x] File upload pipeline — **RESOLVED (owner: Abd.):** presigned **direct-to-MinIO** (browser→MinIO via presigned PUT; API issues the presigned URL + records metadata). No large-file proxying through FastAPI.
+- [ ] Background job priority tiers (Celery queues) — **DEFER · owner: Abd. · resolve-before M-14** (load/event pipeline).
+- [x] API versioning strategy — **RESOLVED (owner: Abd.):** URL-prefix `/api/v1` (already in use across M-00/M-01); breaking changes → `/api/v2`.
+- [x] Frontend folder structure — **RESOLVED:** feature-based (`frontend/src/features/<feature>/` with components/hooks/api.ts/types.ts) per ARCH §12.
+- [x] Design tokens specification — **RESOLVED (owner: Abd.):** tokens in `tailwind.config.ts` (colors, spacing, radius, typography scale); formalized + shadcn base set wired in M-01a. No inline styles / ad-hoc hex.
+- [x] i18n key structure and translation workflow — **RESOLVED (owner: Abd.):** next-intl namespaced keys `<feature>.<area>.<key>`; en source, ur/sd/ps translation files; no hardcoded JSX strings (CI-checked). Convention doc in M-01a.
+- [x] Audit log schema — **RESOLVED:** built M-01 T-025 + ARCH §14.10.
+- [ ] PII handling for Pakistan PDPB 2025 compliance — **DEFER · owner: Abd. · resolve-before pilot** (minors' data; pre-pilot legal gate).
+- [ ] Rate limiting strategy per role — **DEFER · owner: Abd. · resolve-before pilot.**
+- [ ] Backup and restore procedures — **DEFER · owner: Abd. · resolve-before pilot.**
 
 ---
 

@@ -10,7 +10,11 @@ Range resolution (first that applies):
 - $PR_BASE_SHA / $PR_HEAD_SHA env (set by the workflow), else
 - merge-base of origin/staging..HEAD.
 
-Docs-only PRs (no changes outside docs/ and .claude/) are skipped.
+Docs-only PRs (no changes outside docs/ and .claude/) are skipped for the ticket-done
+gate, but the milestone-status roll-up runs on every PR: it derives each milestone's
+status from its tickets (all done -> done; any done -> in-progress; else pre-impl) and
+fails if the ROADMAP Status column disagrees at the done/in-progress end. This keeps the
+ROADMAP milestone dashboard an auto-verified roll-up of ticket truth, not a hand-field.
 """
 from __future__ import annotations
 
@@ -77,11 +81,75 @@ def ticket_is_done(tid: str) -> bool | None:
     return None
 
 
+def milestone_status_rollup() -> list[str]:
+    """Roll ticket truth up to the ROADMAP milestone-status column.
+
+    For each milestone file with tickets, derive: all tickets done -> 'done';
+    any (not all) done -> 'in-progress'; none done -> pre-implementation (no assertion).
+    Then assert the ROADMAP row's Status column matches at the done/in-progress end.
+    Returns a list of mismatch messages (empty = OK). Only asserts the impl end, so it
+    never fights the pre-implementation drafting labels (blocked/drafted-spec/drafted).
+    """
+    import glob
+    from pathlib import Path
+
+    mismatches: list[str] = []
+    roadmap = Path("docs/backlog/ROADMAP.md")
+    if not roadmap.exists():
+        return mismatches
+    rmap = roadmap.read_text(encoding="utf-8")
+    # ROADMAP row: | M-NN[x] | name | layer | tickets | duration | STATUS | demo |
+    row_status = {}
+    for ln in rmap.splitlines():
+        if ln.startswith("| M-"):
+            cells = [c.strip() for c in ln.split("|")]
+            if len(cells) >= 7:
+                row_status[cells[1]] = cells[6].lower()
+
+    tsec = re.compile(r"^##\s+(T-\d{3,})\b")
+    for path in sorted(glob.glob("docs/backlog/M-*.md")):
+        mid = re.match(r"(M-\d{2})", Path(path).name)
+        if not mid:
+            continue
+        mid = mid.group(1)
+        lines = Path(path).read_text(encoding="utf-8").splitlines()
+        states: list[bool] = []
+        cur = None
+        for ln in lines:
+            if tsec.match(ln):
+                cur = []
+                states.append(False)  # placeholder; flipped below
+                idx = len(states) - 1
+                cur = idx
+            elif cur is not None and ln.startswith("**Status:**") and "done" in ln:
+                states[cur] = True
+        if not states:
+            continue
+        expected = "done" if all(states) else ("in-progress" if any(states) else None)
+        if expected is None:
+            continue  # pre-implementation; don't assert against drafting labels
+        actual = row_status.get(mid)
+        if actual != expected:
+            mismatches.append(
+                f"  - {mid}: tickets imply '{expected}' but ROADMAP says '{actual}'"
+            )
+    return mismatches
+
+
 def main() -> int:
     base, head = pr_range()
     files = changed_files(base, head)
+
+    # Milestone-status roll-up runs on every PR (cheap; ROADMAP truth must track tickets).
+    rollup = milestone_status_rollup()
+    if rollup:
+        print("[ticket-status-check] FAIL — ROADMAP milestone Status out of sync with ticket states:")
+        print("\n".join(rollup))
+        print("Fix: update the ROADMAP row Status column (done = all tickets done; in-progress = any done).")
+        return 1
+
     if is_docs_only(files):
-        print("[ticket-status-check] docs-only PR; skipping.")
+        print("[ticket-status-check] docs-only PR; skipping ticket-done gate (roll-up already checked).")
         return 0
 
     tickets = referenced_tickets(base, head)

@@ -234,3 +234,158 @@ jobs:
 
 # If branch protection lists required checks by name, add "Ticket status (backlog ledger)"
 # to the required set (see BRANCHING.md). Docs-only PRs auto-skip (the script exits 0).
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PASTE THESE JOBS into .github/workflows/ci.yml (alongside backend-lint, backend-tests,
+# frontend-lint, ticket-status-check). They are the enforcement layer added in M-01a for
+# the FE-quality / FE↔BE-integration / migration loopholes (see AMENDMENTS A-002,
+# STACK_LOCK §2, .claude/CLAUDE.md "CI invariants" #7).
+#
+# Honors CLAUDE.md CI invariants: deps installed before any tool runs (inv.1); commands
+# match package.json scripts exactly (inv.2); amend, don't regenerate (inv.3); frontend
+# jobs guard on a post-checkout detect step, NOT job-level hashFiles (inv.4).
+#
+# Scripts/commands referenced here are delivered by M-01a:
+#   - frontend package.json scripts: "test" (Vitest), "e2e" (Playwright), "gen:api" (openapi-typescript)
+#   - scripts/check_response_model.py  (fails if any FastAPI route lacks response_model=)
+#   - scripts/seed_dev.py              (idempotent dev seed for the E2E stack)
+# ─────────────────────────────────────────────────────────────────────────────
+
+  frontend-unit:
+    name: Frontend tests (Vitest + RTL)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
+      - uses: pnpm/action-setup@v4
+        if: steps.detect.outputs.fe == 'yes'
+      - uses: actions/setup-node@v4
+        if: steps.detect.outputs.fe == 'yes'
+        with:
+          node-version: "20"
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install deps (before any tool runs — inv.1)
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Vitest + RTL (coverage)
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: frontend
+        run: pnpm test --coverage
+
+  typed-client-drift:
+    name: Typed client up to date (openapi-typescript)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
+      # Regenerate schema.d.ts from the backend OpenAPI and fail on any diff.
+      # gen:api boots the app's OpenAPI export (offline — no running server needed:
+      # `python -m app.openapi_export > openapi.json` then openapi-typescript) per M-01a.
+      - uses: actions/setup-python@v5
+        if: steps.detect.outputs.fe == 'yes'
+        with:
+          python-version: "3.12"
+      - uses: pnpm/action-setup@v4
+        if: steps.detect.outputs.fe == 'yes'
+      - uses: actions/setup-node@v4
+        if: steps.detect.outputs.fe == 'yes'
+        with: { node-version: "20", cache: pnpm, cache-dependency-path: frontend/pnpm-lock.yaml }
+      - name: Install (deps before tools — inv.1)
+        if: steps.detect.outputs.fe == 'yes'
+        run: |
+          pip install uv && uv sync --all-extras --dev
+          cd frontend && pnpm install --frozen-lockfile
+      - name: Regenerate + diff
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: frontend
+        run: |
+          pnpm gen:api
+          git diff --exit-code src/lib/api/schema.d.ts \
+            || (echo "::error::schema.d.ts is stale — run 'pnpm gen:api' and commit. FE types must be generated, not hand-mirrored (AMENDMENTS A-002)." && exit 1)
+
+  response-model-gate:
+    name: Every endpoint declares response_model
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install (inv.1)
+        run: pip install uv && uv sync --all-extras --dev
+      - name: Check response_model presence
+        run: uv run python scripts/check_response_model.py
+
+  e2e-smoke:
+    name: Playwright E2E (smoke, on PR)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
+      - name: Bring up the stack + seed
+        if: steps.detect.outputs.fe == 'yes'
+        run: |
+          docker compose up -d --wait
+          pip install uv && uv sync --all-extras --dev
+          uv run python scripts/seed_dev.py
+      - uses: pnpm/action-setup@v4
+        if: steps.detect.outputs.fe == 'yes'
+      - uses: actions/setup-node@v4
+        if: steps.detect.outputs.fe == 'yes'
+        with: { node-version: "20", cache: pnpm, cache-dependency-path: frontend/pnpm-lock.yaml }
+      - name: Install + Playwright browsers (inv.1)
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium
+      - name: Playwright smoke (@smoke tag only on PR)
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: frontend
+        run: pnpm e2e --grep @smoke
+
+# ── Add to the SAME ci.yml a scheduled trigger for the full E2E suite (nightly) ──
+# on:
+#   schedule:
+#     - cron: "0 2 * * *"   # full Playwright suite (no @smoke filter) runs nightly, not per-PR
+# Gate the full-suite job on github.event_name == 'schedule'; the @smoke job above stays on PRs.
+#
+# If branch protection lists required checks by name, add: "Frontend tests (Vitest + RTL)",
+# "Typed client up to date (openapi-typescript)", "Every endpoint declares response_model",
+# and "Playwright E2E (smoke, on PR)" to the required set (see BRANCHING.md).
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PASTE THIS JOB into .github/workflows/ci.yml (alongside backend-lint, backend-tests,
+# frontend-lint, frontend-tests). It is the PR-time verifier for ticket close-out.
+#
+# Pairs with the .githooks/post-commit hook (the writer). The hook keeps the milestone
+# files live commit-by-commit; this job is the backstop that FAILS the PR if any ticket
+# with committed code in this PR is not marked `Status: done`.
+# ─────────────────────────────────────────────────────────────────────────────
+
+  ticket-status-check:
+    name: Ticket status (backlog ledger)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0          # full history so base..head + merge-base resolve
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Verify referenced tickets are marked done
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: python scripts/check_ticket_status.py
+
+# If branch protection lists required checks by name, add "Ticket status (backlog ledger)"
+# to the required set (see BRANCHING.md). The milestone-status roll-up runs on EVERY PR
+# (incl. docs-only, since a ROADMAP/ticket-status edit is docs-only); only the
+# referenced-tickets-done gate skips for docs-only PRs.
