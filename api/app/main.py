@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.v1.router import router as v1_router
+from app.config import get_settings
 from app.core.exceptions import setup_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import AuthMiddleware
@@ -29,6 +30,7 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
 
 def create_app() -> FastAPI:
     """Create and configure the FastAPI application."""
+    settings = get_settings()
     application = FastAPI(
         title="IqbalAI API",
         version="0.1.0",
@@ -39,17 +41,15 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-    # CORS
+    # Auth runs inner; CORS runs outer so OPTIONS preflight is answered before JWT checks.
+    application.add_middleware(AuthMiddleware)
     application.add_middleware(
         CORSMiddleware,
-        allow_origins=["http://localhost:3000"],
+        allow_origins=settings.cors_allowed_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
-
-    # Auth middleware (validates JWT on every non-public request)
-    application.add_middleware(AuthMiddleware)
 
     # Exception handlers
     setup_exception_handlers(application)

@@ -27,7 +27,7 @@
       "cta": "Sign in with Authentik"
     },
     "callback": {
-      "loading": "Completing sign in\u2026",
+      "loading": "Completing sign in…",
       "error": {
         "auth_denied": "Login was denied or cancelled.",
         "no_code": "No authorisation code received.",
@@ -41,6 +41,7 @@
       "version": "Version {version}",
       "content_label": "Terms of Service content",
       "scroll_hint": "Please scroll to the bottom to enable acceptance",
+      "empty_content": "Terms content is unavailable. Contact your administrator.",
       "accept": "I Accept",
       "decline": "Decline & Sign Out"
     }
@@ -60,7 +61,9 @@
       "subscription_tiers": "Subscription Tiers",
       "tos": "ToS & Disclaimer",
       "library": "Platform Library",
-      "audit_log": "Audit Log"
+      "audit_log": "Audit Log",
+      "tos_tab_tos": "Terms of Service",
+      "tos_tab_disclaimer": "Disclaimer"
     },
     "notifications": {
       "aria_label": "{count, plural, =0 {Notifications} one {1 unread notification} other {{count} unread notifications}}",
@@ -91,13 +94,13 @@
       },
       "custom_badge": "Custom",
       "inactive_badge": "Inactive",
-      "custom_info": "This slot is learned automatically per-student via weekly Celery batch (ARCH \u00a78.20). System prompt is managed by the platform \u2014 only metadata is editable here.",
+      "custom_info": "This slot is learned automatically per-student via weekly Celery batch (ARCH §8.20). System prompt is managed by the platform — only metadata is editable here.",
       "edit_button": "Edit prompt",
       "modal": {
-        "title": "Edit \u2014 {name}",
+        "title": "Edit — {name}",
         "description": "Changes apply to new AI sessions only. Ongoing sessions use the previous prompt.",
         "prompt_label": "System prompt",
-        "prompt_placeholder": "Enter system prompt\u2026",
+        "prompt_placeholder": "Enter system prompt…",
         "cancel": "Cancel",
         "save": "Save changes",
         "close": "Close"
@@ -136,7 +139,7 @@
         "name_label": "Name",
         "name_placeholder": "e.g. Matric Punjab Board",
         "desc_label": "Description (optional)",
-        "desc_placeholder": "Brief description\u2026",
+        "desc_placeholder": "Brief description…",
         "cancel": "Cancel",
         "save": "Save changes",
         "create": "Create",
@@ -210,7 +213,7 @@
         "title": "Publish new ToS version",
         "description": "This will create version {next} (current: v{current}). All users will be prompted to re-accept.",
         "content_label": "ToS content (Markdown)",
-        "content_placeholder": "Enter Terms of Service text\u2026",
+        "content_placeholder": "Enter Terms of Service text…",
         "content_required": "Content is required",
         "content_too_long": "Maximum {limit} characters",
         "cancel": "Cancel",
@@ -236,7 +239,7 @@
         "title": "Publish new disclaimer",
         "description": "This will create version {next} (current: v{current}).",
         "content_label": "Disclaimer text",
-        "content_placeholder": "Enter disclaimer text\u2026",
+        "content_placeholder": "Enter disclaimer text…",
         "content_required": "Content is required",
         "content_too_long": "Maximum {limit} characters",
         "cancel": "Cancel",
@@ -277,7 +280,7 @@
         "file_label": "Select PDF file",
         "file_picker_label": "Click to select a PDF file",
         "file_hint": "Click to select a PDF",
-        "file_constraints": "PDF only \u00b7 max {size} MB",
+        "file_constraints": "PDF only · max {size} MB",
         "language_label": "Language",
         "content_type_label": "Content type",
         "grade_label": "Grade range (comma-separated)",
@@ -317,7 +320,7 @@
       },
       "filter": {
         "actor_label": "Filter by actor ID",
-        "actor_placeholder": "Actor user ID\u2026",
+        "actor_placeholder": "Actor user ID…",
         "action_label": "Filter by action",
         "action_placeholder": "e.g. tos.publish",
         "apply": "Apply",

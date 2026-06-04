@@ -23,7 +23,7 @@ def upgrade() -> None:
     op.execute(
         "CREATE TYPE school.userrole AS ENUM ("
         "'platform_admin', 'district_admin', 'school_admin', "
-        "'coordinator', 'teacher', 'student', 'parent')"
+        "'coordinator', 'teacher', 'student', 'parent'"
         ")"
     )
 

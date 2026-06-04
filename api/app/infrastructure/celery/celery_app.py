@@ -43,6 +43,26 @@ def configure_celery(broker_url: str, result_backend: str) -> None:
         # Beat schedule (populated per feature)
         beat_schedule={},
     )
+    # app.features.* imports optional ingestion deps; register via tasks/celery_app.py
+    celery_app.autodiscover_tasks(["app.tasks"], related_name="tasks", force=True)
+
+
+def _result_backend_url(redis_url: str) -> str:
+    """Celery results on Redis DB 1; broker uses REDIS_URL (typically DB 0)."""
+    base, sep, db = redis_url.rpartition("/")
+    if sep and db.isdigit():
+        return f"{base}/1"
+    return f"{redis_url.rstrip('/')}/1"
+
+
+def _bootstrap_celery() -> None:
+    from app.config import get_settings
+
+    settings = get_settings()
+    configure_celery(settings.REDIS_URL, _result_backend_url(settings.REDIS_URL))
+
+
+_bootstrap_celery()
 
 
 @task_failure.connect  # type: ignore[misc]

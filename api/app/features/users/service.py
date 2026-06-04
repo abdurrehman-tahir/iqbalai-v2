@@ -11,6 +11,21 @@ from app.features.users.repository import UserRepository
 logger = structlog.get_logger(__name__)
 
 
+def parse_user_role(role_claim: object) -> UserRole:
+    """Map JWT role claim to UserRole (accepts value or enum member name)."""
+    if isinstance(role_claim, UserRole):
+        return role_claim
+    raw = str(role_claim or "student").strip()
+    try:
+        return UserRole(raw)
+    except ValueError:
+        pass
+    try:
+        return UserRole[raw.upper()]
+    except KeyError:
+        return UserRole.STUDENT
+
+
 class UserService:
     """Business logic for user management."""
 
@@ -31,7 +46,7 @@ class UserService:
             authentik_id=authentik_id,
             email=str(claims.get("email", "")),
             display_name=str(claims.get("name", claims.get("email", ""))),
-            role=UserRole(str(claims.get("role", "student"))),
+            role=parse_user_role(claims.get("role", "student")),
             school_id=str(claims.get("school_id", "")) or None,
             district_id=str(claims.get("district_id", "")) or None,
         )

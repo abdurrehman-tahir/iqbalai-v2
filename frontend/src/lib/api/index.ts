@@ -71,43 +71,65 @@ export const authApi = {
 
 // ── ToS ───────────────────────────────────────────────────────────────────────
 
+/** API shape from FastAPI TosVersionRead */
+interface TosVersionApi {
+  id: string;
+  version_number: number;
+  content_md: string;
+  effective_at: string;
+}
+
+export interface TosVersion {
+  id: string;
+  version: number;
+  content: string;
+  effective_at: string;
+}
+
+function mapTosVersion(raw: TosVersionApi): TosVersion {
+  return {
+    id: raw.id,
+    version: raw.version_number,
+    content: raw.content_md,
+    effective_at: raw.effective_at,
+  };
+}
+
 export const tosApi = {
-  getCurrent: (token: string) =>
-    request<{ id: string; version: number; content: string; effective_at: string }>(
-      "/tos/current",
-      {},
-      token,
-    ),
+  getCurrent: async (token: string) =>
+    mapTosVersion(await request<TosVersionApi>("/tos/current", {}, token)),
   acceptTos: (token: string, tosVersionId: string) =>
     request<{ accepted: boolean }>(
       "/users/me/accept-tos",
       { method: "POST", body: JSON.stringify({ tos_version_id: tosVersionId }) },
       token,
     ),
-  list: (token: string) =>
-    request<Array<{ id: string; version: number; content: string; effective_at: string }>>(
+  list: async (token: string) =>
+    (await request<TosVersionApi[]>("/admin/tos", {}, token)).map(mapTosVersion),
+  publish: async (token: string, content: string) => {
+    const raw = await request<{ id: string; version_number: number }>(
       "/admin/tos",
-      {},
+      { method: "POST", body: JSON.stringify({ content_md: content }) },
       token,
-    ),
-  publish: (token: string, content: string) =>
-    request<{ id: string; version: number }>(
-      "/admin/tos",
-      { method: "POST", body: JSON.stringify({ content }) },
-      token,
-    ),
-  listDisclaimer: (token: string) =>
-    request<Array<{ id: string; version: number; content: string; effective_at: string }>>(
+    );
+    return { id: raw.id, version: raw.version_number };
+  },
+  listDisclaimer: async (token: string): Promise<TosVersion[]> => {
+    const raw = await request<Array<{ id: string; version_number: number; content: string; effective_at: string }>>(
       "/admin/disclaimer",
       {},
       token,
-    ),
-  publishDisclaimer: (token: string, content: string) =>
-    request<{ id: string; version: number }>(
+    );
+    return raw.map((d) => ({ id: d.id, version: d.version_number, content: d.content, effective_at: d.effective_at }));
+  },
+  publishDisclaimer: async (token: string, content: string) => {
+    const raw = await request<{ id: string; version_number: number }>(
       "/admin/disclaimer",
       { method: "POST", body: JSON.stringify({ content }) },
       token,
-    ),
+    );
+    return { id: raw.id, version: raw.version_number };
+  },
 };
 
 // ── Exam Syllabi ──────────────────────────────────────────────────────────────
@@ -245,8 +267,14 @@ export interface Notification {
 }
 
 export const notificationsApi = {
-  list: (token: string) =>
-    request<Notification[]>("/notifications", {}, token),
+  list: async (token: string): Promise<Notification[]> => {
+    const res = await request<{ items: Notification[]; total: number; unread_count: number }>(
+      "/notifications",
+      {},
+      token,
+    );
+    return res.items;
+  },
   markRead: (token: string, id: string) =>
     request<void>(`/notifications/${id}/read`, { method: "POST" }, token),
 };

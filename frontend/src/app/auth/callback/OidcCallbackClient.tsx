@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authApi, tosApi } from "@/lib/api";
@@ -24,8 +24,13 @@ export function OidcCallbackClient() {
   const [errorMsg, setErrorMsg] = useState("");
   const [tosData, setTosData] = useState<TosData | null>(null);
   const [pendingToken, setPendingToken] = useState<string | null>(null);
+  // Guard against React 18 StrictMode double-invocation: authorization codes are single-use.
+  const exchangeAttempted = useRef(false);
 
   useEffect(() => {
+    if (exchangeAttempted.current) return;
+    exchangeAttempted.current = true;
+
     const code = searchParams.get("code");
     const error = searchParams.get("error");
 
@@ -90,7 +95,11 @@ export function OidcCallbackClient() {
       if (user.tos_acceptance_required && user.current_tos_version_id) {
         // Fetch ToS content to display in modal
         const tos = await tosApi.getCurrent(token);
-        setTosData({ id: tos.id, version: tos.version, content: tos.content });
+        setTosData({
+          id: tos.id,
+          version: tos.version,
+          content: tos.content,
+        });
         setPhase("tos");
       } else {
         router.replace("/admin");

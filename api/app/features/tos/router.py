@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
+from app.core.exceptions import NotFoundError
 from app.core.responses import success
 from app.features.tos.schemas import (
     DisclaimerVersionCreate,
@@ -16,6 +17,7 @@ from app.features.tos.schemas import (
     TosVersionRead,
 )
 from app.features.tos.service import TosService
+from app.features.users.service import UserService
 
 router = APIRouter()
 
@@ -73,10 +75,11 @@ async def accept_tos(
     claims: dict = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict:
-    svc = TosService(db)
-    user_id = str(claims.get("sub", ""))
+    user = await UserService(db).get_me(str(claims.get("sub", "")))
+    if user is None:
+        raise NotFoundError("User profile not found — call /auth/post-login first")
     ip = request.client.host if request.client else None
-    acceptance = await svc.accept_tos(user_id, payload.tos_version_id, ip)
+    acceptance = await TosService(db).accept_tos(user.id, payload.tos_version_id, ip)
     resp = TosAcceptResponse(
         accepted=True,
         tos_version_id=payload.tos_version_id,

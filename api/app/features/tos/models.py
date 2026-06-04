@@ -25,7 +25,8 @@ class TosVersion(AuditMixin, Base):
     content_md: Mapped[str] = mapped_column(Text, nullable=False)
     language: Mapped[str] = mapped_column(String(10), nullable=False, default="en")
     effective_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    published_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # VARCHAR(255) — matches users.authentik_id; Authentik sub claim can exceed 36 chars
+    published_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:
@@ -47,7 +48,8 @@ class DisclaimerVersion(AuditMixin, Base):
     content: Mapped[str] = mapped_column(String(500), nullable=False)
     language: Mapped[str] = mapped_column(String(10), nullable=False, default="en")
     effective_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
-    published_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # VARCHAR(255) — matches users.authentik_id; Authentik sub claim can exceed 36 chars
+    published_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:
@@ -69,7 +71,8 @@ class UserTosAcceptance(AuditMixin, Base):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
-    user_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    # VARCHAR(255) — stores Authentik sub claim; matches users.authentik_id width
+    user_id: Mapped[str] = mapped_column(String(255), nullable=False)
     tos_version_id: Mapped[str] = mapped_column(String(36), nullable=False)
     accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)

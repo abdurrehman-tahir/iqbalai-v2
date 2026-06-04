@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
 import { Button } from "@/components/ui/button";
 
@@ -14,6 +14,18 @@ export function TosModal({ tos, onAccept, onDecline }: TosModalProps) {
   const t = useTranslations("auth.tos_modal");
   const [scrolledToEnd, setScrolledToEnd] = useState(false);
   const [accepting, setAccepting] = useState(false);
+  const contentRef = useRef<HTMLDivElement>(null);
+
+  const checkScrollEnd = useCallback(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    const nearBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 40;
+    if (nearBottom) setScrolledToEnd(true);
+  }, []);
+
+  useLayoutEffect(() => {
+    checkScrollEnd();
+  }, [tos.content, checkScrollEnd]);
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {
     const el = e.currentTarget;
@@ -37,7 +49,7 @@ export function TosModal({ tos, onAccept, onDecline }: TosModalProps) {
       aria-modal="true"
       aria-labelledby="tos-modal-title"
     >
-      <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="w-full max-w-2xl bg-white rounded-xl shadow-2xl flex flex-col max-h-[90vh] min-h-0">
         {/* Header */}
         <div className="p-6 border-b border-gray-100">
           <h2 id="tos-modal-title" className="text-xl font-semibold text-gray-900">
@@ -50,12 +62,17 @@ export function TosModal({ tos, onAccept, onDecline }: TosModalProps) {
 
         {/* Scrollable content */}
         <div
+          ref={contentRef}
           onScroll={handleScroll}
-          className="flex-1 overflow-y-auto p-6 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap"
+          className="flex-1 min-h-48 max-h-[50vh] overflow-y-auto overscroll-contain p-6 text-sm text-gray-700 leading-relaxed whitespace-pre-wrap"
           tabIndex={0}
           aria-label={t("content_label")}
         >
-          {tos.content}
+          {tos.content.trim() ? (
+            tos.content
+          ) : (
+            <p className="text-gray-400 italic">{t("empty_content")}</p>
+          )}
         </div>
 
         {!scrolledToEnd && (
