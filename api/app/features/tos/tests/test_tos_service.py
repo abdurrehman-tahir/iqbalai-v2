@@ -22,14 +22,13 @@ class TestTosService:
     def _make_tos(self, version: int = 1) -> TosVersion:
         from datetime import datetime, timezone
 
-        t = TosVersion()
-        t.id = f"tos-v{version}"
-        t.version_number = version
-        t.content_md = "# ToS"
-        t.language = "en"
-
-        t.effective_at = datetime.now(timezone.utc)
-        return t
+        return TosVersion(
+            id=f"tos-v{version}",
+            version_number=version,
+            content_md="# ToS",
+            language="en",
+            effective_at=datetime.now(timezone.utc),
+        )
 
     @pytest.mark.asyncio
     async def test_publish_first_tos_sets_version_1(self, mock_session: AsyncMock) -> None:

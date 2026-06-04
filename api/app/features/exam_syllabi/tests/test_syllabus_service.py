@@ -19,31 +19,31 @@ def mock_session() -> AsyncMock:
 
 def _make_syllabus(version: int = 1) -> ExamSyllabus:
     """Build an ExamSyllabus instance without touching the DB."""
-    s = ExamSyllabus()
-    s.id = "syllabus-001"
-    s.name = "AKU-EB Grade 9 Urdu"
-    s.exam_board = "AKU-EB"
-    s.region = "Sindh"
-    s.grade_range_min = 9
-    s.grade_range_max = 9
-    s.language = "ur"
-    s.version_number = version
-    s.is_active = True
-    s.deleted_at = None
-    return s
+    return ExamSyllabus(
+        id="syllabus-001",
+        name="AKU-EB Grade 9 Urdu",
+        exam_board="AKU-EB",
+        region="Sindh",
+        grade_range_min=9,
+        grade_range_max=9,
+        language="ur",
+        version_number=version,
+        is_active=True,
+        deleted_at=None,
+    )
 
 
 def _make_topic(depth: int = 0) -> SyllabusTopic:
     """Build a SyllabusTopic instance without touching the DB."""
-    t = SyllabusTopic()
-    t.id = "topic-001"
-    t.syllabus_id = "syllabus-001"
-    t.parent_id = None
-    t.title = "Chapter 1"
-    t.depth = depth
-    t.order_index = 0
-    t.deleted_at = None
-    return t
+    return SyllabusTopic(
+        id="topic-001",
+        syllabus_id="syllabus-001",
+        parent_id=None,
+        title="Chapter 1",
+        depth=depth,
+        order_index=0,
+        deleted_at=None,
+    )
 
 
 @pytest.mark.asyncio

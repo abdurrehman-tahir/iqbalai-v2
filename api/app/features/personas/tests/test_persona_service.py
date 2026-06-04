@@ -19,17 +19,17 @@ def mock_session() -> AsyncMock:
 
 def _make_persona() -> TeachingPersona:
     """Build a TeachingPersona instance without touching the DB."""
-    p = TeachingPersona()
-    p.id = "persona-001"
-    p.name = "Socratic"
-    p.slug = "socratic"
-    p.is_custom = False
-    p.is_active = True
-    p.system_prompt_en = "You are a Socratic tutor. Ask probing questions."
-    p.system_prompt_ur = None
-    p.system_prompt_sd = None
-    p.system_prompt_ps = None
-    return p
+    return TeachingPersona(
+        id="persona-001",
+        name="Socratic",
+        slug="socratic",
+        is_custom=False,
+        is_active=True,
+        system_prompt_en="You are a Socratic tutor. Ask probing questions.",
+        system_prompt_ur=None,
+        system_prompt_sd=None,
+        system_prompt_ps=None,
+    )
 
 
 @pytest.mark.asyncio
