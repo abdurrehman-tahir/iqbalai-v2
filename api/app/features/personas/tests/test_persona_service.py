@@ -5,7 +5,6 @@ from __future__ import annotations
 from unittest.mock import AsyncMock
 
 import pytest
-
 from pydantic import ValidationError as PydanticValidationError
 
 from app.core.exceptions import NotFoundError
