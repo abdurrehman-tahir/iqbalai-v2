@@ -39,7 +39,17 @@ class User(AuditMixin, SoftDeleteMixin, Base):
     authentik_id: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     email: Mapped[str] = mapped_column(String(255), nullable=False)
     display_name: Mapped[str] = mapped_column(String(255), nullable=False)
-    role: Mapped[UserRole] = mapped_column(SAEnum(UserRole, schema="school"), nullable=False)
+    role: Mapped[UserRole] = mapped_column(
+        SAEnum(
+            UserRole,
+            name="userrole",
+            schema="school",
+            values_callable=lambda roles: [r.value for r in roles],
+            native_enum=True,
+            create_type=False,
+        ),
+        nullable=False,
+    )
     school_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     district_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     # Scoped IDs: comma-separated list of IDs the user is scoped to (e.g., class IDs for teacher)

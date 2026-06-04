@@ -40,6 +40,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: Callable[[Request], Awaitable[Response]]
     ) -> Response:
+        # Browsers send OPTIONS preflight before cross-origin POST with Authorization.
+        if request.method == "OPTIONS":
+            return await call_next(request)
+
         if request.url.path in PUBLIC_PATHS:
             return await call_next(request)
 
@@ -56,7 +60,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
             )
 
         token = authorization.removeprefix("Bearer ")
-        claims = decode_jwt(token)
+        claims = await decode_jwt(token)
         if claims is None:
             return JSONResponse(
                 status_code=401,

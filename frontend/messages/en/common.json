@@ -19,5 +19,313 @@
     "error": "Something went wrong",
     "retry": "Try again",
     "no_data": "No data available"
+  },
+  "auth": {
+    "login": {
+      "title": "Welcome back",
+      "subtitle": "Sign in to access the IqbalAI platform",
+      "cta": "Sign in with Authentik"
+    },
+    "callback": {
+      "loading": "Completing sign in…",
+      "error": {
+        "auth_denied": "Login was denied or cancelled.",
+        "no_code": "No authorisation code received.",
+        "generic": "An error occurred during sign in. Please try again.",
+        "tos_accept_failed": "Failed to record your acceptance. Please try again.",
+        "back_to_login": "Back to login"
+      }
+    },
+    "tos_modal": {
+      "title": "Terms of Service",
+      "version": "Version {version}",
+      "content_label": "Terms of Service content",
+      "scroll_hint": "Please scroll to the bottom to enable acceptance",
+      "empty_content": "Terms content is unavailable. Contact your administrator.",
+      "accept": "I Accept",
+      "decline": "Decline & Sign Out"
+    }
+  },
+  "admin": {
+    "sidebar_label": "Admin navigation",
+    "admin_badge": "Admin",
+    "admin_role": "Platform Admin",
+    "logout": "Sign out",
+    "nav": {
+      "aria_label": "Admin sidebar navigation",
+      "open_menu": "Open navigation menu",
+      "close_menu": "Close navigation menu",
+      "languages": "Languages",
+      "personas": "Teaching Personas",
+      "exam_syllabi": "Exam Syllabi",
+      "subscription_tiers": "Subscription Tiers",
+      "tos": "ToS & Disclaimer",
+      "library": "Platform Library",
+      "audit_log": "Audit Log",
+      "tos_tab_tos": "Terms of Service",
+      "tos_tab_disclaimer": "Disclaimer"
+    },
+    "notifications": {
+      "aria_label": "{count, plural, =0 {Notifications} one {1 unread notification} other {{count} unread notifications}}",
+      "panel_label": "Notifications panel",
+      "title": "Notifications",
+      "close": "Close notifications",
+      "empty": "You have no notifications",
+      "error": "Failed to load notifications",
+      "retry": "Retry"
+    },
+    "languages": {
+      "title": "Languages",
+      "subtitle": "Launch languages configured at deployment. Adding a new language requires a deployment-level change.",
+      "deployment_banner": "Adding a new language requires a deployment-level change. Contact Hamza for support.",
+      "tts_ready": "TTS ready",
+      "tts_pending": "TTS pending (M-12)",
+      "rtl": "RTL",
+      "ltr": "LTR"
+    },
+    "personas": {
+      "title": "Teaching Personas",
+      "subtitle": "Configure system prompts for each persona. Changes apply to new sessions only.",
+      "error": "Failed to load personas",
+      "retry": "Retry",
+      "empty": {
+        "title": "No personas found",
+        "description": "Personas should be seeded at startup."
+      },
+      "custom_badge": "Custom",
+      "inactive_badge": "Inactive",
+      "custom_info": "This slot is learned automatically per-student via weekly Celery batch (ARCH §8.20). System prompt is managed by the platform — only metadata is editable here.",
+      "edit_button": "Edit prompt",
+      "modal": {
+        "title": "Edit — {name}",
+        "description": "Changes apply to new AI sessions only. Ongoing sessions use the previous prompt.",
+        "prompt_label": "System prompt",
+        "prompt_placeholder": "Enter system prompt…",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "close": "Close"
+      }
+    },
+    "exam_syllabi": {
+      "title": "Exam Syllabi",
+      "subtitle": "Define the exam frameworks available to students. Editing creates a new version.",
+      "error": "Failed to load syllabi",
+      "retry": "Retry",
+      "add_button": "Add syllabus",
+      "table_label": "Exam syllabi table",
+      "empty": {
+        "title": "No syllabi yet",
+        "description": "Add the launch set: Matric Punjab, FSc Punjab, O-Level Cambridge, A-Level Cambridge.",
+        "cta": "Add first syllabus"
+      },
+      "col": {
+        "name": "Name",
+        "description": "Description",
+        "version": "Version",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      },
+      "actions": {
+        "edit": "Edit {name}",
+        "delete": "Delete {name}"
+      },
+      "modal": {
+        "edit_title": "Edit syllabus",
+        "create_title": "New syllabus",
+        "name_label": "Name",
+        "name_placeholder": "e.g. Matric Punjab Board",
+        "desc_label": "Description (optional)",
+        "desc_placeholder": "Brief description…",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Create",
+        "close": "Close"
+      },
+      "delete_modal": {
+        "title": "Delete syllabus?",
+        "description": "Are you sure you want to delete \"{name}\"? Students with this syllabus selected will retain their selection.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    },
+    "subscription_tiers": {
+      "title": "Subscription Tiers",
+      "subtitle": "Define plan tiers for schools and districts. Stripe integration is a Phase 2 feature.",
+      "error": "Failed to load subscription tiers",
+      "retry": "Retry",
+      "add_button": "Add tier",
+      "schema_only_banner": "Subscription module is schema-only at launch. Full Stripe integration is Phase 2 per Flow 13 + TODO.md.",
+      "empty": {
+        "title": "No subscription tiers",
+        "description": "Create tier definitions for Basic and Premium plans.",
+        "cta": "Add first tier"
+      },
+      "month": "month",
+      "role_label": "Applies to",
+      "status": {
+        "active": "Active",
+        "deprecated": "Deprecated"
+      },
+      "actions": {
+        "edit": "Edit",
+        "delete": "Delete"
+      },
+      "modal": {
+        "edit_title": "Edit tier",
+        "create_title": "New tier",
+        "name_label": "Name",
+        "name_placeholder": "e.g. Basic District",
+        "price_label": "Monthly price (PKR)",
+        "role_label": "Applies to role",
+        "role_placeholder": "school | district | independent_teacher",
+        "caps_label": "Capability caps (JSON)",
+        "caps_invalid_json": "Must be valid JSON",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Create",
+        "close": "Close"
+      },
+      "delete_modal": {
+        "title": "Delete tier?",
+        "description": "Are you sure you want to delete \"{name}\"?",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    },
+    "tos": {
+      "title": "Terms of Service",
+      "subtitle": "Manage ToS versions. Publishing a new version forces all users to re-accept.",
+      "error": "Failed to load ToS versions",
+      "retry": "Retry",
+      "publish_button": "Publish new version",
+      "history_label": "Version history",
+      "version_label": "Version {version}",
+      "current_badge": "Current",
+      "empty": {
+        "title": "No ToS published yet",
+        "description": "Publish the initial Terms of Service before users can log in."
+      },
+      "modal": {
+        "title": "Publish new ToS version",
+        "description": "This will create version {next} (current: v{current}). All users will be prompted to re-accept.",
+        "content_label": "ToS content (Markdown)",
+        "content_placeholder": "Enter Terms of Service text…",
+        "content_required": "Content is required",
+        "content_too_long": "Maximum {limit} characters",
+        "cancel": "Cancel",
+        "publish": "Publish",
+        "close": "Close"
+      }
+    },
+    "disclaimer": {
+      "title": "Disclaimer",
+      "subtitle": "Manage the disclaimer text shown next to AI prediction surfaces. Max 500 characters.",
+      "error": "Failed to load disclaimer versions",
+      "retry": "Retry",
+      "publish_button": "Publish new version",
+      "char_limit_info": "Disclaimer is limited to {limit} characters.",
+      "history_label": "Version history",
+      "version_label": "Version {version}",
+      "current_badge": "Current",
+      "empty": {
+        "title": "No disclaimer published yet",
+        "description": "Publish a disclaimer that will appear next to AI prediction surfaces."
+      },
+      "modal": {
+        "title": "Publish new disclaimer",
+        "description": "This will create version {next} (current: v{current}).",
+        "content_label": "Disclaimer text",
+        "content_placeholder": "Enter disclaimer text…",
+        "content_required": "Content is required",
+        "content_too_long": "Maximum {limit} characters",
+        "cancel": "Cancel",
+        "publish": "Publish",
+        "close": "Close"
+      }
+    },
+    "library": {
+      "title": "Platform Library",
+      "subtitle": "Upload reference books and curriculum PDFs for all students to draw from via RAG.",
+      "error": "Failed to load library",
+      "retry": "Retry",
+      "upload_button": "Upload PDF",
+      "table_label": "Platform library files",
+      "empty": {
+        "title": "No files in the library",
+        "description": "Upload curriculum PDFs to power the AI's content retrieval."
+      },
+      "col": {
+        "filename": "File",
+        "tags": "Tags",
+        "status": "Status",
+        "uploaded": "Uploaded",
+        "actions": "Actions"
+      },
+      "status": {
+        "ingesting": "Ingesting",
+        "available": "Available",
+        "ingestion_failed": "Failed",
+        "soft_deleted": "Deleted"
+      },
+      "actions": {
+        "delete": "Delete {name}"
+      },
+      "upload": {
+        "title": "Upload reference book",
+        "description": "PDF only, max 100 MB. The file will be chunked and embedded into the Platform Library.",
+        "file_label": "Select PDF file",
+        "file_picker_label": "Click to select a PDF file",
+        "file_hint": "Click to select a PDF",
+        "file_constraints": "PDF only · max {size} MB",
+        "language_label": "Language",
+        "content_type_label": "Content type",
+        "grade_label": "Grade range (comma-separated)",
+        "subject_label": "Subject",
+        "subject_placeholder": "Optional",
+        "cancel": "Cancel",
+        "submit": "Upload",
+        "close": "Close",
+        "error": {
+          "not_pdf": "Only PDF files are allowed.",
+          "too_large": "File exceeds the {size} MB limit."
+        }
+      },
+      "delete_modal": {
+        "title": "Remove from library?",
+        "description": "Soft-delete \"{name}\"? The file will be hidden but embeddings are retained for citation integrity.",
+        "cancel": "Cancel",
+        "confirm": "Remove"
+      }
+    },
+    "audit_log": {
+      "title": "Audit Log",
+      "subtitle": "Immutable record of all admin actions. Last 50 entries shown.",
+      "error": "Failed to load audit log",
+      "retry": "Retry",
+      "table_label": "Audit log entries",
+      "showing_last": "Showing {count} most recent entries",
+      "empty": {
+        "title": "No audit entries yet",
+        "description": "All admin actions will appear here."
+      },
+      "col": {
+        "when": "When",
+        "action": "Action",
+        "actor": "Actor (ID)",
+        "target": "Target"
+      },
+      "filter": {
+        "actor_label": "Filter by actor ID",
+        "actor_placeholder": "Actor user ID…",
+        "action_label": "Filter by action",
+        "action_placeholder": "e.g. tos.publish",
+        "apply": "Apply",
+        "clear": "Clear"
+      }
+    }
   }
 }

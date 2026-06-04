@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from unittest.mock import patch
+from unittest.mock import AsyncMock, patch
 
 import pytest
 from starlette.applications import Starlette
@@ -58,6 +58,11 @@ def test_public_path_returns_200_without_token(client: TestClient) -> None:
     assert response.status_code == 200
 
 
+def test_options_request_bypasses_auth(client: TestClient) -> None:
+    response = client.options("/secret")
+    assert response.status_code != 401
+
+
 # ---------------------------------------------------------------------------
 # Protected path — missing / malformed Authorization header
 # ---------------------------------------------------------------------------
@@ -85,13 +90,13 @@ def test_401_body_has_authentication_required_code(client: TestClient) -> None:
 
 
 def test_invalid_token_returns_401(client: TestClient) -> None:
-    with patch("app.core.middleware.decode_jwt", return_value=None):
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=None):
         response = client.get("/secret", headers={"Authorization": "Bearer bad.token.here"})
     assert response.status_code == 401
 
 
 def test_invalid_token_body_has_error_code(client: TestClient) -> None:
-    with patch("app.core.middleware.decode_jwt", return_value=None):
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=None):
         response = client.get("/secret", headers={"Authorization": "Bearer bad.token.here"})
     assert response.json()["error"]["code"] == "AUTHENTICATION_REQUIRED"
 
@@ -103,14 +108,14 @@ def test_invalid_token_body_has_error_code(client: TestClient) -> None:
 
 def test_valid_token_passes_through(client: TestClient) -> None:
     fake_claims = {"sub": "user-123", "role": "teacher", "email": "t@school.pk"}
-    with patch("app.core.middleware.decode_jwt", return_value=fake_claims):
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
         response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
     assert response.status_code == 200
 
 
 def test_valid_token_claims_set_on_request_state(client: TestClient) -> None:
     fake_claims = {"sub": "user-123", "role": "teacher"}
-    with patch("app.core.middleware.decode_jwt", return_value=fake_claims):
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
         response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
     assert response.json()["claims"]["sub"] == "user-123"
     assert response.json()["claims"]["role"] == "teacher"

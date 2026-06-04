@@ -63,8 +63,14 @@ class Settings(BaseSettings):
     # Infinity embeddings
     INFINITY_URL: str = "http://localhost:7997"
 
-    # Frontend (used for CORS)
-    NEXT_PUBLIC_API_URL: str = "http://localhost:8000"
+    # Browser origins allowed for cross-origin API calls (comma-separated).
+    CORS_ALLOWED_ORIGINS: str = (
+        "http://localhost:3000,http://127.0.0.1:3000"
+    )
+
+    @property
+    def cors_allowed_origins(self) -> list[str]:
+        return [o.strip() for o in self.CORS_ALLOWED_ORIGINS.split(",") if o.strip()]
 
 
 @lru_cache

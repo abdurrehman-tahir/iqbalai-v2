@@ -1,0 +1,58 @@
+"""Unit tests for PersonaService — T-021 acceptance criteria."""
+
+from __future__ import annotations
+
+from unittest.mock import AsyncMock
+
+import pytest
+from pydantic import ValidationError as PydanticValidationError
+
+from app.core.exceptions import NotFoundError
+from app.features.personas.models import TeachingPersona
+from app.features.personas.schemas import PersonaUpdate
+from app.features.personas.service import PersonaService
+
+
+@pytest.fixture
+def mock_session() -> AsyncMock:
+    return AsyncMock()
+
+
+def _make_persona() -> TeachingPersona:
+    """Build a TeachingPersona instance without touching the DB."""
+    return TeachingPersona(
+        id="persona-001",
+        name="Socratic",
+        slug="socratic",
+        is_custom=False,
+        is_active=True,
+        system_prompt_en="You are a Socratic tutor. Ask probing questions.",
+        system_prompt_ur=None,
+        system_prompt_sd=None,
+        system_prompt_ps=None,
+    )
+
+
+def test_update_persona_prompt_too_long_raises_validation_error() -> None:
+    """system_prompt_en longer than 8000 characters must be rejected by the schema.
+
+    The max_length=8000 constraint lives on PersonaUpdate, so Pydantic rejects
+    the oversized input at the API boundary before the service is ever called.
+    """
+    oversized_prompt = "x" * 8001
+    with pytest.raises(PydanticValidationError):
+        PersonaUpdate(system_prompt_en=oversized_prompt)
+
+
+@pytest.mark.asyncio
+async def test_update_missing_persona_raises_not_found(mock_session: AsyncMock) -> None:
+    """update_persona must raise NotFoundError when the persona does not exist."""
+    svc = PersonaService(mock_session)
+    repo_mock = AsyncMock()
+    repo_mock.get_by_id.return_value = None
+    svc._repo = repo_mock
+
+    payload = PersonaUpdate(system_prompt_en="Updated prompt text.")
+
+    with pytest.raises(NotFoundError):
+        await svc.update_persona("nonexistent-id", payload, updated_by="admin-001")

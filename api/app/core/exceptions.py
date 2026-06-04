@@ -47,6 +47,27 @@ class ConflictError(IqbalAIError):
         super().__init__("CONFLICT", message, status.HTTP_409_CONFLICT)
 
 
+class PreconditionFailedError(IqbalAIError):
+    """A required precondition was not met (e.g. last active admin cannot self-deactivate)."""
+
+    def __init__(self, message: str = "Precondition failed") -> None:
+        super().__init__("PRECONDITION_FAILED", message, status.HTTP_412_PRECONDITION_FAILED)
+
+
+class TosAcceptanceRequiredError(IqbalAIError):
+    """User must accept the current ToS before proceeding."""
+
+    def __init__(self, message: str = "Terms of Service acceptance required") -> None:
+        super().__init__("TOS_ACCEPTANCE_REQUIRED", message, status.HTTP_403_FORBIDDEN)
+
+
+class ValidationError(IqbalAIError):
+    """Input data failed domain validation (distinct from Pydantic schema errors)."""
+
+    def __init__(self, message: str = "Validation error") -> None:
+        super().__init__("VALIDATION_ERROR", message, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
 def _error_envelope(code: str, message: str) -> dict[str, object]:
     """Build the standard error envelope per ARCH §5.4."""
     return {"error": {"code": code, "message": message}}

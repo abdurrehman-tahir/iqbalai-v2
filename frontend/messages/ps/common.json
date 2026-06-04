@@ -19,5 +19,313 @@
     "error": "یو شی غلط شو",
     "retry": "بیا هڅه وکړئ",
     "no_data": "معلومات شتون نلري"
+  },
+  "auth": {
+    "login": {
+      "title": "__TODO__ Welcome back",
+      "subtitle": "__TODO__ Sign in to access the IqbalAI platform",
+      "cta": "__TODO__ Sign in with Authentik"
+    },
+    "callback": {
+      "loading": "__TODO__ Completing sign in…",
+      "error": {
+        "auth_denied": "__TODO__ Login was denied or cancelled.",
+        "no_code": "__TODO__ No authorisation code received.",
+        "generic": "__TODO__ An error occurred during sign in.",
+        "tos_accept_failed": "__TODO__ Failed to record your acceptance.",
+        "back_to_login": "__TODO__ Back to login"
+      }
+    },
+    "tos_modal": {
+      "title": "__TODO__ Terms of Service",
+      "version": "__TODO__ Version {version}",
+      "content_label": "__TODO__ Terms of Service content",
+      "scroll_hint": "__TODO__ Please scroll to the bottom to enable acceptance",
+      "empty_content": "__TODO__ Terms content is unavailable. Contact your administrator.",
+      "accept": "__TODO__ I Accept",
+      "decline": "__TODO__ Decline & Sign Out"
+    }
+  },
+  "admin": {
+    "sidebar_label": "__TODO__ Admin navigation",
+    "admin_badge": "__TODO__ Admin",
+    "admin_role": "__TODO__ Platform Admin",
+    "logout": "__TODO__ Sign out",
+    "nav": {
+      "aria_label": "__TODO__ Admin sidebar navigation",
+      "open_menu": "__TODO__ Open navigation menu",
+      "close_menu": "__TODO__ Close navigation menu",
+      "languages": "__TODO__ Languages",
+      "personas": "__TODO__ Teaching Personas",
+      "exam_syllabi": "__TODO__ Exam Syllabi",
+      "subscription_tiers": "__TODO__ Subscription Tiers",
+      "tos": "__TODO__ ToS & Disclaimer",
+      "library": "__TODO__ Platform Library",
+      "audit_log": "__TODO__ Audit Log",
+      "tos_tab_tos": "د خدمت شرطونه",
+      "tos_tab_disclaimer": "رد کول"
+    },
+    "notifications": {
+      "aria_label": "__TODO__ {count, plural, =0 {Notifications} one {1 unread notification} other {{count} unread notifications}}",
+      "panel_label": "__TODO__ Notifications panel",
+      "title": "__TODO__ Notifications",
+      "close": "__TODO__ Close notifications",
+      "empty": "__TODO__ You have no notifications",
+      "error": "__TODO__ Failed to load notifications",
+      "retry": "__TODO__ Retry"
+    },
+    "languages": {
+      "title": "__TODO__ Languages",
+      "subtitle": "__TODO__ Launch languages configured at deployment.",
+      "deployment_banner": "__TODO__ Adding a new language requires a deployment-level change.",
+      "tts_ready": "__TODO__ TTS ready",
+      "tts_pending": "__TODO__ TTS pending (M-12)",
+      "rtl": "__TODO__ RTL",
+      "ltr": "__TODO__ LTR"
+    },
+    "personas": {
+      "title": "__TODO__ Teaching Personas",
+      "subtitle": "__TODO__ Configure system prompts for each persona.",
+      "error": "__TODO__ Failed to load personas",
+      "retry": "__TODO__ Retry",
+      "empty": {
+        "title": "__TODO__ No personas found",
+        "description": "__TODO__ Personas should be seeded at startup."
+      },
+      "custom_badge": "__TODO__ Custom",
+      "inactive_badge": "__TODO__ Inactive",
+      "custom_info": "__TODO__ This slot is learned automatically per-student.",
+      "edit_button": "__TODO__ Edit prompt",
+      "modal": {
+        "title": "__TODO__ Edit — {name}",
+        "description": "__TODO__ Changes apply to new AI sessions only.",
+        "prompt_label": "__TODO__ System prompt",
+        "prompt_placeholder": "__TODO__ Enter system prompt…",
+        "cancel": "__TODO__ Cancel",
+        "save": "__TODO__ Save changes",
+        "close": "__TODO__ Close"
+      }
+    },
+    "exam_syllabi": {
+      "title": "__TODO__ Exam Syllabi",
+      "subtitle": "__TODO__ Define the exam frameworks available to students.",
+      "error": "__TODO__ Failed to load syllabi",
+      "retry": "__TODO__ Retry",
+      "add_button": "__TODO__ Add syllabus",
+      "table_label": "__TODO__ Exam syllabi table",
+      "empty": {
+        "title": "__TODO__ No syllabi yet",
+        "description": "__TODO__ Add the launch set.",
+        "cta": "__TODO__ Add first syllabus"
+      },
+      "col": {
+        "name": "__TODO__ Name",
+        "description": "__TODO__ Description",
+        "version": "__TODO__ Version",
+        "status": "__TODO__ Status",
+        "actions": "__TODO__ Actions"
+      },
+      "status": {
+        "active": "__TODO__ Active",
+        "inactive": "__TODO__ Inactive"
+      },
+      "actions": {
+        "edit": "__TODO__ Edit {name}",
+        "delete": "__TODO__ Delete {name}"
+      },
+      "modal": {
+        "edit_title": "__TODO__ Edit syllabus",
+        "create_title": "__TODO__ New syllabus",
+        "name_label": "__TODO__ Name",
+        "name_placeholder": "__TODO__ e.g. Matric Punjab Board",
+        "desc_label": "__TODO__ Description (optional)",
+        "desc_placeholder": "__TODO__ Brief description…",
+        "cancel": "__TODO__ Cancel",
+        "save": "__TODO__ Save changes",
+        "create": "__TODO__ Create",
+        "close": "__TODO__ Close"
+      },
+      "delete_modal": {
+        "title": "__TODO__ Delete syllabus?",
+        "description": "__TODO__ Are you sure you want to delete \"{name}\"?",
+        "cancel": "__TODO__ Cancel",
+        "confirm": "__TODO__ Delete"
+      }
+    },
+    "subscription_tiers": {
+      "title": "__TODO__ Subscription Tiers",
+      "subtitle": "__TODO__ Define plan tiers.",
+      "error": "__TODO__ Failed to load subscription tiers",
+      "retry": "__TODO__ Retry",
+      "add_button": "__TODO__ Add tier",
+      "schema_only_banner": "__TODO__ Subscription module is schema-only at launch.",
+      "empty": {
+        "title": "__TODO__ No subscription tiers",
+        "description": "__TODO__ Create tier definitions.",
+        "cta": "__TODO__ Add first tier"
+      },
+      "month": "__TODO__ month",
+      "role_label": "__TODO__ Applies to",
+      "status": {
+        "active": "__TODO__ Active",
+        "deprecated": "__TODO__ Deprecated"
+      },
+      "actions": {
+        "edit": "__TODO__ Edit",
+        "delete": "__TODO__ Delete"
+      },
+      "modal": {
+        "edit_title": "__TODO__ Edit tier",
+        "create_title": "__TODO__ New tier",
+        "name_label": "__TODO__ Name",
+        "name_placeholder": "__TODO__ e.g. Basic District",
+        "price_label": "__TODO__ Monthly price (PKR)",
+        "role_label": "__TODO__ Applies to role",
+        "role_placeholder": "__TODO__ school | district",
+        "caps_label": "__TODO__ Capability caps (JSON)",
+        "caps_invalid_json": "__TODO__ Must be valid JSON",
+        "cancel": "__TODO__ Cancel",
+        "save": "__TODO__ Save changes",
+        "create": "__TODO__ Create",
+        "close": "__TODO__ Close"
+      },
+      "delete_modal": {
+        "title": "__TODO__ Delete tier?",
+        "description": "__TODO__ Are you sure you want to delete \"{name}\"?",
+        "cancel": "__TODO__ Cancel",
+        "confirm": "__TODO__ Delete"
+      }
+    },
+    "tos": {
+      "title": "__TODO__ Terms of Service",
+      "subtitle": "__TODO__ Manage ToS versions.",
+      "error": "__TODO__ Failed to load ToS versions",
+      "retry": "__TODO__ Retry",
+      "publish_button": "__TODO__ Publish new version",
+      "history_label": "__TODO__ Version history",
+      "version_label": "__TODO__ Version {version}",
+      "current_badge": "__TODO__ Current",
+      "empty": {
+        "title": "__TODO__ No ToS published yet",
+        "description": "__TODO__ Publish the initial Terms of Service."
+      },
+      "modal": {
+        "title": "__TODO__ Publish new ToS version",
+        "description": "__TODO__ This will create version {next} (current: v{current}).",
+        "content_label": "__TODO__ ToS content (Markdown)",
+        "content_placeholder": "__TODO__ Enter Terms of Service text…",
+        "content_required": "__TODO__ Content is required",
+        "content_too_long": "__TODO__ Maximum {limit} characters",
+        "cancel": "__TODO__ Cancel",
+        "publish": "__TODO__ Publish",
+        "close": "__TODO__ Close"
+      }
+    },
+    "disclaimer": {
+      "title": "__TODO__ Disclaimer",
+      "subtitle": "__TODO__ Manage the disclaimer text.",
+      "error": "__TODO__ Failed to load disclaimer versions",
+      "retry": "__TODO__ Retry",
+      "publish_button": "__TODO__ Publish new version",
+      "char_limit_info": "__TODO__ Disclaimer is limited to {limit} characters.",
+      "history_label": "__TODO__ Version history",
+      "version_label": "__TODO__ Version {version}",
+      "current_badge": "__TODO__ Current",
+      "empty": {
+        "title": "__TODO__ No disclaimer published yet",
+        "description": "__TODO__ Publish a disclaimer."
+      },
+      "modal": {
+        "title": "__TODO__ Publish new disclaimer",
+        "description": "__TODO__ This will create version {next}.",
+        "content_label": "__TODO__ Disclaimer text",
+        "content_placeholder": "__TODO__ Enter disclaimer text…",
+        "content_required": "__TODO__ Content is required",
+        "content_too_long": "__TODO__ Maximum {limit} characters",
+        "cancel": "__TODO__ Cancel",
+        "publish": "__TODO__ Publish",
+        "close": "__TODO__ Close"
+      }
+    },
+    "library": {
+      "title": "__TODO__ Platform Library",
+      "subtitle": "__TODO__ Upload reference books.",
+      "error": "__TODO__ Failed to load library",
+      "retry": "__TODO__ Retry",
+      "upload_button": "__TODO__ Upload PDF",
+      "table_label": "__TODO__ Platform library files",
+      "empty": {
+        "title": "__TODO__ No files in the library",
+        "description": "__TODO__ Upload curriculum PDFs."
+      },
+      "col": {
+        "filename": "__TODO__ File",
+        "tags": "__TODO__ Tags",
+        "status": "__TODO__ Status",
+        "uploaded": "__TODO__ Uploaded",
+        "actions": "__TODO__ Actions"
+      },
+      "status": {
+        "ingesting": "__TODO__ Ingesting",
+        "available": "__TODO__ Available",
+        "ingestion_failed": "__TODO__ Failed",
+        "soft_deleted": "__TODO__ Deleted"
+      },
+      "actions": {
+        "delete": "__TODO__ Delete {name}"
+      },
+      "upload": {
+        "title": "__TODO__ Upload reference book",
+        "description": "__TODO__ PDF only, max 100 MB.",
+        "file_label": "__TODO__ Select PDF file",
+        "file_picker_label": "__TODO__ Click to select a PDF file",
+        "file_hint": "__TODO__ Click to select a PDF",
+        "file_constraints": "__TODO__ PDF only · max {size} MB",
+        "language_label": "__TODO__ Language",
+        "content_type_label": "__TODO__ Content type",
+        "grade_label": "__TODO__ Grade range",
+        "subject_label": "__TODO__ Subject",
+        "subject_placeholder": "__TODO__ Optional",
+        "cancel": "__TODO__ Cancel",
+        "submit": "__TODO__ Upload",
+        "close": "__TODO__ Close",
+        "error": {
+          "not_pdf": "__TODO__ Only PDF files are allowed.",
+          "too_large": "__TODO__ File exceeds the {size} MB limit."
+        }
+      },
+      "delete_modal": {
+        "title": "__TODO__ Remove from library?",
+        "description": "__TODO__ Soft-delete \"{name}\"?",
+        "cancel": "__TODO__ Cancel",
+        "confirm": "__TODO__ Remove"
+      }
+    },
+    "audit_log": {
+      "title": "__TODO__ Audit Log",
+      "subtitle": "__TODO__ Immutable record of all admin actions.",
+      "error": "__TODO__ Failed to load audit log",
+      "retry": "__TODO__ Retry",
+      "table_label": "__TODO__ Audit log entries",
+      "showing_last": "__TODO__ Showing {count} most recent entries",
+      "empty": {
+        "title": "__TODO__ No audit entries yet",
+        "description": "__TODO__ All admin actions will appear here."
+      },
+      "col": {
+        "when": "__TODO__ When",
+        "action": "__TODO__ Action",
+        "actor": "__TODO__ Actor (ID)",
+        "target": "__TODO__ Target"
+      },
+      "filter": {
+        "actor_label": "__TODO__ Filter by actor ID",
+        "actor_placeholder": "__TODO__ Actor user ID…",
+        "action_label": "__TODO__ Filter by action",
+        "action_placeholder": "__TODO__ e.g. tos.publish",
+        "apply": "__TODO__ Apply",
+        "clear": "__TODO__ Clear"
+      }
+    }
   }
 }

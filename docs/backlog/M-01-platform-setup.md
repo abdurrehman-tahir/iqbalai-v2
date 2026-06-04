@@ -26,7 +26,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.1 (role hierarchy bootstrap — first Platform Admin)
@@ -73,7 +73,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §2 (Platform Admin persona)
@@ -113,7 +113,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.2 (multilingual support; 4 languages at launch; new language is deployment-level)
@@ -150,7 +150,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.6 (Disclaimer / ToS lifecycle)
@@ -192,7 +192,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.4 (exam syllabi lifecycle)
@@ -235,7 +235,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.5 (teaching personas — 4 named + 1 Custom slot)
@@ -274,7 +274,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-13-subscriptions.md` (v1 — thin spec; schema-only at launch)
@@ -313,7 +313,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.7 (notification system — 7 namespaces, two-tier UI)
@@ -358,7 +358,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.3 (Content Library architecture — multi-tier; Platform Library tier)
@@ -404,7 +404,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §10 (audit log retention 7 years)
@@ -442,7 +442,7 @@ The first user-facing milestone. Platform Admin can log in via Authentik, accept
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done — spec written at frontend/e2e/platform-admin-smoke.spec.ts; requires @playwright/test installation (not yet in STACK_LOCK)
 
 ### Spec source
 - `flow-1-platform-setup.md` §11 (acceptance criteria)

@@ -35,9 +35,20 @@ RECOVERY_BUNDLE = UploadProfile(
     description="Student recovery bundle PDF — uploaded by teacher",
 )
 
+PLATFORM_REFERENCE_BOOK = UploadProfile(
+    name="platform_reference_book",
+    bucket="pdfs",
+    key_prefix="platform-library",
+    allowed_mime_types=frozenset({"application/pdf"}),
+    magic_bytes=[b"%PDF"],
+    max_size_bytes=100 * 1024 * 1024,  # 100 MB per ARCH §11.19
+    description="Platform-level reference book — uploaded by Platform Admin; global SHA-256 dedup",
+)
+
 # Registry: name → profile
 _REGISTRY: dict[str, UploadProfile] = {
     RECOVERY_BUNDLE.name: RECOVERY_BUNDLE,
+    PLATFORM_REFERENCE_BOOK.name: PLATFORM_REFERENCE_BOOK,
 }
 
 
