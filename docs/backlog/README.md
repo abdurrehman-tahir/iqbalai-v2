@@ -131,6 +131,16 @@ Drafting a milestone is not allowed to start until this audit has run. It is the
 5. **Open-item + modernization gate.** `grep -n "resolve-before" docs/STACK_LOCK.md` — any open item tagged `resolve-before` **this** milestone MUST be decided + locked first; never draft over an open foundational decision. Then run the **ticket-modernization pass**: confirm the milestone's tickets carry the current template fields (API contract, Tests, UX acceptance) and that all data-model content reads as *intent, not migration DDL*; add missing fields before drafting/implementing.
 6. Only then draft the tickets, append the `_CHANGE_LOG` entry, and flip the ROADMAP status to `drafted`.
 
+### Milestone-boundary audit-log distillation (run AFTER a milestone merges)
+
+The improvement loop's distillation pass — a ~5-minute pass at each milestone boundary, the counterpart to phase-complete-review's per-PR capture into `docs/AUDIT_LOG.md`:
+
+1. **Scan** `docs/AUDIT_LOG.md` for classes with ≥2 occurrences (or any high-severity single hit).
+2. **Promote** each into the carrier CC reads at authoring time — a `data-modeling` / `frontend-master` skill rule, a `CLAUDE.md` gate, or a CI lint — choosing the *bindingness* the class needs (prose for judgment calls, a lint for mechanical checks). Set the entry's status to `promoted (→carrier, date)` and record the generalized rule text.
+3. **Verify** against later audits: a class that stops recurring = the rule worked; a class that **recurs after its rule existed** = the carrier was too weak (e.g. prose that needed a CI lint) → harden it, don't re-add it.
+
+Owner: Abd. (with Claude) — it edits governing artifacts, so it's a drafting-side judgment call, not CC's. CC only *generates* the findings (via phase-complete-review at PR time) and *consumes* the promoted rules next milestone.
+
 ### Mandatory flow-spec audit (run BEFORE drafting any flow spec)
 
 Flow specs are the **source** the milestones derive from, so an error here propagates everywhere. Drafting a flow spec (Flows 9-12 remain) is not allowed to start until this audit has run. It is the mechanism that stops a deferred hook, an uncovered v2 feature, or a cross-flow assertion from being lost. Steps, in order:

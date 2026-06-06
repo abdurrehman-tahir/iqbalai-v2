@@ -3,7 +3,7 @@
 **Status:** drafted
 **Layer:** 1
 **Sequence:** after M-01, before M-02 (M-02 `Depends on` flips to M-01a)
-**Ticket range:** T-223 to T-236 (off the T-222 high-water mark; **non-positional** numbering — same convention as M-22/M-23. The IDs do not need to sit between T-027 and T-028; the ROADMAP order is positional, the IDs are not.)
+**Ticket range:** T-223 to T-237 (off the T-222 high-water mark; **non-positional** numbering — same convention as M-22/M-23. The IDs do not need to sit between T-027 and T-028; the ROADMAP order is positional, the IDs are not.)
 **One PR** (merge commit), like every milestone.
 
 ## Why this milestone exists
@@ -12,7 +12,7 @@ M-00/M-01 shipped with broken UX (admin pages unreachable — no working nav; th
 
 M-01a closes the gap at the dependency root (only M-01 is done, so rework is cheap) and brings M-00/M-01 up to the new bar. Everything from M-02 onward inherits the gates via `.claude/CLAUDE.md` + CI — M-03→M-17 are **not** rewritten; each gets the just-in-time modernization check at its turn.
 
-Two ticket groups: **foundation** (T-223–T-229, the new enforcement layer) then **audit-then-fix** (T-230–T-235, remediate M-00/M-01 against it).
+Two ticket groups: **foundation** (T-223–T-229, the new enforcement layer) then **audit-then-fix** (T-230–T-235: data+access, nav, ToS, typed client, migrations, FE tests — remediate M-00/M-01 against it); plus T-236 (container ergonomics) and T-237 (PR+demo). The audit-fix tickets write their systemic findings to `docs/AUDIT_LOG.md` at close-out, seeding the improvement loop (capture → milestone-boundary distillation, per `docs/backlog/README.md`).
 
 ---
 
@@ -45,7 +45,7 @@ Vitest + React Testing Library configured for `frontend/` (jsdom env, coverage v
 3. [ ] Coverage config enforces 60% on `frontend/src/features/`
 
 ### Out of scope
-- CI wiring (T-229); backfilling tests for existing pages (T-234)
+- CI wiring (T-229); backfilling tests for existing pages (T-235)
 
 ---
 
@@ -81,7 +81,7 @@ An offline OpenAPI export (`python -m app.openapi_export > openapi.json` — no 
 3. [ ] `apiClient` / hook signatures unchanged (no caller churn)
 
 ### Out of scope
-- The CI drift check (T-229); regenerating M-00/M-01 features (T-232)
+- The CI drift check (T-229); regenerating M-00/M-01 features (T-233)
 
 ---
 
@@ -154,7 +154,7 @@ Formalized design tokens in `tailwind.config.ts` (color scale, spacing, radius, 
 3. [ ] Inline-style lint rule fails on a planted inline style
 
 ### Out of scope
-- Re-skinning existing pages beyond token adoption (handled in T-230 nav fix)
+- Re-skinning existing pages beyond token adoption (handled in T-231 nav fix)
 
 ---
 
@@ -188,7 +188,7 @@ Harden the authenticated `/admin` layout into the **single shell** every page re
 3. [ ] Sidebar collapses to drawer on mobile; RTL correct
 
 ### Out of scope
-- Per-page content fixes (T-230)
+- Per-page content fixes (T-231)
 
 ---
 
@@ -252,7 +252,54 @@ Paste the four jobs from `ci.frontend-checks.snippet.yml` into `ci.yml` (fronten
 
 ---
 
-## T-230 — AUDIT+FIX: M-01 navigation reachability
+## T-230 — AUDIT+FIX: M-00/M-01 data + access foundation
+
+**Layer:** 1
+**Milestone:** M-01a
+**Estimate:** 1 day
+**Status:** todo
+
+### Spec source
+- `flow-1-platform-setup.md` §11 (data-model sketch), §6 (limits: single Custom-persona slot, etc.)
+- `flow-2-admin-coordinator-setup.md` §11 (for the platform-wide models M-01 seeds)
+
+### ARCH source
+- `ARCHITECTURE.md` §4 (DB patterns/conventions), §3.16 (dual-schema), §3.13 (tenant-isolation pattern)
+- `ARCHITECTURE.md` §12.x (repository layer / scoped queries)
+
+### Depends on
+- (M-00/M-01 models + repositories + services exist)
+
+### What this ticket builds
+A **data-and-access-foundation audit** of everything M-00/M-01 shipped beneath the FE/integration skin, fixing drift **in the model + repository + service layers** (migrations are then re-derived by T-234; this ticket does not hand-edit migration files). Three scoped areas — **auth-dependency correctness, error envelope/codes, config/secrets hygiene, and structured logging are explicitly OUT of scope** (left to per-feature tickets):
+
+1. **Models (§4.x compliance):** plural table names; locked PK strategy; `created_at`/`updated_at` audit columns; `deleted_at` soft-delete where the spec calls for it; correct `nullable`/`server_default`; tz-aware timestamps; real `Enum` types (not bare strings); JSONB where intended; sane string lengths/numeric precision. **Constraints + indexes + relationships:** `NOT NULL`/`UNIQUE`/`CHECK` matching flow-spec business rules (e.g. single Custom-persona slot, unique codes); every FK with an **explicit `ondelete`** matching intent; an index on every FK + documented query path; `relationship()`/`back_populates` correctness with deliberate cascade/lazy. **Placement:** each model in the correct schema per §3.16.
+2. **Repository tenancy (§3.13 pattern, not the M-02 test):** every read/write goes through a scoped repository — no raw unscoped queries; the base-repo scoping pattern is applied uniformly so it's correct when M-02's per-school data arrives. (The cross-tenant denial *test* still lands in M-02.)
+3. **Locked service invariants:** the handful of business rules M-01 must enforce in the service layer get an explicit test — Custom-persona single-slot enforcement, ToS version + force-accept state transitions, exam-syllabus rules — i.e. the "type-correct but wrong-rule" gaps.
+
+Also confirm each `…Read` Pydantic schema's fields are a true subset of its model columns (feeds T-233's `SuccessEnvelope[T]`/`response_model` wiring).
+
+### API contract
+- N/A (no new endpoints)
+
+### Tests (required)
+- pytest **model-metadata lint:** every table has a PK + audit columns + indexed FKs + explicit FK `ondelete`; enums are real Enum types.
+- relationship round-trip tests; schema-vs-model field-alignment test.
+- service-invariant tests (Custom-persona slot, ToS transitions, exam-syllabus rules).
+- repository-scoping test: a query path without a scope filter is rejected/flagged.
+
+### Acceptance (demo script)
+1. [ ] Model-audit checklist passes with zero §4.x convention violations
+2. [ ] Every FK has an explicit `ondelete` + an index; all enums are real `Enum` types
+3. [ ] Locked service invariants covered by passing tests
+4. [ ] After fixes, T-234's `alembic --autogenerate` yields an **empty** diff (models == migrations)
+
+### Out of scope
+- Migration-file mechanics (T-234); `response_model` decorator wiring (T-233 / now-T-233 backfill); auth-dependency / error-envelope / config-secrets / logging audits (per-feature tickets); the §3.13 cross-tenant **test** (M-02)
+
+---
+
+## T-231 — AUDIT+FIX: M-01 navigation reachability
 
 **Layer:** 1
 **Milestone:** M-01a
@@ -280,11 +327,11 @@ Audit every M-01 admin page (Languages, Personas, Exam Syllabi, Subscription Tie
 3. [ ] UX acceptance (reachable, real content, scrollable, responsive, RTL) holds for each
 
 ### Out of scope
-- ToS render/scroll specifics (T-231)
+- ToS render/scroll specifics (T-232)
 
 ---
 
-## T-231 — AUDIT+FIX: ToS flows render + scroll + accept
+## T-232 — AUDIT+FIX: ToS flows render + scroll + accept
 
 **Layer:** 1
 **Milestone:** M-01a
@@ -320,7 +367,7 @@ Fix the bootstrap/Authentik ToS acceptance page (T-016) **and** the admin ToS/di
 
 ---
 
-## T-232 — AUDIT+FIX: regenerate M-00/M-01 typed client
+## T-233 — AUDIT+FIX: regenerate M-00/M-01 typed client
 
 **Layer:** 1
 **Milestone:** M-01a
@@ -335,6 +382,7 @@ Fix the bootstrap/Authentik ToS acceptance page (T-016) **and** the admin ToS/di
 
 ### Depends on
 - T-224, T-225
+- T-230 (audited models — `…Read` schemas match real columns before regenerating types)
 
 ### What this ticket builds
 Regenerate `schema.d.ts`; convert M-00/M-01 feature `types.ts`/`api.ts` to consume generated types; delete hand-mirrored interfaces; confirm hooks compile against generated types.
@@ -352,7 +400,7 @@ Regenerate `schema.d.ts`; convert M-00/M-01 feature `types.ts`/`api.ts` to consu
 
 ---
 
-## T-233 — AUDIT+FIX: reconcile M-00/M-01 migrations to model-first
+## T-234 — AUDIT+FIX: reconcile M-00/M-01 migrations to model-first
 
 **Layer:** 1
 **Milestone:** M-01a
@@ -367,6 +415,7 @@ Regenerate `schema.d.ts`; convert M-00/M-01 feature `types.ts`/`api.ts` to consu
 
 ### Depends on
 - (M-00/M-01 migrations + models)
+- T-230 (audited models are the source — autogenerate runs against sound models)
 
 ### What this ticket builds
 Audit M-00/M-01 migrations: confirm each maps to a SQLAlchemy model (model is source of truth), was autogenerated-then-reviewed, is one-concern-per-file, and that both Alembic heads upgrade cleanly from zero. Fix any hand-written drift or conflicting/duplicate migrations; consolidate only where a migration doesn't match its model (no squashing that violates one-concern).
@@ -387,7 +436,7 @@ Also backfill the **§4.12 structured migration headers** (`Purpose:` / `Risk:` 
 
 ---
 
-## T-234 — AUDIT+FIX: backfill FE tests for M-00/M-01 surfaces
+## T-235 — AUDIT+FIX: backfill FE tests for M-00/M-01 surfaces
 
 **Layer:** 1
 **Milestone:** M-01a
@@ -401,7 +450,7 @@ Also backfill the **§4.12 structured migration headers** (`Purpose:` / `Risk:` 
 - `frontend-master/references/four_ui_states.md`
 
 ### Depends on
-- T-223, T-230, T-231
+- T-223, T-231, T-232
 
 ### What this ticket builds
 Backfill Vitest + RTL tests for existing M-00/M-01 admin components (four UI states each) and Playwright `@smoke` coverage for the M-01 acceptance paths, so the previously-vacuous `pnpm test` is now real.
@@ -418,7 +467,7 @@ Backfill Vitest + RTL tests for existing M-00/M-01 admin components (four UI sta
 
 ---
 
-## T-235 — Container profiles + dev ergonomics (lean local stack)
+## T-236 — Container profiles + dev ergonomics (lean local stack)
 
 **Layer:** 1
 **Milestone:** M-01a
@@ -460,7 +509,7 @@ Make the local stack lean — core boots ~7 containers instead of 16 — without
 
 ---
 
-## T-236 — M-01a PR + demo
+## T-237 — M-01a PR + demo
 
 **Layer:** 1
 **Milestone:** M-01a
@@ -468,7 +517,7 @@ Make the local stack lean — core boots ~7 containers instead of 16 — without
 **Status:** todo
 
 ### Depends on
-- T-223 … T-235
+- T-223 … T-236
 
 ### What this ticket builds
 One milestone PR (merge commit). Demo video: nav reaches every admin page with content; ToS renders + scrolls + accepts; `pnpm test` + `pnpm e2e` + typed-client-drift + response-model gates all green; `seed_dev.py` reproduces the demo data.
@@ -485,7 +534,8 @@ One milestone PR (merge commit). Demo video: nav reaches every admin page with c
 
 ## Drafting completeness ledger
 
+**Foundation audit (T-230):** M-00/M-01 data + access foundation — models (§4.x), repository-tenancy pattern (§3.13), locked service invariants; auth/error/config/logging left to per-feature tickets.
 **Foundation delivered (T-223–T-229):** FE test harness (Vitest/RTL/Playwright), openapi-typescript typed client, `response_model` gate + backfill, design tokens + shadcn base, app shell + role-aware nav, `seed_dev.py`, CI wiring + branch protection.
-**Remediation delivered (T-230–T-235):** nav reachability, ToS render/scroll/accept, typed-client regeneration, migration model-first reconciliation, FE-test backfill, PR+demo.
+**Remediation delivered (T-231–T-236):** nav reachability, ToS render/scroll/accept, typed-client regeneration, migration model-first reconciliation, FE-test backfill, PR+demo.
 **Enforcement vectors closed:** the gates live in `.claude/CLAUDE.md` (per-ticket, CC reads it) + CI invariant 7 (blocking) + the README ticket template (future tickets) — so M-02→M-17 inherit them without rewrite, each via the just-in-time modernization check.
 **No new BLOCKED-HOOKs.** **Stack:** all additions locked in STACK_LOCK §2 + AMENDMENTS A-002; no forbidden libs; pnpm-native; lightweight.

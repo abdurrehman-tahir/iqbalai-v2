@@ -51,6 +51,8 @@ Walk through the checklist in two passes:
 
 Output: a markdown checklist showing PASS / FAIL per check, with specific fix instructions for each FAIL.
 
+**Then capture systemic findings to the audit log.** For each FAIL (or fix-on-review) that is a *systemic class* — a generalizable authoring pattern a carrier could prevent, per the inclusion bar in `docs/AUDIT_LOG.md` — append a **dated occurrence** to that class's entry (create the entry if it's new; never duplicate a class — add an occurrence line). Do NOT log per-PR PASS/FAIL, CI status, or one-off instance fixes; those just get fixed here. This is the always-on capture for the improvement loop; the milestone-boundary distillation (promoting recurring classes into a skill / CLAUDE.md / CI carrier) lives in `docs/backlog/README.md`.
+
 ---
 
 ## Pass 1 — Section-reading audit
