@@ -3,3 +3,6 @@
 /test-results
 /playwright-report
 /.pnpm-store
+
+# Transient OpenAPI export consumed by `gen:api` (T-224); schema.d.ts is committed.
+/openapi.json

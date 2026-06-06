@@ -54,7 +54,7 @@ Vitest + React Testing Library configured for `frontend/` (jsdom env, coverage v
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - (foundation) AMENDMENTS A-002; STACK_LOCK §2 (API types row)

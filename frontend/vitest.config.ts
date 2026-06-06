@@ -29,6 +29,7 @@ export default defineConfig({
         "**/__tests__/**",
         "src/test/**",
         "src/lib/api/schema.d.ts",
+        "src/lib/api/types.ts",
         "**/*.d.ts",
         "**/layout.tsx",
         "**/loading.tsx",
