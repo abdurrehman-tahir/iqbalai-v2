@@ -27,7 +27,6 @@
  *  11. ToS decline → logs user out
  */
 
-// @ts-expect-error — @playwright/test not installed yet (T-026 depends on STACK_LOCK approval)
 import { test, expect, type Page } from "@playwright/test";
 
 const BASE_URL = process.env.E2E_BASE_URL ?? "http://localhost:3000";

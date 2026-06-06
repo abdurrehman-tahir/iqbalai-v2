@@ -1,0 +1,5 @@
+# Test + build artifacts (T-223 harness)
+/coverage
+/test-results
+/playwright-report
+/.pnpm-store
