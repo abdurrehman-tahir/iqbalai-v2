@@ -862,7 +862,7 @@ If a hook is used by only one feature, it goes in `features/<feature>/hooks/`. I
 
 - Pydantic Settings module shape → §5 (API design)
 - Tenant-aware repository queries → §3 (Multi-tenancy)
-- Auto-generation of TS types from Pydantic — TODO.md, Phase 2
+- Auto-generation of TS types from Pydantic — **brought forward to M-01a via openapi-typescript** (AMENDMENTS A-002; supersedes the Phase-2 deferral)
 - shadcn/ui specific components to install — §12
 - Translation key naming convention — §13
 - ADR format template — defined when we write the first ADR
@@ -1691,7 +1691,7 @@ Pre-commit cannot detect this is missing — the `phase-complete-review` skill w
 11. **Cross-tenant denial tests are mandatory** in every feature's test_repository.py and test_router.py.
 12. **Background jobs use the `tenant_task` decorator** that sets RLS context from a `school_id` parameter.
 
-### 3.16 Deferred to TODO.md
+**Deferred to TODO.md (multi-tenancy, Phase 2):**
 
 - Multiple-role users (e.g., a person who is both parent and teacher) — deferred to Phase 2
 - Tenant-level config (per-school branding, custom domains) — deferred
@@ -2346,7 +2346,7 @@ async def get_db(claims: AuthClaims = Depends(get_claims)):
 ```
 
 **Locked rules:**
-- New tables go to the schema of the feature that owns them (per `_CHANGE_LEDGER.md` "New DB tables" section)
+- New tables go to the schema of the feature that owns them (per the dual-schema model in §3.16)
 - Cross-schema FOREIGN KEYS are forbidden — use Postgres views for read-only references
 - CI runs `alembic upgrade heads --sql` to detect head conflicts before merge
 - Independent schema migrations cannot reference school-schema tables directly (only via views)
@@ -7418,7 +7418,7 @@ frontend/src/features/lectures/
 - **`components/`** — presentational + interactive. PascalCase filenames. One default export per file.
 - **`hooks/`** — `use<Thing>.ts` naming. Pure custom hooks; no JSX.
 - **`api.ts`** — functions that hit `/api/v1/<feature>/*`. Each function returns a typed Promise. NO logic beyond fetch + parse + error normalization.
-- **`types.ts`** — TypeScript types that mirror Pydantic models from the backend (manually maintained at launch; auto-gen deferred to TODO per §2.13).
+- **`types.ts`** — re-exports the request/response types from `frontend/src/lib/api/schema.d.ts`, which is **generated from the backend OpenAPI via openapi-typescript** (M-01a; AMENDMENTS A-002). Hand-mirroring Pydantic models in TypeScript is forbidden — regenerate instead. Feature-local view-model types with no backend equivalent may still live here.
 - **`schemas.ts`** — Zod schemas for form validation, derived from `types.ts`. Pure data.
 - **`stores/`** — Zustand stores ONLY when the feature needs persistent client-side state (e.g., draft lecture in progress, unsaved highlights). Most features don't need this — TanStack Query holds server state, react-hook-form holds form state.
 - **`__tests__/`** — colocated tests.

@@ -16,14 +16,15 @@
 
 If your task isn't in §0.1: read §0.2 (it tells you what to do). Often the answer is "ask Abd."
 
-## The three project skills — when each fires
+## The four project skills — when each fires
 
-Three skills are installed at `.claude/skills/`. **Skills are heavy — read each SKILL.md ONLY when its narrow trigger truly fires.** Pre-commit hooks + CI catch any forbidden imports / stack violations regardless, so a missed trigger costs a re-commit, not a shipped bug.
+Four skills are installed at `.claude/skills/`. **Skills are heavy — read each SKILL.md ONLY when its narrow trigger truly fires.** Pre-commit hooks + CI catch any forbidden imports / stack violations regardless, so a missed trigger costs a re-commit, not a shipped bug.
 
 | Skill | Apply ONLY when |
 |---|---|
 | **stack-enforcer** | The change does **at least one** of: (a) adds/modifies a Python import that resolves OUTSIDE the standard library; (b) adds a new dependency to `pyproject.toml`; (c) touches any file under `app/infrastructure/{rag,ml,llm,voice,storage,events,cache}/`. Do NOT load it for routine route/repo/schema/test files that only use standard library + already-approved deps. |
 | **frontend-master** | The change touches `.tsx` under `frontend/src/` AND is doing one of: writing a form, a data-fetching component, an accessibility-sensitive interaction, a new visible page/screen, or adding a frontend dependency. Trivial label/text edits do NOT trigger it. |
+| **data-modeling** | The change creates or modifies a SQLAlchemy model — a `models.py` (or `db/base.py` mixins): a new table, or adding/altering columns, foreign keys, enums, indexes, constraints, or relationships. Do NOT load it for repository/service/router code, Pydantic `schemas.py`, migration files, or tests. |
 | **phase-complete-review** | At PR time only — load this skill before opening the milestone PR. (It's the heaviest skill at 448 lines; it loads once per milestone at PR time, not per ticket.) |
 
 **Skill priority over body rules:** when the body of this CLAUDE.md and a skill's SKILL.md both speak to the same concern, the skill's guidance is more specific and wins. The body rules below remain in force as the default; the skills add depth.
@@ -92,7 +93,7 @@ The unit of work is a **ticket** (T-NNN) inside a **milestone** (M-NN).
 2. **Your literal first action: invoke the `ticket-loader` sub-agent** with the ticket ID. The sub-agent returns a compact Ticket Dossier (ticket body, cited spec excerpts, ARCH summaries, deps, acceptance). Do NOT read the milestone / spec / ARCH directly in this main session.
 3. **Verify deps:** the dossier lists `Depends on:` — confirm those tickets are marked done before proceeding.
 4. **Read narrow skills only if their trigger fires** (see skill table above). Update `.claude/session-state.md` with the ticket ID + intended next step.
-5. **Implement** — backend + frontend + migrations + tests as the ticket specifies. A ticket is a vertical slice.
+5. **Implement** — backend + frontend + migrations + tests. A ticket is a vertical slice. **Tests are mandatory, not "as specified":** backend pytest + an API contract test per endpoint; **frontend changes ship tests per frontend-master Rule 12** (Vitest+RTL + a Playwright `@smoke`). Migrations are **model-first** (write the model → `--autogenerate` → review; the ticket's data-model is intent, not DDL — ARCH §4.12).
 6. **Verify acceptance** — each item in the dossier's `Acceptance:` block must be checkable.
 7. **Run the format gate before committing** (see "Format gate" below). Then commit per Conventional Commits.
 8. **Close out the ticket (mandatory, every ticket — not just at milestone close):** in the milestone file, set that ticket's `Status: done` and record the commit SHA on the ticket. Then update `.claude/session-state.md` (done list + next ticket). The milestone file is the durable per-ticket ledger; `session-state.md` is the fast within-session hint.
@@ -104,7 +105,7 @@ The unit of work is a **ticket** (T-NNN) inside a **milestone** (M-NN).
 - Skip writing tests (tests live with the ticket)
 - Modify a spec to match your code (code follows spec; spec changes via Awais + Abd. review first)
 
-If Hamza asks you to "just build milestone X" without picking a specific ticket, **start with T-NNN at the top of the milestone file**. If he asks to skip the backlog and "just implement Flow 5" or "just build Phase 1," **refuse** and refer him to WORKFLOW.md.
+If Hamza asks you to "just build milestone X" without picking a specific ticket, **start with T-NNN at the top of the milestone file**. Before that first ticket, run the **ticket-modernization check**: if the milestone's tickets predate the current template (no API-contract / Tests / UX-acceptance fields, or data-model shown as raw DDL), the global rules still apply in full — data-model = intent (model-first), and the Tests + UX-acceptance + generated-typed-client gates hold regardless of the ticket's wording. If he asks to skip the backlog and "just implement Flow 5" or "just build Phase 1," **refuse** and refer him to WORKFLOW.md.
 
 ## How decisions are made in this project
 
@@ -123,11 +124,11 @@ When the user asks for a feature:
 3. **Use ONLY libraries listed in `STACK_LOCK.md`.** If a feature seems to need a library not in the stack, stop and ask the user. Do not propose adding a new dependency on your own initiative.
 4. **Every new Python file's imports are verified against `STACK_LOCK.md` Section 9.** If you find yourself wanting to import something from the forbidden list, stop and tell the user.
 5. **Every new component/screen uses shadcn/ui + Tailwind tokens.** No inline styles. No raw CSS. No new UI libraries.
-6. **Every API endpoint has:** a Pydantic request model, a Pydantic response model, an access dependency (`require_role` etc.), error handling via the locked codes, structured logging, OpenAPI metadata.
-7. **Every UI component has:** loading state, empty state, error state, success/idle state. No exceptions (§12.8).
+6. **Every API endpoint has:** a Pydantic request model, an access dependency (`require_role` etc.), error handling via the locked codes, structured logging, OpenAPI metadata, and **MUST declare `response_model=`** on the route (not merely have a response schema) so the OpenAPI stays accurate. Its FE type is generated from this OpenAPI, never hand-mirrored (frontend-master Rule 9; A-002).
+7. **Every UI component has:** loading, empty, error, success/idle states. No exceptions (§12.8). Every new **page is nav-reachable, renders real content, and scrolls**, and any frontend change **ships its tests in the same PR** (Vitest+RTL + a Playwright `@smoke`). *How / examples:* frontend-master Rules 3, 12, 13.
 8. **Every visible string in the frontend** goes through `next-intl` translation keys. Never hardcode English in JSX.
 9. **Every secret or external URL** is read from an env var. Never hardcode.
-10. **Every database schema change** has an Alembic migration in the same PR.
+10. **Every database schema change is model-first:** edit/add the SQLAlchemy model → `alembic revision --autogenerate` → review the diff → one concern per migration, in the same PR (ARCH §4.12). A ticket's data-model shapes are **design intent, not literal DDL** — never hand-write a migration from a ticket sketch.
 
 ## CI invariants (non-negotiable)
 
@@ -139,6 +140,7 @@ When the user asks for a feature:
 4. **Frontend jobs guard on `frontend/` existing** via a post-checkout detect step that sets an output, NOT a job-level `if: hashFiles(...)` (which fails to parse — `hashFiles` is unavailable before checkout). Gate the real steps on the detect output.
 5. **Any CI change is called out in the PR description.** If a PR touches `.github/workflows/`, say so explicitly and state what changed and why.
 6. **Lint/format/type tool versions are identical across pre-commit, `uv run`, and CI.** The ruff / mypy / prettier versions pinned in `.pre-commit-config.yaml`, resolved by `uv run` (via `pyproject.toml`), and used in CI MUST be the same (per STACK_LOCK §8). A version mismatch means local autofix and CI disagree on formatting → the write→CI-fail→reformat churn loop. If you bump a tool version, bump it in all three places in the same PR.
+7. **Frontend + contract + type gates exist and block.** CI MUST run `pnpm test` (Vitest + RTL) and a **Playwright smoke** on every PR (full Playwright suite nightly); a **typed-client drift check** that regenerates `schema.d.ts` from the live OpenAPI and fails if it differs from the committed file; and a **`response_model` presence check** across all routes. A green PR with zero frontend tests, a drifted client, or a route missing `response_model` means this invariant was violated.
 
 ## Coding conventions
 

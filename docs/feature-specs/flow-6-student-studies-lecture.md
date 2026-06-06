@@ -6,7 +6,7 @@
 **Last reviewed:** 2026-05-14
 **Related ARCHITECTURE sections:** §3 (multi-tenancy), §4 (DB patterns), §5 (API), §6 (auth + permission inheritance §6.19), §7 (RAG pipeline), §8 (LLM, esp. §8.20 Custom Persona, §8.21 Exam Framework), §9 (NATS JetStream event pipeline), §9.21 (notification namespaces), §10 (Celery), §11.19 (upload profiles), §13 (i18n)
 **Related feature specs:** `flow-3-teacher-onboarding.md`, `flow-4-student-onboarding.md` (Mode selection + Cognitive DNA seeded by diagnostic), `flow-5-teacher-creates-lecture.md` (lectures published by teachers), `flow-7-next-day-review.md` (future — questions from this flow seed mini-lectures), `flow-8-self-study.md` (future — flashcards from #58 land in spaced repetition queue), `flow-9-ai-intelligence.md` (future — Cognitive DNA receives interaction signals from this flow)
-**v2 doc features covered:** #54, #55, #56, #57, #58, #59, #60, #61, #71
+**v2 doc features covered:** #50, #54, #55, #56, #57, #58, #59, #60, #61, #71
 
 ---
 

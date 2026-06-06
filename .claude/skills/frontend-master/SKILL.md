@@ -7,7 +7,7 @@ description: |
   by default with "use client" pushed down, TanStack Query for server state, react-hook-form
   with Zod for forms, Zustand only when justified, shadcn/ui primitives only, RTL-aware
   logical Tailwind utilities (me-/ms-/text-start), performance budgets, next/image, and
-  responsiveness across all viewport sizes from 320px (small Android phone) to 2560px+.
+  responsiveness across all viewport sizes from 320px (small Android phone) to 2560px+. Also: co-located tests (Vitest + RTL on every data component, Playwright @smoke on every page) and every page reachable from the app-shell nav (no orphan routes).
   Load this skill ONLY when working on .tsx files under frontend/src/ AND the change is
   one of: a form, a data-fetching component, an accessibility-sensitive interaction, a new
   visible page or screen, or adding a frontend dependency. Do NOT load it for trivial
@@ -56,7 +56,7 @@ Apply whenever you're about to write or modify anything under `frontend/src/`:
 
 ## How to apply
 
-For each file you're about to write or modify, walk through Rules 1–10 in order. Stop at the first violation; explain it to the user; propose the fix. After passing all 10 rules, generate the code.
+For each file you're about to write or modify, walk through Rules 1–13 in order. Stop at the first violation; explain it to the user; propose the fix. After passing all 13 rules, generate the code.
 
 The rules are not optional. They're the difference between a frontend that ages well and one that needs a rewrite in 18 months.
 
@@ -466,6 +466,17 @@ const mutation = useMutation({
 });
 ```
 
+**API request/response types are generated, never hand-written (AMENDMENTS A-002).** The `apiClient` methods and your feature `types.ts` consume types from `frontend/src/lib/api/schema.d.ts`, generated from the backend OpenAPI via `pnpm gen:api` (openapi-typescript). After any backend contract change, **regenerate** — never edit `schema.d.ts`, never re-declare a request/response shape by hand.
+
+```tsx
+// CORRECT — type comes from the generated schema
+import type { components } from "@/lib/api/schema";
+type LectureRead = components["schemas"]["LectureRead"];
+
+// WRONG — hand-mirrored interface drifts from the backend
+interface LectureRead { id: string; title: string; /* ... */ }
+```
+
 **Query key convention** (hierarchical, lockable):
 - `[<feature>]` — all data in feature
 - `[<feature>, <surface>]` — a specific listing
@@ -476,6 +487,7 @@ const mutation = useMutation({
 - `axios` directly
 - `swr`
 - Calling the API from inside `useEffect` (use `useQuery` instead)
+- Hand-writing or `interface`-mirroring API request/response types — they're **generated** from the backend OpenAPI (`pnpm gen:api`); import from `@/lib/api/schema` (AMENDMENTS A-002)
 
 **Mutations include `Idempotency-Key` header automatically via `apiClient`. Don't roll your own.**
 
@@ -657,12 +669,58 @@ When testing responsiveness, also test in RTL (Urdu or Sindhi locale). RTL flips
 
 See `references/responsive_patterns.md` for the full responsive component library + common idioms.
 
+## Rule 12 — Tests ship with the component (not "later")
+
+Every component, hook, and page you author or change ships with tests in the **same PR** — this is the rule that gives the four-states / nav / i18n rules teeth. "I'll add tests later" is how M-01 shipped blank pages that passed review.
+
+**Vitest + React Testing Library — component & hook tests.** For any component that displays data, assert **all four UI states render** (loading, empty, error, success) and that the primary action behaves. Co-locate as `*.test.tsx`.
+
+```tsx
+import { render, screen } from "@testing-library/react";
+import { LectureList } from "./LectureList";
+
+it("renders the empty state when there are no lectures", () => {
+  render(<LectureList />, { wrapper: withQuery({ lectures: [] }) });
+  expect(screen.getByText(/no lectures yet/i)).toBeInTheDocument();
+});
+
+it("renders an error state with retry on failure", () => {
+  render(<LectureList />, { wrapper: withQuery({ error: true }) });
+  expect(screen.getByRole("button", { name: /retry/i })).toBeInTheDocument();
+});
+```
+
+**Playwright `@smoke` — the page acceptance path.** For any new/changed page, write one `@smoke` E2E driving the ticket's **UX-acceptance checklist**: reachable from the nav, renders real content (not a blank shell), primary flow works.
+
+```ts
+test("@smoke teacher reaches the lecture list and sees content", async ({ page }) => {
+  await loginAs(page, "teacher");
+  await page.getByRole("link", { name: "Lectures" }).click();          // reachable from nav
+  await expect(page.getByRole("heading", { name: "Lectures" })).toBeVisible(); // real content
+});
+```
+
+**Coverage:** 60% on `frontend/src/features/`. `pnpm test` (Vitest) + `pnpm e2e` (Playwright) green before the PR. A data component with no four-states test, or a page with no `@smoke`, is an **incomplete ticket** — not a follow-up.
+
+**Forbidden:** merging a data component without a four-states test; merging a page without a `@smoke` E2E; `test.skip` without a justification comment.
+
+## Rule 13 — Every page is reachable and renders real content
+
+A route that exists but isn't linked from the app navigation is an **orphan** — users can't reach it. This is the M-01 failure (admin pages built, no working nav; ToS page rendered blank/no-scroll). Every page you add:
+
+1. **Renders inside the app shell** (`app/(auth)/.../layout.tsx`) — the persistent role-aware sidebar + header — not as a bare standalone route.
+2. **Registers a nav entry** in the shell's nav config, filtered by the viewer's role (a page a role can't open must not show its nav item).
+3. **Is reachable by clicking** from the shell — verified by the Rule 12 `@smoke` test (click nav item → page renders).
+4. **Renders real content immediately** — non-empty first paint (respecting the four states), never a blank shell or a dead `return null`; content that overflows **scrolls** (no clipped, unreachable content).
+
+**Forbidden:** a new route with no nav entry; a page that renders an empty shell with no loading/empty/error/success content; a non-scrolling container that clips its content.
+
 ## Workflow
 
 When writing a frontend file:
 
 1. **Identify the file type.** Page? Component? Form? Layout? List view?
-2. **Walk through Rules 1–11** in order. For each, ask: does the code I'm about to write comply?
+2. **Walk through Rules 1–13** in order. For each, ask: does the code I'm about to write comply?
 3. **If a rule would be violated:** state the rule, state the fix, then write the corrected code.
 4. **For NEW visible strings:** add the translation key + add it to all four `messages/*.json` files (en with real text, ur/sd/ps with `__TODO__` placeholder).
 5. **For NEW dependencies:** stop and ask. Don't add a package without explicit approval.

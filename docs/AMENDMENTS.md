@@ -75,6 +75,39 @@ Copy this block for every new amendment:
 
 (Append below this line. Newest at the top.)
 
+## A-002 — TS API types generated from OpenAPI (brought forward from Phase 2)
+
+- **Date:** 2026-05-29
+- **Author:** @abdurrehman-tahir
+- **Affects:** `ARCHITECTURE.md` §12.4, §2.13
+- **Status:** approved
+
+### What changed
+
+§12.4 + §2.13 specified that `types.ts` TypeScript types are hand-mirrored from backend Pydantic models, with auto-generation deferred to Phase 2 (TODO). We now **generate** them from the backend OpenAPI via **openapi-typescript** (`frontend/src/lib/api/schema.d.ts`), **at launch (M-01a)**. Hand-mirroring is forbidden; `types.ts` re-exports the generated schema.
+
+### Why
+
+Manual type-mirroring is the structural root cause of the FE↔BE integration failures observed while implementing M-00/M-01 (backend correct, frontend calling mismatched request/response shapes). Drift is unavoidable while two type definitions are maintained by hand. openapi-typescript is build-time, zero-runtime, MIT, and pairs with the already-locked TanStack Query layer — pulling it forward is cheap and removes the entire drift class rather than papering over it.
+
+### What we considered before deciding
+
+`orval` (generates hooks + types — heavier; would duplicate the locked hand-written `api.ts`/TanStack hook layer); staying manual (rejected — it is the root cause); a runtime-only Zod validation layer (doesn't catch compile-time drift). Chose **openapi-typescript**: lightest, types-only, leaves the locked `api.ts` hook pattern intact.
+
+### Migration
+
+M-01a adds the generator + a CI drift check; existing M-00/M-01 `api.ts`/`types.ts` are regenerated against the live OpenAPI as part of the M-01a audit-fix tickets. `response_model=` is now mandatory on every endpoint (STACK_LOCK §1) so the generated OpenAPI is complete.
+
+### What this DOES NOT change
+
+The locked `api.ts` client-object pattern, the TanStack Query hooks, and the base `apiClient` (§12.4/§12.5) stay exactly as-is — only the *types* feeding them become generated. `schemas.ts` Zod schemas for form validation remain (now derived from generated types).
+
+### Related
+
+- `ARCHITECTURE.md` §12.4, §12.5, §2.13; `STACK_LOCK.md` §2 (openapi-typescript row + `response_model` mandate); `docs/backlog/M-01a-foundation-remediation.md`
+
+---
+
 ## A-001 — Spec-set review consolidation (Flows 1-6 + Flow 13)
 
 - **Date:** 2026-05-14
@@ -111,7 +144,7 @@ Two-week intensive review rounds with product (Awais, Mufti, CXO layer) and tech
 
 ### What we considered before deciding
 
-Documented in the per-spec change logs (`flow-N-*.md` v2/v3) and the consolidation ledger (`docs/feature-specs/_CHANGE_LEDGER.md`, deleted after this T0 batch).
+Documented in the per-spec change logs (`flow-N-*.md` v2/v3) and the consolidation ledger (retained and renamed `docs/feature-specs/_CHANGE_LOG.md`; this AMENDMENTS.md remains the canonical amendment record).
 
 ### Migration
 
