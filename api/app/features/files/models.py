@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7
+from app.features.files.schemas import UploadStatus
 
 
 class UploadRecord(AuditMixin, SoftDeleteMixin, Base):
@@ -23,4 +25,15 @@ class UploadRecord(AuditMixin, SoftDeleteMixin, Base):
     bucket: Mapped[str] = mapped_column(String(255), nullable=False)
     school_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
     uploaded_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
-    status: Mapped[str] = mapped_column(String(50), nullable=False, default="ready")
+    status: Mapped[UploadStatus] = mapped_column(
+        SAEnum(
+            UploadStatus,
+            name="upload_records_status_enum",
+            schema="school",
+            values_callable=lambda e: [m.value for m in e],
+            native_enum=True,
+            create_type=False,
+        ),
+        nullable=False,
+        default=UploadStatus.READY,
+    )

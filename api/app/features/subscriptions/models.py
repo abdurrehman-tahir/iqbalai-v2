@@ -8,11 +8,56 @@ Per ARCH §3.17: all payment processing is deferred to Phase 2.
 from __future__ import annotations
 
 from datetime import datetime
+from enum import StrEnum
 
-from sqlalchemy import JSON, Boolean, DateTime, Integer, String, Text
+from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7
+
+
+class SubscriberType(StrEnum):
+    """Who a tier/subscription applies to."""
+
+    DISTRICT = "district"
+    SCHOOL = "school"
+
+
+class SubscriptionStatus(StrEnum):
+    """Lifecycle state of a subscription."""
+
+    PENDING = "pending"
+    ACTIVE = "active"
+    PAST_DUE = "past_due"
+    CANCELLED = "cancelled"
+    EXPIRED = "expired"
+
+
+class PaymentStatus(StrEnum):
+    """Outcome of a payment ledger entry."""
+
+    PENDING = "pending"
+    SUCCEEDED = "succeeded"
+    FAILED = "failed"
+    REFUNDED = "refunded"
+
+
+def _pg_enum(enum_cls: type[StrEnum], name: str) -> SAEnum:
+    """Native Postgres enum bound to the school schema (ARCH §4.4 — stable value sets).
+
+    values_callable pins the stored labels to the StrEnum *values* (not member names);
+    create_type=False keeps DDL emission with the Alembic migration (matches User.role).
+    """
+    return SAEnum(
+        enum_cls,
+        name=name,
+        schema="school",
+        values_callable=lambda e: [m.value for m in e],
+        native_enum=True,
+        create_type=False,
+    )
 
 
 class SubscriptionTier(AuditMixin, SoftDeleteMixin, Base):
@@ -29,11 +74,13 @@ class SubscriptionTier(AuditMixin, SoftDeleteMixin, Base):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     slug: Mapped[str] = mapped_column(String(50), nullable=False, unique=True)
     description: Mapped[str | None] = mapped_column(Text, nullable=True)
-    # "district" or "school" — determines which subscriber type can use this tier
-    applies_to: Mapped[str] = mapped_column(String(20), nullable=False)
+    # Determines which subscriber type can use this tier
+    applies_to: Mapped[SubscriberType] = mapped_column(
+        _pg_enum(SubscriberType, "subscription_tiers_applies_to_enum"), nullable=False
+    )
     pricing_monthly_pkr: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
-    # Feature caps stored as JSON; null means unlimited / no caps defined yet
-    caps: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    # Feature caps stored as JSONB; null means unlimited / no caps defined yet
+    caps: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
     is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
 
     def __init__(self, **kwargs: object) -> None:
@@ -53,11 +100,22 @@ class Subscription(AuditMixin, Base):
     __table_args__ = ({"schema": "school"},)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
-    tier_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    subscriber_type: Mapped[str] = mapped_column(String(20), nullable=False)
+    # RESTRICT: a tier in use must not be deleted out from under live subscriptions.
+    tier_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.subscription_tiers.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
+    subscriber_type: Mapped[SubscriberType] = mapped_column(
+        _pg_enum(SubscriberType, "subscriptions_subscriber_type_enum"), nullable=False
+    )
     subscriber_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    # status: pending | active | past_due | cancelled | expired
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    status: Mapped[SubscriptionStatus] = mapped_column(
+        _pg_enum(SubscriptionStatus, "subscriptions_status_enum"),
+        nullable=False,
+        default=SubscriptionStatus.PENDING,
+    )
     starts_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Reserved for Phase 2 Stripe integration; not used at launch
@@ -80,11 +138,21 @@ class SubscriptionPayment(AuditMixin, Base):
     __table_args__ = ({"schema": "school"},)
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
-    subscription_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    # CASCADE: payment ledger rows belong to their subscription's lifecycle.
+    subscription_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.subscriptions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
     amount_pkr: Mapped[int] = mapped_column(Integer, nullable=False)
     # Reserved for Phase 2 Stripe integration
     stripe_payment_intent_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    status: Mapped[str] = mapped_column(String(20), nullable=False, default="pending")
+    status: Mapped[PaymentStatus] = mapped_column(
+        _pg_enum(PaymentStatus, "subscription_payments_status_enum"),
+        nullable=False,
+        default=PaymentStatus.PENDING,
+    )
     paid_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     def __init__(self, **kwargs: object) -> None:

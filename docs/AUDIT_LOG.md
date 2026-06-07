@@ -88,3 +88,12 @@ Log a finding **only if all three hold**:
 - **Target carrier:** → CLAUDE.md #10 (model-first) + the §4.12 convention
 - **Status:** promoted (→ backfilled in M-01a T-234), advisory — watch whether new migrations adopt the headers; harden to a CI lint if it recurs.
 - **Promoted rule:** every migration carries `Purpose` / `Risk` / `Reversible` headers; model-first autogenerate.
+
+### [model-constraint] models authored without §4 data conventions
+- **Class:** model-constraint
+- **Occurrences:** 2026-06-06 (M-01a, T-230) — across the 14 M-00/M-01 models: stable status/type value-sets stored as bare `String` instead of native Postgres enums (`subscriptions`, `upload_records`, `reference_books`); `JSON` used where `JSONB` was intended (`subscription_tiers.caps`); FKs declared without an explicit `ondelete` + index (`subscriptions`, `subscription_payments`, `syllabus_topics`, `reference_books`, `user_tos_acceptances`); business-rule constraints missing (`syllabus_topics.depth` CHECK, ToS/Disclaimer `version_number` UNIQUE, single-Custom-persona partial-unique index); a column typed against the wrong Python type (`Notification.read_at` as `str`); and soft-delete scoping duplicated ad-hoc per repository instead of a shared predicate.
+- **Existing rule when first seen?:** no (the `data-modeling` skill existed but predates these M-00/M-01 models; nothing enforced §4 at author time when they were written)
+- **Target carrier:** → data-modeling skill (native-enum / JSONB / FK-ondelete-index / CHECK-UNIQUE rules) + CLAUDE.md #10 (model-first) + a future CI `model-metadata-lint`
+- **Status:** promoted (→ fixed in M-01a T-230; `not_deleted()` scoping predicate added to `db/base.py`; model-metadata + repo-scoping tests added), advisory — watch later milestones; harden to a CI `model-metadata-lint` if the class recurs.
+- **Promoted rule:** every model follows §4 — native Postgres enums for stable value sets, `JSONB` (never `JSON`), every FK with explicit `ondelete` + index, business rules as DB `CHECK`/`UNIQUE`/partial-unique, tz-aware audit columns, and soft-delete reads scoped through the shared `not_deleted()` predicate.
+- **Deferred to M-02 (scope, not drift):** UUIDv7 native PKs (PKs stay `String(36)`+`uuid4` via `_uuid7()`); FKs to not-yet-created `schools`/`districts`/`authentik_user_refs`; `TenantMixin` + `created_by`/`updated_by` actor columns; `metadata_json` stays a serialized JSON string (not `JSONB`) to avoid rippling through audit infra; the ~63-error `mypy --strict` baseline (verified pre-existing — T-230 added zero new errors).

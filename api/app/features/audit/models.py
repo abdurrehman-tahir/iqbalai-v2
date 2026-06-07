@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Index, String, Text
+from sqlalchemy import DateTime, Index, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, _uuid7
@@ -48,8 +48,10 @@ class AuditLogEntry(Base):
     # Store IPv6 addresses (up to 45 chars: "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
     # No updated_at — rows are immutable. created_at is the only timestamp needed.
+    # DB-side UTC clock (ARCH §4.3) so rows written via raw SQL still timestamp.
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        server_default=text("now() AT TIME ZONE 'UTC'"),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )

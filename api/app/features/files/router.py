@@ -8,10 +8,11 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_db
+from app.db.base import not_deleted
 from app.features.files.models import UploadRecord
 from app.features.files.pipeline import run_upload_pipeline
 from app.features.files.profiles import get_profile, list_profiles
-from app.features.files.schemas import UploadInitiated, UploadStatus, UploadStatusResponse
+from app.features.files.schemas import UploadInitiated, UploadStatusResponse
 
 logger = structlog.get_logger(__name__)
 
@@ -71,20 +72,12 @@ async def get_upload_status(
     result = await session.execute(
         select(UploadRecord).where(
             UploadRecord.id == upload_id,
-            UploadRecord.deleted_at.is_(None),
+            not_deleted(UploadRecord),
         )
     )
     record = result.scalar_one_or_none()
     if not record:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Upload not found")
 
-    return UploadStatusResponse(
-        upload_id=record.id,
-        status=UploadStatus(record.status),
-        profile=record.profile,
-        filename=record.filename,
-        size_bytes=record.size_bytes,
-        sha256=record.sha256,
-        minio_key=record.minio_key,
-        created_at=record.created_at,
-    )
+    # from_attributes maps record.id → upload_id via the schema's validation alias.
+    return UploadStatusResponse.model_validate(record)

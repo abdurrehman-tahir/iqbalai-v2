@@ -8,6 +8,7 @@ import structlog
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.base import not_deleted
 from app.features.notifications.models import Notification
 
 logger = structlog.get_logger(__name__)
@@ -30,7 +31,7 @@ class NotificationRepository:
             select(Notification)
             .where(
                 Notification.recipient_user_id == user_id,
-                Notification.deleted_at.is_(None),
+                not_deleted(Notification),
             )
             .order_by(Notification.created_at.desc())
             .limit(limit)
@@ -44,7 +45,7 @@ class NotificationRepository:
         stmt = select(func.count()).where(
             Notification.recipient_user_id == user_id,
             Notification.is_read.is_(False),
-            Notification.deleted_at.is_(None),
+            not_deleted(Notification),
         )
         result = await self._session.execute(stmt)
         return result.scalar_one()
@@ -58,7 +59,7 @@ class NotificationRepository:
     async def mark_read(self, notif: Notification) -> Notification:
         """Set is_read=True and record the read timestamp, then commit."""
         notif.is_read = True
-        notif.read_at = datetime.now(timezone.utc)  # type: ignore[assignment]
+        notif.read_at = datetime.now(timezone.utc)
         self._session.add(notif)
         await self._session.commit()
         await self._session.refresh(notif)

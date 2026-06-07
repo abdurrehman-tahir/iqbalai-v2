@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Integer, String, Text, UniqueConstraint
+from sqlalchemy import DateTime, ForeignKey, Integer, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, _uuid7
@@ -18,7 +18,10 @@ class TosVersion(AuditMixin, Base):
     """
 
     __tablename__ = "tos_versions"
-    __table_args__ = ({"schema": "school"},)
+    __table_args__ = (
+        UniqueConstraint("version_number", name="tos_versions_version_number_uq"),
+        {"schema": "school"},
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -41,7 +44,10 @@ class DisclaimerVersion(AuditMixin, Base):
     """
 
     __tablename__ = "disclaimer_versions"
-    __table_args__ = ({"schema": "school"},)
+    __table_args__ = (
+        UniqueConstraint("version_number", name="disclaimer_versions_version_number_uq"),
+        {"schema": "school"},
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
     version_number: Mapped[int] = mapped_column(Integer, nullable=False)
@@ -73,7 +79,13 @@ class UserTosAcceptance(AuditMixin, Base):
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
     # VARCHAR(255) — stores Authentik sub claim; matches users.authentik_id width
     user_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    tos_version_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    # RESTRICT: a ToS version with acceptances is an immutable audit anchor.
+    tos_version_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.tos_versions.id", ondelete="RESTRICT"),
+        nullable=False,
+        index=True,
+    )
     accepted_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
 

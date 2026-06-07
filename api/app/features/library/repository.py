@@ -5,6 +5,7 @@ from __future__ import annotations
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.base import not_deleted
 from app.features.library.models import PlatformReferenceBook
 
 
@@ -25,7 +26,7 @@ class LibraryRepository:
         result = await self._session.execute(
             select(PlatformReferenceBook).where(
                 PlatformReferenceBook.sha256 == sha256,
-                PlatformReferenceBook.deleted_at.is_(None),
+                not_deleted(PlatformReferenceBook),
             )
         )
         return result.scalar_one_or_none()  # type: ignore[return-value]
@@ -38,7 +39,7 @@ class LibraryRepository:
         """Return non-deleted books ordered by creation date desc."""
         result = await self._session.execute(
             select(PlatformReferenceBook)
-            .where(PlatformReferenceBook.deleted_at.is_(None))
+            .where(not_deleted(PlatformReferenceBook))
             .order_by(PlatformReferenceBook.created_at.desc())
             .limit(limit)
             .offset(offset)
@@ -51,7 +52,7 @@ class LibraryRepository:
         result = await self._session.execute(
             select(func.count())
             .select_from(PlatformReferenceBook)
-            .where(PlatformReferenceBook.deleted_at.is_(None))
+            .where(not_deleted(PlatformReferenceBook))
         )
         return result.scalar_one()  # type: ignore[return-value]
 

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime
+
 from sqlalchemy import Boolean, DateTime, Index, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -34,7 +36,7 @@ class Notification(AuditMixin, SoftDeleteMixin, Base):
     # Extra payload serialised as JSON string — callers parse as needed
     metadata_json: Mapped[str | None] = mapped_column(Text, nullable=True)
     is_read: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False)
-    read_at: Mapped[str | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    read_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     # Tenant scoping — NULL for platform-level notifications
     school_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
 

@@ -8,6 +8,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.base import not_deleted
 from app.features.exam_syllabi.models import ExamSyllabus, SyllabusTopic
 
 logger = structlog.get_logger(__name__)
@@ -21,9 +22,7 @@ class ExamSyllabiRepository:
 
     async def list_syllabi(self) -> list[ExamSyllabus]:
         """Return all active (non-deleted) syllabi."""
-        result = await self._session.execute(
-            select(ExamSyllabus).where(ExamSyllabus.deleted_at.is_(None))
-        )
+        result = await self._session.execute(select(ExamSyllabus).where(not_deleted(ExamSyllabus)))
         return list(result.scalars().all())
 
     async def get_by_id(self, id: str) -> ExamSyllabus | None:
@@ -53,7 +52,7 @@ class ExamSyllabiRepository:
             select(SyllabusTopic)
             .where(
                 SyllabusTopic.syllabus_id == syllabus_id,
-                SyllabusTopic.deleted_at.is_(None),
+                not_deleted(SyllabusTopic),
             )
             .order_by(SyllabusTopic.depth, SyllabusTopic.order_index)
         )
