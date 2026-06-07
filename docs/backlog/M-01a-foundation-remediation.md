@@ -163,7 +163,7 @@ Formalized design tokens in `tailwind.config.ts` (color scale, spacing, radius, 
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done (2ddccd9)
 
 ### Spec source
 - `flow-1-platform-setup.md` §2 (Platform Admin persona), §4 (permissions matrix)
@@ -197,7 +197,7 @@ Harden the authenticated `/admin` layout into the **single shell** every page re
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done (2d4de26)
 
 ### Spec source
 - (foundation — enables reproducible demos + E2E)

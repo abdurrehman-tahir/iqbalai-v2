@@ -5,7 +5,7 @@
 ---
 
 **Current milestone:** M-01a — Foundation Remediation + FE/Integration Enforcement
-**Current ticket:** T-227 (next) — App shell + role-aware nav
+**Current ticket:** T-229 (in progress) — CI wiring + branch protection
 **Ticket dossier loaded:** via direct milestone file read (ticket-loader sub-agent was malfunctioning; user authorized direct read)
 **Dossier source files:** docs/backlog/M-01a-foundation-remediation.md
 
@@ -21,7 +21,9 @@
 - T-223: DONE (d7b6d73) — vitest coverage gate + @smoke Playwright harness.
 - T-224: DONE (524574d) — offline OpenAPI export + gen:api + schema.d.ts + types.ts.
 - T-225: DONE (09cb1e7) — response_model gate + SuccessEnvelope/PaginatedEnvelope + operation_id on all 38 routes + check_response_model.py + contract tests.
-- T-226: DONE (0f4081a) — design tokens (globals.css HSL vars + tailwind.config.ts semantic map + radius/fonts, light+dark), tokenized Card primitive, components.json, ESLint inline-style ban (react/forbid-dom-props + forbid-component-props), Vitest snapshot test (5 tests), design_tokens.md reference. FE: 36 tests pass, lint clean, inline-style rule verified to fire on planted violation.
+- T-226: DONE (0f4081a) — design tokens (globals.css HSL vars + tailwind.config.ts semantic map + radius/fonts, light+dark), tokenized Card primitive, components.json, ESLint inline-style ban (react/forbid-dom-props + forbid-component-props), Vitest snapshot test (5 tests), design_tokens.md reference.
+- T-227: DONE (2ddccd9) — role-aware nav in AdminShell.tsx: NAV_ITEMS gained `roles`, filtered by user role via navItemsForRole(). Vitest (platform_admin→7, teacher→0, null→0) + Playwright @smoke (e2e/admin-shell-smoke.spec.ts, seeds session + mock-api, every nav item reaches content). FE 38 tests pass.
+- T-228: DONE (2d4de26) — scripts/seed_dev.py idempotent dev seed (bootstrap Platform Admin + district/school chain). seed_users() DB-decoupled via injected callbacks. api/tests/test_seed_dev.py (3 tests, in-memory fake). Script adds api/ to sys.path. NOTE: no schools/districts tables exist — sample hierarchy = stable demo IDs on users.school_id/district_id.
 
 **Outstanding debt to clear in audit-fix tickets:**
 - mypy --strict baseline ~55 pre-existing errors (bare `dict` annotations, celery untyped decorators) → catalog in T-230 docs/AUDIT_LOG.md.
