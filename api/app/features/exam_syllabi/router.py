@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
-from app.core.responses import success
+from app.core.responses import DeletedResponse, SuccessEnvelope, success
 from app.features.exam_syllabi.schemas import (
     ExamSyllabusCreate,
     ExamSyllabusRead,
@@ -21,7 +21,8 @@ router = APIRouter(prefix="/admin/exam-syllabi", tags=["exam-syllabi"])
 
 @router.get(
     "/",
-    response_model=dict,
+    response_model=SuccessEnvelope[list[ExamSyllabusRead]],
+    operation_id="list_syllabi",
     summary="List all exam syllabi",
     dependencies=[require_role("platform_admin")],
 )
@@ -33,7 +34,8 @@ async def list_syllabi(db: AsyncSession = Depends(get_db)) -> dict:
 
 @router.post(
     "/",
-    response_model=dict,
+    response_model=SuccessEnvelope[ExamSyllabusRead],
+    operation_id="create_syllabus",
     summary="Create a new exam syllabus",
     status_code=201,
     dependencies=[require_role("platform_admin")],
@@ -50,7 +52,8 @@ async def create_syllabus(
 
 @router.get(
     "/{syllabus_id}",
-    response_model=dict,
+    response_model=SuccessEnvelope[ExamSyllabusRead],
+    operation_id="get_syllabus",
     summary="Get a single exam syllabus",
     dependencies=[require_role("platform_admin")],
 )
@@ -65,7 +68,8 @@ async def get_syllabus(
 
 @router.put(
     "/{syllabus_id}",
-    response_model=dict,
+    response_model=SuccessEnvelope[ExamSyllabusRead],
+    operation_id="update_syllabus",
     summary="Update an exam syllabus (bumps version_number)",
     dependencies=[require_role("platform_admin")],
 )
@@ -84,7 +88,8 @@ async def update_syllabus(
 
 @router.delete(
     "/{syllabus_id}",
-    response_model=dict,
+    response_model=SuccessEnvelope[DeletedResponse],
+    operation_id="delete_syllabus",
     summary="Soft-delete an exam syllabus",
     dependencies=[require_role("platform_admin")],
 )
@@ -99,7 +104,8 @@ async def delete_syllabus(
 
 @router.get(
     "/{syllabus_id}/topics",
-    response_model=dict,
+    response_model=SuccessEnvelope[list[SyllabusTopicRead]],
+    operation_id="list_topics",
     summary="List topics for a syllabus",
     dependencies=[require_role("platform_admin")],
 )
@@ -114,7 +120,8 @@ async def list_topics(
 
 @router.post(
     "/{syllabus_id}/topics",
-    response_model=dict,
+    response_model=SuccessEnvelope[SyllabusTopicRead],
+    operation_id="create_topic",
     summary="Create a topic under a syllabus",
     status_code=201,
     dependencies=[require_role("platform_admin")],
@@ -131,7 +138,8 @@ async def create_topic(
 
 @router.delete(
     "/{syllabus_id}/topics/{topic_id}",
-    response_model=dict,
+    response_model=SuccessEnvelope[DeletedResponse],
+    operation_id="delete_topic",
     summary="Soft-delete a topic",
     dependencies=[require_role("platform_admin")],
 )

@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import NotFoundError
-from app.core.responses import success
+from app.core.responses import SuccessEnvelope, success
 from app.features.users.schemas import UserRead
 from app.features.users.service import UserService
 
@@ -16,7 +16,8 @@ router = APIRouter(prefix="/users", tags=["users"])
 
 @router.get(
     "/me",
-    response_model=dict,
+    response_model=SuccessEnvelope[UserRead],
+    operation_id="get_me",
     summary="Get current user profile",
 )
 async def get_me(

@@ -5,7 +5,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 
 import structlog
-from fastapi import Depends, Request
+from fastapi import Depends, Request, params
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import AuthenticationError, PermissionDeniedError
@@ -39,7 +39,7 @@ def get_current_user(request: Request) -> dict[str, object]:
     return claims
 
 
-def require_role(required_role: str) -> object:
+def require_role(required_role: str) -> params.Depends:
     """Dependency factory: require the caller to have `required_role` or higher.
 
     Per ARCH §6.19: require_role(X) = X OR HIGHER within the caller's scope.
@@ -69,7 +69,7 @@ def require_role(required_role: str) -> object:
     return Depends(_check)
 
 
-def require_scope(required_role: str, scope_field: str) -> object:
+def require_scope(required_role: str, scope_field: str) -> params.Depends:
     """Dependency factory: like require_role but also checks scope field matches JWT claim.
 
     Used for district_admin scoping to their district, school_admin to their school, etc.

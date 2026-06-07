@@ -11,7 +11,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_db, require_role
-from app.core.responses import paginated
+from app.core.responses import PaginatedEnvelope, paginated
 from app.features.audit.repository import AuditRepository
 from app.features.audit.schemas import AuditLogEntryRead
 
@@ -27,6 +27,8 @@ router = APIRouter(
 
 @router.get(
     "/",
+    response_model=PaginatedEnvelope[AuditLogEntryRead],
+    operation_id="list_audit_log",
     summary="List recent audit log entries (Platform Admin only)",
     description=(
         "Returns audit entries newest-first. Filter by school_id to scope results "

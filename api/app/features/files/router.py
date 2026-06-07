@@ -18,7 +18,12 @@ logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/uploads")
 
 
-@router.post("", status_code=status.HTTP_202_ACCEPTED, response_model=UploadInitiated)
+@router.post(
+    "",
+    status_code=status.HTTP_202_ACCEPTED,
+    response_model=UploadInitiated,
+    operation_id="upload_file",
+)
 async def upload_file(
     file: UploadFile,
     profile: str = "recovery_bundle",
@@ -53,7 +58,11 @@ async def upload_file(
     return result
 
 
-@router.get("/{upload_id}", response_model=UploadStatusResponse)
+@router.get(
+    "/{upload_id}",
+    response_model=UploadStatusResponse,
+    operation_id="get_upload_status",
+)
 async def get_upload_status(
     upload_id: str,
     session: AsyncSession = Depends(get_db),

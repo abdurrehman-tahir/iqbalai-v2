@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.exceptions import NotFoundError
-from app.core.responses import success
+from app.core.responses import SuccessEnvelope, success
 from app.features.tos.schemas import (
     DisclaimerVersionCreate,
     DisclaimerVersionRead,
@@ -26,7 +26,8 @@ router = APIRouter()
 
 @router.get(
     "/tos/current",
-    response_model=dict,
+    response_model=SuccessEnvelope[TosVersionRead],
+    operation_id="get_current_tos",
     summary="Get current ToS version",
     tags=["tos"],
 )
@@ -38,7 +39,8 @@ async def get_current_tos(db: AsyncSession = Depends(get_db)) -> dict:
 
 @router.get(
     "/tos/versions",
-    response_model=dict,
+    response_model=SuccessEnvelope[list[TosVersionRead]],
+    operation_id="list_tos_versions",
     summary="List all ToS versions",
     tags=["tos"],
 )
@@ -50,7 +52,8 @@ async def list_tos_versions(db: AsyncSession = Depends(get_db)) -> dict:
 
 @router.get(
     "/disclaimer/current",
-    response_model=dict,
+    response_model=SuccessEnvelope[DisclaimerVersionRead],
+    operation_id="get_current_disclaimer",
     summary="Get current Disclaimer version",
     tags=["tos"],
 )
@@ -65,7 +68,8 @@ async def get_current_disclaimer(db: AsyncSession = Depends(get_db)) -> dict:
 
 @router.post(
     "/users/me/accept-tos",
-    response_model=dict,
+    response_model=SuccessEnvelope[TosAcceptResponse],
+    operation_id="accept_tos",
     summary="Accept the current ToS",
     tags=["tos"],
 )
@@ -93,7 +97,8 @@ async def accept_tos(
 
 @router.post(
     "/admin/tos",
-    response_model=dict,
+    response_model=SuccessEnvelope[TosVersionRead],
+    operation_id="publish_tos",
     summary="Publish a new ToS version",
     tags=["tos"],
     dependencies=[require_role("platform_admin")],
@@ -114,7 +119,8 @@ async def publish_tos(
 
 @router.get(
     "/admin/tos",
-    response_model=dict,
+    response_model=SuccessEnvelope[list[TosVersionRead]],
+    operation_id="admin_list_tos",
     summary="List all ToS versions (admin)",
     tags=["tos"],
     dependencies=[require_role("platform_admin")],
@@ -127,7 +133,8 @@ async def admin_list_tos(db: AsyncSession = Depends(get_db)) -> dict:
 
 @router.post(
     "/admin/disclaimer",
-    response_model=dict,
+    response_model=SuccessEnvelope[DisclaimerVersionRead],
+    operation_id="publish_disclaimer",
     summary="Publish a new Disclaimer version",
     tags=["tos"],
     dependencies=[require_role("platform_admin")],
@@ -148,7 +155,8 @@ async def publish_disclaimer(
 
 @router.get(
     "/admin/disclaimer",
-    response_model=dict,
+    response_model=SuccessEnvelope[list[DisclaimerVersionRead]],
+    operation_id="admin_list_disclaimer",
     summary="List all Disclaimer versions (admin)",
     tags=["tos"],
     dependencies=[require_role("platform_admin")],

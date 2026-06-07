@@ -90,7 +90,7 @@ An offline OpenAPI export (`python -m app.openapi_export > openapi.json` — no 
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - (foundation) STACK_LOCK §1 (`response_model` mandate); CLAUDE.md CI invariant 7

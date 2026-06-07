@@ -23,6 +23,7 @@ router = APIRouter(prefix="/notifications", tags=["notifications"])
 @router.get(
     "/",
     response_model=NotificationListResponse,
+    operation_id="list_notifications",
     summary="List notifications for the current user",
     description="Returns non-deleted notifications newest-first, with unread count for bell badge.",
 )
@@ -56,6 +57,7 @@ async def list_notifications(
 @router.post(
     "/{notif_id}/read",
     response_model=NotificationRead,
+    operation_id="mark_notification_read",
     summary="Mark a notification as read",
     description="The authenticated user may only mark their own notifications as read.",
 )

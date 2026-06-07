@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
-from app.core.responses import success
+from app.core.responses import SuccessEnvelope, success
 from app.features.auth.schemas import PostLoginResponse
 from app.features.auth.service import AuthService
 
@@ -15,7 +15,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post(
     "/post-login",
-    response_model=dict,
+    response_model=SuccessEnvelope[PostLoginResponse],
+    operation_id="post_login",
     summary="Post-OIDC-login handler",
     description=(
         "Called by the frontend after every successful Authentik OIDC callback. "
