@@ -131,7 +131,7 @@ This closes the two ❌ "known violations" (response_model=dict, missing operati
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done (0f4081a)
 
 ### Spec source
 - (foundation) STACK_LOCK §2 (design tokens — now RESOLVED to `tailwind.config.ts`)
