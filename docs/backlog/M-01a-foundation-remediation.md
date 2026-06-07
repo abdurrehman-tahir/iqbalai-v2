@@ -228,7 +228,7 @@ An idempotent `scripts/seed_dev.py` that creates the bootstrap Platform Admin + 
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done (2293c55)
 
 ### Spec source
 - (foundation) CLAUDE.md CI invariant 7

@@ -5,7 +5,7 @@
 ---
 
 **Current milestone:** M-01a — Foundation Remediation + FE/Integration Enforcement
-**Current ticket:** T-229 (in progress) — CI wiring + branch protection
+**Current ticket:** T-230 (next) — AUDIT+FIX M-00/M-01 data + access foundation
 **Ticket dossier loaded:** via direct milestone file read (ticket-loader sub-agent was malfunctioning; user authorized direct read)
 **Dossier source files:** docs/backlog/M-01a-foundation-remediation.md
 
@@ -24,10 +24,11 @@
 - T-226: DONE (0f4081a) — design tokens (globals.css HSL vars + tailwind.config.ts semantic map + radius/fonts, light+dark), tokenized Card primitive, components.json, ESLint inline-style ban (react/forbid-dom-props + forbid-component-props), Vitest snapshot test (5 tests), design_tokens.md reference.
 - T-227: DONE (2ddccd9) — role-aware nav in AdminShell.tsx: NAV_ITEMS gained `roles`, filtered by user role via navItemsForRole(). Vitest (platform_admin→7, teacher→0, null→0) + Playwright @smoke (e2e/admin-shell-smoke.spec.ts, seeds session + mock-api, every nav item reaches content). FE 38 tests pass.
 - T-228: DONE (2d4de26) — scripts/seed_dev.py idempotent dev seed (bootstrap Platform Admin + district/school chain). seed_users() DB-decoupled via injected callbacks. api/tests/test_seed_dev.py (3 tests, in-memory fake). Script adds api/ to sys.path. NOTE: no schools/districts tables exist — sample hierarchy = stable demo IDs on users.school_id/district_id.
+- T-229: DONE (2293c55) — ci.yml: fixed inv.1 in the 4 M-01a gates. typed-client-drift now `uv sync` in api/ (no root pyproject); response-model-gate dropped uv (pure-AST stdlib, runs on setup-python); e2e-smoke made offline (Playwright self-hosts via webServer; @smoke stubs API) + guarded `if != schedule`; added e2e-full nightly (`if == schedule`) + `schedule: cron "0 2 * * *"`; removed DUPLICATE ticket-status-check (kept one, PR-only guard); cleaned stale "PASTE THIS" comments. BRANCHING.md: documented required-check set (4 M-01a gates + ticket-ledger) as source of truth (protection paywalled) + change-log. NOTE: frontend-unit (`pnpm test --coverage`) stays RED until T-235 backfill — accepted intermediate state.
 
 **Outstanding debt to clear in audit-fix tickets:**
 - mypy --strict baseline ~55 pre-existing errors (bare `dict` annotations, celery untyped decorators) → catalog in T-230 docs/AUDIT_LOG.md.
 - schema.d.ts stale after T-225 contract change → regenerate in T-233.
 - FE coverage threshold red until T-235 backfill.
 
-**Next intended step:** Implement T-227 (App shell + role-aware nav). Read milestone ticket body directly (ticket-loader authorized-bypass). frontend-master skill trigger fires (new visible page/screen + nav).
+**Next intended step:** Implement T-230 (AUDIT+FIX M-00/M-01 data + access foundation). Read milestone ticket body directly (ticket-loader authorized-bypass). Audit-fix ticket → write systemic findings to docs/AUDIT_LOG.md at close-out (catalog the ~55 pre-existing mypy --strict errors there). data-modeling skill may fire if models change.
