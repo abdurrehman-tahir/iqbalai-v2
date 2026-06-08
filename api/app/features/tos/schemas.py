@@ -40,6 +40,13 @@ class TosAcceptResponse(BaseModel):
     accepted_at: datetime
 
 
+class TosDeclineResponse(BaseModel):
+    """Confirmation of ToS decline — account enters SUSPENDED state."""
+
+    declined: bool
+    status: str = "suspended"
+
+
 class DisclaimerVersionRead(BaseModel):
     """Disclaimer version response."""
 

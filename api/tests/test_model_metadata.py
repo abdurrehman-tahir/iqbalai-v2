@@ -97,6 +97,7 @@ def test_every_foreign_key_has_ondelete_and_index() -> None:
 # Stable value sets that must be backed by a native Postgres enum (ARCH §4.4).
 _ENUM_COLUMNS = [
     ("users", "role"),
+    ("users", "account_status"),
     ("upload_records", "status"),
     ("subscription_tiers", "applies_to"),
     ("subscriptions", "subscriber_type"),

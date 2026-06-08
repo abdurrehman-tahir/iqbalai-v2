@@ -3,7 +3,30 @@
  * All fetch calls go through here — never use raw fetch() in components.
  */
 
+import type {
+  AuditEntry,
+  DisclaimerVersionRead,
+  ExamSyllabusRead,
+  Notification,
+  PersonaRead,
+  PostLoginResponse,
+  SubscriptionTierRead,
+  TosAcceptResponse,
+  TosDeclineResponse,
+  TosVersion,
+  TosVersionRead,
+} from "./types";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+
+export type {
+  AuditEntry,
+  Notification,
+  PersonaRead as Persona,
+  ExamSyllabusRead as Syllabus,
+  SubscriptionTierRead as SubscriptionTier,
+  TosVersion,
+} from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -51,42 +74,10 @@ async function request<T>(
   if (res.status === 204) return undefined as T;
 
   const envelope = await res.json();
-  // All our endpoints wrap responses in { success: true, data: ... }
   return (envelope.data ?? envelope) as T;
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
-
-export const authApi = {
-  postLogin: (token: string) =>
-    request<{
-      user_id: string;
-      email: string;
-      role: string;
-      is_first_login: boolean;
-      tos_acceptance_required: boolean;
-      current_tos_version_id: string | null;
-    }>("/auth/post-login", { method: "POST" }, token),
-};
-
-// ── ToS ───────────────────────────────────────────────────────────────────────
-
-/** API shape from FastAPI TosVersionRead */
-interface TosVersionApi {
-  id: string;
-  version_number: number;
-  content_md: string;
-  effective_at: string;
-}
-
-export interface TosVersion {
-  id: string;
-  version: number;
-  content: string;
-  effective_at: string;
-}
-
-function mapTosVersion(raw: TosVersionApi): TosVersion {
+function mapTosVersion(raw: TosVersionRead): TosVersion {
   return {
     id: raw.id,
     version: raw.version_number,
@@ -95,35 +86,55 @@ function mapTosVersion(raw: TosVersionApi): TosVersion {
   };
 }
 
+function mapDisclaimer(raw: DisclaimerVersionRead): TosVersion {
+  return {
+    id: raw.id,
+    version: raw.version_number,
+    content: raw.content,
+    effective_at: raw.effective_at,
+  };
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export const authApi = {
+  postLogin: (token: string) =>
+    request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
+};
+
+// ── ToS ───────────────────────────────────────────────────────────────────────
+
 export const tosApi = {
   getCurrent: async (token: string) =>
-    mapTosVersion(await request<TosVersionApi>("/tos/current", {}, token)),
+    mapTosVersion(await request<TosVersionRead>("/tos/current", {}, token)),
   acceptTos: (token: string, tosVersionId: string) =>
-    request<{ accepted: boolean }>(
+    request<TosAcceptResponse>(
       "/users/me/accept-tos",
       { method: "POST", body: JSON.stringify({ tos_version_id: tosVersionId }) },
       token,
     ),
+  declineTos: (token: string) =>
+    request<TosDeclineResponse>(
+      "/users/me/decline-tos",
+      { method: "POST", body: JSON.stringify({}) },
+      token,
+    ),
   list: async (token: string) =>
-    (await request<TosVersionApi[]>("/admin/tos", {}, token)).map(mapTosVersion),
+    (await request<TosVersionRead[]>("/admin/tos", {}, token)).map(mapTosVersion),
   publish: async (token: string, content: string) => {
-    const raw = await request<{ id: string; version_number: number }>(
+    const raw = await request<TosVersionRead>(
       "/admin/tos",
       { method: "POST", body: JSON.stringify({ content_md: content }) },
       token,
     );
     return { id: raw.id, version: raw.version_number };
   },
-  listDisclaimer: async (token: string): Promise<TosVersion[]> => {
-    const raw = await request<Array<{ id: string; version_number: number; content: string; effective_at: string }>>(
-      "/admin/disclaimer",
-      {},
-      token,
-    );
-    return raw.map((d) => ({ id: d.id, version: d.version_number, content: d.content, effective_at: d.effective_at }));
-  },
+  listDisclaimer: async (token: string) =>
+    (await request<DisclaimerVersionRead[]>("/admin/disclaimer", {}, token)).map(
+      mapDisclaimer,
+    ),
   publishDisclaimer: async (token: string, content: string) => {
-    const raw = await request<{ id: string; version_number: number }>(
+    const raw = await request<DisclaimerVersionRead>(
       "/admin/disclaimer",
       { method: "POST", body: JSON.stringify({ content }) },
       token,
@@ -134,25 +145,17 @@ export const tosApi = {
 
 // ── Exam Syllabi ──────────────────────────────────────────────────────────────
 
-export interface Syllabus {
-  id: string;
-  name: string;
-  description: string | null;
-  version: number;
-  is_active: boolean;
-}
-
 export const syllabiApi = {
   list: (token: string) =>
-    request<Syllabus[]>("/admin/exam-syllabi", {}, token),
+    request<ExamSyllabusRead[]>("/admin/exam-syllabi", {}, token),
   create: (token: string, data: { name: string; description?: string }) =>
-    request<Syllabus>(
+    request<ExamSyllabusRead>(
       "/admin/exam-syllabi",
       { method: "POST", body: JSON.stringify(data) },
       token,
     ),
-  update: (token: string, id: string, data: Partial<Syllabus>) =>
-    request<Syllabus>(
+  update: (token: string, id: string, data: Partial<ExamSyllabusRead>) =>
+    request<ExamSyllabusRead>(
       `/admin/exam-syllabi/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
       token,
@@ -163,24 +166,15 @@ export const syllabiApi = {
 
 // ── Personas ──────────────────────────────────────────────────────────────────
 
-export interface Persona {
-  id: string;
-  name: string;
-  description: string | null;
-  system_prompt: string;
-  is_custom: boolean;
-  is_active: boolean;
-}
-
 export const personasApi = {
   list: (token: string) =>
-    request<Persona[]>("/admin/personas", {}, token),
+    request<PersonaRead[]>("/admin/personas", {}, token),
   update: (
     token: string,
     id: string,
     data: { system_prompt?: string; description?: string; is_active?: boolean },
   ) =>
-    request<Persona>(
+    request<PersonaRead>(
       `/admin/personas/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
       token,
@@ -189,26 +183,17 @@ export const personasApi = {
 
 // ── Subscription Tiers ────────────────────────────────────────────────────────
 
-export interface SubscriptionTier {
-  id: string;
-  name: string;
-  pricing_monthly_pkr: number;
-  caps: Record<string, unknown>;
-  applies_to_role: string;
-  is_active: boolean;
-}
-
 export const subscriptionsApi = {
   list: (token: string) =>
-    request<SubscriptionTier[]>("/admin/subscription-tiers", {}, token),
-  create: (token: string, data: Omit<SubscriptionTier, "id">) =>
-    request<SubscriptionTier>(
+    request<SubscriptionTierRead[]>("/admin/subscription-tiers", {}, token),
+  create: (token: string, data: Omit<SubscriptionTierRead, "id">) =>
+    request<SubscriptionTierRead>(
       "/admin/subscription-tiers",
       { method: "POST", body: JSON.stringify(data) },
       token,
     ),
-  update: (token: string, id: string, data: Partial<SubscriptionTier>) =>
-    request<SubscriptionTier>(
+  update: (token: string, id: string, data: Partial<SubscriptionTierRead>) =>
+    request<SubscriptionTierRead>(
       `/admin/subscription-tiers/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
       token,
@@ -219,32 +204,14 @@ export const subscriptionsApi = {
 
 // ── Library ───────────────────────────────────────────────────────────────────
 
-export interface LibraryBook {
-  id: string;
-  filename: string;
-  status: "ingesting" | "available" | "ingestion_failed" | "soft_deleted";
-  tags: { subject_id?: string; grade_range?: string[]; language?: string; content_type?: string };
-  created_at: string;
-}
-
 export const libraryApi = {
   list: (token: string) =>
-    request<LibraryBook[]>("/admin/library", {}, token),
+    request<import("./types").LibraryBookRead[]>("/admin/library", {}, token),
   softDelete: (token: string, id: string) =>
     request<void>(`/admin/library/${id}`, { method: "DELETE" }, token),
 };
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────
-
-export interface AuditEntry {
-  id: string;
-  action: string;
-  actor_id: string;
-  target_type: string;
-  target_id: string | null;
-  metadata: Record<string, unknown>;
-  created_at: string;
-}
 
 export const auditApi = {
   list: (token: string, params?: { actor?: string; action?: string }) => {
@@ -257,22 +224,13 @@ export const auditApi = {
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 
-export interface Notification {
-  id: string;
-  feature_namespace: string;
-  title: string;
-  body: string;
-  is_read: boolean;
-  created_at: string;
-}
-
 export const notificationsApi = {
   list: async (token: string): Promise<Notification[]> => {
-    const res = await request<{ items: Notification[]; total: number; unread_count: number }>(
-      "/notifications",
-      {},
-      token,
-    );
+    const res = await request<{
+      items: Notification[];
+      total: number;
+      unread_count: number;
+    }>("/notifications", {}, token);
     return res.items;
   },
   markRead: (token: string, id: string) =>

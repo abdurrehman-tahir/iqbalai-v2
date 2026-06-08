@@ -18,6 +18,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const syllabusSchema = z.object({
   name: z.string().min(1).max(200),
@@ -92,9 +93,9 @@ export function SyllabiClient() {
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
         <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-32 ms-auto" aria-hidden="true" />
         </div>
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -107,22 +108,21 @@ export function SyllabiClient() {
 
   if (isError) {
     return (
-      <ErrorState
-        description={t("error")}
-        onRetry={() => refetch()}
-        retryLabel={t("retry")}
-      />
+      <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
+        <ErrorState
+          description={t("error")}
+          onRetry={() => refetch()}
+          retryLabel={t("retry")}
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-          <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-        </div>
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
         <Button variant="primary" size="md" className="gap-2" onClick={openCreate}>
           <Plus className="size-4" aria-hidden="true" />
           {t("add_button")}
@@ -170,7 +170,7 @@ export function SyllabiClient() {
                     {syllabus.description ?? "—"}
                   </td>
                   <td className="px-4 py-3 text-gray-500">
-                    v{syllabus.version}
+                    v{syllabus.version_number}
                   </td>
                   <td className="px-4 py-3">
                     <Badge variant={syllabus.is_active ? "success" : "secondary"}>

@@ -15,7 +15,7 @@ export interface paths {
          * List recent audit log entries (Platform Admin only)
          * @description Returns audit entries newest-first. Filter by school_id to scope results to a specific school. Leave school_id unset to see platform-wide entries.
          */
-        get: operations["list_audit_log_api_v1_admin_audit_log__get"];
+        get: operations["list_audit_log"];
         put?: never;
         post?: never;
         delete?: never;
@@ -32,10 +32,10 @@ export interface paths {
             cookie?: never;
         };
         /** List all Disclaimer versions (admin) */
-        get: operations["admin_list_disclaimer_api_v1_admin_disclaimer_get"];
+        get: operations["admin_list_disclaimer"];
         put?: never;
         /** Publish a new Disclaimer version */
-        post: operations["publish_disclaimer_api_v1_admin_disclaimer_post"];
+        post: operations["publish_disclaimer"];
         delete?: never;
         options?: never;
         head?: never;
@@ -50,10 +50,10 @@ export interface paths {
             cookie?: never;
         };
         /** List all exam syllabi */
-        get: operations["list_syllabi_api_v1_admin_exam_syllabi__get"];
+        get: operations["list_syllabi"];
         put?: never;
         /** Create a new exam syllabus */
-        post: operations["create_syllabus_api_v1_admin_exam_syllabi__post"];
+        post: operations["create_syllabus"];
         delete?: never;
         options?: never;
         head?: never;
@@ -68,12 +68,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get a single exam syllabus */
-        get: operations["get_syllabus_api_v1_admin_exam_syllabi__syllabus_id__get"];
+        get: operations["get_syllabus"];
         /** Update an exam syllabus (bumps version_number) */
-        put: operations["update_syllabus_api_v1_admin_exam_syllabi__syllabus_id__put"];
+        put: operations["update_syllabus"];
         post?: never;
         /** Soft-delete an exam syllabus */
-        delete: operations["delete_syllabus_api_v1_admin_exam_syllabi__syllabus_id__delete"];
+        delete: operations["delete_syllabus"];
         options?: never;
         head?: never;
         patch?: never;
@@ -87,10 +87,10 @@ export interface paths {
             cookie?: never;
         };
         /** List topics for a syllabus */
-        get: operations["list_topics_api_v1_admin_exam_syllabi__syllabus_id__topics_get"];
+        get: operations["list_topics"];
         put?: never;
         /** Create a topic under a syllabus */
-        post: operations["create_topic_api_v1_admin_exam_syllabi__syllabus_id__topics_post"];
+        post: operations["create_topic"];
         delete?: never;
         options?: never;
         head?: never;
@@ -108,7 +108,7 @@ export interface paths {
         put?: never;
         post?: never;
         /** Soft-delete a topic */
-        delete: operations["delete_topic_api_v1_admin_exam_syllabi__syllabus_id__topics__topic_id__delete"];
+        delete: operations["delete_topic"];
         options?: never;
         head?: never;
         patch?: never;
@@ -125,13 +125,13 @@ export interface paths {
          * List platform reference books
          * @description Returns non-deleted books newest-first.
          */
-        get: operations["list_library_books_api_v1_admin_library__get"];
+        get: operations["list_library_books"];
         put?: never;
         /**
          * Upload a platform reference book
          * @description Upload a PDF to the Platform Library. Returns 202 immediately; ingestion runs asynchronously on the ingestion worker.
          */
-        post: operations["upload_library_book_api_v1_admin_library__post"];
+        post: operations["upload_library_book"];
         delete?: never;
         options?: never;
         head?: never;
@@ -152,7 +152,7 @@ export interface paths {
          * Soft-delete a platform reference book
          * @description Marks the book deleted. MinIO file and Qdrant embeddings are retained per §5.3 (soft-delete with citations preserved).
          */
-        delete: operations["delete_library_book_api_v1_admin_library__book_id__delete"];
+        delete: operations["delete_library_book"];
         options?: never;
         head?: never;
         patch?: never;
@@ -166,7 +166,7 @@ export interface paths {
             cookie?: never;
         };
         /** List all teaching personas */
-        get: operations["list_personas_api_v1_admin_personas__get"];
+        get: operations["list_personas"];
         put?: never;
         post?: never;
         delete?: never;
@@ -183,9 +183,9 @@ export interface paths {
             cookie?: never;
         };
         /** Get a single teaching persona */
-        get: operations["get_persona_api_v1_admin_personas__persona_id__get"];
+        get: operations["get_persona"];
         /** Update a teaching persona's prompts or active status */
-        put: operations["update_persona_api_v1_admin_personas__persona_id__put"];
+        put: operations["update_persona"];
         post?: never;
         delete?: never;
         options?: never;
@@ -201,10 +201,10 @@ export interface paths {
             cookie?: never;
         };
         /** List all subscription tiers */
-        get: operations["list_tiers_api_v1_admin_subscription_tiers__get"];
+        get: operations["list_subscription_tiers"];
         put?: never;
         /** Create a new subscription tier */
-        post: operations["create_tier_api_v1_admin_subscription_tiers__post"];
+        post: operations["create_subscription_tier"];
         delete?: never;
         options?: never;
         head?: never;
@@ -219,12 +219,12 @@ export interface paths {
             cookie?: never;
         };
         /** Get a single subscription tier */
-        get: operations["get_tier_api_v1_admin_subscription_tiers__tier_id__get"];
+        get: operations["get_subscription_tier"];
         /** Update a subscription tier */
-        put: operations["update_tier_api_v1_admin_subscription_tiers__tier_id__put"];
+        put: operations["update_subscription_tier"];
         post?: never;
         /** Soft-delete a subscription tier */
-        delete: operations["delete_tier_api_v1_admin_subscription_tiers__tier_id__delete"];
+        delete: operations["delete_subscription_tier"];
         options?: never;
         head?: never;
         patch?: never;
@@ -238,10 +238,10 @@ export interface paths {
             cookie?: never;
         };
         /** List all ToS versions (admin) */
-        get: operations["admin_list_tos_api_v1_admin_tos_get"];
+        get: operations["admin_list_tos"];
         put?: never;
         /** Publish a new ToS version */
-        post: operations["publish_tos_api_v1_admin_tos_post"];
+        post: operations["publish_tos"];
         delete?: never;
         options?: never;
         head?: never;
@@ -261,7 +261,7 @@ export interface paths {
          * Post-OIDC-login handler
          * @description Called by the frontend after every successful Authentik OIDC callback. Creates a User row on first login. Returns ToS acceptance status so the frontend can show the acceptance modal if needed.
          */
-        post: operations["post_login_api_v1_auth_post_login_post"];
+        post: operations["post_login"];
         delete?: never;
         options?: never;
         head?: never;
@@ -276,7 +276,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get current Disclaimer version */
-        get: operations["get_current_disclaimer_api_v1_disclaimer_current_get"];
+        get: operations["get_current_disclaimer"];
         put?: never;
         post?: never;
         delete?: never;
@@ -296,7 +296,7 @@ export interface paths {
          * Health Check
          * @description Liveness probe — always returns 200 if the app is running.
          */
-        get: operations["health_check_api_v1_health_get"];
+        get: operations["health_check"];
         put?: never;
         post?: never;
         delete?: never;
@@ -316,7 +316,7 @@ export interface paths {
          * Readiness Check
          * @description Readiness probe — checks that the app can accept traffic.
          */
-        get: operations["readiness_check_api_v1_health_ready_get"];
+        get: operations["readiness_check"];
         put?: never;
         post?: never;
         delete?: never;
@@ -336,7 +336,7 @@ export interface paths {
          * List notifications for the current user
          * @description Returns non-deleted notifications newest-first, with unread count for bell badge.
          */
-        get: operations["list_notifications_api_v1_notifications__get"];
+        get: operations["list_notifications"];
         put?: never;
         post?: never;
         delete?: never;
@@ -358,7 +358,7 @@ export interface paths {
          * Mark a notification as read
          * @description The authenticated user may only mark their own notifications as read.
          */
-        post: operations["mark_notification_read_api_v1_notifications__notif_id__read_post"];
+        post: operations["mark_notification_read"];
         delete?: never;
         options?: never;
         head?: never;
@@ -378,7 +378,7 @@ export interface paths {
          * Smoketest Llm
          * @description Run a sample LLM call.
          */
-        post: operations["smoketest_llm_api_v1_smoketest_llm_post"];
+        post: operations["smoketest_llm"];
         delete?: never;
         options?: never;
         head?: never;
@@ -398,7 +398,7 @@ export interface paths {
          * Smoketest Rag
          * @description Run a sample RAG query. Returns empty chunks since no content is ingested yet.
          */
-        post: operations["smoketest_rag_api_v1_smoketest_rag_post"];
+        post: operations["smoketest_rag"];
         delete?: never;
         options?: never;
         head?: never;
@@ -413,7 +413,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get current ToS version */
-        get: operations["get_current_tos_api_v1_tos_current_get"];
+        get: operations["get_current_tos"];
         put?: never;
         post?: never;
         delete?: never;
@@ -430,7 +430,7 @@ export interface paths {
             cookie?: never;
         };
         /** List all ToS versions */
-        get: operations["list_tos_versions_api_v1_tos_versions_get"];
+        get: operations["list_tos_versions"];
         put?: never;
         post?: never;
         delete?: never;
@@ -455,7 +455,7 @@ export interface paths {
          *     Returns 202 Accepted immediately with a tracking URL.
          *     Per ARCH §11.16 canonical endpoint shape.
          */
-        post: operations["upload_file_api_v1_uploads_post"];
+        post: operations["upload_file"];
         delete?: never;
         options?: never;
         head?: never;
@@ -473,7 +473,7 @@ export interface paths {
          * Get Upload Status
          * @description Get the status of a previously initiated upload.
          */
-        get: operations["get_upload_status_api_v1_uploads__upload_id__get"];
+        get: operations["get_upload_status"];
         put?: never;
         post?: never;
         delete?: never;
@@ -490,7 +490,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get current user profile */
-        get: operations["get_me_api_v1_users_me_get"];
+        get: operations["get_me"];
         put?: never;
         post?: never;
         delete?: never;
@@ -509,7 +509,24 @@ export interface paths {
         get?: never;
         put?: never;
         /** Accept the current ToS */
-        post: operations["accept_tos_api_v1_users_me_accept_tos_post"];
+        post: operations["accept_tos"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/users/me/decline-tos": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Decline the current ToS */
+        post: operations["decline_tos"];
         delete?: never;
         options?: never;
         head?: never;
@@ -540,15 +557,67 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
-        /** Body_upload_file_api_v1_uploads_post */
-        Body_upload_file_api_v1_uploads_post: {
+        /**
+         * AccountStatus
+         * @description Account lifecycle status — full lifecycle in M-02; ToS decline uses SUSPENDED.
+         * @enum {string}
+         */
+        AccountStatus: "active" | "suspended";
+        /**
+         * AuditLogEntryRead
+         * @description Read schema for a single audit log row.
+         *
+         *     metadata_json is returned as a raw string — callers parse JSON as needed.
+         *     Intentionally no write schema: audit rows are created only via the
+         *     infrastructure helper (app/infrastructure/audit/log.py), never via the API.
+         */
+        AuditLogEntryRead: {
+            /** Action */
+            action: string;
+            /** Actor Id */
+            actor_id: string | null;
+            /** Actor Role */
+            actor_role: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** District Id */
+            district_id: string | null;
+            /** Id */
+            id: string;
+            /** Ip Address */
+            ip_address: string | null;
+            /** Metadata Json */
+            metadata_json: string | null;
+            /** School Id */
+            school_id: string | null;
+            /** Target Id */
+            target_id: string | null;
+            /** Target Type */
+            target_type: string | null;
+        };
+        /** Body_upload_file */
+        Body_upload_file: {
             /** File */
             file: string;
         };
-        /** Body_upload_library_book_api_v1_admin_library__post */
-        Body_upload_library_book_api_v1_admin_library__post: {
+        /** Body_upload_library_book */
+        Body_upload_library_book: {
             /** File */
             file: string;
+        };
+        /**
+         * DeletedResponse
+         * @description Payload for soft-delete endpoints — `data` of a `SuccessEnvelope`.
+         */
+        DeletedResponse: {
+            /**
+             * Deleted
+             * @default true
+             */
+            deleted: boolean;
         };
         /**
          * DisclaimerVersionCreate
@@ -562,6 +631,25 @@ export interface components {
              * @default en
              */
             language: string;
+        };
+        /**
+         * DisclaimerVersionRead
+         * @description Disclaimer version response.
+         */
+        DisclaimerVersionRead: {
+            /** Content */
+            content: string;
+            /**
+             * Effective At
+             * Format: date-time
+             */
+            effective_at: string;
+            /** Id */
+            id: string;
+            /** Language */
+            language: string;
+            /** Version Number */
+            version_number: number;
         };
         /**
          * ExamSyllabusCreate
@@ -583,6 +671,35 @@ export interface components {
             name: string;
             /** Region */
             region?: string | null;
+        };
+        /**
+         * ExamSyllabusRead
+         * @description Response schema for a single ExamSyllabus.
+         */
+        ExamSyllabusRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Exam Board */
+            exam_board: string;
+            /** Grade Range Max */
+            grade_range_max: number | null;
+            /** Grade Range Min */
+            grade_range_min: number | null;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** Region */
+            region: string | null;
+            /** Version Number */
+            version_number: number;
         };
         /**
          * ExamSyllabusUpdate
@@ -717,6 +834,42 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** PaginatedEnvelope[AuditLogEntryRead] */
+        PaginatedEnvelope_AuditLogEntryRead_: {
+            /** Items */
+            items: components["schemas"]["AuditLogEntryRead"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Pages */
+            pages: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * PersonaRead
+         * @description Response schema for a single TeachingPersona.
+         */
+        PersonaRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Is Custom */
+            is_custom: boolean;
+            /** Name */
+            name: string;
+            /** Slug */
+            slug: string;
+            /** System Prompt En */
+            system_prompt_en: string;
+        };
         /**
          * PersonaUpdate
          * @description Payload for updating a TeachingPersona (all fields optional).
@@ -735,6 +888,25 @@ export interface components {
             system_prompt_sd?: string | null;
             /** System Prompt Ur */
             system_prompt_ur?: string | null;
+        };
+        /**
+         * PostLoginResponse
+         * @description Response from POST /api/v1/auth/post-login.
+         */
+        PostLoginResponse: {
+            /** @default active */
+            account_status: components["schemas"]["AccountStatus"];
+            /** Current Tos Version Id */
+            current_tos_version_id: string | null;
+            /** Email */
+            email: string;
+            /** Is First Login */
+            is_first_login: boolean;
+            role: components["schemas"]["UserRole"];
+            /** Tos Acceptance Required */
+            tos_acceptance_required: boolean;
+            /** User Id */
+            user_id: string;
         };
         /**
          * SubscriptionTierCreate
@@ -763,6 +935,35 @@ export interface components {
             slug: string;
         };
         /**
+         * SubscriptionTierRead
+         * @description Response schema for a single SubscriptionTier.
+         */
+        SubscriptionTierRead: {
+            /** Applies To */
+            applies_to: string;
+            /** Caps */
+            caps: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Description */
+            description: string | null;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Name */
+            name: string;
+            /** Pricing Monthly Pkr */
+            pricing_monthly_pkr: number;
+            /** Slug */
+            slug: string;
+        };
+        /**
          * SubscriptionTierUpdate
          * @description Payload for updating a SubscriptionTier (all fields optional).
          */
@@ -779,6 +980,165 @@ export interface components {
             name?: string | null;
             /** Pricing Monthly Pkr */
             pricing_monthly_pkr?: number | null;
+        };
+        /** SuccessEnvelope[DeletedResponse] */
+        SuccessEnvelope_DeletedResponse_: {
+            data: components["schemas"]["DeletedResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[DisclaimerVersionRead] */
+        SuccessEnvelope_DisclaimerVersionRead_: {
+            data: components["schemas"]["DisclaimerVersionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[ExamSyllabusRead] */
+        SuccessEnvelope_ExamSyllabusRead_: {
+            data: components["schemas"]["ExamSyllabusRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[PersonaRead] */
+        SuccessEnvelope_PersonaRead_: {
+            data: components["schemas"]["PersonaRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[PostLoginResponse] */
+        SuccessEnvelope_PostLoginResponse_: {
+            data: components["schemas"]["PostLoginResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SubscriptionTierRead] */
+        SuccessEnvelope_SubscriptionTierRead_: {
+            data: components["schemas"]["SubscriptionTierRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SyllabusTopicRead] */
+        SuccessEnvelope_SyllabusTopicRead_: {
+            data: components["schemas"]["SyllabusTopicRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[TosAcceptResponse] */
+        SuccessEnvelope_TosAcceptResponse_: {
+            data: components["schemas"]["TosAcceptResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[TosDeclineResponse] */
+        SuccessEnvelope_TosDeclineResponse_: {
+            data: components["schemas"]["TosDeclineResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[TosVersionRead] */
+        SuccessEnvelope_TosVersionRead_: {
+            data: components["schemas"]["TosVersionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[UserRead] */
+        SuccessEnvelope_UserRead_: {
+            data: components["schemas"]["UserRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[DisclaimerVersionRead]] */
+        SuccessEnvelope_list_DisclaimerVersionRead__: {
+            /** Data */
+            data: components["schemas"]["DisclaimerVersionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[ExamSyllabusRead]] */
+        SuccessEnvelope_list_ExamSyllabusRead__: {
+            /** Data */
+            data: components["schemas"]["ExamSyllabusRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[PersonaRead]] */
+        SuccessEnvelope_list_PersonaRead__: {
+            /** Data */
+            data: components["schemas"]["PersonaRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[SubscriptionTierRead]] */
+        SuccessEnvelope_list_SubscriptionTierRead__: {
+            /** Data */
+            data: components["schemas"]["SubscriptionTierRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[SyllabusTopicRead]] */
+        SuccessEnvelope_list_SyllabusTopicRead__: {
+            /** Data */
+            data: components["schemas"]["SyllabusTopicRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[TosVersionRead]] */
+        SuccessEnvelope_list_TosVersionRead__: {
+            /** Data */
+            data: components["schemas"]["TosVersionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
         };
         /**
          * SyllabusTopicCreate
@@ -798,12 +1158,63 @@ export interface components {
             title: string;
         };
         /**
+         * SyllabusTopicRead
+         * @description Response schema for a single SyllabusTopic.
+         */
+        SyllabusTopicRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Depth */
+            depth: number;
+            /** Id */
+            id: string;
+            /** Order Index */
+            order_index: number;
+            /** Parent Id */
+            parent_id: string | null;
+            /** Syllabus Id */
+            syllabus_id: string;
+            /** Title */
+            title: string;
+        };
+        /**
          * TosAcceptRequest
          * @description User accepts the current ToS.
          */
         TosAcceptRequest: {
             /** Tos Version Id */
             tos_version_id: string;
+        };
+        /**
+         * TosAcceptResponse
+         * @description Confirmation of ToS acceptance.
+         */
+        TosAcceptResponse: {
+            /** Accepted */
+            accepted: boolean;
+            /**
+             * Accepted At
+             * Format: date-time
+             */
+            accepted_at: string;
+            /** Tos Version Id */
+            tos_version_id: string;
+        };
+        /**
+         * TosDeclineResponse
+         * @description Confirmation of ToS decline — account enters SUSPENDED state.
+         */
+        TosDeclineResponse: {
+            /** Declined */
+            declined: boolean;
+            /**
+             * Status
+             * @default suspended
+             */
+            status: string;
         };
         /**
          * TosVersionCreate
@@ -817,6 +1228,25 @@ export interface components {
              * @default en
              */
             language: string;
+        };
+        /**
+         * TosVersionRead
+         * @description ToS version response.
+         */
+        TosVersionRead: {
+            /** Content Md */
+            content_md: string;
+            /**
+             * Effective At
+             * Format: date-time
+             */
+            effective_at: string;
+            /** Id */
+            id: string;
+            /** Language */
+            language: string;
+            /** Version Number */
+            version_number: number;
         };
         /**
          * UploadInitiated
@@ -842,6 +1272,11 @@ export interface components {
         /**
          * UploadStatusResponse
          * @description Response for GET /uploads/{id}.
+         *
+         *     `upload_id` is the public name for the record's primary key (`id`). The
+         *     validation alias lets `model_validate(record)` read it straight off the
+         *     ORM row, while the serialized output keeps the `upload_id` field name so the
+         *     API contract (and the generated typed client) is unchanged.
          */
         UploadStatusResponse: {
             /**
@@ -863,6 +1298,36 @@ export interface components {
             /** Upload Id */
             upload_id: string;
         };
+        /**
+         * UserRead
+         * @description User response schema.
+         */
+        UserRead: {
+            /** Authentik Id */
+            authentik_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Display Name */
+            display_name: string;
+            /** District Id */
+            district_id: string | null;
+            /** Email */
+            email: string;
+            /** Id */
+            id: string;
+            role: components["schemas"]["UserRole"];
+            /** School Id */
+            school_id: string | null;
+        };
+        /**
+         * UserRole
+         * @description Six-level role hierarchy per ARCH §6.7.
+         * @enum {string}
+         */
+        UserRole: "platform_admin" | "district_admin" | "school_admin" | "coordinator" | "teacher" | "student" | "parent";
         /** ValidationError */
         ValidationError: {
             /** Context */
@@ -885,7 +1350,7 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
-    list_audit_log_api_v1_admin_audit_log__get: {
+    list_audit_log: {
         parameters: {
             query?: {
                 /** @description Filter by school tenant */
@@ -905,9 +1370,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PaginatedEnvelope_AuditLogEntryRead_"];
                 };
             };
             /** @description Validation Error */
@@ -921,7 +1384,7 @@ export interface operations {
             };
         };
     };
-    admin_list_disclaimer_api_v1_admin_disclaimer_get: {
+    admin_list_disclaimer: {
         parameters: {
             query?: never;
             header?: never;
@@ -936,14 +1399,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_list_DisclaimerVersionRead__"];
                 };
             };
         };
     };
-    publish_disclaimer_api_v1_admin_disclaimer_post: {
+    publish_disclaimer: {
         parameters: {
             query?: never;
             header?: never;
@@ -962,9 +1423,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_DisclaimerVersionRead_"];
                 };
             };
             /** @description Validation Error */
@@ -978,7 +1437,7 @@ export interface operations {
             };
         };
     };
-    list_syllabi_api_v1_admin_exam_syllabi__get: {
+    list_syllabi: {
         parameters: {
             query?: never;
             header?: never;
@@ -993,14 +1452,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_list_ExamSyllabusRead__"];
                 };
             };
         };
     };
-    create_syllabus_api_v1_admin_exam_syllabi__post: {
+    create_syllabus: {
         parameters: {
             query?: never;
             header?: never;
@@ -1019,9 +1476,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_ExamSyllabusRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1035,7 +1490,7 @@ export interface operations {
             };
         };
     };
-    get_syllabus_api_v1_admin_exam_syllabi__syllabus_id__get: {
+    get_syllabus: {
         parameters: {
             query?: never;
             header?: never;
@@ -1052,9 +1507,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_ExamSyllabusRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1068,7 +1521,7 @@ export interface operations {
             };
         };
     };
-    update_syllabus_api_v1_admin_exam_syllabi__syllabus_id__put: {
+    update_syllabus: {
         parameters: {
             query?: never;
             header?: never;
@@ -1089,9 +1542,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_ExamSyllabusRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1105,7 +1556,7 @@ export interface operations {
             };
         };
     };
-    delete_syllabus_api_v1_admin_exam_syllabi__syllabus_id__delete: {
+    delete_syllabus: {
         parameters: {
             query?: never;
             header?: never;
@@ -1122,9 +1573,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_DeletedResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -1138,7 +1587,7 @@ export interface operations {
             };
         };
     };
-    list_topics_api_v1_admin_exam_syllabi__syllabus_id__topics_get: {
+    list_topics: {
         parameters: {
             query?: never;
             header?: never;
@@ -1155,9 +1604,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_list_SyllabusTopicRead__"];
                 };
             };
             /** @description Validation Error */
@@ -1171,7 +1618,7 @@ export interface operations {
             };
         };
     };
-    create_topic_api_v1_admin_exam_syllabi__syllabus_id__topics_post: {
+    create_topic: {
         parameters: {
             query?: never;
             header?: never;
@@ -1192,9 +1639,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_SyllabusTopicRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1208,7 +1653,7 @@ export interface operations {
             };
         };
     };
-    delete_topic_api_v1_admin_exam_syllabi__syllabus_id__topics__topic_id__delete: {
+    delete_topic: {
         parameters: {
             query?: never;
             header?: never;
@@ -1226,9 +1671,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_DeletedResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -1242,7 +1685,7 @@ export interface operations {
             };
         };
     };
-    list_library_books_api_v1_admin_library__get: {
+    list_library_books: {
         parameters: {
             query?: {
                 limit?: number;
@@ -1274,7 +1717,7 @@ export interface operations {
             };
         };
     };
-    upload_library_book_api_v1_admin_library__post: {
+    upload_library_book: {
         parameters: {
             query: {
                 title: string;
@@ -1290,7 +1733,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_upload_library_book_api_v1_admin_library__post"];
+                "multipart/form-data": components["schemas"]["Body_upload_library_book"];
             };
         };
         responses: {
@@ -1314,7 +1757,7 @@ export interface operations {
             };
         };
     };
-    delete_library_book_api_v1_admin_library__book_id__delete: {
+    delete_library_book: {
         parameters: {
             query?: never;
             header?: never;
@@ -1345,7 +1788,7 @@ export interface operations {
             };
         };
     };
-    list_personas_api_v1_admin_personas__get: {
+    list_personas: {
         parameters: {
             query?: never;
             header?: never;
@@ -1360,14 +1803,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_list_PersonaRead__"];
                 };
             };
         };
     };
-    get_persona_api_v1_admin_personas__persona_id__get: {
+    get_persona: {
         parameters: {
             query?: never;
             header?: never;
@@ -1384,9 +1825,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_PersonaRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1400,7 +1839,7 @@ export interface operations {
             };
         };
     };
-    update_persona_api_v1_admin_personas__persona_id__put: {
+    update_persona: {
         parameters: {
             query?: never;
             header?: never;
@@ -1421,9 +1860,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_PersonaRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1437,7 +1874,7 @@ export interface operations {
             };
         };
     };
-    list_tiers_api_v1_admin_subscription_tiers__get: {
+    list_subscription_tiers: {
         parameters: {
             query?: never;
             header?: never;
@@ -1452,14 +1889,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_list_SubscriptionTierRead__"];
                 };
             };
         };
     };
-    create_tier_api_v1_admin_subscription_tiers__post: {
+    create_subscription_tier: {
         parameters: {
             query?: never;
             header?: never;
@@ -1478,9 +1913,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_SubscriptionTierRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1494,7 +1927,7 @@ export interface operations {
             };
         };
     };
-    get_tier_api_v1_admin_subscription_tiers__tier_id__get: {
+    get_subscription_tier: {
         parameters: {
             query?: never;
             header?: never;
@@ -1511,9 +1944,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_SubscriptionTierRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1527,7 +1958,7 @@ export interface operations {
             };
         };
     };
-    update_tier_api_v1_admin_subscription_tiers__tier_id__put: {
+    update_subscription_tier: {
         parameters: {
             query?: never;
             header?: never;
@@ -1548,9 +1979,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_SubscriptionTierRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1564,7 +1993,7 @@ export interface operations {
             };
         };
     };
-    delete_tier_api_v1_admin_subscription_tiers__tier_id__delete: {
+    delete_subscription_tier: {
         parameters: {
             query?: never;
             header?: never;
@@ -1581,9 +2010,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_DeletedResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -1597,7 +2024,7 @@ export interface operations {
             };
         };
     };
-    admin_list_tos_api_v1_admin_tos_get: {
+    admin_list_tos: {
         parameters: {
             query?: never;
             header?: never;
@@ -1612,14 +2039,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_list_TosVersionRead__"];
                 };
             };
         };
     };
-    publish_tos_api_v1_admin_tos_post: {
+    publish_tos: {
         parameters: {
             query?: never;
             header?: never;
@@ -1638,9 +2063,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_TosVersionRead_"];
                 };
             };
             /** @description Validation Error */
@@ -1654,7 +2077,7 @@ export interface operations {
             };
         };
     };
-    post_login_api_v1_auth_post_login_post: {
+    post_login: {
         parameters: {
             query?: never;
             header?: never;
@@ -1669,14 +2092,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_PostLoginResponse_"];
                 };
             };
         };
     };
-    get_current_disclaimer_api_v1_disclaimer_current_get: {
+    get_current_disclaimer: {
         parameters: {
             query?: never;
             header?: never;
@@ -1691,36 +2112,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_DisclaimerVersionRead_"];
                 };
             };
         };
     };
-    health_check_api_v1_health_get: {
-        parameters: {
-            query?: never;
-            header?: never;
-            path?: never;
-            cookie?: never;
-        };
-        requestBody?: never;
-        responses: {
-            /** @description Successful Response */
-            200: {
-                headers: {
-                    [name: string]: unknown;
-                };
-                content: {
-                    "application/json": {
-                        [key: string]: string;
-                    };
-                };
-            };
-        };
-    };
-    readiness_check_api_v1_health_ready_get: {
+    health_check: {
         parameters: {
             query?: never;
             header?: never;
@@ -1742,7 +2139,29 @@ export interface operations {
             };
         };
     };
-    list_notifications_api_v1_notifications__get: {
+    readiness_check: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": {
+                        [key: string]: string;
+                    };
+                };
+            };
+        };
+    };
+    list_notifications: {
         parameters: {
             query?: {
                 limit?: number;
@@ -1774,7 +2193,7 @@ export interface operations {
             };
         };
     };
-    mark_notification_read_api_v1_notifications__notif_id__read_post: {
+    mark_notification_read: {
         parameters: {
             query?: never;
             header?: never;
@@ -1805,7 +2224,7 @@ export interface operations {
             };
         };
     };
-    smoketest_llm_api_v1_smoketest_llm_post: {
+    smoketest_llm: {
         parameters: {
             query?: never;
             header?: never;
@@ -1842,7 +2261,7 @@ export interface operations {
             };
         };
     };
-    smoketest_rag_api_v1_smoketest_rag_post: {
+    smoketest_rag: {
         parameters: {
             query?: never;
             header?: never;
@@ -1879,7 +2298,7 @@ export interface operations {
             };
         };
     };
-    get_current_tos_api_v1_tos_current_get: {
+    get_current_tos: {
         parameters: {
             query?: never;
             header?: never;
@@ -1894,14 +2313,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_TosVersionRead_"];
                 };
             };
         };
     };
-    list_tos_versions_api_v1_tos_versions_get: {
+    list_tos_versions: {
         parameters: {
             query?: never;
             header?: never;
@@ -1916,14 +2333,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_list_TosVersionRead__"];
                 };
             };
         };
     };
-    upload_file_api_v1_uploads_post: {
+    upload_file: {
         parameters: {
             query?: {
                 profile?: string;
@@ -1934,7 +2349,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_upload_file_api_v1_uploads_post"];
+                "multipart/form-data": components["schemas"]["Body_upload_file"];
             };
         };
         responses: {
@@ -1958,7 +2373,7 @@ export interface operations {
             };
         };
     };
-    get_upload_status_api_v1_uploads__upload_id__get: {
+    get_upload_status: {
         parameters: {
             query?: never;
             header?: never;
@@ -1989,7 +2404,7 @@ export interface operations {
             };
         };
     };
-    get_me_api_v1_users_me_get: {
+    get_me: {
         parameters: {
             query?: never;
             header?: never;
@@ -2004,14 +2419,12 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_UserRead_"];
                 };
             };
         };
     };
-    accept_tos_api_v1_users_me_accept_tos_post: {
+    accept_tos: {
         parameters: {
             query?: never;
             header?: never;
@@ -2030,9 +2443,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_TosAcceptResponse_"];
                 };
             };
             /** @description Validation Error */
@@ -2042,6 +2453,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    decline_tos: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_TosDeclineResponse_"];
                 };
             };
         };

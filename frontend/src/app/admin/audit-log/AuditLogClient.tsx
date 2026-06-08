@@ -12,6 +12,7 @@ import { ErrorState } from "@/components/error-state";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 export function AuditLogClient() {
   const t = useTranslations("admin.audit_log");
@@ -40,7 +41,8 @@ export function AuditLogClient() {
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-8 w-48" />
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
+        <Skeleton className="h-8 w-48 hidden" aria-hidden="true" />
         <Skeleton className="h-16 w-full" />
         <div className="space-y-2">
           {Array.from({ length: 8 }).map((_, i) => (
@@ -53,21 +55,20 @@ export function AuditLogClient() {
 
   if (isError) {
     return (
-      <ErrorState
-        description={t("error")}
-        onRetry={() => refetch()}
-        retryLabel={t("retry")}
-      />
+      <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
+        <ErrorState
+          description={t("error")}
+          onRetry={() => refetch()}
+          retryLabel={t("retry")}
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-        <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-      </div>
+      <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
 
       {/* Filters */}
       <form

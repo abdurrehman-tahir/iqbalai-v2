@@ -9,6 +9,7 @@ the disclaimer length cap, and double-accept rejection.
 from __future__ import annotations
 
 from typing import Any, cast
+from unittest.mock import AsyncMock, patch
 
 import pytest
 
@@ -100,14 +101,16 @@ def _tos_service(repo: _FakeTosRepo) -> TosService:
 async def test_publish_tos_increments_version() -> None:
     current = TosVersion(id="t3", version_number=3, content_md="...", effective_at=None)
     svc = _tos_service(_FakeTosRepo(current))
-    created = await svc.publish_new_tos(content_md="new", language="en", published_by="admin")
+    with patch("app.features.tos.service.audit", new_callable=AsyncMock):
+        created = await svc.publish_new_tos(content_md="new", language="en", published_by="admin")
     assert created.version_number == 4
 
 
 @pytest.mark.asyncio
 async def test_publish_first_tos_starts_at_one() -> None:
     svc = _tos_service(_FakeTosRepo(None))
-    created = await svc.publish_new_tos(content_md="first", language="en", published_by="admin")
+    with patch("app.features.tos.service.audit", new_callable=AsyncMock):
+        created = await svc.publish_new_tos(content_md="first", language="en", published_by="admin")
     assert created.version_number == 1
 
 

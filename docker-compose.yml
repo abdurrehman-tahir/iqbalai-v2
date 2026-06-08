@@ -41,6 +41,7 @@ services:
 
   authentik-redis:
     image: redis:7-alpine
+    mem_limit: 256m
     restart: unless-stopped
     command: redis-server --save 60 1 --loglevel warning
     volumes:
@@ -55,6 +56,7 @@ services:
 
   authentik-server:
     image: ghcr.io/goauthentik/server:2024.12
+    mem_limit: 1g
     restart: unless-stopped
     command: server
     environment:
@@ -91,6 +93,7 @@ services:
 
   authentik-worker:
     image: ghcr.io/goauthentik/server:2024.12
+    mem_limit: 512m
     restart: unless-stopped
     command: worker
     environment:
@@ -127,6 +130,7 @@ services:
       retries: 5
 
   nats:
+    profiles: ["events"]
     image: nats:2.10-alpine
     restart: unless-stopped
     command: ["-js", "-sd", "/data", "--http_port", "8222"]
@@ -144,6 +148,7 @@ services:
       retries: 5
 
   minio:
+    profiles: ["rag"]
     image: minio/minio:latest
     restart: unless-stopped
     command: server /data --console-address ":9001"
@@ -163,7 +168,9 @@ services:
       retries: 5
 
   qdrant:
+    profiles: ["rag"]
     image: qdrant/qdrant:latest
+    mem_limit: 1g
     restart: unless-stopped
     volumes:
       - qdrant_data:/qdrant/storage
@@ -179,7 +186,9 @@ services:
       retries: 5
 
   infinity:
+    profiles: ["rag"]
     image: michaelf34/infinity:latest
+    mem_limit: 2g
     restart: unless-stopped
     command: >
       v2
@@ -209,6 +218,7 @@ services:
       DB_URL: ${DB_URL}
       REDIS_URL: ${REDIS_URL}
       NATS_URL: ${NATS_URL}
+      EVENTS_ENABLED: ${EVENTS_ENABLED:-false}
       MINIO_ENDPOINT: ${MINIO_ENDPOINT}
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
@@ -247,6 +257,7 @@ services:
       start_period: 90s
 
   celery-worker:
+    profiles: ["workers"]
     build:
       context: ./api
       dockerfile: Dockerfile
@@ -271,6 +282,7 @@ services:
         condition: service_healthy
 
   celery-beat:
+    profiles: ["workers"]
     build:
       context: ./api
       dockerfile: Dockerfile
@@ -292,6 +304,7 @@ services:
         condition: service_healthy
 
   prometheus:
+    profiles: ["observability"]
     image: prom/prometheus:latest
     restart: unless-stopped
     volumes:
@@ -313,6 +326,7 @@ services:
       retries: 3
 
   grafana:
+    profiles: ["observability"]
     image: grafana/grafana:latest
     restart: unless-stopped
     environment:
@@ -334,6 +348,7 @@ services:
       retries: 3
 
   loki:
+    profiles: ["observability"]
     image: grafana/loki:3.4.2
     restart: unless-stopped
     command: -config.file=/etc/loki/config.yaml -target=all

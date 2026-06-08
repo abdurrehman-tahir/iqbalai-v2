@@ -2,7 +2,7 @@
 
 **Purpose:** the full stack is 16 containers, but most milestones need only ~7. This maps which containers each milestone needs so your machine isn't running the heavy ones (infinity, observability, etc.) before they're useful.
 
-> Requires the Compose profiles + `EVENTS_ENABLED` guard from **M-01a / T-235** to be merged for the `--profile` commands and the lean core boot to work. Until then the map below is still valid for planning (you can `docker compose stop <svc>` the ones you don't need).
+> Requires the Compose profiles + `EVENTS_ENABLED` guard from **M-01a / T-236** to be merged for the `--profile` commands and the lean core boot to work.
 
 ## How it works (Compose profiles)
 

@@ -1,6 +1,12 @@
 import { describe, expect, expectTypeOf, it } from "vitest";
 
-import type { ExamSyllabusCreate, LibraryBookRead } from "@/lib/api/types";
+import type {
+  ExamSyllabusCreate,
+  LibraryBookRead,
+  PersonaRead,
+  TosVersionRead,
+  TosDeclineResponse,
+} from "@/lib/api/types";
 
 /**
  * T-224 — type-level guard for the generated API client.
@@ -25,5 +31,16 @@ describe("generated API types", () => {
     expectTypeOf<LibraryBookRead>().toHaveProperty("id");
     expectTypeOf<LibraryBookRead>().toHaveProperty("status");
     expectTypeOf<LibraryBookRead["id"]>().toEqualTypeOf<string>();
+  });
+
+  it("PersonaRead and TosVersionRead come from generated schema (T-233)", () => {
+    expectTypeOf<PersonaRead>().toHaveProperty("system_prompt");
+    expectTypeOf<TosVersionRead>().toHaveProperty("content_md");
+    expectTypeOf<TosVersionRead>().toHaveProperty("version_number");
+  });
+
+  it("TosDeclineResponse carries suspended status", () => {
+    const resp: TosDeclineResponse = { declined: true, status: "suspended" };
+    expect(resp.status).toBe("suspended");
   });
 });

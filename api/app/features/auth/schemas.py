@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from app.features.users.models import UserRole
+from app.features.users.models import AccountStatus, UserRole
 
 
 class PostLoginResponse(BaseModel):
@@ -17,3 +17,4 @@ class PostLoginResponse(BaseModel):
     # True when user has not yet accepted the current ToS
     tos_acceptance_required: bool
     current_tos_version_id: str | None
+    account_status: AccountStatus = AccountStatus.ACTIVE

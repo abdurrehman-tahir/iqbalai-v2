@@ -24,7 +24,15 @@ export function TosModal({ tos, onAccept, onDecline }: TosModalProps) {
   }, []);
 
   useLayoutEffect(() => {
-    checkScrollEnd();
+    const el = contentRef.current;
+    if (!el) return;
+    // Short content that fits without scrolling should enable Accept immediately.
+    if (el.scrollHeight <= el.clientHeight + 1) {
+      setScrolledToEnd(true);
+    } else {
+      setScrolledToEnd(false);
+      checkScrollEnd();
+    }
   }, [tos.content, checkScrollEnd]);
 
   function handleScroll(e: React.UIEvent<HTMLDivElement>) {

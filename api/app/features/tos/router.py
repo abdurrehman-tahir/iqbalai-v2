@@ -13,6 +13,7 @@ from app.features.tos.schemas import (
     DisclaimerVersionRead,
     TosAcceptRequest,
     TosAcceptResponse,
+    TosDeclineResponse,
     TosVersionCreate,
     TosVersionRead,
 )
@@ -90,6 +91,26 @@ async def accept_tos(
         accepted_at=acceptance.accepted_at,
     )
     return success(resp.model_dump())
+
+
+@router.post(
+    "/users/me/decline-tos",
+    response_model=SuccessEnvelope[TosDeclineResponse],
+    operation_id="decline_tos",
+    summary="Decline the current ToS",
+    tags=["tos"],
+)
+async def decline_tos(
+    request: Request,
+    claims: dict = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    user = await UserService(db).get_me(str(claims.get("sub", "")))
+    if user is None:
+        raise NotFoundError("User profile not found — call /auth/post-login first")
+    ip = request.client.host if request.client else None
+    await TosService(db).decline_tos(user.id, ip)
+    return success(TosDeclineResponse(declined=True).model_dump())
 
 
 # ── Admin endpoints (Platform Admin only) ─────────────────────────────────────

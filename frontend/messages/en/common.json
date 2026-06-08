@@ -33,8 +33,14 @@
         "no_code": "No authorisation code received.",
         "generic": "An error occurred during sign in. Please try again.",
         "tos_accept_failed": "Failed to record your acceptance. Please try again.",
+        "tos_decline_failed": "Failed to record your decline. Please try again.",
         "back_to_login": "Back to login"
       }
+    },
+    "suspended": {
+      "title": "Account Suspended",
+      "description": "You declined the Terms of Service. Your account is suspended until you accept the current version.",
+      "back_to_login": "Back to login"
     },
     "tos_modal": {
       "title": "Terms of Service",

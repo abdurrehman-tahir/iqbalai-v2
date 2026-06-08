@@ -6,6 +6,10 @@ Revision ID: school_0007
 Revises: school_0006
 Create Date: 2026-05-26
 
+
+Purpose: Add subscription tiers and related billing tables.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

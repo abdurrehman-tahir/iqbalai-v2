@@ -5,7 +5,7 @@
 ---
 
 **Current milestone:** M-01a — Foundation Remediation + FE/Integration Enforcement
-**Current ticket:** T-230 (next) — AUDIT+FIX M-00/M-01 data + access foundation
+**Current ticket:** T-231 (next) — AUDIT+FIX M-01 navigation reachability
 **Ticket dossier loaded:** via direct milestone file read (ticket-loader sub-agent was malfunctioning; user authorized direct read)
 **Dossier source files:** docs/backlog/M-01a-foundation-remediation.md
 
@@ -31,4 +31,9 @@
 - schema.d.ts stale after T-225 contract change → regenerate in T-233.
 - FE coverage threshold red until T-235 backfill.
 
-**Next intended step:** Implement T-230 (AUDIT+FIX M-00/M-01 data + access foundation). Read milestone ticket body directly (ticket-loader authorized-bypass). Audit-fix ticket → write systemic findings to docs/AUDIT_LOG.md at close-out (catalog the ~55 pre-existing mypy --strict errors there). data-modeling skill may fire if models change.
+- T-230: DONE (482d3f5) — §4 data-foundation audit-fix. Native PG enums (subscriptions/upload_records/reference_books); JSON→JSONB (caps); FK+ondelete+index where target table exists; depth CHECK; tos/disclaimer version_number UNIQUE; single-custom-persona partial-unique; Notification.read_at str→datetime; UploadStatusResponse↔model alias; not_deleted() scoping helper in db/base.py applied across repos. 4 tests added (model-metadata, schema-align, service-invariants, repo-scoping). 112 backend tests pass. Deferred to M-02 (logged docs/AUDIT_LOG.md [model-constraint] class): UUIDv7 PK swap, schools/districts/authentik_user_refs FKs, TenantMixin+created_by/updated_by, metadata_json→JSONB, 63-err mypy --strict baseline (zero new errors from T-230).
+- NOTE: acceptance #4 (empty autogenerate diff) is T-234's job — T-234 regenerates migrations FROM these models.
+
+**T-231 NEXT — AUDIT+FIX M-01 navigation reachability:**
+Spec: flow-1 §? + flow-2 (admin nav). Audit every M-01 page is nav-reachable, renders, scrolls; prove via Playwright @smoke. frontend-master trigger fires (read SKILL.md). Depends on T-227 (app shell + role-aware nav — DONE). FE coverage gate stays RED until T-235.
+**Next intended step:** read T-231 ticket body in milestone file, load frontend-master skill, audit src/app/admin/* pages for nav reachability + render + scroll.

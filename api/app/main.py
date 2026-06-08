@@ -15,6 +15,7 @@ from app.config import get_settings
 from app.core.exceptions import setup_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import AuthMiddleware
+from app.infrastructure.events import close_nats, init_nats
 
 logger = structlog.get_logger(__name__)
 
@@ -24,7 +25,9 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
     """Application lifespan: startup and shutdown hooks."""
     configure_logging()
     logger.info("iqbalai_api_starting", version=application.version)
+    await init_nats()
     yield
+    await close_nats()
     logger.info("iqbalai_api_stopping")
 
 

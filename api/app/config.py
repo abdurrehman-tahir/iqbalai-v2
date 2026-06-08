@@ -24,6 +24,8 @@ class Settings(BaseSettings):
 
     # NATS
     NATS_URL: str = "nats://localhost:4222"
+    # When false, lifespan skips eager NATS connect (core-only compose boot — T-236).
+    EVENTS_ENABLED: bool = False
 
     # MinIO / S3-compatible
     MINIO_ENDPOINT: str = "localhost:9000"

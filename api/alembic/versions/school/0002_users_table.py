@@ -4,6 +4,10 @@ Revision ID: school_0002
 Revises: school_0001
 Create Date: 2026-05-20
 
+
+Purpose: Create the users table and userrole enum in the school schema.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

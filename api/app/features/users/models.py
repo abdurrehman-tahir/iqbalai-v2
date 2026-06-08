@@ -11,6 +11,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7
 
 
+class AccountStatus(str, enum.Enum):
+    """Account lifecycle status — full lifecycle in M-02; ToS decline uses SUSPENDED."""
+
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+
+
 class UserRole(str, enum.Enum):
     """Six-level role hierarchy per ARCH §6.7."""
 
@@ -49,6 +56,18 @@ class User(AuditMixin, SoftDeleteMixin, Base):
             create_type=False,
         ),
         nullable=False,
+    )
+    account_status: Mapped[AccountStatus] = mapped_column(
+        SAEnum(
+            AccountStatus,
+            name="accountstatus",
+            schema="school",
+            values_callable=lambda statuses: [s.value for s in statuses],
+            native_enum=True,
+            create_type=False,
+        ),
+        nullable=False,
+        server_default="active",
     )
     school_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     district_id: Mapped[str | None] = mapped_column(String(36), nullable=True)

@@ -1,3 +1,5 @@
+"use client";
+
 /**
  * T-018 — Languages page.
  * Deployment-level config — 4 locked languages, read-only cards.

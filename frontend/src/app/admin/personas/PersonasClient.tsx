@@ -18,6 +18,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const editSchema = z.object({
   system_prompt: z.string().min(1).max(8000),
@@ -64,7 +65,8 @@ export function PersonasClient() {
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-8 w-48" />
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
+        <Skeleton className="h-8 w-48 hidden" aria-hidden="true" />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 5 }).map((_, i) => (
             <Skeleton key={i} className="h-40 w-full" />
@@ -76,30 +78,33 @@ export function PersonasClient() {
 
   if (isError) {
     return (
-      <ErrorState
-        description={t("error")}
-        onRetry={() => refetch()}
-        retryLabel={t("retry")}
-      />
+      <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
+        <ErrorState
+          description={t("error")}
+          onRetry={() => refetch()}
+          retryLabel={t("retry")}
+        />
+      </div>
     );
   }
 
   if (!data || data.length === 0) {
     return (
-      <EmptyState
-        icon={Users2}
-        title={t("empty.title")}
-        description={t("empty.description")}
-      />
+      <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
+        <EmptyState
+          icon={Users2}
+          title={t("empty.title")}
+          description={t("empty.description")}
+        />
+      </div>
     );
   }
 
   return (
     <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-        <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-      </div>
+      <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {data.map((persona) => (

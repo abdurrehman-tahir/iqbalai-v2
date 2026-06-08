@@ -203,10 +203,22 @@ async function handleApiRoute(state: MockState, route: Route) {
       contentType: "application/json",
       body: envelope({
         id: state.tosVersionId,
-        version: 1,
-        content: state.tosContent,
+        version_number: 1,
+        content_md: state.tosContent,
+        language: "en",
         effective_at: new Date().toISOString(),
       }),
+    });
+    return;
+  }
+
+  if (method === "POST" && path === "/users/me/decline-tos") {
+    state.tosAccepted = false;
+    audit(state, "tos.declined", "tos_version", state.tosVersionId);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: envelope({ declined: true, status: "suspended" }),
     });
     return;
   }

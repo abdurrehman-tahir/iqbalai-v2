@@ -1,26 +1,18 @@
 /**
- * T-227 — App shell + role-aware nav smoke (E2E, @smoke).
+ * T-231 — M-01 navigation reachability smoke (E2E, @smoke).
  *
- * Proves the authenticated /admin shell is the single shell every page plugs
- * into and that NO nav item is an orphan: the shell renders, and every
- * role-filtered nav item routes to a page that renders real content.
- *
- * Runs fully offline — `installPlatformAdminMocks` stubs the API and we seed a
- * platform_admin session into sessionStorage via addInitScript, so the PR-time
- * `pnpm e2e --grep @smoke` job (dev server only, no live backend) can run it.
+ * Proves every M-01 admin section is reachable from nav and renders real content.
  */
 import { test, expect, type Page } from "@playwright/test";
 import { installPlatformAdminMocks } from "./helpers/mock-api";
 
-// Each nav item → the accessible link name (English default locale) and the
-// route it must reach. Mirrors NAV_ITEMS in AdminShell.tsx (flow-1 §4).
+// Six M-01 sections per flow-1 §2/§4 (Platform Library is M-01 T-024 — covered separately).
 const NAV = [
   { name: "Languages", path: "/admin/languages" },
   { name: "Teaching Personas", path: "/admin/personas" },
   { name: "Exam Syllabi", path: "/admin/exam-syllabi" },
   { name: "Subscription Tiers", path: "/admin/subscription-tiers" },
   { name: "ToS & Disclaimer", path: "/admin/tos" },
-  { name: "Platform Library", path: "/admin/library" },
   { name: "Audit Log", path: "/admin/audit-log" },
 ] as const;
 
@@ -41,29 +33,31 @@ async function seedPlatformAdmin(page: Page) {
   });
 }
 
-test.describe("Admin shell + role-aware nav (T-227)", () => {
-  test("shell renders with the platform_admin's nav and every item reaches content @smoke", async ({
-    page,
-  }) => {
+test.describe("M-01 admin navigation reachability (T-231)", () => {
+  test("each nav item reaches a page with real content @smoke", async ({ page }) => {
     await seedPlatformAdmin(page);
     await page.goto("/admin/languages");
 
-    // Shell chrome renders.
     const sidebar = page.getByRole("navigation", { name: "Admin sidebar navigation" });
     await expect(sidebar).toBeVisible();
 
-    // Role-filtered nav: all seven platform_admin links present.
     for (const { name } of NAV) {
       await expect(sidebar.getByRole("link", { name })).toBeVisible();
     }
 
-    // Every nav item routes to a page that renders real content (a heading).
     for (const { name, path } of NAV) {
       await sidebar.getByRole("link", { name }).click();
       await page.waitForURL(`**${path}`);
       await expect(
-        page.getByRole("main").getByRole("heading").first(),
+        page.getByRole("main").getByRole("heading", { level: 1 }).first(),
       ).toBeVisible();
     }
+
+    // Disclaimer tab under ToS renders its own heading.
+    await sidebar.getByRole("link", { name: "ToS & Disclaimer" }).click();
+    await page.getByRole("button", { name: "Disclaimer" }).click();
+    await expect(
+      page.getByRole("main").getByRole("heading", { level: 1 }).first(),
+    ).toBeVisible();
   });
 });

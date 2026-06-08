@@ -16,6 +16,7 @@ import { Modal } from "@/components/ui/modal";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const MAX_FILE_SIZE_MB = 100;
 
@@ -122,9 +123,9 @@ export function LibraryClient() {
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
         <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-32 ms-auto" aria-hidden="true" />
         </div>
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -137,11 +138,14 @@ export function LibraryClient() {
 
   if (isError) {
     return (
-      <ErrorState
-        description={t("error")}
-        onRetry={() => refetch()}
-        retryLabel={t("retry")}
-      />
+      <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
+        <ErrorState
+          description={t("error")}
+          onRetry={() => refetch()}
+          retryLabel={t("retry")}
+        />
+      </div>
     );
   }
 
@@ -149,12 +153,8 @@ export function LibraryClient() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-          <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-        </div>
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
         <Button
           variant="primary"
           size="md"

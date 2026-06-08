@@ -8,6 +8,10 @@ Revision ID: school_0009
 Revises: school_0008
 Create Date: 2026-05-25
 
+
+Purpose: Add immutable audit_log table for platform mutations.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations
