@@ -262,6 +262,8 @@ jobs:
         run: |
           if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
       - uses: pnpm/action-setup@v4
+        with:
+          version: 9
         if: steps.detect.outputs.fe == 'yes'
       - uses: actions/setup-node@v4
         if: steps.detect.outputs.fe == 'yes'
@@ -295,6 +297,8 @@ jobs:
         with:
           version: "latest"
       - uses: pnpm/action-setup@v4
+        with:
+          version: 9
         if: steps.detect.outputs.fe == 'yes'
       - uses: actions/setup-node@v4
         if: steps.detect.outputs.fe == 'yes'
@@ -340,6 +344,8 @@ jobs:
         run: |
           if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
       - uses: pnpm/action-setup@v4
+        with:
+          version: 9
         if: steps.detect.outputs.fe == 'yes'
       - uses: actions/setup-node@v4
         if: steps.detect.outputs.fe == 'yes'
@@ -370,6 +376,8 @@ jobs:
         run: |
           if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
       - uses: pnpm/action-setup@v4
+        with:
+          version: 9
         if: steps.detect.outputs.fe == 'yes'
       - uses: actions/setup-node@v4
         if: steps.detect.outputs.fe == 'yes'
