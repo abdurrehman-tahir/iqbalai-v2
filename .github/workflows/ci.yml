@@ -394,3 +394,73 @@ jobs:
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
         run: pnpm e2e
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PASTE THESE JOBS into .github/workflows/ci.yml (alongside the existing FE jobs).
+# They close the hole that let the M-01a create-flow bugs through: typed-client-drift
+# only proves the generated types are FRESH, not that the client USES them, and every
+# test mocked the contract — so a green PR shipped a 100%-broken create flow.
+#
+# See: AUDIT_LOG classes fe-types (recurred-after-rule), mock-contract-drift,
+# error-envelope-parsing; frontend-master Rule 9 + Rule 12; CLAUDE.md CI invariant 7.
+#
+# Scripts/tests referenced here are delivered by the M-01a fix (the "Phase 1" work):
+#   - scripts/check_client_request_types.py  — fails if any api.ts/index.ts client fn types a
+#       request body with an inline object literal instead of a generated `*Create`/`*Update` type
+#   - frontend contract test (Vitest)        — asserts mock payloads + client request types match
+#       the generated schema.d.ts `*Create`/`*Update` schemas (fails on divergent/missing fields)
+#   - create/update Playwright @smoke specs   — run against the REAL seeded compose backend
+#       (no route mocking on these paths) and assert the real success response (201 + persisted row)
+# ─────────────────────────────────────────────────────────────────────────────
+
+  client-request-type-lint:
+    name: Client request types use generated schema (no inline literals)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-python@v5
+        if: steps.detect.outputs.fe == 'yes'
+        with: { python-version: "3.12" }
+      - name: Lint api client request types
+        if: steps.detect.outputs.fe == 'yes'
+        run: |
+          python scripts/check_client_request_types.py \
+            || (echo "::error::An api-client function types a request body with an inline object literal. Type it from the generated *Create/*Update schema (frontend-master Rule 9; AMENDMENTS A-002)." && exit 1)
+
+  contract-test:
+    name: Mock + client shapes match the generated OpenAPI schema
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
+      - uses: pnpm/action-setup@v4
+        if: steps.detect.outputs.fe == 'yes'
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        if: steps.detect.outputs.fe == 'yes'
+        with: { node-version: "20", cache: pnpm, cache-dependency-path: frontend/pnpm-lock.yaml }
+      - name: Install (deps before tools)
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Contract test (mocks + client request types vs schema.d.ts)
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: frontend
+        run: pnpm test --run src/lib/api/__tests__/contract.test.ts
+
+# ── Also HARDEN the existing e2e-smoke job (do not add a duplicate) ──
+# The create/update @smoke paths MUST hit the real composed backend, NOT the mock.
+# In the e2e-smoke job, ensure the create/update smoke specs are run WITHOUT the
+# mock-api route interception (the compose stack is already up + seeded there), e.g. tag them
+# `@smoke @real` and run `pnpm e2e --grep "@smoke" --grep-invert "@mock"` against the live API,
+# so a 422 on create fails CI. A mocked create smoke is the bug, not the test.
+#
+# Add all three to branch-protection required checks ONLY after they are green:
+#   "Client request types use generated schema (no inline literals)"
+#   "Mock + client shapes match the generated OpenAPI schema"
+#   "Playwright E2E (smoke, on PR)"   ← now exercising real-backend create/update

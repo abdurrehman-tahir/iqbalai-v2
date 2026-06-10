@@ -52,9 +52,10 @@ Log a finding **only if all three hold**:
 ### [fe-types] TS API types hand-mirrored from Pydantic
 - **Class:** fe-types
 - **Occurrences:** 2026-05-29 (M-00/M-01) — `types.ts` hand-written to mirror backend models → structural FE↔BE drift (frontend calling mismatched shapes).
+- **2026-06-09 (M-01a impl, branch `milestone_1a`):** generation worked (`ExamSyllabusCreate` correctly had `exam_board`, no `description`) but the api-client **request** types were hand-written — `syllabiApi.create` typed `{ name, description }` instead of `ExamSyllabusCreate`; subscription-tiers create sent `applies_to_role` + omitted `slug`. Reads used generated types; **creates didn't** → 422 on every create.
 - **Existing rule when first seen?:** no (ARCH §12.4/§2.13 had deliberately *deferred* generation to Phase 2)
 - **Target carrier:** → frontend-master Rule 9 + openapi-typescript + AMENDMENTS A-002 + CI lint `typed-client-drift`
-- **Status:** promoted (→ generated `schema.d.ts`, A-002, 2026-05-29) — regenerated in M-01a T-232
+- **Status:** promoted (→ generated `schema.d.ts`, A-002, 2026-05-29) — regenerated in M-01a T-232. **RECURRED 2026-06-09 (M-01a impl) → `recurred-after-rule`:** the rule existed but was too weak — Rule 9 was prose-only and `typed-client-drift` checks schema *freshness*, not *consumption*, so a hand-written request type sailed through. **HARDENED 2026-06-09:** Rule 9 now mandates request bodies typed from the generated `*Create`/`*Update` schema (with the exact WRONG example) + new CI `client-request-type` lint + real-backend create/update smoke (mocking the contract forbidden). See _CHANGE_LOG 2026-06-09.
 - **Promoted rule:** API types are generated from OpenAPI (`pnpm gen:api`); hand-mirroring forbidden; CI fails on drift.
 
 ### [fe-nav] pages built but unreachable (orphan routes)
@@ -97,3 +98,19 @@ Log a finding **only if all three hold**:
 - **Status:** promoted (→ fixed in M-01a T-230; `not_deleted()` scoping predicate added to `db/base.py`; model-metadata + repo-scoping tests added), advisory — watch later milestones; harden to a CI `model-metadata-lint` if the class recurs.
 - **Promoted rule:** every model follows §4 — native Postgres enums for stable value sets, `JSONB` (never `JSON`), every FK with explicit `ondelete` + index, business rules as DB `CHECK`/`UNIQUE`/partial-unique, tz-aware audit columns, and soft-delete reads scoped through the shared `not_deleted()` predicate.
 - **Deferred to M-02 (scope, not drift):** UUIDv7 native PKs (PKs stay `String(36)`+`uuid4` via `_uuid7()`); FKs to not-yet-created `schools`/`districts`/`authentik_user_refs`; `TenantMixin` + `created_by`/`updated_by` actor columns; `metadata_json` stays a serialized JSON string (not `JSONB`) to avoid rippling through audit infra; the ~63-error `mypy --strict` baseline (verified pre-existing — T-230 added zero new errors).
+
+### [error-envelope-parsing] client parses errors at the wrong level / ignores 422 detail
+- **Class:** api-contract
+- **Occurrences:** 2026-06-09 (M-01a impl) — `request()` read `body.code`/`body.message` (top level) instead of `body.error.code`/`body.error.message`, and never parsed FastAPI 422 `detail[]`; with no `onError` on the create modals, every failure showed as `UNKNOWN_ERROR` or a silently frozen modal.
+- **Existing rule when first seen?:** no (the `{error:{code,message}}` envelope is locked in ARCH §5, but nothing verified the client parses it)
+- **Target carrier:** → frontend-master Rule 9 (error-envelope parsing + mandatory `onError`) + a client error-handling test
+- **Status:** new — promote after the F-03/F-04 fix lands
+- **Promoted rule:** the api client reads `body.error.{code,message}` and parses FastAPI 422 `detail[]`; every mutation has an `onError` that surfaces the message.
+
+### [mock-contract-drift] tests mock the fetch layer with a shape that diverges from OpenAPI
+- **Class:** test-gap
+- **Occurrences:** 2026-06-09 (M-01a impl) — Vitest + Playwright mock the fetch layer (`mock-api.ts`) with the old `{ name, description }` shape, so tests (incl. the `e2e-smoke` job) went **green while the live API 422'd every create**. The mock certified the broken contract.
+- **Existing rule when first seen?:** no (Rule 12 mandated tests but allowed them fully mocked; nothing required a real-backend path or a contract check)
+- **Target carrier:** → frontend-master Rule 12 (create/update `@smoke` hits the real backend; mocks validated vs OpenAPI) + new CI `contract-test` + real-backend create smoke
+- **Status:** new — promote after the F-05 fix + the new gates land
+- **Promoted rule:** at least the create/update `@smoke` paths run against the real seeded backend (never mock the contract); a contract test asserts mock + client request shapes match the generated `*Create`/`*Update` schemas; CI fails on divergence.
