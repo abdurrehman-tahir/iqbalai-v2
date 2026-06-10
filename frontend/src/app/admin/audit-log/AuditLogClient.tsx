@@ -23,7 +23,7 @@ export function AuditLogClient() {
   const [actionFilter, setActionFilter] = useState("");
   const [submitted, setSubmitted] = useState({ actor: "", action: "" });
 
-  const { data, isLoading, isError, refetch } = useQuery({
+  const { data, isPending, isError, fetchStatus, refetch } = useQuery({
     queryKey: ["audit-log", "list", submitted.actor, submitted.action],
     queryFn: () =>
       auditApi.list(token!, {
@@ -38,7 +38,7 @@ export function AuditLogClient() {
     setSubmitted({ actor: actorFilter, action: actionFilter });
   }
 
-  if (!mounted || isLoading) {
+  if (!mounted || isPending || fetchStatus === "fetching") {
     return (
       <div className="space-y-6">
         <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />

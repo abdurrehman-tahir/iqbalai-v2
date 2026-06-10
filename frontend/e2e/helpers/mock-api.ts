@@ -41,10 +41,14 @@ interface Persona {
 interface AuditEntry {
   id: string;
   action: string;
-  actor_id: string;
-  target_type: string;
+  actor_id: string | null;
+  actor_role: string | null;
+  target_type: string | null;
   target_id: string | null;
-  metadata: Record<string, unknown>;
+  school_id: string | null;
+  district_id: string | null;
+  metadata_json: string | null;
+  ip_address: string | null;
   created_at: string;
 }
 
@@ -92,9 +96,13 @@ function audit(
     id: `audit-${state.auditLog.length + 1}`,
     action,
     actor_id: state.userId,
+    actor_role: "platform_admin",
     target_type: targetType,
     target_id: targetId,
-    metadata,
+    school_id: null,
+    district_id: null,
+    metadata_json: JSON.stringify(metadata),
+    ip_address: null,
     created_at: new Date().toISOString(),
   });
 }
@@ -162,37 +170,30 @@ function createInitialState(): MockState {
         id: "audit-bootstrap",
         action: "user.created",
         actor_id: "system",
+        actor_role: null,
         target_type: "user",
         target_id: "user-platform-admin-1",
-        metadata: { role: "platform_admin" },
+        school_id: null,
+        district_id: null,
+        metadata_json: JSON.stringify({ role: "platform_admin" }),
+        ip_address: null,
         created_at: new Date().toISOString(),
       },
     ],
     notifications: [],
     library: [],
-    tosVersions: [
-      {
-        id: tosVersionId,
-        version: 1,
-        content: "IqbalAI Platform Terms of Service (E2E fixture).\n\nScroll to the bottom to accept.",
-        effective_at: new Date().toISOString(),
-      },
-    ],
-    disclaimerVersions: [
-      {
-        id: "disclaimer-v1",
-        version: 1,
-        content: "AI predictions are indicative only.",
-        effective_at: new Date().toISOString(),
-      },
-    ],
+    tosVersions: [],
+    disclaimerVersions: [],
   };
 }
 
 async function handleApiRoute(state: MockState, route: Route) {
   const request = route.request();
   const url = new URL(request.url());
-  const path = url.pathname.replace("/api/v1", "");
+  let path = url.pathname.replace("/api/v1", "");
+  if (path.length > 1 && path.endsWith("/")) {
+    path = path.slice(0, -1);
+  }
   const method = request.method();
 
   if (method === "POST" && path === "/auth/post-login") {
@@ -378,12 +379,13 @@ async function handleApiRoute(state: MockState, route: Route) {
     state.tosVersions.unshift(entry);
     audit(state, "tos.published", "tos_version", entry.id, { version });
     await route.fulfill({
-      status: 200,
+      status: 201,
       contentType: "application/json",
       body: envelope({
         id: entry.id,
         version_number: version,
         content_md: body.content_md,
+        language: "en",
         effective_at: entry.effective_at,
       }),
     });
@@ -420,12 +422,13 @@ async function handleApiRoute(state: MockState, route: Route) {
     state.disclaimerVersions.unshift(entry);
     audit(state, "disclaimer.published", "disclaimer_version", entry.id, { version });
     await route.fulfill({
-      status: 200,
+      status: 201,
       contentType: "application/json",
       body: envelope({
         id: entry.id,
         version_number: version,
         content: body.content,
+        language: "en",
         effective_at: entry.effective_at,
       }),
     });
@@ -446,10 +449,13 @@ async function handleApiRoute(state: MockState, route: Route) {
     const actor = url.searchParams.get("actor");
     const action = url.searchParams.get("action");
     let entries = state.auditLog;
-    if (actor) entries = entries.filter((e) => e.actor_id.includes(actor));
-    if (action) entries = entries.filter((e) => e.action.includes(action));
+    if (actor) {
+      entries = entries.filter((e) => e.actor_id?.includes(actor));
+    }
+    if (action) {
+      entries = entries.filter((e) => e.action.includes(action));
+    }
     const items = entries.slice(0, 50);
-    // PaginatedEnvelope is a bare {items, total, page, ...} (no SuccessEnvelope data wrapper).
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -468,7 +474,11 @@ async function handleApiRoute(state: MockState, route: Route) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: envelope(state.notifications),
+      body: JSON.stringify({
+        items: state.notifications,
+        total: state.notifications.length,
+        unread_count: 0,
+      }),
     });
     return;
   }
@@ -494,7 +504,9 @@ export async function installPlatformAdminMocks(page: Page) {
     });
   });
 
-  await page.route(`${API_BASE}/**`, (route) => handleApiRoute(state, route));
+  await page.route((url) => url.pathname.includes("/api/v1/"), (route) =>
+    handleApiRoute(state, route),
+  );
 
   return state;
 }

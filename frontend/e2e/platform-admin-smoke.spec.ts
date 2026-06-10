@@ -32,7 +32,7 @@ test.describe("Platform Admin smoke test (M-01 acceptance criteria) @smoke @mock
   test.setTimeout(120_000);
 
   test("Full Platform Admin onboarding flow @smoke", async ({ page }) => {
-    await bootstrapAdmin(page);
+    const state = await bootstrapAdmin(page);
     await acceptTos(page);
 
     await expect(page).toHaveURL(/\/admin/);
@@ -82,27 +82,39 @@ test.describe("Platform Admin smoke test (M-01 acceptance criteria) @smoke @mock
       await expect(page.getByText(name)).toBeVisible({ timeout: 5_000 });
     }
 
-    await page.click('a:has-text("ToS")');
-    await page.getByRole("button", { name: /publish new version/i }).click();
+    await page.getByRole("link", { name: "ToS & Disclaimer" }).click();
+    await page
+      .getByRole("main")
+      .getByRole("button", { name: /publish new version/i })
+      .first()
+      .click();
     await page.fill(
       "#tos-content",
       "These are the Terms of Service for IqbalAI. By using this platform you agree to our terms.",
     );
     await page.getByRole("button", { name: /^publish$/i }).click();
+    await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5_000 });
     await expect(page.getByText("Version 1")).toBeVisible({ timeout: 5_000 });
 
-    await page.goto("/admin/disclaimer");
-    await page.getByRole("button", { name: /publish new version/i }).click();
+    await page.goto("/admin/tos?tab=disclaimer");
+    await page
+      .getByRole("main")
+      .getByRole("button", { name: /publish new version/i })
+      .first()
+      .click();
     await page.fill(
       "#tos-content",
       "AI outputs may contain errors. Verify with authoritative sources.",
     );
     await page.getByRole("button", { name: /^publish$/i }).click();
+    await expect(page.getByRole("dialog")).not.toBeVisible({ timeout: 5_000 });
     await expect(page.getByText("Version 1")).toBeVisible({ timeout: 5_000 });
 
-    await page.click('a:has-text("Audit Log")');
-    const rows = page.locator("table tbody tr");
-    await expect(rows).not.toHaveCount(0, { timeout: 5_000 });
+    await page.getByRole("link", { name: "Audit Log" }).click();
+    await page.waitForURL("**/admin/audit-log**");
+    await expect(page.getByRole("heading", { name: "Audit Log", level: 1 })).toBeVisible();
+    expect(state.auditLog.some((e) => e.action === "exam_syllabus.created")).toBe(true);
+    expect(state.auditLog.some((e) => e.action === "tos.published")).toBe(true);
   });
 
   test("ToS decline → logs user out @smoke", async ({ page }) => {

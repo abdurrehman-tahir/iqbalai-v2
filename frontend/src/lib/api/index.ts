@@ -275,12 +275,11 @@ export const auditApi = {
     const qs = params
       ? "?" + new URLSearchParams(params as Record<string, string>).toString()
       : "";
-    const page = await request<import("./types").AuditLogListResponse>(
-      `/admin/audit-log${qs}`,
-      {},
-      token,
-    );
-    return page.items;
+    const page = await request<
+      import("./types").AuditLogListResponse | import("./types").AuditLogEntryRead[]
+    >(`/admin/audit-log${qs}`, {}, token);
+    if (Array.isArray(page)) return page;
+    return page.items ?? [];
   },
 };
 
