@@ -7,7 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { BookOpen, Plus, Pencil, Trash2 } from "lucide-react";
-import { syllabiApi, type Syllabus } from "@/lib/api";
+import { syllabiApi, ApiError, type Syllabus } from "@/lib/api";
+import type { ExamSyllabusCreate, ExamSyllabusUpdate } from "@/lib/api/types";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
@@ -16,16 +17,30 @@ import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const syllabusSchema = z.object({
-  name: z.string().min(1).max(200),
-  description: z.string().max(500).optional(),
+  name: z.string().min(1).max(255),
+  exam_board: z.string().min(1).max(100),
 });
 
 type SyllabusFormValues = z.infer<typeof syllabusSchema>;
+
+function toCreatePayload(values: SyllabusFormValues): ExamSyllabusCreate {
+  return {
+    name: values.name,
+    exam_board: values.exam_board,
+    language: "en",
+  };
+}
+
+function toUpdatePayload(values: SyllabusFormValues): ExamSyllabusUpdate {
+  return {
+    name: values.name,
+    exam_board: values.exam_board,
+  };
+}
 
 export function SyllabiClient() {
   const t = useTranslations("admin.exam_syllabi");
@@ -34,6 +49,7 @@ export function SyllabiClient() {
   const [editTarget, setEditTarget] = useState<Syllabus | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Syllabus | null>(null);
+  const [formError, setFormError] = useState("");
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["exam-syllabi", "list"],
@@ -43,19 +59,27 @@ export function SyllabiClient() {
 
   const createMutation = useMutation({
     mutationFn: (values: SyllabusFormValues) =>
-      syllabiApi.create(token ?? "", values),
+      syllabiApi.create(token ?? "", toCreatePayload(values)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["exam-syllabi"] });
       setShowCreate(false);
+      setFormError("");
+    },
+    onError: (err: Error) => {
+      setFormError(err instanceof ApiError ? err.message : err.message);
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, values }: { id: string; values: SyllabusFormValues }) =>
-      syllabiApi.update(token ?? "", id, values),
+      syllabiApi.update(token ?? "", id, toUpdatePayload(values)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["exam-syllabi"] });
       setEditTarget(null);
+      setFormError("");
+    },
+    onError: (err: Error) => {
+      setFormError(err instanceof ApiError ? err.message : err.message);
     },
   });
 
@@ -69,20 +93,29 @@ export function SyllabiClient() {
 
   const form = useForm<SyllabusFormValues>({
     resolver: zodResolver(syllabusSchema),
-    defaultValues: { name: "", description: "" },
+    defaultValues: { name: "", exam_board: "" },
   });
 
   function openEdit(syllabus: Syllabus) {
+    setFormError("");
     setEditTarget(syllabus);
-    form.reset({ name: syllabus.name, description: syllabus.description ?? "" });
+    form.reset({ name: syllabus.name, exam_board: syllabus.exam_board });
   }
 
   function openCreate() {
+    setFormError("");
     setShowCreate(true);
-    form.reset({ name: "", description: "" });
+    form.reset({ name: "", exam_board: "" });
+  }
+
+  function closeFormModal() {
+    setShowCreate(false);
+    setEditTarget(null);
+    setFormError("");
   }
 
   async function handleSubmit(values: SyllabusFormValues) {
+    setFormError("");
     if (editTarget) {
       await updateMutation.mutateAsync({ id: editTarget.id, values });
     } else {
@@ -129,7 +162,6 @@ export function SyllabiClient() {
         </Button>
       </div>
 
-      {/* Empty state */}
       {!data || data.length === 0 ? (
         <EmptyState
           icon={BookOpen}
@@ -138,7 +170,6 @@ export function SyllabiClient() {
           action={{ label: t("empty.cta"), onClick: openCreate }}
         />
       ) : (
-        /* Table (scrollable on mobile) */
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
           <table className="w-full text-sm" role="table" aria-label={t("table_label")}>
             <thead>
@@ -147,7 +178,7 @@ export function SyllabiClient() {
                   {t("col.name")}
                 </th>
                 <th className="px-4 py-3 text-start font-medium text-gray-500 hidden md:table-cell">
-                  {t("col.description")}
+                  {t("col.exam_board")}
                 </th>
                 <th className="px-4 py-3 text-start font-medium text-gray-500">
                   {t("col.version")}
@@ -167,7 +198,7 @@ export function SyllabiClient() {
                     {syllabus.name}
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden md:table-cell max-w-xs truncate">
-                    {syllabus.description ?? "—"}
+                    {syllabus.exam_board}
                   </td>
                   <td className="px-4 py-3 text-gray-500">
                     v{syllabus.version_number}
@@ -205,13 +236,9 @@ export function SyllabiClient() {
         </div>
       )}
 
-      {/* Create / Edit modal */}
       <Modal
         open={showCreate || !!editTarget}
-        onClose={() => {
-          setShowCreate(false);
-          setEditTarget(null);
-        }}
+        onClose={closeFormModal}
         title={editTarget ? t("modal.edit_title") : t("modal.create_title")}
         size="md"
         closeLabel={t("modal.close")}
@@ -234,25 +261,29 @@ export function SyllabiClient() {
           </div>
 
           <div>
-            <Label htmlFor="syl-desc">{t("modal.desc_label")}</Label>
-            <Textarea
-              id="syl-desc"
-              {...form.register("description")}
-              placeholder={t("modal.desc_placeholder")}
-              rows={3}
+            <Label htmlFor="syl-exam-board" required>
+              {t("modal.exam_board_label")}
+            </Label>
+            <Input
+              id="syl-exam-board"
+              {...form.register("exam_board")}
+              placeholder={t("modal.exam_board_placeholder")}
             />
+            {form.formState.errors.exam_board && (
+              <p className="text-xs text-red-600 mt-1" role="alert">
+                {form.formState.errors.exam_board.message}
+              </p>
+            )}
           </div>
 
+          {formError && (
+            <p className="text-sm text-red-600" role="alert">
+              {formError}
+            </p>
+          )}
+
           <div className="flex justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => {
-                setShowCreate(false);
-                setEditTarget(null);
-              }}
-            >
+            <Button type="button" variant="outline" size="md" onClick={closeFormModal}>
               {t("modal.cancel")}
             </Button>
             <Button
@@ -267,7 +298,6 @@ export function SyllabiClient() {
         </form>
       </Modal>
 
-      {/* Delete confirmation modal */}
       <Modal
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}

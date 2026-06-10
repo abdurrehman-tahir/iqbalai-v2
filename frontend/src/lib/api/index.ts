@@ -6,11 +6,15 @@
 import type {
   AuditEntry,
   DisclaimerVersionRead,
+  ExamSyllabusCreate,
   ExamSyllabusRead,
+  ExamSyllabusUpdate,
   Notification,
   PersonaRead,
   PostLoginResponse,
+  SubscriptionTierCreate,
   SubscriptionTierRead,
+  SubscriptionTierUpdate,
   TosAcceptResponse,
   TosDeclineResponse,
   TosVersion,
@@ -25,6 +29,7 @@ export type {
   PersonaRead as Persona,
   ExamSyllabusRead as Syllabus,
   SubscriptionTierRead as SubscriptionTier,
+  LibraryBookRead as LibraryBook,
   TosVersion,
 } from "./types";
 
@@ -38,6 +43,60 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
+}
+
+type ValidationDetail = {
+  loc?: unknown[];
+  msg?: string;
+  type?: string;
+};
+
+function formatValidationDetail(detail: ValidationDetail): string {
+  const path = Array.isArray(detail.loc)
+    ? detail.loc.filter((part) => part !== "body").join(".")
+    : "";
+  const msg = detail.msg ?? "Validation error";
+  return path ? `${path}: ${msg}` : msg;
+}
+
+function parseApiErrorBody(
+  body: unknown,
+  status: number,
+): { code: string; message: string; details?: unknown } {
+  if (body && typeof body === "object") {
+    const record = body as Record<string, unknown>;
+
+    if (record.error && typeof record.error === "object") {
+      const err = record.error as Record<string, unknown>;
+      return {
+        code: String(err.code ?? "UNKNOWN_ERROR"),
+        message: String(err.message ?? `Request failed with status ${status}`),
+        details: err.details,
+      };
+    }
+
+    if (Array.isArray(record.detail)) {
+      const details = record.detail as ValidationDetail[];
+      return {
+        code: "VALIDATION_ERROR",
+        message: details.map(formatValidationDetail).join("; "),
+        details,
+      };
+    }
+
+    if (typeof record.code === "string") {
+      return {
+        code: record.code,
+        message: String(record.message ?? `Request failed with status ${status}`),
+        details: record.details,
+      };
+    }
+  }
+
+  return {
+    code: "UNKNOWN_ERROR",
+    message: `Request failed with status ${status}`,
+  };
 }
 
 async function request<T>(
@@ -57,18 +116,14 @@ async function request<T>(
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (!res.ok) {
-    let body: { code?: string; message?: string; details?: unknown } = {};
+    let body: unknown = {};
     try {
       body = await res.json();
     } catch {
       // ignore parse errors
     }
-    throw new ApiError(
-      res.status,
-      body.code ?? "UNKNOWN_ERROR",
-      body.message ?? `Request failed with status ${res.status}`,
-      body.details,
-    );
+    const parsed = parseApiErrorBody(body, res.status);
+    throw new ApiError(res.status, parsed.code, parsed.message, parsed.details);
   }
 
   if (res.status === 204) return undefined as T;
@@ -148,13 +203,13 @@ export const tosApi = {
 export const syllabiApi = {
   list: (token: string) =>
     request<ExamSyllabusRead[]>("/admin/exam-syllabi", {}, token),
-  create: (token: string, data: { name: string; description?: string }) =>
+  create: (token: string, data: ExamSyllabusCreate) =>
     request<ExamSyllabusRead>(
       "/admin/exam-syllabi",
       { method: "POST", body: JSON.stringify(data) },
       token,
     ),
-  update: (token: string, id: string, data: Partial<ExamSyllabusRead>) =>
+  update: (token: string, id: string, data: ExamSyllabusUpdate) =>
     request<ExamSyllabusRead>(
       `/admin/exam-syllabi/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
@@ -186,13 +241,13 @@ export const personasApi = {
 export const subscriptionsApi = {
   list: (token: string) =>
     request<SubscriptionTierRead[]>("/admin/subscription-tiers", {}, token),
-  create: (token: string, data: Omit<SubscriptionTierRead, "id">) =>
+  create: (token: string, data: SubscriptionTierCreate) =>
     request<SubscriptionTierRead>(
       "/admin/subscription-tiers",
       { method: "POST", body: JSON.stringify(data) },
       token,
     ),
-  update: (token: string, id: string, data: Partial<SubscriptionTierRead>) =>
+  update: (token: string, id: string, data: SubscriptionTierUpdate) =>
     request<SubscriptionTierRead>(
       `/admin/subscription-tiers/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
@@ -205,8 +260,14 @@ export const subscriptionsApi = {
 // ── Library ───────────────────────────────────────────────────────────────────
 
 export const libraryApi = {
-  list: (token: string) =>
-    request<import("./types").LibraryBookRead[]>("/admin/library", {}, token),
+  list: async (token: string) => {
+    const page = await request<import("./types").LibraryBookListResponse>(
+      "/admin/library",
+      {},
+      token,
+    );
+    return page.items;
+  },
   softDelete: (token: string, id: string) =>
     request<void>(`/admin/library/${id}`, { method: "DELETE" }, token),
 };
@@ -214,11 +275,16 @@ export const libraryApi = {
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 
 export const auditApi = {
-  list: (token: string, params?: { actor?: string; action?: string }) => {
+  list: async (token: string, params?: { actor?: string; action?: string }) => {
     const qs = params
       ? "?" + new URLSearchParams(params as Record<string, string>).toString()
       : "";
-    return request<AuditEntry[]>(`/admin/audit-log${qs}`, {}, token);
+    const page = await request<import("./types").AuditLogListResponse>(
+      `/admin/audit-log${qs}`,
+      {},
+      token,
+    );
+    return page.items;
   },
 };
 

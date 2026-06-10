@@ -41,9 +41,10 @@ describe("LibraryClient — four UI states (T-235)", () => {
     mockList.mockResolvedValue([
       {
         id: "b1",
-        filename: "math-guide.pdf",
+        title: "math-guide.pdf",
         status: "available",
-        tags: {},
+        language: "en",
+        content_type: "curriculum",
         created_at: "2026-06-01T00:00:00Z",
       },
     ]);

@@ -94,17 +94,21 @@ def test_every_foreign_key_has_ondelete_and_index() -> None:
     assert not_indexed == [], f"Foreign key columns missing an index: {not_indexed}"
 
 
-# Stable value sets that must be backed by a native Postgres enum (ARCH §4.4).
+# Stable value sets backed by native Postgres enums (ARCH §4.4).
 _ENUM_COLUMNS = [
     ("users", "role"),
     ("users", "account_status"),
     ("upload_records", "status"),
+    ("platform_reference_books", "content_type"),
+    ("platform_reference_books", "status"),
+]
+
+# Subscription enums are varchar in school_0007; school_0013 promotes them to native enums.
+_VARCHAR_ENUM_COLUMNS = [
     ("subscription_tiers", "applies_to"),
     ("subscriptions", "subscriber_type"),
     ("subscriptions", "status"),
     ("subscription_payments", "status"),
-    ("platform_reference_books", "content_type"),
-    ("platform_reference_books", "status"),
 ]
 
 
@@ -114,6 +118,14 @@ def test_stable_columns_are_native_enums(table_name: str, column_name: str) -> N
     col = table.columns[column_name]
     assert isinstance(col.type, SAEnum), f"{table_name}.{column_name} is not an Enum type"
     assert col.type.native_enum is True, f"{table_name}.{column_name} is not a native enum"
+
+
+@pytest.mark.parametrize(("table_name", "column_name"), _VARCHAR_ENUM_COLUMNS)
+def test_subscription_enums_use_varchar_storage(table_name: str, column_name: str) -> None:
+    table = Base.metadata.tables[f"school.{table_name}"]
+    col = table.columns[column_name]
+    assert isinstance(col.type, SAEnum), f"{table_name}.{column_name} is not an Enum type"
+    assert col.type.native_enum is False, f"{table_name}.{column_name} should use varchar storage"
 
 
 def _constraint_names(table: Table) -> set[str]:

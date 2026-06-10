@@ -202,17 +202,17 @@ export function LibraryClient() {
                     <div className="flex items-center gap-2">
                       <FileText className="size-4 text-gray-400 shrink-0" aria-hidden="true" />
                       <span className="font-medium text-gray-900 break-all">
-                        {book.filename}
+                        {book.title}
                       </span>
                     </div>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
                     <div className="flex flex-wrap gap-1">
-                      {book.tags.language && (
-                        <Badge variant="secondary">{book.tags.language}</Badge>
+                      {book.language && (
+                        <Badge variant="secondary">{book.language}</Badge>
                       )}
-                      {book.tags.content_type && (
-                        <Badge variant="outline">{book.tags.content_type}</Badge>
+                      {book.content_type && (
+                        <Badge variant="outline">{book.content_type}</Badge>
                       )}
                     </div>
                   </td>
@@ -233,7 +233,7 @@ export function LibraryClient() {
                         size="icon"
                         onClick={() => setDeleteTarget(book)}
                         aria-label={t("actions.delete", {
-                          name: book.filename,
+                          name: book.title,
                         })}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       >
@@ -393,7 +393,7 @@ export function LibraryClient() {
         onClose={() => setDeleteTarget(null)}
         title={t("delete_modal.title")}
         description={t("delete_modal.description", {
-          name: deleteTarget?.filename ?? "",
+          name: deleteTarget?.title ?? "",
         })}
         size="sm"
         closeLabel={t("delete_modal.cancel")}

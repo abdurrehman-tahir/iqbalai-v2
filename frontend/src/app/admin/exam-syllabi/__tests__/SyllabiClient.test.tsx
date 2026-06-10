@@ -41,7 +41,18 @@ describe("SyllabiClient — four UI states (T-235)", () => {
 
   it("success lists syllabi", async () => {
     mockList.mockResolvedValue([
-      { id: "s1", name: "FBISE Matric", description: null, version_number: 1, is_active: true },
+      {
+        id: "s1",
+        name: "FBISE Matric",
+        exam_board: "FBISE",
+        region: null,
+        grade_range_min: null,
+        grade_range_max: null,
+        language: "en",
+        version_number: 1,
+        is_active: true,
+        created_at: "2026-01-01T00:00:00Z",
+      },
     ]);
     renderWithQuery(<SyllabiClient />);
     await waitFor(() => expect(screen.getByText("FBISE Matric")).toBeInTheDocument());

@@ -6,18 +6,26 @@ const AUTHENTIK_BASE = process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhos
 interface Syllabus {
   id: string;
   name: string;
-  description: string | null;
-  version: number;
+  exam_board: string;
+  region: string | null;
+  grade_range_min: number | null;
+  grade_range_max: number | null;
+  language: string;
+  version_number: number;
   is_active: boolean;
+  created_at: string;
 }
 
 interface SubscriptionTier {
   id: string;
   name: string;
+  slug: string;
+  description: string | null;
+  applies_to: string;
   pricing_monthly_pkr: number;
-  caps: Record<string, unknown>;
-  applies_to_role: string;
+  caps: Record<string, unknown> | null;
   is_active: boolean;
+  created_at: string;
 }
 
 interface Persona {
@@ -244,18 +252,27 @@ async function handleApiRoute(state: MockState, route: Route) {
   }
 
   if (method === "POST" && path === "/admin/exam-syllabi") {
-    const body = (await request.postDataJSON()) as { name: string; description?: string };
+    const body = (await request.postDataJSON()) as {
+      name: string;
+      exam_board: string;
+      language?: string;
+    };
     const syllabus: Syllabus = {
       id: `syllabus-${state.syllabi.length + 1}`,
       name: body.name,
-      description: body.description ?? null,
-      version: 1,
+      exam_board: body.exam_board,
+      region: null,
+      grade_range_min: null,
+      grade_range_max: null,
+      language: body.language ?? "en",
+      version_number: 1,
       is_active: true,
+      created_at: new Date().toISOString(),
     };
     state.syllabi.push(syllabus);
     audit(state, "exam_syllabus.created", "exam_syllabus", syllabus.id, { name: body.name });
     await route.fulfill({
-      status: 200,
+      status: 201,
       contentType: "application/json",
       body: envelope(syllabus),
     });
@@ -281,15 +298,28 @@ async function handleApiRoute(state: MockState, route: Route) {
   }
 
   if (method === "POST" && path === "/admin/subscription-tiers") {
-    const body = (await request.postDataJSON()) as Omit<SubscriptionTier, "id">;
+    const body = (await request.postDataJSON()) as {
+      name: string;
+      slug: string;
+      applies_to: string;
+      pricing_monthly_pkr: number;
+      caps?: Record<string, unknown> | null;
+    };
     const tier: SubscriptionTier = {
       id: `tier-${state.tiers.length + 1}`,
-      ...body,
+      name: body.name,
+      slug: body.slug,
+      description: null,
+      applies_to: body.applies_to,
+      pricing_monthly_pkr: body.pricing_monthly_pkr,
+      caps: body.caps ?? null,
+      is_active: true,
+      created_at: new Date().toISOString(),
     };
     state.tiers.push(tier);
     audit(state, "subscription_tier.created", "subscription_tier", tier.id, { name: body.name });
     await route.fulfill({
-      status: 200,
+      status: 201,
       contentType: "application/json",
       body: envelope(tier),
     });
@@ -349,7 +379,9 @@ async function handleApiRoute(state: MockState, route: Route) {
   await route.fulfill({
     status: 404,
     contentType: "application/json",
-    body: JSON.stringify({ code: "NOT_FOUND", message: `Unmocked route: ${method} ${path}` }),
+    body: JSON.stringify({
+      error: { code: "NOT_FOUND", message: `Unmocked route: ${method} ${path}` },
+    }),
   });
 }
 

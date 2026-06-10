@@ -7,7 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { CreditCard, Plus, Pencil, Trash2 } from "lucide-react";
-import { subscriptionsApi, type SubscriptionTier } from "@/lib/api";
+import { subscriptionsApi, ApiError, type SubscriptionTier } from "@/lib/api";
+import type { SubscriptionTierCreate, SubscriptionTierUpdate } from "@/lib/api/types";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
@@ -22,12 +23,44 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const tierSchema = z.object({
   name: z.string().min(1).max(100),
+  slug: z
+    .string()
+    .min(1)
+    .max(50)
+    .regex(/^[a-z0-9-]+$/, "Slug must be lowercase letters, numbers, and hyphens"),
+  applies_to: z.enum(["district", "school"]),
   pricing_monthly_pkr: z.coerce.number().min(0),
-  applies_to_role: z.string().min(1),
-  caps: z.string().min(2), // JSON string
+  caps: z.string().min(2),
 });
 
 type TierFormValues = z.infer<typeof tierSchema>;
+
+function toCreatePayload(values: TierFormValues): SubscriptionTierCreate {
+  return {
+    name: values.name,
+    slug: values.slug,
+    applies_to: values.applies_to,
+    pricing_monthly_pkr: values.pricing_monthly_pkr,
+    caps: JSON.parse(values.caps) as Record<string, unknown>,
+  };
+}
+
+function toUpdatePayload(values: TierFormValues): SubscriptionTierUpdate {
+  return {
+    name: values.name,
+    pricing_monthly_pkr: values.pricing_monthly_pkr,
+    caps: JSON.parse(values.caps) as Record<string, unknown>,
+  };
+}
+
+function slugifyName(name: string): string {
+  return name
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 50);
+}
 
 export function SubscriptionTiersClient() {
   const t = useTranslations("admin.subscription_tiers");
@@ -36,6 +69,7 @@ export function SubscriptionTiersClient() {
   const [editTarget, setEditTarget] = useState<SubscriptionTier | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<SubscriptionTier | null>(null);
+  const [formError, setFormError] = useState("");
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["subscription-tiers", "list"],
@@ -45,30 +79,27 @@ export function SubscriptionTiersClient() {
 
   const createMutation = useMutation({
     mutationFn: (values: TierFormValues) =>
-      subscriptionsApi.create(token ?? "", {
-        name: values.name,
-        pricing_monthly_pkr: values.pricing_monthly_pkr,
-        applies_to_role: values.applies_to_role,
-        caps: JSON.parse(values.caps) as Record<string, unknown>,
-        is_active: true,
-      }),
+      subscriptionsApi.create(token ?? "", toCreatePayload(values)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["subscription-tiers"] });
       setShowCreate(false);
+      setFormError("");
+    },
+    onError: (err: Error) => {
+      setFormError(err instanceof ApiError ? err.message : err.message);
     },
   });
 
   const updateMutation = useMutation({
     mutationFn: ({ id, values }: { id: string; values: TierFormValues }) =>
-      subscriptionsApi.update(token ?? "", id, {
-        name: values.name,
-        pricing_monthly_pkr: values.pricing_monthly_pkr,
-        applies_to_role: values.applies_to_role,
-        caps: JSON.parse(values.caps) as Record<string, unknown>,
-      }),
+      subscriptionsApi.update(token ?? "", id, toUpdatePayload(values)),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["subscription-tiers"] });
       setEditTarget(null);
+      setFormError("");
+    },
+    onError: (err: Error) => {
+      setFormError(err instanceof ApiError ? err.message : err.message);
     },
   });
 
@@ -84,33 +115,45 @@ export function SubscriptionTiersClient() {
     resolver: zodResolver(tierSchema),
     defaultValues: {
       name: "",
+      slug: "",
+      applies_to: "school",
       pricing_monthly_pkr: 0,
-      applies_to_role: "school",
       caps: "{}",
     },
   });
 
   function openEdit(tier: SubscriptionTier) {
+    setFormError("");
     setEditTarget(tier);
     form.reset({
       name: tier.name,
+      slug: tier.slug,
+      applies_to: tier.applies_to as "district" | "school",
       pricing_monthly_pkr: tier.pricing_monthly_pkr,
-      applies_to_role: tier.applies_to_role,
-      caps: JSON.stringify(tier.caps, null, 2),
+      caps: JSON.stringify(tier.caps ?? {}, null, 2),
     });
   }
 
   function openCreate() {
+    setFormError("");
     setShowCreate(true);
     form.reset({
       name: "",
+      slug: "",
+      applies_to: "school",
       pricing_monthly_pkr: 0,
-      applies_to_role: "school",
       caps: "{}",
     });
   }
 
+  function closeFormModal() {
+    setShowCreate(false);
+    setEditTarget(null);
+    setFormError("");
+  }
+
   async function handleSubmit(values: TierFormValues) {
+    setFormError("");
     try {
       JSON.parse(values.caps);
     } catch {
@@ -164,12 +207,10 @@ export function SubscriptionTiersClient() {
         </Button>
       </div>
 
-      {/* Schema-only banner */}
       <div className="rounded-lg border border-yellow-200 bg-yellow-50 p-4">
         <p className="text-sm text-yellow-800">{t("schema_only_banner")}</p>
       </div>
 
-      {/* Tiers grid / empty state */}
       {!data || data.length === 0 ? (
         <EmptyState
           icon={CreditCard}
@@ -199,7 +240,11 @@ export function SubscriptionTiersClient() {
               </div>
 
               <p className="text-xs text-gray-500">
-                {t("role_label")}: <span className="font-medium">{tier.applies_to_role}</span>
+                {t("applies_to_label")}:{" "}
+                <span className="font-medium">{tier.applies_to}</span>
+              </p>
+              <p className="text-xs text-gray-500">
+                {t("slug_label")}: <span className="font-medium">{tier.slug}</span>
               </p>
 
               <pre className="text-xs bg-gray-50 rounded p-2 overflow-x-auto text-gray-600">
@@ -231,13 +276,9 @@ export function SubscriptionTiersClient() {
         </div>
       )}
 
-      {/* Create / Edit modal */}
       <Modal
         open={showCreate || !!editTarget}
-        onClose={() => {
-          setShowCreate(false);
-          setEditTarget(null);
-        }}
+        onClose={closeFormModal}
         title={editTarget ? t("modal.edit_title") : t("modal.create_title")}
         size="md"
         closeLabel={t("modal.close")}
@@ -249,7 +290,13 @@ export function SubscriptionTiersClient() {
             </Label>
             <Input
               id="tier-name"
-              {...form.register("name")}
+              {...form.register("name", {
+                onChange: (e) => {
+                  if (!editTarget && !form.getValues("slug")) {
+                    form.setValue("slug", slugifyName(e.target.value));
+                  }
+                },
+              })}
               placeholder={t("modal.name_placeholder")}
             />
             {form.formState.errors.name && (
@@ -257,6 +304,38 @@ export function SubscriptionTiersClient() {
                 {form.formState.errors.name.message}
               </p>
             )}
+          </div>
+
+          <div>
+            <Label htmlFor="tier-slug" required>
+              {t("modal.slug_label")}
+            </Label>
+            <Input
+              id="tier-slug"
+              {...form.register("slug")}
+              placeholder={t("modal.slug_placeholder")}
+              readOnly={!!editTarget}
+            />
+            {form.formState.errors.slug && (
+              <p className="text-xs text-red-600 mt-1" role="alert">
+                {form.formState.errors.slug.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="tier-applies-to" required>
+              {t("modal.applies_to_label")}
+            </Label>
+            <select
+              id="tier-applies-to"
+              className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+              {...form.register("applies_to")}
+              disabled={!!editTarget}
+            >
+              <option value="school">{t("modal.applies_to_school")}</option>
+              <option value="district">{t("modal.applies_to_district")}</option>
+            </select>
           </div>
 
           <div>
@@ -277,17 +356,6 @@ export function SubscriptionTiersClient() {
           </div>
 
           <div>
-            <Label htmlFor="tier-role" required>
-              {t("modal.role_label")}
-            </Label>
-            <Input
-              id="tier-role"
-              {...form.register("applies_to_role")}
-              placeholder={t("modal.role_placeholder")}
-            />
-          </div>
-
-          <div>
             <Label htmlFor="tier-caps">{t("modal.caps_label")}</Label>
             <Textarea
               id="tier-caps"
@@ -303,16 +371,14 @@ export function SubscriptionTiersClient() {
             )}
           </div>
 
+          {formError && (
+            <p className="text-sm text-red-600" role="alert">
+              {formError}
+            </p>
+          )}
+
           <div className="flex justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => {
-                setShowCreate(false);
-                setEditTarget(null);
-              }}
-            >
+            <Button type="button" variant="outline" size="md" onClick={closeFormModal}>
               {t("modal.cancel")}
             </Button>
             <Button
@@ -327,7 +393,6 @@ export function SubscriptionTiersClient() {
         </form>
       </Modal>
 
-      {/* Delete confirmation modal */}
       <Modal
         open={!!deleteTarget}
         onClose={() => setDeleteTarget(null)}
@@ -350,9 +415,7 @@ export function SubscriptionTiersClient() {
             variant="destructive"
             size="md"
             loading={deleteMutation.isPending}
-            onClick={() =>
-              deleteTarget && deleteMutation.mutate(deleteTarget.id)
-            }
+            onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
           >
             {t("delete_modal.confirm")}
           </Button>

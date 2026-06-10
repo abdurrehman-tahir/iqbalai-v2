@@ -353,10 +353,12 @@ jobs:
       # (playwright.config.ts `webServer: pnpm dev`). No backend/docker/seed needed
       # on PR — the real-backend full-stack bring-up + scripts/seed_dev.py lands
       # with container profiles in T-236.
-      - name: Playwright smoke (@smoke tag only)
+      - name: Playwright smoke (@smoke mock + @real backend)
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
-        run: pnpm e2e --grep @smoke
+        run: |
+          pnpm e2e --grep @smoke --grep-invert @real
+          pnpm e2e --grep @real
 
   e2e-full:
     name: Playwright E2E (full suite, nightly)

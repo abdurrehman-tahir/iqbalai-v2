@@ -49,14 +49,17 @@ describe("envelope unwrapping", () => {
 
   it("throws ApiError on non-2xx response", async () => {
     global.fetch = mockFetch(
-      { code: "NOT_FOUND", message: "Resource not found" },
+      { error: { code: "NOT_FOUND", message: "Resource not found" } },
       404,
     );
     await expect(tosApi.getCurrent("tok")).rejects.toBeInstanceOf(ApiError);
   });
 
   it("ApiError carries status and code", async () => {
-    global.fetch = mockFetch({ code: "FORBIDDEN", message: "Access denied" }, 403);
+    global.fetch = mockFetch(
+      { error: { code: "FORBIDDEN", message: "Access denied" } },
+      403,
+    );
     try {
       await tosApi.getCurrent("tok");
     } catch (err) {
@@ -196,9 +199,12 @@ describe("syllabiApi", () => {
     expect(await syllabiApi.list("tok")).toEqual([]);
 
     global.fetch = mockFetch({
-      data: { id: "s1", name: "Matric", version_number: 1, is_active: true },
+      data: { id: "s1", name: "Matric", exam_board: "Punjab Board", version_number: 1, is_active: true },
     });
-    const created = await syllabiApi.create("tok", { name: "Matric" });
+    const created = await syllabiApi.create("tok", {
+      name: "Matric",
+      exam_board: "Punjab Board",
+    });
     expect(created.name).toBe("Matric");
   });
 });
@@ -206,7 +212,7 @@ describe("syllabiApi", () => {
 describe("subscriptionsApi", () => {
   it("lists tiers", async () => {
     global.fetch = mockFetch({
-      data: [{ id: "t1", name: "Basic", pricing_monthly_pkr: 1, caps: {}, applies_to_role: "school_admin", is_active: true }],
+      data: [{ id: "t1", name: "Basic", slug: "basic", applies_to: "school", pricing_monthly_pkr: 1, caps: {}, is_active: true, created_at: "" }],
     });
     const tiers = await subscriptionsApi.list("tok");
     expect(tiers[0].name).toBe("Basic");
@@ -215,14 +221,33 @@ describe("subscriptionsApi", () => {
 
 describe("auditApi + libraryApi", () => {
   it("auditApi passes filter query params", async () => {
-    global.fetch = mockFetch({ data: [{ id: "a1", action: "tos.published", actor_id: "u1", target_type: "tos", target_id: "t1", metadata: {}, created_at: "" }] });
+    global.fetch = mockFetch({
+      items: [
+        {
+          id: "a1",
+          action: "tos.published",
+          actor_id: "u1",
+          target_type: "tos",
+          target_id: "t1",
+          metadata: {},
+          created_at: "",
+        },
+      ],
+      total: 1,
+      page: 1,
+      page_size: 50,
+      pages: 1,
+    });
     const entries = await auditApi.list("tok", { actor: "u1", action: "tos" });
     expect(entries[0].action).toBe("tos.published");
   });
 
   it("libraryApi lists books", async () => {
-    global.fetch = mockFetch({ data: [{ id: "b1", filename: "f.pdf", status: "available", tags: {}, created_at: "" }] });
+    global.fetch = mockFetch({
+      items: [{ id: "b1", title: "f.pdf", status: "available", created_at: "" }],
+      total: 1,
+    });
     const books = await libraryApi.list("tok");
-    expect(books[0].filename).toBe("f.pdf");
+    expect(books[0].title).toBe("f.pdf");
   });
 });

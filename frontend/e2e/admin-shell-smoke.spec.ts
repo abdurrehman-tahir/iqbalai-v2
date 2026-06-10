@@ -33,7 +33,7 @@ async function seedPlatformAdmin(page: Page) {
   });
 }
 
-test.describe("M-01 admin navigation reachability (T-231)", () => {
+test.describe("M-01 admin navigation reachability (T-231) @smoke @mock", () => {
   test("each nav item reaches a page with real content @smoke", async ({ page }) => {
     await seedPlatformAdmin(page);
     await page.goto("/admin/languages");

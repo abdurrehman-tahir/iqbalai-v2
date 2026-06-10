@@ -45,17 +45,17 @@ class PaymentStatus(StrEnum):
 
 
 def _pg_enum(enum_cls: type[StrEnum], name: str) -> SAEnum:
-    """Native Postgres enum bound to the school schema (ARCH §4.4 — stable value sets).
+    """Postgres-backed enum labels stored as varchar until school_0013 promotes columns.
 
-    values_callable pins the stored labels to the StrEnum *values* (not member names);
-    create_type=False keeps DDL emission with the Alembic migration (matches User.role).
+    values_callable pins stored labels to StrEnum values; native_enum=False matches
+    school_0007 varchar columns (create_type=False keeps DDL in Alembic).
     """
     return SAEnum(
         enum_cls,
         name=name,
         schema="school",
         values_callable=lambda e: [m.value for m in e],
-        native_enum=True,
+        native_enum=False,
         create_type=False,
     )
 

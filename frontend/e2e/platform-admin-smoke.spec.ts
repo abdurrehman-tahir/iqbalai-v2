@@ -61,7 +61,7 @@ async function acceptTos(page: Page) {
 
 // ── Tests ────────────────────────────────────────────────────────────────────
 
-test.describe("Platform Admin smoke test (M-01 acceptance criteria)", () => {
+test.describe("Platform Admin smoke test (M-01 acceptance criteria) @real", () => {
   test.setTimeout(120_000);
 
   test("Full Platform Admin onboarding flow", async ({ page }) => {
@@ -87,6 +87,7 @@ test.describe("Platform Admin smoke test (M-01 acceptance criteria)", () => {
     ]) {
       await page.getByRole("button", { name: /add syllabus/i }).click();
       await page.fill("#syl-name", name);
+      await page.fill("#syl-exam-board", "Punjab Board");
       await page.getByRole("button", { name: /create/i }).click();
       await expect(page.getByRole("cell", { name })).toBeVisible({
         timeout: 5_000,
@@ -106,14 +107,15 @@ test.describe("Platform Admin smoke test (M-01 acceptance criteria)", () => {
 
     // 7 — Subscription tiers: create 2
     await page.click('a:has-text("Subscription Tiers")');
-    for (const { name, price, role } of [
-      { name: "Basic District", price: "5000", role: "district" },
-      { name: "Premium School", price: "10000", role: "school" },
+    for (const { name, price, slug, appliesTo } of [
+      { name: "Basic District", price: "5000", slug: "basic-district", appliesTo: "district" },
+      { name: "Premium School", price: "10000", slug: "premium-school", appliesTo: "school" },
     ]) {
       await page.getByRole("button", { name: /add tier/i }).click();
       await page.fill("#tier-name", name);
+      await page.fill("#tier-slug", slug);
+      await page.selectOption("#tier-applies-to", appliesTo);
       await page.fill("#tier-price", price);
-      await page.fill("#tier-role", role);
       await page.getByRole("button", { name: /create/i }).click();
       await expect(page.getByText(name)).toBeVisible({ timeout: 5_000 });
     }

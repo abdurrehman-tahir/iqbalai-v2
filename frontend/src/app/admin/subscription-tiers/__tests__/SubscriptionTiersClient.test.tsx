@@ -44,10 +44,13 @@ describe("SubscriptionTiersClient — four UI states (T-235)", () => {
       {
         id: "tier-1",
         name: "School Basic",
+        slug: "school-basic",
+        description: null,
+        applies_to: "school",
         pricing_monthly_pkr: 5000,
         caps: {},
-        applies_to_role: "school_admin",
         is_active: true,
+        created_at: "2026-01-01T00:00:00Z",
       },
     ]);
     renderWithQuery(<SubscriptionTiersClient />);

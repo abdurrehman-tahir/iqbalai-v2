@@ -8,7 +8,7 @@ const LONG_TOS = Array.from({ length: 80 }, (_, i) => `Section ${i + 1}: terms l
   "\n",
 );
 
-test.describe("ToS flows (T-232)", () => {
+test.describe("ToS flows (T-232) @smoke @mock", () => {
   test("bootstrap ToS modal shows text, scrolls, and accepts @smoke", async ({ page }) => {
     const state = await installPlatformAdminMocks(page);
     state.tosContent = LONG_TOS;
