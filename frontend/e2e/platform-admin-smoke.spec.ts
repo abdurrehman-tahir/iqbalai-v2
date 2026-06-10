@@ -53,7 +53,7 @@ test.describe("Platform Admin smoke test (M-01 acceptance criteria) @smoke @mock
       await page.fill("#syl-name", name);
       await page.fill("#syl-exam-board", "Punjab Board");
       await page.getByRole("button", { name: /create/i }).click();
-      await expect(page.getByRole("cell", { name })).toBeVisible({
+      await expect(page.getByRole("cell", { name, exact: true })).toBeVisible({
         timeout: 5_000,
       });
     }
