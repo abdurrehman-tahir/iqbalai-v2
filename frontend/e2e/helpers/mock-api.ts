@@ -349,10 +349,19 @@ async function handleApiRoute(state: MockState, route: Route) {
   }
 
   if (method === "GET" && path === "/admin/tos") {
+    // Real backend wraps a list of TosVersionRead (content_md / version_number / language).
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: envelope(state.tosVersions),
+      body: envelope(
+        state.tosVersions.map((v) => ({
+          id: v.id,
+          version_number: v.version,
+          content_md: v.content,
+          language: "en",
+          effective_at: v.effective_at,
+        })),
+      ),
     });
     return;
   }
@@ -382,10 +391,19 @@ async function handleApiRoute(state: MockState, route: Route) {
   }
 
   if (method === "GET" && path === "/admin/disclaimer") {
+    // Real backend wraps a list of DisclaimerVersionRead (content / version_number / language).
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: envelope(state.disclaimerVersions),
+      body: envelope(
+        state.disclaimerVersions.map((v) => ({
+          id: v.id,
+          version_number: v.version,
+          content: v.content,
+          language: "en",
+          effective_at: v.effective_at,
+        })),
+      ),
     });
     return;
   }
@@ -415,10 +433,11 @@ async function handleApiRoute(state: MockState, route: Route) {
   }
 
   if (method === "GET" && path === "/admin/library") {
+    // LibraryBookListResponse is a bare {items, total} (no SuccessEnvelope data wrapper).
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: envelope(state.library),
+      body: JSON.stringify({ items: state.library, total: state.library.length }),
     });
     return;
   }
@@ -429,10 +448,18 @@ async function handleApiRoute(state: MockState, route: Route) {
     let entries = state.auditLog;
     if (actor) entries = entries.filter((e) => e.actor_id.includes(actor));
     if (action) entries = entries.filter((e) => e.action.includes(action));
+    const items = entries.slice(0, 50);
+    // PaginatedEnvelope is a bare {items, total, page, ...} (no SuccessEnvelope data wrapper).
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: envelope(entries.slice(0, 50)),
+      body: JSON.stringify({
+        items,
+        total: entries.length,
+        page: 1,
+        page_size: 50,
+        pages: 1,
+      }),
     });
     return;
   }
