@@ -114,4 +114,4 @@ async def delete_library_book(
     actor_id = str(claims["sub"])
     svc = LibraryService(db)
     book = await svc.soft_delete(book_id=book_id, actor_id=actor_id)
-    return LibraryBookRead.model_validate(book)  # type: ignore[return-value]
+    return LibraryBookRead.model_validate(book)

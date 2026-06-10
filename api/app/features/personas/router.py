@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -20,7 +22,7 @@ router = APIRouter(prefix="/admin/personas", tags=["personas"])
     summary="List all teaching personas",
     dependencies=[require_role("platform_admin")],
 )
-async def list_personas(db: AsyncSession = Depends(get_db)) -> dict:
+async def list_personas(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = PersonaService(db)
     personas = await svc.list_personas()
     return success([PersonaRead.model_validate(p).model_dump() for p in personas])
@@ -36,7 +38,7 @@ async def list_personas(db: AsyncSession = Depends(get_db)) -> dict:
 async def get_persona(
     persona_id: str,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = PersonaService(db)
     persona = await svc.get_persona(persona_id)
     return success(PersonaRead.model_validate(persona).model_dump())
@@ -52,9 +54,9 @@ async def get_persona(
 async def update_persona(
     persona_id: str,
     payload: PersonaUpdate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = PersonaService(db)
     persona = await svc.update_persona(persona_id, payload, updated_by=str(claims.get("sub", "")))
     return success(PersonaRead.model_validate(persona).model_dump())

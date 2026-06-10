@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -24,7 +26,7 @@ router = APIRouter(prefix="/admin/subscription-tiers", tags=["subscriptions"])
     summary="List all subscription tiers",
     dependencies=[require_role("platform_admin")],
 )
-async def list_tiers(db: AsyncSession = Depends(get_db)) -> dict:
+async def list_tiers(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = SubscriptionService(db)
     tiers = await svc.list_tiers()
     return success([SubscriptionTierRead.model_validate(t).model_dump() for t in tiers])
@@ -40,9 +42,9 @@ async def list_tiers(db: AsyncSession = Depends(get_db)) -> dict:
 )
 async def create_tier(
     payload: SubscriptionTierCreate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SubscriptionService(db)
     tier = await svc.create_tier(payload, created_by=str(claims.get("sub", "")))
     return success(SubscriptionTierRead.model_validate(tier).model_dump())
@@ -58,7 +60,7 @@ async def create_tier(
 async def get_tier(
     tier_id: str,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SubscriptionService(db)
     tier = await svc.get_tier(tier_id)
     return success(SubscriptionTierRead.model_validate(tier).model_dump())
@@ -74,9 +76,9 @@ async def get_tier(
 async def update_tier(
     tier_id: str,
     payload: SubscriptionTierUpdate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SubscriptionService(db)
     tier = await svc.update_tier(tier_id, payload, updated_by=str(claims.get("sub", "")))
     return success(SubscriptionTierRead.model_validate(tier).model_dump())
@@ -92,7 +94,7 @@ async def update_tier(
 async def delete_tier(
     tier_id: str,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SubscriptionService(db)
     await svc.delete_tier(tier_id)
     return success({"deleted": True})

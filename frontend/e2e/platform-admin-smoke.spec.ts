@@ -39,7 +39,7 @@ test.describe("Platform Admin smoke test (M-01 acceptance criteria) @smoke @mock
 
     await page.click('a:has-text("Languages")');
     for (const code of ["en", "ur", "sd", "ps"]) {
-      await expect(page.locator(`[lang="${code}"]`)).toBeVisible();
+      await expect(page.locator(`p[lang="${code}"]`)).toBeVisible();
     }
 
     await page.click('a:has-text("Exam Syllabi")');

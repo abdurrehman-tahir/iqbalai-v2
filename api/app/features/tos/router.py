@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -32,7 +34,7 @@ router = APIRouter()
     summary="Get current ToS version",
     tags=["tos"],
 )
-async def get_current_tos(db: AsyncSession = Depends(get_db)) -> dict:
+async def get_current_tos(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = TosService(db)
     tos = await svc.get_current_tos()
     return success(TosVersionRead.model_validate(tos).model_dump())
@@ -45,7 +47,7 @@ async def get_current_tos(db: AsyncSession = Depends(get_db)) -> dict:
     summary="List all ToS versions",
     tags=["tos"],
 )
-async def list_tos_versions(db: AsyncSession = Depends(get_db)) -> dict:
+async def list_tos_versions(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = TosService(db)
     versions = await svc.list_tos_versions()
     return success([TosVersionRead.model_validate(v).model_dump() for v in versions])
@@ -58,7 +60,7 @@ async def list_tos_versions(db: AsyncSession = Depends(get_db)) -> dict:
     summary="Get current Disclaimer version",
     tags=["tos"],
 )
-async def get_current_disclaimer(db: AsyncSession = Depends(get_db)) -> dict:
+async def get_current_disclaimer(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = TosService(db)
     disclaimer = await svc.get_current_disclaimer()
     return success(DisclaimerVersionRead.model_validate(disclaimer).model_dump())
@@ -77,9 +79,9 @@ async def get_current_disclaimer(db: AsyncSession = Depends(get_db)) -> dict:
 async def accept_tos(
     payload: TosAcceptRequest,
     request: Request,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     user = await UserService(db).get_me(str(claims.get("sub", "")))
     if user is None:
         raise NotFoundError("User profile not found — call /auth/post-login first")
@@ -102,9 +104,9 @@ async def accept_tos(
 )
 async def decline_tos(
     request: Request,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     user = await UserService(db).get_me(str(claims.get("sub", "")))
     if user is None:
         raise NotFoundError("User profile not found — call /auth/post-login first")
@@ -126,9 +128,9 @@ async def decline_tos(
 )
 async def publish_tos(
     payload: TosVersionCreate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = TosService(db)
     tos = await svc.publish_new_tos(
         content_md=payload.content_md,
@@ -146,7 +148,7 @@ async def publish_tos(
     tags=["tos"],
     dependencies=[require_role("platform_admin")],
 )
-async def admin_list_tos(db: AsyncSession = Depends(get_db)) -> dict:
+async def admin_list_tos(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = TosService(db)
     versions = await svc.list_tos_versions()
     return success([TosVersionRead.model_validate(v).model_dump() for v in versions])
@@ -162,9 +164,9 @@ async def admin_list_tos(db: AsyncSession = Depends(get_db)) -> dict:
 )
 async def publish_disclaimer(
     payload: DisclaimerVersionCreate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = TosService(db)
     disclaimer = await svc.publish_new_disclaimer(
         content=payload.content,
@@ -182,7 +184,7 @@ async def publish_disclaimer(
     tags=["tos"],
     dependencies=[require_role("platform_admin")],
 )
-async def admin_list_disclaimer(db: AsyncSession = Depends(get_db)) -> dict:
+async def admin_list_disclaimer(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = TosService(db)
     versions = await svc.list_disclaimer_versions()
     return success([DisclaimerVersionRead.model_validate(v).model_dump() for v in versions])

@@ -13,7 +13,7 @@ from app.core.exceptions import (
     TosAcceptanceRequiredError,
     ValidationError,
 )
-from app.features.tos.models import DisclaimerVersion, TosVersion
+from app.features.tos.models import DisclaimerVersion, TosVersion, UserTosAcceptance
 from app.features.tos.repository import TosRepository
 from app.features.users.service import UserService
 from app.infrastructure.audit.log import audit
@@ -69,7 +69,7 @@ class TosService:
         user_id: str,
         tos_version_id: str,
         ip_address: str | None = None,
-    ) -> object:
+    ) -> UserTosAcceptance:
         tos = await self._repo.get_tos_by_id(tos_version_id)
         if tos is None:
             raise NotFoundError(f"ToS version {tos_version_id} not found")

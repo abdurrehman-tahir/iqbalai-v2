@@ -118,7 +118,7 @@ async def _notify_failure(book_id: str, actor_id: str | None, error: str) -> Non
         )
 
 
-@shared_task(  # type: ignore[untyped-decorator]
+@shared_task(  # type: ignore[misc]
     name="library.ingest_platform_book",
     queue="ingestion",
     bind=True,

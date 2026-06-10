@@ -4,7 +4,6 @@
  */
 
 import type {
-  AuditEntry,
   DisclaimerVersionRead,
   ExamSyllabusCreate,
   ExamSyllabusRead,

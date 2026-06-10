@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,9 +27,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     ),
 )
 async def post_login(
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = AuthService(db)
     result = await svc.post_login(claims)
-    return success(PostLoginResponse(**result).model_dump())
+    return success(PostLoginResponse.model_validate(result).model_dump())

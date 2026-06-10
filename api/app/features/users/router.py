@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,9 +23,9 @@ router = APIRouter(prefix="/users", tags=["users"])
     summary="Get current user profile",
 )
 async def get_me(
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = UserService(db)
     user = await svc.get_me(str(claims.get("sub", "")))
     if user is None:

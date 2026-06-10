@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,7 +28,7 @@ router = APIRouter(prefix="/admin/exam-syllabi", tags=["exam-syllabi"])
     summary="List all exam syllabi",
     dependencies=[require_role("platform_admin")],
 )
-async def list_syllabi(db: AsyncSession = Depends(get_db)) -> dict:
+async def list_syllabi(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = ExamSyllabiService(db)
     syllabi = await svc.list_syllabi()
     return success([ExamSyllabusRead.model_validate(s).model_dump() for s in syllabi])
@@ -42,9 +44,9 @@ async def list_syllabi(db: AsyncSession = Depends(get_db)) -> dict:
 )
 async def create_syllabus(
     payload: ExamSyllabusCreate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = ExamSyllabiService(db)
     syllabus = await svc.create_syllabus(payload, created_by=str(claims.get("sub", "")))
     return success(ExamSyllabusRead.model_validate(syllabus).model_dump())
@@ -60,7 +62,7 @@ async def create_syllabus(
 async def get_syllabus(
     syllabus_id: str,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = ExamSyllabiService(db)
     syllabus = await svc.get_syllabus(syllabus_id)
     return success(ExamSyllabusRead.model_validate(syllabus).model_dump())
@@ -76,9 +78,9 @@ async def get_syllabus(
 async def update_syllabus(
     syllabus_id: str,
     payload: ExamSyllabusUpdate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = ExamSyllabiService(db)
     syllabus = await svc.update_syllabus(
         syllabus_id, payload, updated_by=str(claims.get("sub", ""))
@@ -96,7 +98,7 @@ async def update_syllabus(
 async def delete_syllabus(
     syllabus_id: str,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = ExamSyllabiService(db)
     await svc.delete_syllabus(syllabus_id)
     return success({"deleted": True})
@@ -112,7 +114,7 @@ async def delete_syllabus(
 async def list_topics(
     syllabus_id: str,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = ExamSyllabiService(db)
     topics = await svc.list_topics(syllabus_id)
     return success([SyllabusTopicRead.model_validate(t).model_dump() for t in topics])
@@ -130,7 +132,7 @@ async def create_topic(
     syllabus_id: str,
     payload: SyllabusTopicCreate,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = ExamSyllabiService(db)
     topic = await svc.create_topic(syllabus_id, payload)
     return success(SyllabusTopicRead.model_validate(topic).model_dump())
@@ -147,7 +149,7 @@ async def delete_topic(
     syllabus_id: str,
     topic_id: str,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = ExamSyllabiService(db)
     await svc.delete_topic(topic_id)
     return success({"deleted": True})

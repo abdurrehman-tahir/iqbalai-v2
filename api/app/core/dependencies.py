@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from typing import cast
 
 import structlog
 from fastapi import Depends, Request, params
@@ -66,7 +67,7 @@ def require_role(required_role: str) -> params.Depends:
             )
         return claims
 
-    return Depends(_check)
+    return cast(params.Depends, Depends(_check))
 
 
 def require_scope(required_role: str, scope_field: str) -> params.Depends:
@@ -91,4 +92,4 @@ def require_scope(required_role: str, scope_field: str) -> params.Depends:
         # Full enforcement happens in the repository layer via RLS + service checks
         return claims
 
-    return Depends(_check)
+    return cast(params.Depends, Depends(_check))

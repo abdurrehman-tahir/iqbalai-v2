@@ -19,7 +19,7 @@ class LibraryRepository:
         result = await self._session.execute(
             select(PlatformReferenceBook).where(PlatformReferenceBook.id == book_id)
         )
-        return result.scalar_one_or_none()  # type: ignore[return-value]
+        return result.scalar_one_or_none()
 
     async def get_by_sha256(self, sha256: str) -> PlatformReferenceBook | None:
         """Global SHA-256 dedup check — returns any non-deleted record with this hash."""
@@ -29,7 +29,7 @@ class LibraryRepository:
                 not_deleted(PlatformReferenceBook),
             )
         )
-        return result.scalar_one_or_none()  # type: ignore[return-value]
+        return result.scalar_one_or_none()
 
     async def list_active(
         self,
@@ -54,7 +54,7 @@ class LibraryRepository:
             .select_from(PlatformReferenceBook)
             .where(not_deleted(PlatformReferenceBook))
         )
-        return result.scalar_one()  # type: ignore[return-value]
+        return result.scalar_one()
 
     async def save(self, book: PlatformReferenceBook) -> PlatformReferenceBook:
         self._session.add(book)
