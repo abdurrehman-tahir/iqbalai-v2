@@ -59,6 +59,20 @@ jobs:
     needs: detect-changes
     if: needs.detect-changes.outputs.code-changed == 'true'
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: iqbalai
+          POSTGRES_PASSWORD: ci_password
+          POSTGRES_DB: iqbalai
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
     defaults:
       run:
         working-directory: api
@@ -69,7 +83,17 @@ jobs:
           version: "latest"
       - name: Install dependencies
         run: uv sync --dev
+      - name: Create dual schemas
+        run: |
+          PGPASSWORD=ci_password psql -h localhost -U iqbalai -d iqbalai \
+            -c "CREATE SCHEMA IF NOT EXISTS school; CREATE SCHEMA IF NOT EXISTS independent; GRANT ALL ON SCHEMA school TO iqbalai; GRANT ALL ON SCHEMA independent TO iqbalai;"
+      - name: Run alembic upgrade heads
+        env:
+          DB_URL: postgresql+asyncpg://iqbalai:ci_password@localhost:5432/iqbalai
+        run: uv run alembic upgrade heads
       - name: Run tests
+        env:
+          DB_URL: postgresql+asyncpg://iqbalai:ci_password@localhost:5432/iqbalai
         run: uv run pytest tests/ app/ --tb=short -q
       - name: Check test collection (must not error)
         run: uv run pytest --collect-only -q
@@ -278,7 +302,7 @@ jobs:
       - name: Vitest + RTL (coverage)
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
-        run: pnpm test --coverage
+        run: pnpm test:coverage
 
   typed-client-drift:
     name: Typed client up to date (openapi-typescript)
@@ -453,7 +477,7 @@ jobs:
       - name: Contract test (mocks + client request types vs schema.d.ts)
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
-        run: pnpm test --run src/lib/api/__tests__/contract.test.ts
+        run: pnpm test src/lib/api/__tests__/fe-be-contract.test.ts
 
 # ── Also HARDEN the existing e2e-smoke job (do not add a duplicate) ──
 # The create/update @smoke paths MUST hit the real composed backend, NOT the mock.

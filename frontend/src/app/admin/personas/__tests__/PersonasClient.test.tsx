@@ -22,10 +22,11 @@ const PERSONAS = [
   {
     id: "p1",
     name: "Strict",
-    description: null,
-    system_prompt: "Be strict.",
+    slug: "strict",
+    system_prompt_en: "Be strict.",
     is_custom: false,
     is_active: true,
+    created_at: "",
   },
 ];
 

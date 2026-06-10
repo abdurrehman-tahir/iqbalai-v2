@@ -1,11 +1,11 @@
-import openapi from "../../../../../openapi.json";
+import createSchemas from "../fixtures/openapi-create-schemas.json";
 
 type JsonSchema = {
   properties?: Record<string, unknown>;
   required?: string[];
 };
 
-const schemas = openapi.components.schemas as Record<string, JsonSchema>;
+const schemas = createSchemas as Record<string, JsonSchema>;
 
 export type ContractViolation = {
   schema: string;

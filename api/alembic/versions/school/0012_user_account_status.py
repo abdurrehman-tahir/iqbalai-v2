@@ -22,9 +22,7 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
-    op.execute(
-        "CREATE TYPE school.accountstatus AS ENUM ('active', 'suspended')"
-    )
+    op.execute("CREATE TYPE school.accountstatus AS ENUM ('active', 'suspended')")
     op.add_column(
         "users",
         sa.Column(

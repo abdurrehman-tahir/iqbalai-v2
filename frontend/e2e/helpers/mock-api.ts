@@ -31,10 +31,11 @@ interface SubscriptionTier {
 interface Persona {
   id: string;
   name: string;
-  description: string | null;
-  system_prompt: string;
+  slug: string;
+  system_prompt_en: string;
   is_custom: boolean;
   is_active: boolean;
+  created_at: string;
 }
 
 interface AuditEntry {
@@ -113,42 +114,47 @@ function createInitialState(): MockState {
       {
         id: "persona-1",
         name: "Strict",
-        description: null,
-        system_prompt: "You are a strict teacher.",
+        slug: "strict",
+        system_prompt_en: "You are a strict teacher.",
         is_custom: false,
         is_active: true,
+        created_at: new Date().toISOString(),
       },
       {
         id: "persona-2",
         name: "Friendly Tutor",
-        description: null,
-        system_prompt: "You are a friendly tutor.",
+        slug: "friendly-tutor",
+        system_prompt_en: "You are a friendly tutor.",
         is_custom: false,
         is_active: true,
+        created_at: new Date().toISOString(),
       },
       {
         id: "persona-3",
         name: "Storyteller",
-        description: null,
-        system_prompt: "You teach through stories.",
+        slug: "storyteller",
+        system_prompt_en: "You teach through stories.",
         is_custom: false,
         is_active: true,
+        created_at: new Date().toISOString(),
       },
       {
         id: "persona-4",
         name: "Exam Coach",
-        description: null,
-        system_prompt: "You focus on exam preparation.",
+        slug: "exam-coach",
+        system_prompt_en: "You focus on exam preparation.",
         is_custom: false,
         is_active: true,
+        created_at: new Date().toISOString(),
       },
       {
         id: "persona-5",
         name: "Custom",
-        description: "Per-student learned persona slot",
-        system_prompt: "Managed by platform batch job.",
+        slug: "custom",
+        system_prompt_en: "Managed by platform batch job.",
         is_custom: true,
         is_active: true,
+        created_at: new Date().toISOString(),
       },
     ],
     auditLog: [
@@ -288,6 +294,22 @@ async function handleApiRoute(state: MockState, route: Route) {
     return;
   }
 
+  if (method === "PUT" && path.startsWith("/admin/personas/")) {
+    const id = path.split("/").pop()!;
+    const body = (await request.postDataJSON()) as { system_prompt_en?: string };
+    const persona = state.personas.find((p) => p.id === id);
+    if (persona && body.system_prompt_en) {
+      persona.system_prompt_en = body.system_prompt_en;
+    }
+    audit(state, "persona.updated", "persona", id);
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: envelope(persona ?? state.personas[0]),
+    });
+    return;
+  }
+
   if (method === "GET" && path === "/admin/subscription-tiers") {
     await route.fulfill({
       status: 200,
@@ -335,11 +357,59 @@ async function handleApiRoute(state: MockState, route: Route) {
     return;
   }
 
+  if (method === "POST" && path === "/admin/tos") {
+    const body = (await request.postDataJSON()) as { content_md: string };
+    const version = state.tosVersions.length + 1;
+    const entry = {
+      id: `tos-v${version}`,
+      version,
+      content: body.content_md,
+      effective_at: new Date().toISOString(),
+    };
+    state.tosVersions.unshift(entry);
+    audit(state, "tos.published", "tos_version", entry.id, { version });
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: envelope({
+        id: entry.id,
+        version_number: version,
+        content_md: body.content_md,
+        effective_at: entry.effective_at,
+      }),
+    });
+    return;
+  }
+
   if (method === "GET" && path === "/admin/disclaimer") {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
       body: envelope(state.disclaimerVersions),
+    });
+    return;
+  }
+
+  if (method === "POST" && path === "/admin/disclaimer") {
+    const body = (await request.postDataJSON()) as { content: string };
+    const version = state.disclaimerVersions.length + 1;
+    const entry = {
+      id: `disclaimer-v${version}`,
+      version,
+      content: body.content,
+      effective_at: new Date().toISOString(),
+    };
+    state.disclaimerVersions.unshift(entry);
+    audit(state, "disclaimer.published", "disclaimer_version", entry.id, { version });
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: envelope({
+        id: entry.id,
+        version_number: version,
+        content: body.content,
+        effective_at: entry.effective_at,
+      }),
     });
     return;
   }

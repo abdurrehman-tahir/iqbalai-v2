@@ -34,7 +34,7 @@ describe("generated API types", () => {
   });
 
   it("PersonaRead and TosVersionRead come from generated schema (T-233)", () => {
-    expectTypeOf<PersonaRead>().toHaveProperty("system_prompt");
+    expectTypeOf<PersonaRead>().toHaveProperty("system_prompt_en");
     expectTypeOf<TosVersionRead>().toHaveProperty("content_md");
     expectTypeOf<TosVersionRead>().toHaveProperty("version_number");
   });

@@ -108,7 +108,7 @@ def milestone_status_rollup() -> list[str]:
 
     tsec = re.compile(r"^##\s+(T-\d{3,})\b")
     for path in sorted(glob.glob("docs/backlog/M-*.md")):
-        mid = re.match(r"(M-\d{2})", Path(path).name)
+        mid = re.match(r"(M-\d{2}a?)", Path(path).name)
         if not mid:
             continue
         mid = mid.group(1)

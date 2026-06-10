@@ -1,0 +1,119 @@
+{
+  "ExamSyllabusCreate": {
+    "description": "Payload for creating a new ExamSyllabus.",
+    "properties": {
+      "exam_board": {
+        "maxLength": 100,
+        "title": "Exam Board",
+        "type": "string"
+      },
+      "grade_range_max": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Grade Range Max"
+      },
+      "grade_range_min": {
+        "anyOf": [
+          {
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Grade Range Min"
+      },
+      "language": {
+        "default": "en",
+        "title": "Language",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 255,
+        "title": "Name",
+        "type": "string"
+      },
+      "region": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Region"
+      }
+    },
+    "required": [
+      "name",
+      "exam_board"
+    ],
+    "title": "ExamSyllabusCreate",
+    "type": "object"
+  },
+  "SubscriptionTierCreate": {
+    "description": "Payload for creating a new SubscriptionTier.",
+    "properties": {
+      "applies_to": {
+        "enum": [
+          "district",
+          "school"
+        ],
+        "title": "Applies To",
+        "type": "string"
+      },
+      "caps": {
+        "anyOf": [
+          {
+            "additionalProperties": true,
+            "type": "object"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Caps"
+      },
+      "description": {
+        "anyOf": [
+          {
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "title": "Description"
+      },
+      "name": {
+        "title": "Name",
+        "type": "string"
+      },
+      "pricing_monthly_pkr": {
+        "default": 0,
+        "minimum": 0.0,
+        "title": "Pricing Monthly Pkr",
+        "type": "integer"
+      },
+      "slug": {
+        "maxLength": 50,
+        "title": "Slug",
+        "type": "string"
+      }
+    },
+    "required": [
+      "name",
+      "slug",
+      "applies_to"
+    ],
+    "title": "SubscriptionTierCreate",
+    "type": "object"
+  }
+}

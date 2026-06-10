@@ -180,16 +180,16 @@ describe("authApi.postLogin", () => {
 describe("personasApi", () => {
   it("lists and updates personas", async () => {
     global.fetch = mockFetch({
-      data: [{ id: "p1", name: "Strict", system_prompt: "x", is_custom: false, is_active: true }],
+      data: [{ id: "p1", name: "Strict", system_prompt_en: "x", slug: "strict", is_custom: false, is_active: true, created_at: "" }],
     });
     const list = await personasApi.list("tok");
     expect(list[0].name).toBe("Strict");
 
     global.fetch = mockFetch({
-      data: { id: "p1", name: "Strict", system_prompt: "y", is_custom: false, is_active: true },
+      data: { id: "p1", name: "Strict", system_prompt_en: "y", slug: "strict", is_custom: false, is_active: true, created_at: "" },
     });
-    const updated = await personasApi.update("tok", "p1", { system_prompt: "y" });
-    expect(updated.system_prompt).toBe("y");
+    const updated = await personasApi.update("tok", "p1", { system_prompt_en: "y" });
+    expect(updated.system_prompt_en).toBe("y");
   });
 });
 
@@ -204,6 +204,7 @@ describe("syllabiApi", () => {
     const created = await syllabiApi.create("tok", {
       name: "Matric",
       exam_board: "Punjab Board",
+      language: "en",
     });
     expect(created.name).toBe("Matric");
   });

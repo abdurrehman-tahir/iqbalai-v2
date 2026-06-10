@@ -21,7 +21,7 @@ import { cn } from "@/lib/utils";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const editSchema = z.object({
-  system_prompt: z.string().min(1).max(8000),
+  system_prompt_en: z.string().min(1).max(8000),
 });
 
 type EditValues = z.infer<typeof editSchema>;
@@ -49,12 +49,12 @@ export function PersonasClient() {
 
   const form = useForm<EditValues>({
     resolver: zodResolver(editSchema),
-    defaultValues: { system_prompt: "" },
+    defaultValues: { system_prompt_en: "" },
   });
 
   function openEdit(persona: Persona) {
     setEditTarget(persona);
-    form.reset({ system_prompt: persona.system_prompt });
+    form.reset({ system_prompt_en: persona.system_prompt_en });
   }
 
   async function handleSubmit(values: EditValues) {
@@ -122,9 +122,6 @@ export function PersonasClient() {
                 <h2 className="text-base font-semibold text-gray-900">
                   {persona.name}
                 </h2>
-                {persona.description && (
-                  <p className="text-sm text-gray-500">{persona.description}</p>
-                )}
               </div>
               <div className="flex gap-1 shrink-0">
                 {persona.is_custom && (
@@ -142,7 +139,7 @@ export function PersonasClient() {
               </p>
             ) : (
               <p className="text-xs text-gray-400 line-clamp-3 font-mono">
-                {persona.system_prompt}
+                {persona.system_prompt_en}
               </p>
             )}
 
@@ -170,25 +167,25 @@ export function PersonasClient() {
       >
         <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-4">
           <div>
-            <Label htmlFor="system_prompt" required>
+            <Label htmlFor="system_prompt_en" required>
               {t("modal.prompt_label")}
             </Label>
             <Textarea
-              id="system_prompt"
-              {...form.register("system_prompt")}
+              id="system_prompt_en"
+              {...form.register("system_prompt_en")}
               rows={10}
               maxLength={8000}
               placeholder={t("modal.prompt_placeholder")}
               className="font-mono text-xs"
             />
             <div className="flex justify-between mt-1">
-              {form.formState.errors.system_prompt && (
+              {form.formState.errors.system_prompt_en && (
                 <p className="text-xs text-red-600" role="alert">
-                  {form.formState.errors.system_prompt.message}
+                  {form.formState.errors.system_prompt_en.message}
                 </p>
               )}
               <span className="text-xs text-gray-400 ms-auto">
-                {form.watch("system_prompt")?.length ?? 0} / 8000
+                {form.watch("system_prompt_en")?.length ?? 0} / 8000
               </span>
             </div>
           </div>

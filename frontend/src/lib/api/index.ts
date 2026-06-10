@@ -11,6 +11,7 @@ import type {
   ExamSyllabusUpdate,
   Notification,
   PersonaRead,
+  PersonaUpdate,
   PostLoginResponse,
   SubscriptionTierCreate,
   SubscriptionTierRead,
@@ -224,11 +225,7 @@ export const syllabiApi = {
 export const personasApi = {
   list: (token: string) =>
     request<PersonaRead[]>("/admin/personas", {}, token),
-  update: (
-    token: string,
-    id: string,
-    data: { system_prompt?: string; description?: string; is_active?: boolean },
-  ) =>
+  update: (token: string, id: string, data: PersonaUpdate) =>
     request<PersonaRead>(
       `/admin/personas/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
