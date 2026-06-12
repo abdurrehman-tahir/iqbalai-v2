@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl";
 import { authApi, tosApi, ApiError } from "@/lib/api";
 import { setToken, setUser, getPostLoginPath } from "@/lib/auth";
 import { TosModal } from "./TosModal";
-import { SuspendedPage } from "./SuspendedPage";
 
 type Phase = "loading" | "tos" | "suspended" | "error";
 
@@ -54,30 +53,24 @@ export function OidcCallbackClient() {
 
   async function exchangeCode(code: string) {
     try {
-      const authentikBase =
-        process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
-      const clientId =
-        process.env.NEXT_PUBLIC_AUTHENTIK_CLIENT_ID ?? "iqbalai-frontend";
+      const authentikBase = process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
+      const clientId = process.env.NEXT_PUBLIC_AUTHENTIK_CLIENT_ID ?? "iqbalai-frontend";
       const redirectUri =
-        (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") +
-        "/auth/callback";
+        (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") + "/auth/callback";
 
-      const res = await fetch(
-        `${authentikBase}/application/o/token/`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            grant_type: "authorization_code",
-            code,
-            client_id: clientId,
-            redirect_uri: redirectUri,
-          }),
-        },
-      );
+      const res = await fetch(`${authentikBase}/application/o/token/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          client_id: clientId,
+          redirect_uri: redirectUri,
+        }),
+      });
 
       if (!res.ok) throw new Error("Token exchange failed");
-      const tokenData = await res.json() as { access_token: string };
+      const tokenData = (await res.json()) as { access_token: string };
       const token = tokenData.access_token;
 
       setToken(token);
@@ -95,10 +88,7 @@ export function OidcCallbackClient() {
         current_tos_version_id: user.current_tos_version_id,
       });
 
-      if (
-        user.account_status === "suspended" &&
-        !user.tos_acceptance_required
-      ) {
+      if (user.account_status === "suspended" && !user.tos_acceptance_required) {
         setPhase("suspended");
         return;
       }
@@ -174,7 +164,9 @@ export function OidcCallbackClient() {
           <h1 className={phase === "suspended" ? "text-lg font-semibold text-gray-900" : undefined}>
             {phase === "suspended" ? t("suspended.title") : undefined}
           </h1>
-          <p className={phase === "suspended" ? "text-sm text-gray-600" : "text-red-600 font-medium"}>
+          <p
+            className={phase === "suspended" ? "text-sm text-gray-600" : "text-red-600 font-medium"}
+          >
             {errorMsg || (phase === "suspended" ? t("suspended.message") : "")}
           </p>
           <a href="/login" className="text-sm text-brand-600 underline">
@@ -188,11 +180,7 @@ export function OidcCallbackClient() {
   return (
     <main className="min-h-screen">
       {tosData && (
-        <TosModal
-          tos={tosData}
-          onAccept={handleTosAccept}
-          onDecline={handleTosDecline}
-        />
+        <TosModal tos={tosData} onAccept={handleTosAccept} onDecline={handleTosDecline} />
       )}
     </main>
   );

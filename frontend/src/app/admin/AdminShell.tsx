@@ -39,15 +39,20 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
-  { key: "districts", href: "/admin/districts", icon: Building2 },
-  { key: "users", href: "/admin/users", icon: Users },
-  { key: "languages", href: "/admin/languages", icon: Globe },
-  { key: "personas", href: "/admin/personas", icon: BookOpen },
-  { key: "exam_syllabi", href: "/admin/exam-syllabi", icon: BookOpen },
-  { key: "subscription_tiers", href: "/admin/subscription-tiers", icon: CreditCard },
-  { key: "tos", href: "/admin/tos", icon: FileText },
-  { key: "library", href: "/admin/library", icon: Library },
-  { key: "audit_log", href: "/admin/audit-log", icon: ClipboardList },
+  { key: "districts", href: "/admin/districts", icon: Building2, roles: [PLATFORM_ADMIN] },
+  { key: "users", href: "/admin/users", icon: Users, roles: [PLATFORM_ADMIN] },
+  { key: "languages", href: "/admin/languages", icon: Globe, roles: [PLATFORM_ADMIN] },
+  { key: "personas", href: "/admin/personas", icon: BookOpen, roles: [PLATFORM_ADMIN] },
+  { key: "exam_syllabi", href: "/admin/exam-syllabi", icon: BookOpen, roles: [PLATFORM_ADMIN] },
+  {
+    key: "subscription_tiers",
+    href: "/admin/subscription-tiers",
+    icon: CreditCard,
+    roles: [PLATFORM_ADMIN],
+  },
+  { key: "tos", href: "/admin/tos", icon: FileText, roles: [PLATFORM_ADMIN] },
+  { key: "library", href: "/admin/library", icon: Library, roles: [PLATFORM_ADMIN] },
+  { key: "audit_log", href: "/admin/audit-log", icon: ClipboardList, roles: [PLATFORM_ADMIN] },
 ];
 
 /** Nav items the given role is permitted to see. `null` (no/unknown user) → none. */
@@ -56,13 +61,7 @@ function navItemsForRole(role: string | null): NavItem[] {
   return NAV_ITEMS.filter((item) => item.roles.includes(role));
 }
 
-function SidebarNav({
-  role,
-  onNavigate,
-}: {
-  role: string | null;
-  onNavigate?: () => void;
-}) {
+function SidebarNav({ role, onNavigate }: { role: string | null; onNavigate?: () => void }) {
   const pathname = usePathname();
   const t = useTranslations("admin.nav");
   const items = navItemsForRole(role);
@@ -83,7 +82,7 @@ function SidebarNav({
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600",
                   active
                     ? "bg-brand-50 text-brand-700"
-                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                    : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                 )}
               >
                 <Icon className="size-5 shrink-0" aria-hidden="true" />
@@ -160,7 +159,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         className={cn(
           "fixed inset-y-0 start-0 z-50 w-64 bg-white border-e border-gray-200 flex flex-col",
           "transition-transform duration-200 ease-in-out md:hidden",
-          drawerOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full",
+          drawerOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
         )}
         aria-label={t("sidebar_label")}
         aria-hidden={!drawerOpen}

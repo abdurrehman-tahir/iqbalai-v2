@@ -26,7 +26,6 @@ import type {
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
 export type {
-  AuditEntry,
   Notification,
   PersonaRead as Persona,
   ExamSyllabusRead as Syllabus,
@@ -40,7 +39,7 @@ export class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
-    public details?: unknown,
+    public details?: unknown
   ) {
     super(message);
     this.name = "ApiError";
@@ -63,7 +62,7 @@ function formatValidationDetail(detail: ValidationDetail): string {
 
 function parseApiErrorBody(
   body: unknown,
-  status: number,
+  status: number
 ): { code: string; message: string; details?: unknown } {
   if (body && typeof body === "object") {
     const record = body as Record<string, unknown>;
@@ -101,11 +100,7 @@ function parseApiErrorBody(
   };
 }
 
-async function request<T>(
-  path: string,
-  options: RequestInit = {},
-  token?: string,
-): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> | undefined),
@@ -118,7 +113,12 @@ async function request<T>(
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (!res.ok) {
-    let body: { error?: { code?: string; message?: string }; code?: string; message?: string; details?: unknown } = {};
+    let body: {
+      error?: { code?: string; message?: string };
+      code?: string;
+      message?: string;
+      details?: unknown;
+    } = {};
     try {
       body = await res.json();
     } catch {
@@ -129,7 +129,7 @@ async function request<T>(
       res.status,
       err.code ?? "UNKNOWN_ERROR",
       err.message ?? `Request failed with status ${res.status}`,
-      body.details,
+      body.details
     );
   }
 
@@ -139,28 +139,36 @@ async function request<T>(
   return (envelope.data ?? envelope) as T;
 }
 
-async function requestFormData<T>(
-  path: string,
-  formData: FormData,
-  token?: string,
-): Promise<T> {
+async function requestFormData<T>(path: string, formData: FormData, token?: string): Promise<T> {
   const headers: Record<string, string> = {};
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let body: unknown = {};
+    try {
+      body = await res.json();
+    } catch {
+      // ignore parse errors
+    }
+    const parsed = parseApiErrorBody(body, res.status);
+    throw new ApiError(res.status, parsed.code, parsed.message, parsed.details);
+  }
+
+  const envelope = await res.json();
+  return (envelope.data ?? envelope) as T;
+}
+
 export const authApi = {
   postLogin: (token: string) =>
-    request<{
-      user_id: string;
-      email: string;
-      role: string;
-      district_id?: string | null;
-      school_id?: string | null;
-      is_first_login: boolean;
-      tos_acceptance_required: boolean;
-      current_tos_version_id: string | null;
-    }>("/auth/post-login", { method: "POST" }, token),
+    request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
 
   acceptInvite: (data: {
     token: string;
@@ -168,10 +176,10 @@ export const authApi = {
     password?: string;
     display_name?: string;
   }) =>
-    request<{ status: string; email?: string; message: string }>(
-      "/auth/accept-invite",
-      { method: "POST", body: JSON.stringify(data) },
-    ),
+    request<{ status: string; email?: string; message: string }>("/auth/accept-invite", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
 };
 
 // ── Users ─────────────────────────────────────────────────────────────────────
@@ -192,21 +200,6 @@ export const usersApi = {
   getMe: (token: string) => request<UserProfile>("/users/me", {}, token),
 };
 
-  if (!res.ok) {
-    let body: unknown = {};
-    try {
-      body = await res.json();
-    } catch {
-      // ignore parse errors
-    }
-    const parsed = parseApiErrorBody(body, res.status);
-    throw new ApiError(res.status, parsed.code, parsed.message, parsed.details);
-  }
-
-  const envelope = await res.json();
-  return (envelope.data ?? envelope) as T;
-}
-
 function mapTosVersion(raw: TosVersionRead): TosVersion {
   return {
     id: raw.id,
@@ -225,13 +218,6 @@ function mapDisclaimer(raw: DisclaimerVersionRead): TosVersion {
   };
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
-
-export const authApi = {
-  postLogin: (token: string) =>
-    request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
-};
-
 // ── ToS ───────────────────────────────────────────────────────────────────────
 
 export const tosApi = {
@@ -241,13 +227,13 @@ export const tosApi = {
     request<TosAcceptResponse>(
       "/users/me/accept-tos",
       { method: "POST", body: JSON.stringify({ tos_version_id: tosVersionId }) },
-      token,
+      token
     ),
   declineTos: (token: string) =>
     request<TosDeclineResponse>(
       "/users/me/decline-tos",
       { method: "POST", body: JSON.stringify({}) },
-      token,
+      token
     ),
   list: async (token: string) =>
     (await request<TosVersionRead[]>("/admin/tos", {}, token)).map(mapTosVersion),
@@ -255,19 +241,17 @@ export const tosApi = {
     const raw = await request<TosVersionRead>(
       "/admin/tos",
       { method: "POST", body: JSON.stringify({ content_md: content }) },
-      token,
+      token
     );
     return { id: raw.id, version: raw.version_number };
   },
   listDisclaimer: async (token: string) =>
-    (await request<DisclaimerVersionRead[]>("/admin/disclaimer", {}, token)).map(
-      mapDisclaimer,
-    ),
+    (await request<DisclaimerVersionRead[]>("/admin/disclaimer", {}, token)).map(mapDisclaimer),
   publishDisclaimer: async (token: string, content: string) => {
     const raw = await request<DisclaimerVersionRead>(
       "/admin/disclaimer",
       { method: "POST", body: JSON.stringify({ content }) },
-      token,
+      token
     );
     return { id: raw.id, version: raw.version_number };
   },
@@ -276,19 +260,18 @@ export const tosApi = {
 // ── Exam Syllabi ──────────────────────────────────────────────────────────────
 
 export const syllabiApi = {
-  list: (token: string) =>
-    request<ExamSyllabusRead[]>("/admin/exam-syllabi", {}, token),
+  list: (token: string) => request<ExamSyllabusRead[]>("/admin/exam-syllabi", {}, token),
   create: (token: string, data: ExamSyllabusCreate) =>
     request<ExamSyllabusRead>(
       "/admin/exam-syllabi",
       { method: "POST", body: JSON.stringify(data) },
-      token,
+      token
     ),
   update: (token: string, id: string, data: ExamSyllabusUpdate) =>
     request<ExamSyllabusRead>(
       `/admin/exam-syllabi/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   delete: (token: string, id: string) =>
     request<void>(`/admin/exam-syllabi/${id}`, { method: "DELETE" }, token),
@@ -306,10 +289,7 @@ export interface District {
 
 export const districtsApi = {
   list: (token: string) => request<District[]>("/admin/districts/", {}, token),
-  create: (
-    token: string,
-    data: { name: string; region?: string; language_preference?: string },
-  ) =>
+  create: (token: string, data: { name: string; region?: string; language_preference?: string }) =>
     request<District>(
       "/admin/districts/",
       {
@@ -319,17 +299,17 @@ export const districtsApi = {
         // returns the cached district instead of creating a duplicate.
         headers: { "Idempotency-Key": crypto.randomUUID() },
       },
-      token,
+      token
     ),
   update: (
     token: string,
     id: string,
-    data: { name?: string; region?: string; language_preference?: string },
+    data: { name?: string; region?: string; language_preference?: string }
   ) =>
     request<District>(
       `/admin/districts/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   delete: (token: string, id: string) =>
     request<void>(`/admin/districts/${id}`, { method: "DELETE" }, token),
@@ -379,7 +359,7 @@ export const adminUsersApi = {
       district_id?: string;
       school_id?: string;
       grade_scope?: string[];
-    },
+    }
   ) =>
     request<UserInvite>(
       "/admin/users",
@@ -388,14 +368,10 @@ export const adminUsersApi = {
         body: JSON.stringify(data),
         headers: { "Idempotency-Key": crypto.randomUUID() },
       },
-      token,
+      token
     ),
   resend: (token: string, inviteId: string) =>
-    request<UserInvite>(
-      `/admin/users/${inviteId}/resend`,
-      { method: "POST" },
-      token,
-    ),
+    request<UserInvite>(`/admin/users/${inviteId}/resend`, { method: "POST" }, token),
 };
 
 // ── Schools (T-031) ─────────────────────────────────────────────────────────────
@@ -414,7 +390,7 @@ export const schoolsApi = {
         ? `/admin/schools/?district_id=${encodeURIComponent(districtId)}`
         : "/admin/schools/",
       {},
-      token,
+      token
     ),
   create: (token: string, data: { name: string; district_id: string }) =>
     request<School>(
@@ -424,14 +400,10 @@ export const schoolsApi = {
         body: JSON.stringify(data),
         headers: { "Idempotency-Key": crypto.randomUUID() },
       },
-      token,
+      token
     ),
   update: (token: string, id: string, data: { name?: string }) =>
-    request<School>(
-      `/admin/schools/${id}`,
-      { method: "PUT", body: JSON.stringify(data) },
-      token,
-    ),
+    request<School>(`/admin/schools/${id}`, { method: "PUT", body: JSON.stringify(data) }, token),
   delete: (token: string, id: string) =>
     request<void>(`/admin/schools/${id}`, { method: "DELETE" }, token),
 };
@@ -439,14 +411,9 @@ export const schoolsApi = {
 // ── School Admin (T-032) ────────────────────────────────────────────────────────
 
 export const schoolAdminApi = {
-  getMySchool: (token: string) =>
-    request<School>("/school/admin/school", {}, token),
+  getMySchool: (token: string) => request<School>("/school/admin/school", {}, token),
   listAuditLog: async (token: string) => {
-    const res = await request<{ items: AuditEntry[] }>(
-      "/school/admin/audit-log/",
-      {},
-      token,
-    );
+    const res = await request<{ items: AuditEntry[] }>("/school/admin/audit-log/", {}, token);
     return res.items ?? [];
   },
 };
@@ -454,32 +421,30 @@ export const schoolAdminApi = {
 // ── Personas ──────────────────────────────────────────────────────────────────
 
 export const personasApi = {
-  list: (token: string) =>
-    request<PersonaRead[]>("/admin/personas", {}, token),
+  list: (token: string) => request<PersonaRead[]>("/admin/personas", {}, token),
   update: (token: string, id: string, data: PersonaUpdate) =>
     request<PersonaRead>(
       `/admin/personas/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
 };
 
 // ── Subscription Tiers ────────────────────────────────────────────────────────
 
 export const subscriptionsApi = {
-  list: (token: string) =>
-    request<SubscriptionTierRead[]>("/admin/subscription-tiers", {}, token),
+  list: (token: string) => request<SubscriptionTierRead[]>("/admin/subscription-tiers", {}, token),
   create: (token: string, data: SubscriptionTierCreate) =>
     request<SubscriptionTierRead>(
       "/admin/subscription-tiers",
       { method: "POST", body: JSON.stringify(data) },
-      token,
+      token
     ),
   update: (token: string, id: string, data: SubscriptionTierUpdate) =>
     request<SubscriptionTierRead>(
       `/admin/subscription-tiers/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   delete: (token: string, id: string) =>
     request<void>(`/admin/subscription-tiers/${id}`, { method: "DELETE" }, token),
@@ -492,7 +457,7 @@ export const libraryApi = {
     const page = await request<import("./types").LibraryBookListResponse>(
       "/admin/library",
       {},
-      token,
+      token
     );
     return page.items;
   },
@@ -515,7 +480,7 @@ export const libraryApi = {
     return requestFormData<LibraryUploadResponse>(
       `/admin/library?${qs.toString()}`,
       formData,
-      token,
+      token
     );
   },
   softDelete: (token: string, id: string) =>
@@ -535,9 +500,7 @@ export interface AuditEntry {
 
 export const auditApi = {
   list: async (token: string, params?: { actor?: string; action?: string }) => {
-    const qs = params
-      ? "?" + new URLSearchParams(params as Record<string, string>).toString()
-      : "";
+    const qs = params ? "?" + new URLSearchParams(params as Record<string, string>).toString() : "";
     const res = await request<{ items: AuditEntry[] }>(`/admin/audit-log${qs}`, {}, token);
     return res.items ?? [];
   },
@@ -599,7 +562,7 @@ async function uploadRequest<T>(path: string, formData: FormData, token: string)
     throw new ApiError(
       res.status,
       err.code ?? "UNKNOWN_ERROR",
-      err.message ?? `Request failed with status ${res.status}`,
+      err.message ?? `Request failed with status ${res.status}`
     );
   }
 
