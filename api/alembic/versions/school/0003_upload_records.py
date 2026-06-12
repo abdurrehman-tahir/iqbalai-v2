@@ -4,6 +4,10 @@ Revision ID: school_0003
 Revises: school_0002
 Create Date: 2026-05-20
 
+
+Purpose: Add upload_records table for file upload pipeline tracking.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

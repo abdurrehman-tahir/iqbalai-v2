@@ -13,8 +13,10 @@ from app.core.exceptions import (
     TosAcceptanceRequiredError,
     ValidationError,
 )
-from app.features.tos.models import DisclaimerVersion, TosVersion
+from app.features.tos.models import DisclaimerVersion, TosVersion, UserTosAcceptance
 from app.features.tos.repository import TosRepository
+from app.features.users.service import UserService
+from app.infrastructure.audit.log import audit
 
 logger = structlog.get_logger(__name__)
 
@@ -23,6 +25,7 @@ _MAX_DISCLAIMER_CHARS = 500
 
 class TosService:
     def __init__(self, session: AsyncSession) -> None:
+        self._session = session
         self._repo = TosRepository(session)
 
     async def get_current_tos(self) -> TosVersion:
@@ -50,6 +53,14 @@ class TosService:
             published_by=published_by,
         )
         created = await self._repo.create_tos_version(tos)
+        await audit(
+            session=self._session,
+            action="tos.published",
+            actor_id=published_by,
+            target_type="tos_version",
+            target_id=created.id,
+            metadata={"version_number": next_version},
+        )
         logger.info("tos_version_published", version=next_version, by=published_by)
         return created
 
@@ -58,14 +69,40 @@ class TosService:
         user_id: str,
         tos_version_id: str,
         ip_address: str | None = None,
-    ) -> object:
+    ) -> UserTosAcceptance:
         tos = await self._repo.get_tos_by_id(tos_version_id)
         if tos is None:
             raise NotFoundError(f"ToS version {tos_version_id} not found")
         already = await self._repo.has_accepted_tos(user_id, tos_version_id)
         if already:
             raise ConflictError("ToS version already accepted")
-        return await self._repo.record_acceptance(user_id, tos_version_id, ip_address)
+        acceptance = await self._repo.record_acceptance(user_id, tos_version_id, ip_address)
+        await UserService(self._session).reactivate_on_tos_accept(user_id)
+        await audit(
+            session=self._session,
+            action="tos.accepted",
+            actor_id=user_id,
+            target_type="tos_version",
+            target_id=tos_version_id,
+            ip_address=ip_address,
+        )
+        return acceptance
+
+    async def decline_tos(self, user_id: str, ip_address: str | None = None) -> None:
+        """Decline current ToS — suspends the account (Flow 1 §5.6)."""
+        current = await self._repo.get_current_tos()
+        if current is None:
+            raise NotFoundError("No ToS version published yet")
+        await UserService(self._session).suspend_for_tos_decline(user_id)
+        await audit(
+            session=self._session,
+            action="tos.declined",
+            actor_id=user_id,
+            target_type="tos_version",
+            target_id=current.id,
+            ip_address=ip_address,
+        )
+        logger.info("tos_declined", user_id=user_id, tos_version_id=current.id)
 
     async def check_user_has_accepted_current(self, user_id: str) -> bool:
         """Return True if user has accepted the current (latest) ToS version."""
@@ -110,5 +147,13 @@ class TosService:
             published_by=published_by,
         )
         created = await self._repo.create_disclaimer_version(disclaimer)
+        await audit(
+            session=self._session,
+            action="disclaimer.published",
+            actor_id=published_by,
+            target_type="disclaimer_version",
+            target_id=created.id,
+            metadata={"version_number": next_version},
+        )
         logger.info("disclaimer_version_published", version=next_version, by=published_by)
         return created

@@ -43,6 +43,8 @@ def configure_celery(broker_url: str, result_backend: str) -> None:
         # Beat schedule (populated per feature)
         beat_schedule={},
     )
+    # shared_task / apply_async from the API process must use this broker, not amqp://localhost.
+    celery_app.set_default()
     # app.features.* imports optional ingestion deps; register via tasks/celery_app.py
     celery_app.autodiscover_tasks(["app.tasks"], related_name="tasks", force=True)
 

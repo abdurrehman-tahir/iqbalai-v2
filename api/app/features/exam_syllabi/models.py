@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Boolean, Integer, String
+from sqlalchemy import Boolean, CheckConstraint, ForeignKey, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7
@@ -43,11 +43,26 @@ class SyllabusTopic(AuditMixin, SoftDeleteMixin, Base):
     """
 
     __tablename__ = "syllabus_topics"
-    __table_args__ = ({"schema": "school"},)
+    # depth is bounded 0..4 (chapter..item) at the DB layer; service enforces the
+    # parent.depth + 1 rule, the CHECK is the backstop (ARCH §4.7 — DB constraints).
+    __table_args__ = (
+        CheckConstraint("depth >= 0 AND depth <= 4", name="syllabus_topics_depth_check"),
+        {"schema": "school"},
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
-    syllabus_id: Mapped[str] = mapped_column(String(36), nullable=False)
-    parent_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    syllabus_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.exam_syllabi.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    parent_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.syllabus_topics.id", ondelete="CASCADE"),
+        nullable=True,
+        index=True,
+    )
     title: Mapped[str] = mapped_column(String(255), nullable=False)
     # Nesting depth: 0 = chapter, 1 = section, 2 = sub-section, 3 = topic, 4 = item
     depth: Mapped[int] = mapped_column(Integer, nullable=False, default=0)

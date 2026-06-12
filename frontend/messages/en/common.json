@@ -33,8 +33,14 @@
         "no_code": "No authorisation code received.",
         "generic": "An error occurred during sign in. Please try again.",
         "tos_accept_failed": "Failed to record your acceptance. Please try again.",
+        "tos_decline_failed": "Failed to record your decline. Please try again.",
         "back_to_login": "Back to login"
       }
+    },
+    "suspended": {
+      "title": "Account Suspended",
+      "description": "You declined the Terms of Service. Your account is suspended until you accept the current version.",
+      "back_to_login": "Back to login"
     },
     "tos_modal": {
       "title": "Terms of Service",
@@ -120,7 +126,7 @@
       },
       "col": {
         "name": "Name",
-        "description": "Description",
+        "exam_board": "Exam board",
         "version": "Version",
         "status": "Status",
         "actions": "Actions"
@@ -138,8 +144,8 @@
         "create_title": "New syllabus",
         "name_label": "Name",
         "name_placeholder": "e.g. Matric Punjab Board",
-        "desc_label": "Description (optional)",
-        "desc_placeholder": "Brief description…",
+        "exam_board_label": "Exam board",
+        "exam_board_placeholder": "e.g. Punjab Board, Cambridge",
         "cancel": "Cancel",
         "save": "Save changes",
         "create": "Create",
@@ -165,7 +171,8 @@
         "cta": "Add first tier"
       },
       "month": "month",
-      "role_label": "Applies to",
+      "applies_to_label": "Applies to",
+      "slug_label": "Slug",
       "status": {
         "active": "Active",
         "deprecated": "Deprecated"
@@ -179,9 +186,12 @@
         "create_title": "New tier",
         "name_label": "Name",
         "name_placeholder": "e.g. Basic District",
+        "slug_label": "Slug",
+        "slug_placeholder": "e.g. basic-district",
+        "applies_to_label": "Applies to",
+        "applies_to_school": "School",
+        "applies_to_district": "District",
         "price_label": "Monthly price (PKR)",
-        "role_label": "Applies to role",
-        "role_placeholder": "school | district | independent_teacher",
         "caps_label": "Capability caps (JSON)",
         "caps_invalid_json": "Must be valid JSON",
         "cancel": "Cancel",

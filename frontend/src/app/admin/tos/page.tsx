@@ -2,10 +2,14 @@
 
 import { useState } from "react";
 import { useTranslations } from "next-intl";
+import { useSearchParams } from "next/navigation";
 import { TosAdminClient } from "./TosAdminClient";
 
 export default function TosPage() {
-  const [tab, setTab] = useState<"tos" | "disclaimer">("tos");
+  const searchParams = useSearchParams();
+  const initialTab =
+    searchParams.get("tab") === "disclaimer" ? "disclaimer" : "tos";
+  const [tab, setTab] = useState<"tos" | "disclaimer">(initialTab);
   const t = useTranslations("admin.nav");
 
   return (

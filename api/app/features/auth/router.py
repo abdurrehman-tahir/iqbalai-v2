@@ -2,11 +2,13 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db
-from app.core.responses import success
+from app.core.responses import SuccessEnvelope, success
 from app.features.auth.schemas import PostLoginResponse
 from app.features.auth.service import AuthService
 
@@ -15,7 +17,8 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 @router.post(
     "/post-login",
-    response_model=dict,
+    response_model=SuccessEnvelope[PostLoginResponse],
+    operation_id="post_login",
     summary="Post-OIDC-login handler",
     description=(
         "Called by the frontend after every successful Authentik OIDC callback. "
@@ -24,9 +27,9 @@ router = APIRouter(prefix="/auth", tags=["auth"])
     ),
 )
 async def post_login(
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = AuthService(db)
     result = await svc.post_login(claims)
-    return success(PostLoginResponse(**result).model_dump())
+    return success(PostLoginResponse.model_validate(result).model_dump())

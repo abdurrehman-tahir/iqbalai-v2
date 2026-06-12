@@ -8,6 +8,7 @@ deployment environment, swap `extract_text_from_pdf` to call MinerU and fall bac
 from __future__ import annotations
 
 import structlog
+from io import BytesIO
 
 logger = structlog.get_logger(__name__)
 
@@ -22,7 +23,7 @@ def extract_text_from_pdf(data: bytes) -> list[dict[str, object]]:
     import pdfplumber  # local import so the dep is optional at import time
 
     pages: list[dict[str, object]] = []
-    with pdfplumber.open(data) as pdf:
+    with pdfplumber.open(BytesIO(data)) as pdf:
         for i, page in enumerate(pdf.pages, start=1):
             text = page.extract_text() or ""
             pages.append({"page": i, "text": text.strip()})

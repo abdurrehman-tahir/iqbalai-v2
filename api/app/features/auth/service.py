@@ -6,6 +6,7 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.tos.repository import TosRepository
+from app.features.users.models import AccountStatus
 from app.features.users.service import UserService
 
 logger = structlog.get_logger(__name__)
@@ -26,6 +27,24 @@ class AuthService:
         whether to show the ToS modal.
         """
         user, is_first_login = await self._user_svc.get_or_create_from_jwt(claims)
+
+        # Suspended users must re-accept ToS before proceeding (Flow 1 §5.6).
+        if user.account_status == AccountStatus.SUSPENDED:
+            current_tos = await self._tos_repo.get_current_tos()
+            logger.info(
+                "post_login_suspended",
+                user_id=user.id,
+                role=user.role.value,
+            )
+            return {
+                "user_id": user.id,
+                "email": user.email,
+                "role": user.role,
+                "is_first_login": is_first_login,
+                "tos_acceptance_required": current_tos is not None,
+                "current_tos_version_id": current_tos.id if current_tos else None,
+                "account_status": user.account_status,
+            }
 
         # Check ToS acceptance status
         current_tos = await self._tos_repo.get_current_tos()
@@ -48,4 +67,5 @@ class AuthService:
             "is_first_login": is_first_login,
             "tos_acceptance_required": not tos_accepted,
             "current_tos_version_id": current_tos.id if current_tos else None,
+            "account_status": user.account_status,
         }

@@ -74,6 +74,13 @@ repos:
         types_or: [python, ts, tsx, javascript, jsx]
         pass_filenames: true
 
+      - id: check-response-model
+        name: FastAPI route contract check (response_model + operation_id)
+        entry: python scripts/check_response_model.py
+        language: system
+        files: router\.py$
+        pass_filenames: true
+
   # ------------------------------------------------------------------
   # Frontend: prettier (when frontend/ exists)
   # ------------------------------------------------------------------

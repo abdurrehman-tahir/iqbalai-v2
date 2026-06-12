@@ -1,6 +1,6 @@
 # M-01a — Foundation Remediation + FE/Integration Enforcement
 
-**Status:** drafted
+**Status:** done
 **Layer:** 1
 **Sequence:** after M-01, before M-02 (M-02 `Depends on` flips to M-01a)
 **Ticket range:** T-223 to T-237 (off the T-222 high-water mark; **non-positional** numbering — same convention as M-22/M-23. The IDs do not need to sit between T-027 and T-028; the ROADMAP order is positional, the IDs are not.)
@@ -21,7 +21,7 @@ Two ticket groups: **foundation** (T-223–T-229, the new enforcement layer) the
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - (foundation — no flow spec) STACK_LOCK §2 (FE testing row)
@@ -54,7 +54,7 @@ Vitest + React Testing Library configured for `frontend/` (jsdom env, coverage v
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - (foundation) AMENDMENTS A-002; STACK_LOCK §2 (API types row)
@@ -90,7 +90,7 @@ An offline OpenAPI export (`python -m app.openapi_export > openapi.json` — no 
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - (foundation) STACK_LOCK §1 (`response_model` mandate); CLAUDE.md CI invariant 7
@@ -131,7 +131,7 @@ This closes the two ❌ "known violations" (response_model=dict, missing operati
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done (0f4081a)
 
 ### Spec source
 - (foundation) STACK_LOCK §2 (design tokens — now RESOLVED to `tailwind.config.ts`)
@@ -163,7 +163,7 @@ Formalized design tokens in `tailwind.config.ts` (color scale, spacing, radius, 
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done (2ddccd9)
 
 ### Spec source
 - `flow-1-platform-setup.md` §2 (Platform Admin persona), §4 (permissions matrix)
@@ -197,7 +197,7 @@ Harden the authenticated `/admin` layout into the **single shell** every page re
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done (2d4de26)
 
 ### Spec source
 - (foundation — enables reproducible demos + E2E)
@@ -228,7 +228,7 @@ An idempotent `scripts/seed_dev.py` that creates the bootstrap Platform Admin + 
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done (2293c55)
 
 ### Spec source
 - (foundation) CLAUDE.md CI invariant 7
@@ -257,7 +257,7 @@ Paste the four jobs from `ci.frontend-checks.snippet.yml` into `ci.yml` (fronten
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done (482d3f5)
 
 ### Spec source
 - `flow-1-platform-setup.md` §11 (data-model sketch), §6 (limits: single Custom-persona slot, etc.)
@@ -304,7 +304,7 @@ Also confirm each `…Read` Pydantic schema's fields are a true subset of its mo
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §2, §4 (the M-01 surfaces)
@@ -336,7 +336,7 @@ Audit every M-01 admin page (Languages, Personas, Exam Syllabi, Subscription Tie
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` §3.6 (Disclaimer/ToS lifecycle), §5.6 (force-accept edge cases)
@@ -372,7 +372,7 @@ Fix the bootstrap/Authentik ToS acceptance page (T-016) **and** the admin ToS/di
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - (foundation) AMENDMENTS A-002
@@ -405,7 +405,7 @@ Regenerate `schema.d.ts`; convert M-00/M-01 feature `types.ts`/`api.ts` to consu
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - (foundation) ARCH §4.12 (model-first autogenerate)
@@ -441,7 +441,7 @@ Also backfill the **§4.12 structured migration headers** (`Purpose:` / `Risk:` 
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-1-platform-setup.md` (M-01 acceptance paths)
@@ -472,7 +472,7 @@ Backfill Vitest + RTL tests for existing M-00/M-01 admin components (four UI sta
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - (foundation — dev ergonomics) M-00 T-002/T-005 (compose topology)
@@ -514,7 +514,7 @@ Make the local stack lean — core boots ~7 containers instead of 16 — without
 **Layer:** 1
 **Milestone:** M-01a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
 
 ### Depends on
 - T-223 … T-236

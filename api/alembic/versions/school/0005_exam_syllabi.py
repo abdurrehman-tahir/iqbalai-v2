@@ -4,6 +4,10 @@ Revision ID: school_0005
 Revises: school_0004
 Create Date: 2026-05-26
 
+
+Purpose: Add exam syllabi and syllabus topics tables.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

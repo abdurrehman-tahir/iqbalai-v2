@@ -1,3 +1,27 @@
 {
-  "extends": ["next/core-web-vitals", "next/typescript"]
+  "extends": ["next/core-web-vitals", "next/typescript"],
+  "rules": {
+    "react/forbid-dom-props": [
+      "error",
+      {
+        "forbid": [
+          {
+            "propName": "style",
+            "message": "No inline styles (T-226). Use Tailwind semantic token classes (bg-card, text-muted-foreground, …)."
+          }
+        ]
+      }
+    ],
+    "react/forbid-component-props": [
+      "error",
+      {
+        "forbid": [
+          {
+            "propName": "style",
+            "message": "No inline styles (T-226). Use Tailwind semantic token classes (bg-card, text-muted-foreground, …)."
+          }
+        ]
+      }
+    ]
+  }
 }

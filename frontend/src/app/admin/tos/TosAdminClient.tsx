@@ -18,6 +18,7 @@ import { Modal } from "@/components/ui/modal";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const TOS_CHAR_LIMIT = 50_000;
 const DISCLAIMER_CHAR_LIMIT = 500;
@@ -85,9 +86,9 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
         <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-36" />
+          <Skeleton className="h-10 w-36 ms-auto" aria-hidden="true" />
         </div>
         <div className="space-y-3">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -100,11 +101,14 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
 
   if (isError) {
     return (
-      <ErrorState
-        description={t("error")}
-        onRetry={() => refetch()}
-        retryLabel={t("retry")}
-      />
+      <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
+        <ErrorState
+          description={t("error")}
+          onRetry={() => refetch()}
+          retryLabel={t("retry")}
+        />
+      </div>
     );
   }
 
@@ -112,12 +116,8 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-          <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-        </div>
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
         <Button variant="primary" size="md" className="gap-2" onClick={openPublish}>
           <Plus className="size-4" aria-hidden="true" />
           {t("publish_button")}
@@ -186,7 +186,9 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
         closeLabel={t("modal.close")}
       >
         <form
-          onSubmit={form.handleSubmit((v) => publishMutation.mutateAsync(v))}
+          onSubmit={form.handleSubmit(async (v) => {
+            await publishMutation.mutateAsync(v);
+          })}
           className="space-y-4"
         >
           <div>
