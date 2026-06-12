@@ -4,29 +4,24 @@
 
 ---
 
-**Current milestone:** M-01 — Platform Setup
-**Current ticket:** T-027 (PR) — next step; then M-01 is complete → move to M-02
-**Ticket dossier loaded:** via direct milestone file read
-**Dossier source files:** docs/backlog/M-01-platform-setup.md
+**Current milestone:** M-02 — School Onboarding
+**Branch:** milestone/M-02-school-onboarding (from origin/staging @7000c23)
+**Current ticket:** T-028 — District + School data model — **done** (committing)
+**Ticket dossier loaded:** via general-purpose agent running the ticket-loader procedure (real loader was broken — see below)
+**Dossier source files:** docs/backlog/M-02-school-onboarding.md; ARCH §3.3, §3.13; flow-1 §3.1, flow-2 §3.1
 
 **Done this session:**
-- M-00 all T-001 to T-015: Status done (already implemented in prior sessions)
-- T-016: backend (prior) + frontend login/OIDC/ToS modal — done
-- T-017: AdminShell layout + sidebar — done
-- T-018: Languages page — done
-- T-019: ToS + Disclaimer admin pages — done
-- T-020: Exam syllabi CRUD — done
-- T-021: Teaching personas editor — done
-- T-022: Subscription tiers CRUD — done
-- T-023: Notification bell + panel — done
-- T-024: Platform Library upload page — done
-- T-025: Audit log viewer — done
-- T-026: E2E smoke spec written (frontend/e2e/); @playwright/test gap noted for STACK_LOCK
+- Fixed .claude/agents/ticket-loader.md frontmatter tool names (view/bash → Read/Bash/Grep/Glob). Root cause of empty tool output. Takes effect NEXT session (agent defs cached at session start); used general-purpose agent as workaround this session.
+- T-028: created api/app/features/schools/ (models.py: District + School), migration school/0012_districts_schools.py, tests in features/schools/tests/test_school_models.py. Flipped T-028 Status→done in milestone file.
 
-**Commits this session:**
-- 013594e feat(platform-admin): T-016 to T-025 frontend — M-01 admin dashboard + all pages
-- 45b900c feat(platform-admin): T-026 E2E smoke test spec + STACK_LOCK gap noted
+**Key decision (Hamza-approved):**
+- §3.3 override of T-028 acceptance #2/#4: districts/schools are tenant ROOTS → NO RLS. District-Admin scoping deferred to repo/role layer in T-029. §3.13 cross-tenant test attaches to first tenant-scoped table, not these roots. Ticket's §3.9 cite is stale (RLS lives in §3.3).
 
-**Next intended step:** T-027 — open PR for M-01, then begin M-02
+**Verified:**
+- ruff + mypy --strict clean on features/schools; 10 model tests pass.
+- Migration applied + downgraded cleanly on a throwaway PG (full school chain 0001→0012): FK RESTRICT, indexes, unique constraints, seed data, RLS=off all confirmed.
+- NOTE: shared dev DB (compose) is at school_0014 from prior milestone_1a checkout — divergent from this branch (ends at 0012). Did NOT touch it.
 
-**Format-gate run:** lint ✅ typecheck ✅ | prettier not installed (STACK_LOCK gap)
+**Next intended step:** T-029 — Platform Admin creates District: API + UI (depends on T-028).
+
+**Format-gate run:** ruff format/check ✅ mypy --strict ✅ pytest (schools) ✅
