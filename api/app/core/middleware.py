@@ -10,6 +10,9 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from app.core.security import decode_jwt
+from app.db.session import async_session_factory
+from app.features.users.models import UserAccountStatus
+from app.features.users.repository import UserRepository
 
 logger = structlog.get_logger(__name__)
 
@@ -29,6 +32,43 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/metrics",
     }
 )
+
+
+async def _account_status_block(authentik_id: str) -> JSONResponse | None:
+    """Return a 403 response when the user account is not active."""
+    if not authentik_id:
+        return None
+
+    async with async_session_factory() as session:
+        repo = UserRepository(session)
+        user = await repo.get_by_authentik_id_any(authentik_id)
+
+    if user is None:
+        return None
+
+    if user.deleted_at is not None or user.status == UserAccountStatus.DEACTIVATED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": {
+                    "code": "ACCOUNT_DEACTIVATED",
+                    "message": "Account deactivated — contact your administrator",
+                }
+            },
+        )
+
+    if user.status == UserAccountStatus.SUSPENDED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": {
+                    "code": "ACCOUNT_SUSPENDED",
+                    "message": "Account suspended — contact your administrator",
+                }
+            },
+        )
+
+    return None
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -72,6 +112,10 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     }
                 },
             )
+
+        blocked = await _account_status_block(str(claims.get("sub", "")))
+        if blocked is not None:
+            return blocked
 
         request.state.claims = claims
         return await call_next(request)

@@ -4,13 +4,16 @@ import { useState, useEffect } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { School, Menu, X, LogOut } from "lucide-react";
+import { School, Menu, X, LogOut, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser, type StoredUser } from "@/lib/auth";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
-const NAV_ITEMS = [{ key: "schools", href: "/admin/district/schools", icon: School }] as const;
+const NAV_ITEMS = [
+  { key: "schools", href: "/admin/district/schools", icon: School },
+  { key: "users", href: "/admin/district/users", icon: Users },
+] as const;
 
 export function DistrictAdminShell({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);

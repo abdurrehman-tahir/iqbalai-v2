@@ -109,13 +109,28 @@ def test_invalid_token_body_has_error_code(client: TestClient) -> None:
 def test_valid_token_passes_through(client: TestClient) -> None:
     fake_claims = {"sub": "user-123", "role": "teacher", "email": "t@school.pk"}
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
-        response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+        with patch("app.core.middleware._account_status_block", new_callable=AsyncMock, return_value=None):
+            response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
     assert response.status_code == 200
 
 
 def test_valid_token_claims_set_on_request_state(client: TestClient) -> None:
     fake_claims = {"sub": "user-123", "role": "teacher"}
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
-        response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+        with patch("app.core.middleware._account_status_block", new_callable=AsyncMock, return_value=None):
+            response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
     assert response.json()["claims"]["sub"] == "user-123"
     assert response.json()["claims"]["role"] == "teacher"
+
+
+def test_suspended_user_returns_403(client: TestClient) -> None:
+    fake_claims = {"sub": "user-123", "role": "teacher"}
+    blocked = JSONResponse(
+        status_code=403,
+        content={"error": {"code": "ACCOUNT_SUSPENDED", "message": "Account suspended"}},
+    )
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch("app.core.middleware._account_status_block", new_callable=AsyncMock, return_value=blocked):
+            response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "ACCOUNT_SUSPENDED"

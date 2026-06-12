@@ -34,16 +34,17 @@ async function request<T>(
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (!res.ok) {
-    let body: { code?: string; message?: string; details?: unknown } = {};
+    let body: { error?: { code?: string; message?: string }; code?: string; message?: string; details?: unknown } = {};
     try {
       body = await res.json();
     } catch {
       // ignore parse errors
     }
+    const err = body.error ?? body;
     throw new ApiError(
       res.status,
-      body.code ?? "UNKNOWN_ERROR",
-      body.message ?? `Request failed with status ${res.status}`,
+      err.code ?? "UNKNOWN_ERROR",
+      err.message ?? `Request failed with status ${res.status}`,
       body.details,
     );
   }
@@ -230,7 +231,25 @@ export interface UserInvite {
   created_at: string;
 }
 
+export interface AdminUser {
+  id: string;
+  email: string;
+  display_name: string;
+  role: string;
+  status: string;
+  district_id: string | null;
+  school_id: string | null;
+  created_at: string;
+}
+
 export const adminUsersApi = {
+  list: (token: string) => request<AdminUser[]>("/admin/users/", {}, token),
+  suspend: (token: string, userId: string) =>
+    request<AdminUser>(`/admin/users/${userId}/suspend`, { method: "POST" }, token),
+  reactivate: (token: string, userId: string) =>
+    request<AdminUser>(`/admin/users/${userId}/reactivate`, { method: "POST" }, token),
+  deactivate: (token: string, userId: string) =>
+    request<AdminUser>(`/admin/users/${userId}/deactivate`, { method: "POST" }, token),
   invite: (
     token: string,
     data: {

@@ -20,6 +20,7 @@ from app.features.smoketest.router import router as smoketest_router
 from app.features.subscriptions.router import router as subscriptions_router
 from app.features.tos.router import router as tos_router
 from app.features.users.router import router as users_router
+from app.features.users.admin_router import router as admin_users_router
 
 router = APIRouter()
 
@@ -28,6 +29,7 @@ router.include_router(smoketest_router, tags=["smoketest"])
 router.include_router(uploads_router, tags=["uploads"])
 router.include_router(auth_router)
 router.include_router(users_router)
+router.include_router(admin_users_router)
 router.include_router(tos_router)
 router.include_router(syllabi_router)
 router.include_router(districts_router)

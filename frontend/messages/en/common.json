@@ -32,8 +32,13 @@
         "auth_denied": "Login was denied or cancelled.",
         "no_code": "No authorisation code received.",
         "generic": "An error occurred during sign in. Please try again.",
+        "account_suspended": "Your account has been suspended. Contact your administrator.",
         "tos_accept_failed": "Failed to record your acceptance. Please try again.",
         "back_to_login": "Back to login"
+      },
+      "suspended": {
+        "title": "Account suspended",
+        "message": "Your account has been suspended. Contact your administrator to regain access."
       }
     },
     "tos_modal": {
@@ -67,7 +72,8 @@
     "nav": {
       "aria_label": "District admin navigation",
       "open_menu": "Open menu",
-      "schools": "Schools"
+      "schools": "Schools",
+      "users": "Users"
     },
     "schools": {
       "title": "Schools",
@@ -147,6 +153,7 @@
       "open_menu": "Open navigation menu",
       "close_menu": "Close navigation menu",
       "districts": "Districts",
+      "users": "Users",
       "languages": "Languages",
       "personas": "Teaching Personas",
       "exam_syllabi": "Exam Syllabi",
@@ -156,6 +163,62 @@
       "audit_log": "Audit Log",
       "tos_tab_tos": "Terms of Service",
       "tos_tab_disclaimer": "Disclaimer"
+    },
+    "users": {
+      "title": "Users",
+      "subtitle": "Manage user accounts in your scope — suspend, reactivate, or deactivate.",
+      "error": "Failed to load users",
+      "retry": "Retry",
+      "table_label": "Users table",
+      "empty": {
+        "title": "No users yet",
+        "description": "Users appear here after they accept an invitation or are created in your scope."
+      },
+      "col": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "deactivated": "Deactivated"
+      },
+      "roles": {
+        "platform_admin": "Platform Admin",
+        "district_admin": "District Admin",
+        "school_admin": "School Admin",
+        "coordinator": "Coordinator",
+        "teacher": "Teacher",
+        "student": "Student",
+        "parent": "Parent"
+      },
+      "actions": {
+        "suspend": "Suspend",
+        "reactivate": "Reactivate",
+        "deactivate": "Deactivate"
+      },
+      "confirm": {
+        "cancel": "Cancel",
+        "suspend": {
+          "title": "Suspend user?",
+          "description": "Suspend \"{name}\"? They will be unable to sign in until reactivated.",
+          "confirm": "Suspend"
+        },
+        "reactivate": {
+          "title": "Reactivate user?",
+          "description": "Reactivate \"{name}\"? They will be able to sign in again.",
+          "confirm": "Reactivate"
+        },
+        "deactivate": {
+          "title": "Deactivate user?",
+          "description": "Permanently deactivate \"{name}\"? This cannot be undone.",
+          "confirm": "Deactivate"
+        }
+      }
     },
     "notifications": {
       "aria_label": "{count, plural, =0 {Notifications} one {1 unread notification} other {{count} unread notifications}}",

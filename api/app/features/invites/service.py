@@ -20,7 +20,7 @@ from app.features.invites.models import UserInvite, UserInviteStatus
 from app.features.invites.repository import UserInviteRepository
 from app.features.invites.schemas import AcceptInviteRequest, AdminUserInviteCreate
 from app.features.schools.repository import DistrictRepository, SchoolRepository
-from app.features.users.models import User, UserRole
+from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
 from app.infrastructure.authentik.client import AuthentikClientProtocol, get_authentik_client
@@ -301,6 +301,7 @@ class InviteService:
             email=invite.email,
             display_name=display_name,
             role=invite.invited_role,
+            status=UserAccountStatus.ACTIVE,
             district_id=invite.district_id,
             school_id=invite.school_id,
         )

@@ -1,5 +1,5 @@
-import { SchoolAdminHomeClient } from "../SchoolAdminHomeClient";
+import { UsersClient } from "@/app/admin/users/UsersClient";
 
-export default function SchoolAdminUsersPlaceholder() {
-  return <SchoolAdminHomeClient />;
+export default function SchoolAdminUsersPage() {
+  return <UsersClient />;
 }

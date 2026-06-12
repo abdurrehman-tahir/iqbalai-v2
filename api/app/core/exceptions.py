@@ -63,6 +63,24 @@ class PreconditionFailedError(IqbalAIError):
         super().__init__("PRECONDITION_FAILED", message, status.HTTP_412_PRECONDITION_FAILED)
 
 
+class AccountSuspendedError(IqbalAIError):
+    """User account is suspended."""
+
+    def __init__(
+        self, message: str = "Account suspended — contact your administrator"
+    ) -> None:
+        super().__init__("ACCOUNT_SUSPENDED", message, status.HTTP_403_FORBIDDEN)
+
+
+class AccountDeactivatedError(IqbalAIError):
+    """User account is deactivated (one-way)."""
+
+    def __init__(
+        self, message: str = "Account deactivated — contact your administrator"
+    ) -> None:
+        super().__init__("ACCOUNT_DEACTIVATED", message, status.HTTP_403_FORBIDDEN)
+
+
 class TosAcceptanceRequiredError(IqbalAIError):
     """User must accept the current ToS before proceeding."""
 

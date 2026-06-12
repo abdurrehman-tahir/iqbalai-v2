@@ -32,8 +32,9 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
   { key: "districts", href: "/admin/districts", icon: Building2 },
+  { key: "users", href: "/admin/users", icon: Users },
   { key: "languages", href: "/admin/languages", icon: Globe },
-  { key: "personas", href: "/admin/personas", icon: Users },
+  { key: "personas", href: "/admin/personas", icon: BookOpen },
   { key: "exam_syllabi", href: "/admin/exam-syllabi", icon: BookOpen },
   { key: "subscription_tiers", href: "/admin/subscription-tiers", icon: CreditCard },
   { key: "tos", href: "/admin/tos", icon: FileText },

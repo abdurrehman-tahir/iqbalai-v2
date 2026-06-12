@@ -5,15 +5,15 @@
 ---
 
 **Current milestone:** M-02 — School Onboarding
-**Branch:** milestone/M-02-school-onboarding (from origin/staging @7000c23)
-**Current ticket:** T-032 — School Admin invitation + first login + empty dashboard — **done** (ready to commit)
-**Dossier source files:** docs/backlog/M-02-school-onboarding.md; flow-2 §3.1/§3.5; ARCH §6.19
+**Branch:** milestone/M-02-school-onboarding
+**Current ticket:** T-033 — User lifecycle — **done** (committed)
+**Next intended step:** T-034 (Coordinator role: invitation + scope assignment)
 
-**Done this session (T-032):**
-- Backend: InviteService school_admin scope validation (district_admin + school_id); invite router allows district_admin; SchoolService get_my_school + cross-school 404; school_admin_router GET /school/admin/school + /schools/{id}.
-- Frontend: SchoolsClient invite modal (UserPlus per school); SchoolAdminShell shows school name + Coordinators nav; schoolAdminApi.getMySchool(); /school/admin/coordinators placeholder.
-- Tests: invite service (school admin invite, cross-district 404, accept sets school_id); invite API (district_admin school invite); school admin API (3); SchoolsClient invite vitest.
+**Done (T-033):**
+- Migration 0015 useraccountstatus; UserAccountStatus on User model
+- UserLifecycleService + admin_router (list/suspend/reactivate/deactivate)
+- AuthMiddleware account status check; post-login suspended/deactivated rejection
+- Authentik deactivate_user; UsersClient UI at /admin/users (+ district/school routes)
+- Tests: lifecycle service (5), admin users API (3), middleware suspended (1), UsersClient vitest (1)
 
-**Verified:** ruff OK (after fix), backend invites+schools pytest 51/51, frontend vitest 40/40.
-
-**Next intended step:** T-033 (User lifecycle: suspend / reactivate / deactivate).
+**Verified:** ruff OK, backend users+invites+middleware pytest 39/39, frontend vitest 41/41

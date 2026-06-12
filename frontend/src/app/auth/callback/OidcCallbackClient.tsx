@@ -3,11 +3,11 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { authApi, tosApi } from "@/lib/api";
+import { authApi, tosApi, ApiError } from "@/lib/api";
 import { setToken, setUser, getPostLoginPath } from "@/lib/auth";
 import { TosModal } from "./TosModal";
 
-type Phase = "loading" | "tos" | "error";
+type Phase = "loading" | "tos" | "suspended" | "error";
 
 interface TosData {
   id: string;
@@ -108,6 +108,11 @@ export function OidcCallbackClient() {
       }
     } catch (err) {
       console.error("OIDC callback error:", err);
+      if (err instanceof ApiError && err.code === "ACCOUNT_SUSPENDED") {
+        setErrorMsg(t("error.account_suspended"));
+        setPhase("suspended");
+        return;
+      }
       setErrorMsg(t("error.generic"));
       setPhase("error");
     }
@@ -149,11 +154,16 @@ export function OidcCallbackClient() {
     );
   }
 
-  if (phase === "error") {
+  if (phase === "error" || phase === "suspended") {
     return (
       <main className="flex min-h-screen items-center justify-center p-8">
         <div className="max-w-sm text-center space-y-4">
-          <p className="text-red-600 font-medium">{errorMsg}</p>
+          <h1 className={phase === "suspended" ? "text-lg font-semibold text-gray-900" : undefined}>
+            {phase === "suspended" ? t("suspended.title") : undefined}
+          </h1>
+          <p className={phase === "suspended" ? "text-sm text-gray-600" : "text-red-600 font-medium"}>
+            {errorMsg || (phase === "suspended" ? t("suspended.message") : "")}
+          </p>
           <a href="/login" className="text-sm text-brand-600 underline">
             {t("error.back_to_login")}
           </a>

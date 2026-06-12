@@ -5,7 +5,7 @@ from __future__ import annotations
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.features.users.models import User, UserRole
+from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
 
 logger = structlog.get_logger(__name__)
@@ -32,6 +32,9 @@ class UserService:
     def __init__(self, session: AsyncSession) -> None:
         self._repo = UserRepository(session)
 
+    async def get_by_authentik_id_any(self, authentik_id: str) -> User | None:
+        return await self._repo.get_by_authentik_id_any(authentik_id)
+
     async def get_or_create_from_jwt(self, claims: dict[str, object]) -> tuple[User, bool]:
         """Upsert a user record from JWT claims on first OIDC login.
 
@@ -47,6 +50,7 @@ class UserService:
             email=str(claims.get("email", "")),
             display_name=str(claims.get("name", claims.get("email", ""))),
             role=parse_user_role(claims.get("role", "student")),
+            status=UserAccountStatus.ACTIVE,
             school_id=str(claims.get("school_id", "")) or None,
             district_id=str(claims.get("district_id", "")) or None,
         )

@@ -18,6 +18,8 @@ class AuthentikClientProtocol(Protocol):
 
     async def activate_user(self, authentik_id: str) -> None: ...
 
+    async def deactivate_user(self, authentik_id: str) -> None: ...
+
     async def set_password(self, authentik_id: str, password: str) -> None: ...
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None: ...
@@ -39,6 +41,11 @@ class DevAuthentikClient:
         if authentik_id in self._users:
             self._users[authentik_id]["is_active"] = True
         logger.info("dev_authentik_user_activated", pk=authentik_id)
+
+    async def deactivate_user(self, authentik_id: str) -> None:
+        if authentik_id in self._users:
+            self._users[authentik_id]["is_active"] = False
+        logger.info("dev_authentik_user_deactivated", pk=authentik_id)
 
     async def set_password(self, authentik_id: str, password: str) -> None:
         if authentik_id in self._users:
@@ -78,6 +85,15 @@ class AuthentikClient:
             resp = await client.patch(
                 f"{self._base_url}/core/users/{authentik_id}/",
                 json={"is_active": True},
+                headers={"Authorization": f"Bearer {self._token}"},
+            )
+            resp.raise_for_status()
+
+    async def deactivate_user(self, authentik_id: str) -> None:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.patch(
+                f"{self._base_url}/core/users/{authentik_id}/",
+                json={"is_active": False},
                 headers={"Authorization": f"Bearer {self._token}"},
             )
             resp.raise_for_status()

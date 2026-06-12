@@ -5,7 +5,9 @@ from __future__ import annotations
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import AccountDeactivatedError, AccountSuspendedError
 from app.features.tos.repository import TosRepository
+from app.features.users.models import UserAccountStatus
 from app.features.users.service import UserService
 
 logger = structlog.get_logger(__name__)
@@ -25,6 +27,18 @@ class AuthService:
         Returns a dict describing the login result so the frontend can decide
         whether to show the ToS modal.
         """
+        authentik_id = str(claims.get("sub", ""))
+        existing_any = await self._user_svc.get_by_authentik_id_any(authentik_id)
+        if existing_any is not None:
+            is_deactivated = (
+                existing_any.deleted_at is not None
+                or existing_any.status == UserAccountStatus.DEACTIVATED
+            )
+            if is_deactivated:
+                raise AccountDeactivatedError()
+            if existing_any.status == UserAccountStatus.SUSPENDED:
+                raise AccountSuspendedError()
+
         user, is_first_login = await self._user_svc.get_or_create_from_jwt(claims)
 
         # Check ToS acceptance status
