@@ -689,6 +689,59 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/subjects/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List subjects in the caller's school */
+        get: operations["subjects_list"];
+        put?: never;
+        /** Create a new subject in the caller's school */
+        post: operations["subjects_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subjects/{subject_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a single subject */
+        get: operations["subjects_get"];
+        /** Edit a subject's name or language */
+        put: operations["subjects_update"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/subjects/{subject_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive a subject (status -> archived) */
+        post: operations["subjects_archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tos/current": {
         parameters: {
             query?: never;
@@ -1269,6 +1322,52 @@ export interface components {
             name?: string | null;
         };
         /**
+         * SubjectCreate
+         * @description Payload for creating a new Subject in the caller's school catalogue.
+         */
+        SubjectCreate: {
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+        };
+        /**
+         * SubjectRead
+         * @description Response schema for a single Subject.
+         */
+        SubjectRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** School Id */
+            school_id: string;
+            status: components["schemas"]["SubjectStatus"];
+        };
+        /**
+         * SubjectStatus
+         * @description Lifecycle state of a subject catalogue entry (flow-2 §3.2).
+         * @enum {string}
+         */
+        SubjectStatus: "active" | "archived";
+        /**
+         * SubjectUpdate
+         * @description Payload for editing a Subject (all fields optional — PATCH-style merge).
+         */
+        SubjectUpdate: {
+            /** Language */
+            language?: string | null;
+            /** Name */
+            name?: string | null;
+        };
+        /**
          * SubscriptionTierCreate
          * @description Payload for creating a new SubscriptionTier.
          */
@@ -1386,6 +1485,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[SubjectRead] */
+        SuccessEnvelope_SubjectRead_: {
+            data: components["schemas"]["SubjectRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[SubscriptionTierRead] */
         SuccessEnvelope_SubscriptionTierRead_: {
             data: components["schemas"]["SubscriptionTierRead"];
@@ -1464,6 +1572,16 @@ export interface components {
         SuccessEnvelope_list_PersonaRead__: {
             /** Data */
             data: components["schemas"]["PersonaRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[SubjectRead]] */
+        SuccessEnvelope_list_SubjectRead__: {
+            /** Data */
+            data: components["schemas"]["SubjectRead"][];
             /**
              * Message
              * @default ok
@@ -3352,6 +3470,168 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subjects_list: {
+        parameters: {
+            query?: {
+                /** @description Include archived subjects in the result */
+                include_archived?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_SubjectRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subjects_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubjectCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SubjectRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subjects_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SubjectRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subjects_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SubjectUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SubjectRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    subjects_archive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                subject_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SubjectRead_"];
                 };
             };
             /** @description Validation Error */

@@ -14,6 +14,9 @@ import type {
   PersonaRead,
   PersonaUpdate,
   PostLoginResponse,
+  SubjectCreate,
+  SubjectRead,
+  SubjectUpdate,
   SubscriptionTierCreate,
   SubscriptionTierRead,
   SubscriptionTierUpdate,
@@ -30,6 +33,10 @@ export type {
   PersonaRead as Persona,
   ExamSyllabusRead as Syllabus,
   SubscriptionTierRead as SubscriptionTier,
+  SubjectRead as Subject,
+  SubjectCreate,
+  SubjectUpdate,
+  SubjectStatus,
   LibraryBookRead as LibraryBook,
   TosVersion,
 } from "./types";
@@ -578,4 +585,31 @@ export const bulkImportApi = {
   },
   get: (token: string, importId: string) =>
     request<BulkImportJob>(`/coordinator/bulk-imports/${importId}`, {}, token),
+};
+
+// ── Subjects (Coordinator) — T-041 ──────────────────────────────────────────────
+
+export const subjectsApi = {
+  list: (token: string, includeArchived = false) =>
+    request<SubjectRead[]>(
+      includeArchived ? "/subjects/?include_archived=true" : "/subjects/",
+      {},
+      token
+    ),
+  create: (token: string, data: SubjectCreate) =>
+    request<SubjectRead>(
+      "/subjects/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        // Idempotency-Key (ARCH §5.9): a retried POST (double-click, network retry)
+        // returns the cached subject instead of creating a duplicate.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  update: (token: string, id: string, data: SubjectUpdate) =>
+    request<SubjectRead>(`/subjects/${id}`, { method: "PUT", body: JSON.stringify(data) }, token),
+  archive: (token: string, id: string) =>
+    request<SubjectRead>(`/subjects/${id}/archive`, { method: "POST" }, token),
 };

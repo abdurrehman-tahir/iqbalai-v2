@@ -244,11 +244,67 @@
     "nav": {
       "aria_label": "Coordinator navigation",
       "dashboard": "Dashboard",
+      "subjects": "Subjects",
       "bulk_import": "Bulk Import"
     },
     "dashboard": {
       "title": "Welcome, Coordinator",
       "subtitle": "Your grade-scoped dashboard is ready. Subject and grade management arrives in upcoming milestones."
+    },
+    "subjects": {
+      "title": "Subjects",
+      "subtitle": "Manage your school's subject catalogue — add, rename, change language, or archive.",
+      "add_button": "Add subject",
+      "show_archived": "Show archived",
+      "error": "Failed to load subjects",
+      "retry": "Retry",
+      "table_label": "Subjects table",
+      "empty": {
+        "title": "No subjects yet",
+        "description": "Add your first subject to start building the catalogue for your school.",
+        "cta": "Add subject"
+      },
+      "col": {
+        "name": "Name",
+        "language": "Language",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "archived": "Archived"
+      },
+      "languages": {
+        "en": "English",
+        "ur": "Urdu",
+        "sd": "Sindhi",
+        "ps": "Pashto"
+      },
+      "actions": {
+        "edit": "Edit {name}",
+        "archive": "Archive {name}"
+      },
+      "modal": {
+        "create_title": "Add subject",
+        "edit_title": "Edit subject",
+        "close": "Close",
+        "cancel": "Cancel",
+        "create": "Create",
+        "save": "Save changes",
+        "name_label": "Subject name",
+        "name_placeholder": "e.g. Physics",
+        "name_required": "Subject name is required",
+        "language_label": "Language",
+        "duplicate_error": "A subject with this name already exists in your school.",
+        "generic_error": "Something went wrong. Please try again."
+      },
+      "archive_modal": {
+        "title": "Archive subject?",
+        "description": "Archive \"{name}\"? It will be hidden from the default list but kept for records.",
+        "cancel": "Cancel",
+        "confirm": "Archive"
+      }
     },
     "bulk_import": {
       "title": "Bulk Import",

@@ -15,6 +15,8 @@ export type ExamSyllabusUpdate = Schemas["ExamSyllabusUpdate"];
 export type PersonaUpdate = Schemas["PersonaUpdate"];
 export type SubscriptionTierCreate = Schemas["SubscriptionTierCreate"];
 export type SubscriptionTierUpdate = Schemas["SubscriptionTierUpdate"];
+export type SubjectCreate = Schemas["SubjectCreate"];
+export type SubjectUpdate = Schemas["SubjectUpdate"];
 export type TosVersionCreate = Schemas["TosVersionCreate"];
 export type TosAcceptRequest = Schemas["TosAcceptRequest"];
 
@@ -22,6 +24,8 @@ export type TosAcceptRequest = Schemas["TosAcceptRequest"];
 export type PersonaRead = Schemas["PersonaRead"];
 export type ExamSyllabusRead = Schemas["ExamSyllabusRead"];
 export type SubscriptionTierRead = Schemas["SubscriptionTierRead"];
+export type SubjectRead = Schemas["SubjectRead"];
+export type SubjectStatus = Schemas["SubjectStatus"];
 export type TosVersionRead = Schemas["TosVersionRead"];
 export type DisclaimerVersionRead = Schemas["DisclaimerVersionRead"];
 export type LibraryBookRead = Schemas["LibraryBookRead"];

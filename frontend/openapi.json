@@ -1193,6 +1193,110 @@
         "title": "SchoolUpdate",
         "type": "object"
       },
+      "SubjectCreate": {
+        "description": "Payload for creating a new Subject in the caller's school catalogue.",
+        "properties": {
+          "language": {
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "language"
+        ],
+        "title": "SubjectCreate",
+        "type": "object"
+      },
+      "SubjectRead": {
+        "description": "Response schema for a single Subject.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubjectStatus"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "name",
+          "language",
+          "status",
+          "created_at"
+        ],
+        "title": "SubjectRead",
+        "type": "object"
+      },
+      "SubjectStatus": {
+        "description": "Lifecycle state of a subject catalogue entry (flow-2 \u00a73.2).",
+        "enum": [
+          "active",
+          "archived"
+        ],
+        "title": "SubjectStatus",
+        "type": "string"
+      },
+      "SubjectUpdate": {
+        "description": "Payload for editing a Subject (all fields optional \u2014 PATCH-style merge).",
+        "properties": {
+          "language": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "SubjectUpdate",
+        "type": "object"
+      },
       "SubscriptionTierCreate": {
         "description": "Payload for creating a new SubscriptionTier.",
         "properties": {
@@ -1469,6 +1573,23 @@
         "title": "SuccessEnvelope[PostLoginResponse]",
         "type": "object"
       },
+      "SuccessEnvelope_SubjectRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SubjectRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SubjectRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_SubscriptionTierRead_": {
         "properties": {
           "data": {
@@ -1632,6 +1753,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[PersonaRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_SubjectRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[SubjectRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_SubscriptionTierRead__": {
@@ -4382,6 +4524,224 @@
         "summary": "Smoketest Rag",
         "tags": [
           "smoketest"
+        ]
+      }
+    },
+    "/api/v1/subjects/": {
+      "get": {
+        "operationId": "subjects_list",
+        "parameters": [
+          {
+            "description": "Include archived subjects in the result",
+            "in": "query",
+            "name": "include_archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Include archived subjects in the result",
+              "title": "Include Archived",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_SubjectRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List subjects in the caller's school",
+        "tags": [
+          "subjects"
+        ]
+      },
+      "post": {
+        "operationId": "subjects_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubjectCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubjectRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a new subject in the caller's school",
+        "tags": [
+          "subjects"
+        ]
+      }
+    },
+    "/api/v1/subjects/{subject_id}": {
+      "get": {
+        "operationId": "subjects_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "title": "Subject Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubjectRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single subject",
+        "tags": [
+          "subjects"
+        ]
+      },
+      "put": {
+        "operationId": "subjects_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "title": "Subject Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubjectUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubjectRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit a subject's name or language",
+        "tags": [
+          "subjects"
+        ]
+      }
+    },
+    "/api/v1/subjects/{subject_id}/archive": {
+      "post": {
+        "operationId": "subjects_archive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "title": "Subject Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubjectRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive a subject (status -> archived)",
+        "tags": [
+          "subjects"
         ]
       }
     },

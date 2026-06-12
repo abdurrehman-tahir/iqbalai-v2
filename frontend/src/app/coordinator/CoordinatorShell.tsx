@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut, Upload } from "lucide-react";
+import { BookOpen, LayoutDashboard, LogOut, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
@@ -15,6 +15,7 @@ import { useClientAuth } from "@/hooks/use-client-auth";
 
 const NAV = [
   { key: "dashboard", href: "/coordinator", icon: LayoutDashboard },
+  { key: "subjects", href: "/coordinator/subjects", icon: BookOpen },
   { key: "bulk_import", href: "/coordinator/bulk-import", icon: Upload },
 ] as const;
 
@@ -57,7 +58,7 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium",
                     pathname === href
                       ? "bg-brand-50 text-brand-700"
-                      : "text-gray-600 hover:bg-gray-100",
+                      : "text-gray-600 hover:bg-gray-100"
                   )}
                 >
                   <Icon className="size-5" aria-hidden="true" />
@@ -68,7 +69,12 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
         <div className="mt-auto px-3 py-4 border-t border-gray-100">
-          <Button variant="ghost" size="md" className="w-full justify-start gap-3" onClick={handleLogout}>
+          <Button
+            variant="ghost"
+            size="md"
+            className="w-full justify-start gap-3"
+            onClick={handleLogout}
+          >
             <LogOut className="size-5" aria-hidden="true" />
             {t("logout")}
           </Button>
