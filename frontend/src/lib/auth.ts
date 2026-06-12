@@ -71,6 +71,8 @@ export function getPostLoginPath(role: string): string {
       return "/admin/district/schools";
     case "school_admin":
       return "/school/admin";
+    case "coordinator":
+      return "/coordinator";
     default:
       return "/admin";
   }

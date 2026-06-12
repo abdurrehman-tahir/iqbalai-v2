@@ -1,5 +1,5 @@
-import { SchoolAdminHomeClient } from "../SchoolAdminHomeClient";
+import { CoordinatorsClient } from "./CoordinatorsClient";
 
-export default function SchoolAdminCoordinatorsPlaceholder() {
-  return <SchoolAdminHomeClient />;
+export default function SchoolAdminCoordinatorsPage() {
+  return <CoordinatorsClient />;
 }

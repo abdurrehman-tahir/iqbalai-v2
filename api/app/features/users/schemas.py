@@ -20,6 +20,7 @@ class UserRead(BaseModel):
     status: UserAccountStatus
     school_id: str | None
     district_id: str | None
+    scoped_ids: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

@@ -83,6 +83,24 @@ export const authApi = {
     ),
 };
 
+// ── Users ─────────────────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  display_name: string;
+  role: string;
+  status: string;
+  scoped_ids: string | null;
+  district_id: string | null;
+  school_id: string | null;
+  created_at: string;
+}
+
+export const usersApi = {
+  getMe: (token: string) => request<UserProfile>("/users/me", {}, token),
+};
+
 // ── ToS ───────────────────────────────────────────────────────────────────────
 
 /** API shape from FastAPI TosVersionRead */
@@ -239,6 +257,7 @@ export interface AdminUser {
   status: string;
   district_id: string | null;
   school_id: string | null;
+  scoped_ids: string | null;
   created_at: string;
 }
 
@@ -258,6 +277,7 @@ export const adminUsersApi = {
       role: string;
       district_id?: string;
       school_id?: string;
+      grade_scope?: string[];
     },
   ) =>
     request<UserInvite>(

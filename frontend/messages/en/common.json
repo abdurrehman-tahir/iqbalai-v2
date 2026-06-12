@@ -141,6 +141,48 @@
     "dashboard": {
       "title": "Welcome to your school",
       "subtitle": "Your school dashboard is ready. User and coordinator management arrives in upcoming milestones."
+    },
+    "coordinators": {
+      "title": "Coordinators",
+      "subtitle": "Invite coordinators and assign their grade scope.",
+      "invite_button": "Invite coordinator",
+      "error": "Failed to load coordinators",
+      "retry": "Retry",
+      "table_label": "Coordinators table",
+      "empty": {
+        "title": "No coordinators yet",
+        "description": "Invite your first coordinator with a grade scope."
+      },
+      "col": {
+        "name": "Name",
+        "email": "Email",
+        "scope": "Grade scope",
+        "status": "Status"
+      },
+      "invite_modal": {
+        "title": "Invite Coordinator",
+        "email_label": "Email",
+        "name_label": "Display name",
+        "scope_label": "Grade scope",
+        "cancel": "Cancel",
+        "send": "Send invite",
+        "close": "Close",
+        "success": "Invitation sent to {email}. They have 7 days to accept.",
+        "done": "Done"
+      }
+    }
+  },
+  "coordinator": {
+    "header_title": "Coordinator dashboard",
+    "scope_label": "Scope: {scope}",
+    "logout": "Sign out",
+    "nav": {
+      "aria_label": "Coordinator navigation",
+      "dashboard": "Dashboard"
+    },
+    "dashboard": {
+      "title": "Welcome, Coordinator",
+      "subtitle": "Your grade-scoped dashboard is ready. Subject and grade management arrives in upcoming milestones."
     }
   },
   "admin": {

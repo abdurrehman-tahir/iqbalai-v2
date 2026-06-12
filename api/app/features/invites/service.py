@@ -44,6 +44,15 @@ def _new_token_pair() -> tuple[str, str]:
     return raw, _hash_token(raw)
 
 
+def _scoped_ids_from_invite(invite: UserInvite) -> str | None:
+    if not invite.scope_ids_json:
+        return None
+    grades = invite.scope_ids_json.get("grades")
+    if isinstance(grades, list):
+        return ",".join(str(g) for g in grades)
+    return None
+
+
 class InviteService:
     def __init__(
         self,
@@ -80,6 +89,11 @@ class InviteService:
                 raise ValidationError("Insufficient role to invite School Admin")
             if not payload.school_id:
                 raise ValidationError("school_id is required for school_admin invites")
+        elif payload.role == UserRole.COORDINATOR:
+            if caller_role not in ("platform_admin", "district_admin", "school_admin"):
+                raise ValidationError("Insufficient role to invite Coordinator")
+            if not payload.grade_scope:
+                raise ValidationError("grade_scope is required for coordinator invites")
         else:
             raise ValidationError(
                 f"Role '{payload.role.value}' is not inviteable via this endpoint"
@@ -125,12 +139,26 @@ class InviteService:
 
         district_id = payload.district_id
         school_id = payload.school_id
+        scope_ids_json: dict[str, object] | None = None
+
         if payload.role == UserRole.SCHOOL_ADMIN:
             if not school_id:
                 raise ValidationError("school_id is required for school_admin invites")
             district_id = await self._validate_school_for_invite(
                 school_id, claims, caller_role
             )
+        elif payload.role == UserRole.COORDINATOR:
+            if caller_role == "school_admin":
+                school_id = str(claims.get("school_id", "") or "") or school_id
+            if not school_id:
+                raise ValidationError("school_id is required for coordinator invites")
+            district_id = await self._validate_school_for_invite(
+                school_id, claims, caller_role
+            )
+            grades = [g.strip() for g in (payload.grade_scope or []) if g.strip()]
+            if not grades:
+                raise ValidationError("grade_scope must include at least one grade")
+            scope_ids_json = {"grades": grades}
         elif payload.district_id:
             district = await self._districts.get_by_id(payload.district_id)
             if district is None or district.deleted_at is not None:
@@ -153,6 +181,7 @@ class InviteService:
             invited_role=payload.role,
             district_id=district_id,
             school_id=school_id,
+            scope_ids_json=scope_ids_json,
             token_hash=token_hash,
             authentik_id=authentik_id,
             expires_at=expires_at,
@@ -176,7 +205,11 @@ class InviteService:
             target_id=created.id,
             district_id=district_id,
             school_id=school_id,
-            metadata={"email": email, "role": payload.role.value},
+            metadata={
+                "email": email,
+                "role": payload.role.value,
+                "grade_scope": scope_ids_json.get("grades") if scope_ids_json else None,
+            },
         )
         logger.info("user_invite_sent", invite_id=created.id, email=email, by=actor_id)
         return created, raw_token
@@ -304,6 +337,7 @@ class InviteService:
             status=UserAccountStatus.ACTIVE,
             district_id=invite.district_id,
             school_id=invite.school_id,
+            scoped_ids=_scoped_ids_from_invite(invite),
         )
         await self._users.create(user)
 
@@ -319,7 +353,11 @@ class InviteService:
             target_id=invite.id,
             district_id=invite.district_id,
             school_id=invite.school_id,
-            metadata={"email": invite.email, "role": invite.invited_role.value},
+            metadata={
+                "email": invite.email,
+                "role": invite.invited_role.value,
+                "scoped_ids": _scoped_ids_from_invite(invite),
+            },
         )
         logger.info("user_invite_accepted", invite_id=invite.id, email=invite.email)
         return {

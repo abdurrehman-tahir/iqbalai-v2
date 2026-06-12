@@ -76,6 +76,10 @@ describe("getPostLoginPath", () => {
     expect(getPostLoginPath("school_admin")).toBe("/school/admin");
   });
 
+  it("routes coordinator to coordinator dashboard", () => {
+    expect(getPostLoginPath("coordinator")).toBe("/coordinator");
+  });
+
   it("routes platform_admin to platform admin home", () => {
     expect(getPostLoginPath("platform_admin")).toBe("/admin");
   });

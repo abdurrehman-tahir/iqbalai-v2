@@ -280,6 +280,48 @@ async def test_resend_issues_new_token() -> None:
     assert _hash_token(new_raw) == updated.token_hash
 
 
+async def test_school_admin_invites_coordinator_with_grade_scope() -> None:
+    svc = _svc()
+    payload = AdminUserInviteCreate(
+        email="coord@test.com",
+        display_name="Coordinator",
+        role=UserRole.COORDINATOR,
+        grade_scope=["Grade 9", "Grade 10"],
+    )
+    invite, _raw = await svc.create_invite(
+        payload,
+        actor_id="sa-1",
+        caller_role="school_admin",
+        claims=_claims("school_admin", district_id="dist-1") | {"school_id": "school-1"},
+    )
+    assert invite.invited_role == UserRole.COORDINATOR
+    assert invite.scope_ids_json == {"grades": ["Grade 9", "Grade 10"]}
+    assert invite.school_id == "school-1"
+
+
+async def test_accept_coordinator_invite_sets_scoped_ids() -> None:
+    svc = _svc()
+    payload = AdminUserInviteCreate(
+        email="coord-accept@test.com",
+        display_name="Coord Accept",
+        role=UserRole.COORDINATOR,
+        grade_scope=["Grade 9", "Grade 10"],
+    )
+    invite, raw = await svc.create_invite(
+        payload,
+        actor_id="sa-1",
+        caller_role="school_admin",
+        claims=_claims("school_admin", district_id="dist-1") | {"school_id": "school-1"},
+    )
+    await svc.accept_invite(
+        AcceptInviteRequest(token=raw, action="accept", password="securepass1")
+    )
+    user = next(u for u in _FakeUserRepo.users.values() if u.email == "coord-accept@test.com")
+    assert user.role == UserRole.COORDINATOR
+    assert user.scoped_ids == "Grade 9,Grade 10"
+    assert invite.scope_ids_json == {"grades": ["Grade 9", "Grade 10"]}
+
+
 async def test_district_admin_invites_school_admin() -> None:
     svc = _svc()
     payload = AdminUserInviteCreate(

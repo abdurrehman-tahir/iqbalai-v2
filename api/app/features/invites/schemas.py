@@ -18,6 +18,7 @@ class AdminUserInviteCreate(BaseModel):
     role: UserRole
     district_id: str | None = None
     school_id: str | None = None
+    grade_scope: list[str] | None = Field(default=None, min_length=1)
 
 
 class UserInviteRead(BaseModel):
