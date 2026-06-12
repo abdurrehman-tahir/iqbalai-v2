@@ -25,6 +25,7 @@ from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
 from app.infrastructure.authentik.client import AuthentikClientProtocol, get_authentik_client
 from app.infrastructure.cache.client import get_redis
+from app.infrastructure.notifications.account import notify_account_event
 from app.infrastructure.notifications.email import send_invite_email
 
 logger = structlog.get_logger(__name__)
@@ -225,6 +226,50 @@ class InviteService:
         logger.info("user_invite_sent", invite_id=created.id, email=email, by=actor_id)
         return created, raw_token
 
+    async def _internal_user_id(self, authentik_or_user_id: str) -> str | None:
+        user = await self._users.get_by_authentik_id(authentik_or_user_id)
+        if user is not None:
+            return user.id
+        by_id = await self._users.get_by_id(authentik_or_user_id)
+        return by_id.id if by_id is not None else None
+
+    async def _notify_invite_expired(self, invite: UserInvite) -> None:
+        recipient_id = await self._internal_user_id(invite.invited_by_user_id)
+        if recipient_id is None:
+            return
+        await notify_account_event(
+            session=self._session,
+            template_key="account.invite_expired",
+            recipient_user_id=recipient_id,
+            school_id=invite.school_id,
+            params={"email": invite.email, "role": invite.invited_role.value},
+            metadata={"invite_id": invite.id, "email": invite.email},
+        )
+
+    async def _notify_invite_accepted(self, invite: UserInvite) -> None:
+        recipient_id = await self._internal_user_id(invite.invited_by_user_id)
+        if recipient_id is None:
+            return
+        await notify_account_event(
+            session=self._session,
+            template_key="account.invite_accepted",
+            recipient_user_id=recipient_id,
+            school_id=invite.school_id,
+            params={
+                "email": invite.email,
+                "name": invite.display_name,
+                "role": invite.invited_role.value,
+            },
+            metadata={"invite_id": invite.id, "email": invite.email},
+        )
+
+    async def expire_stale_invites_and_notify(self) -> int:
+        """Sweep expired pending invites and notify inviting admins."""
+        expired = await self._repo.expire_all_stale_pending()
+        for invite in expired:
+            await self._notify_invite_expired(invite)
+        return len(expired)
+
     async def resend_invite(self, invite_id: str, actor_id: str) -> tuple[UserInvite, str]:
         """Issue a fresh 7-day token for a pending or expired invite."""
         invite = await self._repo.get_by_id(invite_id)
@@ -284,14 +329,18 @@ class InviteService:
         if invite is None:
             raise NotFoundError("Invalid or unknown invitation token")
 
-        invite = await self._repo.expire_stale_pending(invite)
+        invite, was_expired = await self._repo.expire_stale_pending(invite)
+        if was_expired:
+            await self._notify_invite_expired(invite)
 
         if invite.status == UserInviteStatus.EXPIRED or (
             invite.status == UserInviteStatus.PENDING
             and invite.expires_at < datetime.now(timezone.utc)
         ):
-            invite.status = UserInviteStatus.EXPIRED
-            await self._repo.update(invite)
+            if invite.status != UserInviteStatus.EXPIRED:
+                invite.status = UserInviteStatus.EXPIRED
+                await self._repo.update(invite)
+                await self._notify_invite_expired(invite)
             raise ValidationError("Invitation has expired — ask your administrator to resend")
 
         if invite.status == UserInviteStatus.LOCKED:
@@ -370,6 +419,7 @@ class InviteService:
                 "scoped_ids": _scoped_ids_from_invite(invite),
             },
         )
+        await self._notify_invite_accepted(invite)
         logger.info("user_invite_accepted", invite_id=invite.id, email=invite.email)
         return {
             "status": "accepted",

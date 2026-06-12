@@ -9,4 +9,9 @@ try:
 except ImportError:
     pass
 
+try:
+    import app.features.invites.tasks  # noqa: F401
+except ImportError:
+    pass
+
 __all__ = ["celery_app"]

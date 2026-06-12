@@ -376,7 +376,7 @@ Integration test suite: for each row × column in Flow 2 v3 §4 permissions matr
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §7 (notification table)
@@ -393,9 +393,9 @@ Wire notification publishers for: invite_sent, invite_expired, invite_accepted, 
 
 ### Acceptance
 
-1. [ ] All 7 template keys fire correctly
-2. [ ] Recipients receive in-app + email per Flow 2 §7
-3. [ ] All 4 languages
+1. [x] All 7 template keys fire correctly
+2. [x] Recipients receive in-app + email per Flow 2 §7
+3. [x] All 4 languages
 
 ---
 

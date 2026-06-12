@@ -26,6 +26,9 @@ class _FakeUserRepo:
             return None
         return user
 
+    async def get_by_authentik_id(self, authentik_id: str) -> User | None:
+        return next((u for u in self.users.values() if u.authentik_id == authentik_id), None)
+
     async def update(self, user: User) -> User:
         self.users[user.id] = user
         return user
@@ -114,6 +117,7 @@ def _setup(monkeypatch: pytest.MonkeyPatch) -> None:
     }
     monkeypatch.setattr("app.features.users.lifecycle_service.UserRepository", _FakeUserRepo)
     monkeypatch.setattr("app.features.users.lifecycle_service.audit", AsyncMock())
+    monkeypatch.setattr("app.features.users.lifecycle_service.notify_account_event", AsyncMock())
 
 
 def _svc() -> UserLifecycleService:

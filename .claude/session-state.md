@@ -2,12 +2,11 @@
 
 **Current milestone:** M-02 — School Onboarding
 **Branch:** milestone/M-02-school-onboarding
-**Current ticket:** T-037 — done
-**Next intended step:** T-038 (Notifications for M-02 events)
+**Current ticket:** T-038 — done
+**Next intended step:** T-039 (School Admin Audit Log page)
 
-**Done (T-037):**
-- `bulk_import` upload profile (5 MB, CSV/XLSX)
-- `bulk_imports` table + coordinator dry-run API
-- Coordinator Bulk Import page with results table + disabled commit
+**Done (T-038):**
+- Account namespace template registry (7 keys × 4 locales)
+- Wired invite, lifecycle, bulk-import publishers + hourly invite expiry sweep
 
-**Verified:** backend pytest 187/187, frontend vitest 46/46
+**Verified:** backend pytest 224/224, frontend vitest 46/46

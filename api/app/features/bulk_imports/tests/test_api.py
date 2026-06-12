@@ -71,6 +71,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.bulk_imports.service.UserRepository", _FakeUserRepo)
     monkeypatch.setattr("app.features.bulk_imports.service.BulkImportRepository", _FakeBulkImportRepo)
     monkeypatch.setattr("app.features.bulk_imports.service.audit", AsyncMock())
+    monkeypatch.setattr("app.features.bulk_imports.service.notify_account_event", AsyncMock())
     monkeypatch.setattr(
         "app.features.bulk_imports.service.run_upload_pipeline",
         AsyncMock(

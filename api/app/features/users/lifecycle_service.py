@@ -18,6 +18,7 @@ from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
 from app.infrastructure.authentik.client import AuthentikClientProtocol, get_authentik_client
+from app.infrastructure.notifications.account import notify_account_event
 
 logger = structlog.get_logger(__name__)
 
@@ -169,6 +170,26 @@ class UserLifecycleService:
             school_id=updated.school_id,
             metadata={"email": updated.email, "role": updated.role.value},
         )
+        actor_internal_id = await self._repo.get_by_authentik_id(actor_id)
+        await notify_account_event(
+            session=self._session,
+            template_key="account.suspended",
+            recipient_user_id=updated.id,
+            school_id=updated.school_id,
+            variant="target",
+            params={"email": updated.email},
+            metadata={"user_id": updated.id},
+        )
+        if actor_internal_id is not None:
+            await notify_account_event(
+                session=self._session,
+                template_key="account.suspended",
+                recipient_user_id=actor_internal_id.id,
+                school_id=updated.school_id,
+                variant="actor",
+                params={"email": updated.email},
+                metadata={"user_id": updated.id},
+            )
         logger.info("user_suspended", user_id=updated.id, by=actor_id)
         return updated
 
@@ -203,6 +224,26 @@ class UserLifecycleService:
             school_id=updated.school_id,
             metadata={"email": updated.email, "role": updated.role.value},
         )
+        actor_internal = await self._repo.get_by_authentik_id(actor_id)
+        await notify_account_event(
+            session=self._session,
+            template_key="account.reactivated",
+            recipient_user_id=updated.id,
+            recipient_email=updated.email,
+            school_id=updated.school_id,
+            variant="target",
+            metadata={"user_id": updated.id},
+        )
+        if actor_internal is not None:
+            await notify_account_event(
+                session=self._session,
+                template_key="account.reactivated",
+                recipient_user_id=actor_internal.id,
+                school_id=updated.school_id,
+                variant="actor",
+                params={"email": updated.email},
+                metadata={"user_id": updated.id},
+            )
         logger.info("user_reactivated", user_id=updated.id, by=actor_id)
         return updated
 
@@ -239,6 +280,14 @@ class UserLifecycleService:
             district_id=updated.district_id,
             school_id=updated.school_id,
             metadata={"email": updated.email, "role": updated.role.value},
+        )
+        await notify_account_event(
+            session=self._session,
+            template_key="account.deactivated",
+            recipient_user_id=updated.id,
+            recipient_email=updated.email,
+            school_id=updated.school_id,
+            metadata={"user_id": updated.id},
         )
         logger.info("user_deactivated", user_id=updated.id, by=actor_id)
         return updated

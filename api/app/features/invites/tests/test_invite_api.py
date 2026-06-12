@@ -56,8 +56,8 @@ class _FakeInviteRepo:
         self.by_token[invite.token_hash] = invite
         return invite
 
-    async def expire_stale_pending(self, invite: UserInvite) -> UserInvite:
-        return invite
+    async def expire_stale_pending(self, invite: UserInvite) -> tuple[UserInvite, bool]:
+        return invite, False
 
 
 class _FakeUserRepo:
@@ -67,6 +67,12 @@ class _FakeUserRepo:
         pass
 
     async def get_by_email(self, email: str) -> object | None:
+        return None
+
+    async def get_by_authentik_id(self, authentik_id: str) -> object | None:
+        return None
+
+    async def get_by_id(self, user_id: str) -> object | None:
         return None
 
     async def create(self, user: object) -> object:
@@ -100,6 +106,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.invites.service.DistrictRepository", _FakeDistrictRepo)
     monkeypatch.setattr("app.features.invites.service.SchoolRepository", _FakeSchoolRepo)
     monkeypatch.setattr("app.features.invites.service.send_invite_email", AsyncMock())
+    monkeypatch.setattr("app.features.invites.service.notify_account_event", AsyncMock())
     monkeypatch.setattr("app.features.invites.service.audit", AsyncMock())
     monkeypatch.setattr(
         "app.features.invites.service.get_authentik_client", lambda: DevAuthentikClient()

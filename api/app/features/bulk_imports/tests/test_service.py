@@ -71,6 +71,7 @@ async def test_dry_run_flags_out_of_scope_grade() -> None:
         patch("app.features.bulk_imports.service.run_upload_pipeline", return_value=upload_result),
         patch.object(svc._repo, "save", side_effect=_fake_save),
         patch("app.features.bulk_imports.service.audit", return_value=None),
+        patch("app.features.bulk_imports.service.notify_account_event", AsyncMock()),
     ):
         result = await svc.dry_run(data=csv, filename="students.csv", actor_authentik_id="auth-coord")
 
@@ -117,6 +118,7 @@ async def test_dry_run_detects_duplicate_email_in_file() -> None:
         patch("app.features.bulk_imports.service.run_upload_pipeline", return_value=upload_result),
         patch.object(svc._repo, "save", side_effect=_fake_save),
         patch("app.features.bulk_imports.service.audit", return_value=None),
+        patch("app.features.bulk_imports.service.notify_account_event", AsyncMock()),
     ):
         result = await svc.dry_run(data=csv, filename="students.csv", actor_authentik_id="auth-coord")
 

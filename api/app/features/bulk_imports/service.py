@@ -20,6 +20,7 @@ from app.features.files.profiles import get_profile
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
+from app.infrastructure.notifications.account import notify_account_event
 
 logger = structlog.get_logger(__name__)
 
@@ -103,6 +104,18 @@ class BulkImportService:
                 "success_rows": job.success_rows,
                 "failed_rows": job.failed_rows,
             },
+        )
+        await notify_account_event(
+            session=self._session,
+            template_key="account.bulk_import_done",
+            recipient_user_id=actor.id,
+            school_id=actor.school_id,
+            params={
+                "total_rows": str(job.total_rows),
+                "success_rows": str(job.success_rows),
+                "failed_rows": str(job.failed_rows),
+            },
+            metadata={"bulk_import_id": job.id},
         )
 
         logger.info(

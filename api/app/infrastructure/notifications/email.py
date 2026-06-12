@@ -9,35 +9,46 @@ from app.config import get_settings
 logger = structlog.get_logger(__name__)
 
 
-async def send_invite_email(*, to: str, invite_url: str, inviter_name: str) -> None:
-    """Send an admin invitation email with the accept-invite link.
+async def send_invite_email(
+    *,
+    to: str,
+    invite_url: str,
+    inviter_name: str,
+    locale: str = "en",
+) -> None:
+    """Send an admin invitation email using the account.invite_sent template."""
+    from app.infrastructure.notifications.templates.account import render_account_template
 
-    In dev (EMAIL_PROVIDER=log) the message is written to structured logs so
-    MailHog is optional; production uses Brevo/Resend when configured.
-    """
-    settings = get_settings()
-    subject = "You have been invited to IqbalAI"
-    body = (
-        f"Hello,\n\n"
-        f"{inviter_name} has invited you to join IqbalAI as an administrator.\n\n"
-        f"Accept your invitation (valid for 7 days):\n{invite_url}\n\n"
-        f"If you did not expect this email, you can ignore it."
+    rendered = render_account_template(
+        "account.invite_sent",
+        locale=locale,
+        params={"inviter_name": inviter_name, "invite_url": invite_url},
     )
+    await send_account_email(
+        to=to,
+        subject=rendered["subject"],
+        body=rendered["body"],
+        template_key="account.invite_sent",
+    )
+
+
+async def send_account_email(*, to: str, subject: str, body: str, template_key: str) -> None:
+    """Send a templated account notification email."""
+    settings = get_settings()
 
     if settings.EMAIL_PROVIDER == "log":
         logger.info(
-            "invite_email_sent",
+            "account_email_sent",
             to=to,
             subject=subject,
-            invite_url=invite_url,
+            template_key=template_key,
             body_preview=body[:200],
         )
         return
 
-    # Production providers wired in a follow-up; log-only keeps T-030 self-contained.
     logger.warning(
-        "invite_email_provider_not_implemented",
+        "account_email_provider_not_implemented",
         provider=settings.EMAIL_PROVIDER,
         to=to,
-        invite_url=invite_url,
+        template_key=template_key,
     )

@@ -61,13 +61,17 @@ class _FakeInviteRepo:
         self.by_token[invite.token_hash] = invite
         return invite
 
-    async def expire_stale_pending(self, invite: UserInvite) -> UserInvite:
+    async def expire_stale_pending(self, invite: UserInvite) -> tuple[UserInvite, bool]:
         if invite.status == UserInviteStatus.PENDING and invite.expires_at < datetime.now(
             timezone.utc
         ):
             invite.status = UserInviteStatus.EXPIRED
             await self.update(invite)
-        return invite
+            return invite, True
+        return invite, False
+
+    async def expire_all_stale_pending(self) -> list[UserInvite]:
+        return []
 
 
 class _FakeUserRepo:
@@ -78,6 +82,12 @@ class _FakeUserRepo:
 
     async def get_by_email(self, email: str) -> User | None:
         return next((u for u in self.users.values() if u.email == email.lower()), None)
+
+    async def get_by_authentik_id(self, authentik_id: str) -> User | None:
+        return next((u for u in self.users.values() if u.authentik_id == authentik_id), None)
+
+    async def get_by_id(self, user_id: str) -> User | None:
+        return self.users.get(user_id)
 
     async def create(self, user: User) -> User:
         self.users[user.id] = user
@@ -128,6 +138,7 @@ def _setup(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.invites.service.DistrictRepository", _FakeDistrictRepo)
     monkeypatch.setattr("app.features.invites.service.SchoolRepository", _FakeSchoolRepo)
     monkeypatch.setattr("app.features.invites.service.send_invite_email", AsyncMock())
+    monkeypatch.setattr("app.features.invites.service.notify_account_event", AsyncMock())
     monkeypatch.setattr("app.features.invites.service.audit", AsyncMock())
     monkeypatch.setattr("app.features.invites.service.get_redis", lambda: FakeRedis())
 

@@ -43,6 +43,9 @@ def configure_celery(broker_url: str, result_backend: str) -> None:
         # Beat schedule (populated per feature)
         beat_schedule={},
     )
+    from app.tasks.beat_schedule import BEAT_SCHEDULE
+
+    celery_app.conf.beat_schedule.update(BEAT_SCHEDULE)
     # app.features.* imports optional ingestion deps; register via tasks/celery_app.py
     celery_app.autodiscover_tasks(["app.tasks"], related_name="tasks", force=True)
 

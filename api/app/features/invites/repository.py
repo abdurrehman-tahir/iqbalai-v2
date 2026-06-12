@@ -47,11 +47,28 @@ class UserInviteRepository:
         await self._session.refresh(invite)
         return invite
 
-    async def expire_stale_pending(self, invite: UserInvite) -> UserInvite:
-        """Mark a pending invite as expired when past its TTL."""
+    async def expire_stale_pending(self, invite: UserInvite) -> tuple[UserInvite, bool]:
+        """Mark a pending invite as expired when past its TTL. Returns (invite, was_expired)."""
         if invite.status == UserInviteStatus.PENDING and invite.expires_at < datetime.now(
             timezone.utc
         ):
             invite.status = UserInviteStatus.EXPIRED
-            return await self.update(invite)
-        return invite
+            updated = await self.update(invite)
+            return updated, True
+        return invite, False
+
+    async def expire_all_stale_pending(self) -> list[UserInvite]:
+        """Bulk-expire pending invites past TTL."""
+        now = datetime.now(timezone.utc)
+        result = await self._session.execute(
+            select(UserInvite).where(
+                UserInvite.status == UserInviteStatus.PENDING,
+                UserInvite.expires_at < now,
+            )
+        )
+        invites = list(result.scalars().all())
+        for invite in invites:
+            invite.status = UserInviteStatus.EXPIRED
+        if invites:
+            await self._session.commit()
+        return invites

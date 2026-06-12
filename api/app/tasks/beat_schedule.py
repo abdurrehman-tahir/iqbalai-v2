@@ -6,12 +6,13 @@ Per ARCH §10.6.
 
 from __future__ import annotations
 
+from celery.schedules import crontab
+
 # Beat schedule is registered in celery_app.conf.beat_schedule in celery_app.py
 # Add entries here and import them in configure_celery() as features are added.
 BEAT_SCHEDULE: dict[str, object] = {
-    # Example format (do not uncomment — real tasks added per milestone):
-    # "nightly-predictions": {
-    #     "task": "app.tasks.ml_tasks.recalculate_predictions_nightly",
-    #     "schedule": crontab(hour=2, minute=0),
-    # },
+    "account-expire-stale-invites": {
+        "task": "account.expire_stale_invites",
+        "schedule": crontab(minute=0),  # hourly sweep
+    },
 }
