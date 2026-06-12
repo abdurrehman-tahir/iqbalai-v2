@@ -8,12 +8,17 @@ from unittest.mock import AsyncMock
 
 import pytest
 
-from app.core.exceptions import ConflictError, PreconditionFailedError, ValidationError
+from app.core.exceptions import (
+    ConflictError,
+    NotFoundError,
+    PreconditionFailedError,
+    ValidationError,
+)
 from app.core.tests.test_idempotency import FakeRedis
 from app.features.invites.models import UserInvite, UserInviteStatus
 from app.features.invites.schemas import AcceptInviteRequest, AdminUserInviteCreate
 from app.features.invites.service import InviteService, _hash_token, _new_token_pair
-from app.features.schools.models import District
+from app.features.schools.models import District, School
 from app.features.users.models import User, UserRole
 from app.infrastructure.authentik.client import DevAuthentikClient
 
@@ -89,6 +94,23 @@ class _FakeDistrictRepo:
         return self.districts.get(id)
 
 
+class _FakeSchoolRepo:
+    schools: dict[str, School] = {}
+
+    def __init__(self, session: Any) -> None:
+        pass
+
+    async def get_by_id(self, id: str) -> School | None:
+        return self.schools.get(id)
+
+
+def _claims(role: str = "platform_admin", district_id: str | None = None) -> dict[str, object]:
+    data: dict[str, object] = {"sub": "actor-1", "role": role}
+    if district_id is not None:
+        data["district_id"] = district_id
+    return data
+
+
 @pytest.fixture(autouse=True)
 def _setup(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeInviteRepo.store = {}
@@ -97,9 +119,14 @@ def _setup(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeDistrictRepo.districts = {
         "dist-1": District(id="dist-1", name="Punjab District 1", region="Punjab")
     }
+    _FakeSchoolRepo.schools = {
+        "school-1": School(id="school-1", district_id="dist-1", name="Sample School"),
+        "school-other": School(id="school-other", district_id="dist-other", name="Other"),
+    }
     monkeypatch.setattr("app.features.invites.service.UserInviteRepository", _FakeInviteRepo)
     monkeypatch.setattr("app.features.invites.service.UserRepository", _FakeUserRepo)
     monkeypatch.setattr("app.features.invites.service.DistrictRepository", _FakeDistrictRepo)
+    monkeypatch.setattr("app.features.invites.service.SchoolRepository", _FakeSchoolRepo)
     monkeypatch.setattr("app.features.invites.service.send_invite_email", AsyncMock())
     monkeypatch.setattr("app.features.invites.service.audit", AsyncMock())
     monkeypatch.setattr("app.features.invites.service.get_redis", lambda: FakeRedis())
@@ -118,7 +145,10 @@ async def test_create_invite_success() -> None:
         district_id="dist-1",
     )
     invite, raw = await svc.create_invite(
-        payload, actor_id="platform-1", caller_role="platform_admin"
+        payload,
+        actor_id="platform-1",
+        caller_role="platform_admin",
+        claims=_claims("platform_admin"),
     )
     assert invite.status == UserInviteStatus.PENDING
     assert invite.email == "admin@district.test"
@@ -141,7 +171,12 @@ async def test_duplicate_email_raises_conflict() -> None:
         district_id="dist-1",
     )
     with pytest.raises(ConflictError):
-        await svc.create_invite(payload, actor_id="platform-1", caller_role="platform_admin")
+        await svc.create_invite(
+            payload,
+            actor_id="platform-1",
+            caller_role="platform_admin",
+            claims=_claims("platform_admin"),
+        )
 
 
 async def test_accept_invite_creates_user() -> None:
@@ -153,7 +188,10 @@ async def test_accept_invite_creates_user() -> None:
         district_id="dist-1",
     )
     invite, raw = await svc.create_invite(
-        payload, actor_id="platform-1", caller_role="platform_admin"
+        payload,
+        actor_id="platform-1",
+        caller_role="platform_admin",
+        claims=_claims("platform_admin"),
     )
     result = await svc.accept_invite(
         AcceptInviteRequest(token=raw, action="accept", password="securepass1")
@@ -196,7 +234,10 @@ async def test_three_rejections_lock_invite() -> None:
         district_id="dist-1",
     )
     invite, raw = await svc.create_invite(
-        payload, actor_id="platform-1", caller_role="platform_admin"
+        payload,
+        actor_id="platform-1",
+        caller_role="platform_admin",
+        claims=_claims("platform_admin"),
     )
 
     for _ in range(3):
@@ -226,7 +267,10 @@ async def test_resend_issues_new_token() -> None:
         district_id="dist-1",
     )
     invite, _old = await svc.create_invite(
-        payload, actor_id="platform-1", caller_role="platform_admin"
+        payload,
+        actor_id="platform-1",
+        caller_role="platform_admin",
+        claims=_claims("platform_admin"),
     )
     old_hash = invite.token_hash
 
@@ -234,3 +278,62 @@ async def test_resend_issues_new_token() -> None:
     assert updated.resent_count == 1
     assert updated.token_hash != old_hash
     assert _hash_token(new_raw) == updated.token_hash
+
+
+async def test_district_admin_invites_school_admin() -> None:
+    svc = _svc()
+    payload = AdminUserInviteCreate(
+        email="sa@test.com",
+        display_name="School Admin",
+        role=UserRole.SCHOOL_ADMIN,
+        school_id="school-1",
+    )
+    invite, _raw = await svc.create_invite(
+        payload,
+        actor_id="da-1",
+        caller_role="district_admin",
+        claims=_claims("district_admin", district_id="dist-1"),
+    )
+    assert invite.school_id == "school-1"
+    assert invite.district_id == "dist-1"
+    assert invite.invited_role == UserRole.SCHOOL_ADMIN
+
+
+async def test_district_admin_cross_district_school_invite_404() -> None:
+    svc = _svc()
+    payload = AdminUserInviteCreate(
+        email="sa@test.com",
+        display_name="School Admin",
+        role=UserRole.SCHOOL_ADMIN,
+        school_id="school-other",
+    )
+    with pytest.raises(NotFoundError):
+        await svc.create_invite(
+            payload,
+            actor_id="da-1",
+            caller_role="district_admin",
+            claims=_claims("district_admin", district_id="dist-1"),
+        )
+
+
+async def test_accept_school_admin_invite_sets_school_id() -> None:
+    svc = _svc()
+    payload = AdminUserInviteCreate(
+        email="sa-accept@test.com",
+        display_name="SA Accept",
+        role=UserRole.SCHOOL_ADMIN,
+        school_id="school-1",
+    )
+    invite, raw = await svc.create_invite(
+        payload,
+        actor_id="da-1",
+        caller_role="district_admin",
+        claims=_claims("district_admin", district_id="dist-1"),
+    )
+    await svc.accept_invite(
+        AcceptInviteRequest(token=raw, action="accept", password="securepass1")
+    )
+    user = next(iter(_FakeUserRepo.users.values()))
+    assert user.school_id == "school-1"
+    assert user.role == UserRole.SCHOOL_ADMIN
+    assert invite.school_id == "school-1"

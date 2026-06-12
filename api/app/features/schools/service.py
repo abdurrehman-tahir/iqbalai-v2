@@ -110,6 +110,17 @@ def _caller_district_id(claims: dict[str, object]) -> str | None:
     return str(raw)
 
 
+def _caller_school_id(claims: dict[str, object]) -> str | None:
+    raw = claims.get("school_id")
+    if raw is None or raw == "":
+        return None
+    return str(raw)
+
+
+def _is_school_admin(caller_role: str) -> bool:
+    return caller_role == "school_admin"
+
+
 def _is_platform_admin(caller_role: str) -> bool:
     return ROLE_HIERARCHY.get(caller_role, 0) >= ROLE_HIERARCHY["platform_admin"]
 
@@ -155,12 +166,34 @@ class SchoolService:
             raise NotFoundError("School not found")
         return await self._repo.list_schools(district_id=caller_district)
 
+    def _assert_school_scope(
+        self, claims: dict[str, object], school_id: str, caller_role: str
+    ) -> None:
+        """School Admin may only access their own school (404 cross-school per T-032)."""
+        if not _is_school_admin(caller_role):
+            return
+        caller_school = _caller_school_id(claims)
+        if caller_school != school_id:
+            raise NotFoundError("School not found")
+
+    async def get_my_school(
+        self, claims: dict[str, object], caller_role: str
+    ) -> School:
+        """Return the school scoped to a School Admin caller."""
+        school_id = _caller_school_id(claims)
+        if school_id is None:
+            raise NotFoundError("School not found")
+        return await self.get_school(school_id, claims, caller_role)
+
     async def get_school(
         self, school_id: str, claims: dict[str, object], caller_role: str
     ) -> School:
         school = await self._repo.get_by_id(school_id)
         if school is None or school.deleted_at is not None:
             raise NotFoundError(f"School '{school_id}' not found")
+        if _is_school_admin(caller_role):
+            self._assert_school_scope(claims, school_id, caller_role)
+            return school
         self._assert_district_scope(claims, school.district_id, caller_role)
         return school
 

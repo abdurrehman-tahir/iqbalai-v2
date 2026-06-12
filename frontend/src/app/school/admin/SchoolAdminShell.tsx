@@ -3,23 +3,34 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, GraduationCap, LayoutDashboard, LogOut } from "lucide-react";
+import { Users, GraduationCap, LayoutDashboard, LogOut, UserCog } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import type { StoredUser } from "@/lib/auth";
+import { useQuery } from "@tanstack/react-query";
+import { schoolAdminApi } from "@/lib/api";
+import { useClientAuth } from "@/hooks/use-client-auth";
 
 const NAV = [
   { key: "dashboard", href: "/school/admin", icon: LayoutDashboard },
   { key: "users", href: "/school/admin/users", icon: Users },
+  { key: "coordinators", href: "/school/admin/coordinators", icon: UserCog },
   { key: "teachers", href: "/school/admin/teachers", icon: GraduationCap },
 ] as const;
 
 export function SchoolAdminShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("school_admin");
   const pathname = usePathname();
+  const { mounted, token } = useClientAuth();
   const [user, setUser] = useState<StoredUser | null>(null);
+
+  const { data: school } = useQuery({
+    queryKey: ["school-admin", "my-school"],
+    queryFn: () => schoolAdminApi.getMySchool(token!),
+    enabled: mounted && !!token,
+  });
 
   useEffect(() => {
     setUser(getUser());
@@ -29,6 +40,8 @@ export function SchoolAdminShell({ children }: { children: React.ReactNode }) {
     clearToken();
     window.location.href = getLogoutUrl();
   }
+
+  const headerTitle = school?.name ?? t("header_title");
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -65,7 +78,7 @@ export function SchoolAdminShell({ children }: { children: React.ReactNode }) {
       </aside>
       <div className="flex flex-1 flex-col">
         <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-gray-900">{t("header_title")}</h1>
+          <h1 className="text-lg font-semibold text-gray-900">{headerTitle}</h1>
           <span className="text-sm text-gray-500">{user?.email}</span>
         </header>
         <main className="flex-1 p-6 md:p-8">{children}</main>

@@ -296,6 +296,13 @@ export const schoolsApi = {
     request<void>(`/admin/schools/${id}`, { method: "DELETE" }, token),
 };
 
+// ── School Admin (T-032) ────────────────────────────────────────────────────────
+
+export const schoolAdminApi = {
+  getMySchool: (token: string) =>
+    request<School>("/school/admin/school", {}, token),
+};
+
 // ── Personas ──────────────────────────────────────────────────────────────────
 
 export interface Persona {

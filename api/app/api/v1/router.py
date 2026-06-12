@@ -14,6 +14,7 @@ from app.features.notifications.router import router as notifications_router
 from app.features.personas.router import router as personas_router
 from app.features.invites.router import router as invites_router
 from app.features.schools.router import router as districts_router
+from app.features.schools.school_admin_router import router as school_admin_router
 from app.features.schools.school_router import router as schools_router
 from app.features.smoketest.router import router as smoketest_router
 from app.features.subscriptions.router import router as subscriptions_router
@@ -31,6 +32,7 @@ router.include_router(tos_router)
 router.include_router(syllabi_router)
 router.include_router(districts_router)
 router.include_router(schools_router)
+router.include_router(school_admin_router)
 router.include_router(invites_router)
 router.include_router(personas_router)
 router.include_router(subscriptions_router)

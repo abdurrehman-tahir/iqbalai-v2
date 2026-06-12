@@ -28,6 +28,7 @@ vi.mock("@/lib/auth", () => ({
 
 const listMock = vi.fn();
 const createMock = vi.fn();
+const inviteMock = vi.fn();
 vi.mock("@/lib/api", () => ({
   schoolsApi: {
     list: (...a: unknown[]) => listMock(...a),
@@ -35,6 +36,9 @@ vi.mock("@/lib/api", () => ({
     delete: vi.fn(),
   },
   districtsApi: { list: vi.fn() },
+  adminUsersApi: {
+    invite: (...a: unknown[]) => inviteMock(...a),
+  },
 }));
 
 function renderWithClient(ui: ReactElement) {
@@ -71,6 +75,44 @@ describe("SchoolsClient", () => {
       expect(createMock).toHaveBeenCalledWith("test-token", {
         name: "Sample School",
         district_id: "dist-1",
+      }),
+    );
+  });
+
+  it("opens invite modal and submits school admin invite", async () => {
+    const user = userEvent.setup();
+    listMock.mockResolvedValue([
+      {
+        id: "school-1",
+        name: "Sample School",
+        district_id: "dist-1",
+        created_at: "2026-06-12T00:00:00Z",
+      },
+    ]);
+    inviteMock.mockResolvedValue({
+      id: "inv-1",
+      email: "sa@test.com",
+      display_name: "School Admin",
+      invited_role: "school_admin",
+      school_id: "school-1",
+      status: "pending",
+    });
+
+    renderWithClient(<SchoolsClient />);
+
+    await waitFor(() => expect(screen.getByText("Sample School")).toBeInTheDocument());
+
+    await user.click(screen.getByRole("button", { name: "actions.invite" }));
+    await user.type(screen.getByLabelText(/invite_modal.email_label/), "sa@test.com");
+    await user.type(screen.getByLabelText(/invite_modal.name_label/), "School Admin");
+    await user.click(screen.getByRole("button", { name: "invite_modal.send" }));
+
+    await waitFor(() =>
+      expect(inviteMock).toHaveBeenCalledWith("test-token", {
+        email: "sa@test.com",
+        display_name: "School Admin",
+        role: "school_admin",
+        school_id: "school-1",
       }),
     );
   });

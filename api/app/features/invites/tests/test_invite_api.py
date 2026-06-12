@@ -16,7 +16,7 @@ from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import setup_exception_handlers
 from app.core.tests.test_idempotency import FakeRedis
 from app.features.invites.models import UserInvite, UserInviteStatus
-from app.features.schools.models import District
+from app.features.schools.models import District, School
 from app.infrastructure.authentik.client import DevAuthentikClient
 
 
@@ -81,6 +81,16 @@ class _FakeDistrictRepo:
         return District(id=id, name="Test District", region="Punjab")
 
 
+class _FakeSchoolRepo:
+    def __init__(self, session: Any) -> None:
+        pass
+
+    async def get_by_id(self, id: str) -> School | None:
+        if id == "school-1":
+            return School(id="school-1", district_id="dist-1", name="Test School")
+        return None
+
+
 @pytest.fixture(autouse=True)
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeInviteRepo.store = {}
@@ -88,6 +98,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.invites.service.UserInviteRepository", _FakeInviteRepo)
     monkeypatch.setattr("app.features.invites.service.UserRepository", _FakeUserRepo)
     monkeypatch.setattr("app.features.invites.service.DistrictRepository", _FakeDistrictRepo)
+    monkeypatch.setattr("app.features.invites.service.SchoolRepository", _FakeSchoolRepo)
     monkeypatch.setattr("app.features.invites.service.send_invite_email", AsyncMock())
     monkeypatch.setattr("app.features.invites.service.audit", AsyncMock())
     monkeypatch.setattr(
@@ -96,7 +107,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.invites.service.get_redis", lambda: FakeRedis())
 
 
-def _build_client(role: str = "platform_admin") -> AsyncClient:
+def _build_client(role: str = "platform_admin", district_id: str | None = None) -> AsyncClient:
     app = FastAPI()
     app.include_router(v1_router, prefix="/api/v1")
     setup_exception_handlers(app)
@@ -105,7 +116,10 @@ def _build_client(role: str = "platform_admin") -> AsyncClient:
         yield AsyncMock()
 
     def _claims() -> dict[str, object]:
-        return {"sub": "admin-1", "role": role, "tenant_id": "t1"}
+        data: dict[str, object] = {"sub": "admin-1", "role": role, "tenant_id": "t1"}
+        if district_id is not None:
+            data["district_id"] = district_id
+        return data
 
     app.dependency_overrides[get_db] = _fake_db
     app.dependency_overrides[get_current_user] = _claims
@@ -143,6 +157,23 @@ async def test_non_admin_invite_forbidden() -> None:
             },
         )
     assert resp.status_code == 403
+
+
+async def test_district_admin_invites_school_admin_returns_201() -> None:
+    async with _build_client(role="district_admin", district_id="dist-1") as client:
+        resp = await client.post(
+            "/api/v1/admin/users",
+            json={
+                "email": "sa@test.com",
+                "display_name": "School Admin",
+                "role": "school_admin",
+                "school_id": "school-1",
+            },
+        )
+    assert resp.status_code == 201
+    body = resp.json()
+    assert body["data"]["invited_role"] == "school_admin"
+    assert body["data"]["school_id"] == "school-1"
 
 
 async def test_accept_invite_public_no_auth() -> None:

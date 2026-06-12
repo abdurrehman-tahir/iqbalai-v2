@@ -19,7 +19,7 @@ from app.core.exceptions import (
 from app.features.invites.models import UserInvite, UserInviteStatus
 from app.features.invites.repository import UserInviteRepository
 from app.features.invites.schemas import AcceptInviteRequest, AdminUserInviteCreate
-from app.features.schools.repository import DistrictRepository
+from app.features.schools.repository import DistrictRepository, SchoolRepository
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
@@ -54,6 +54,7 @@ class InviteService:
         self._repo = UserInviteRepository(session)
         self._users = UserRepository(session)
         self._districts = DistrictRepository(session)
+        self._schools = SchoolRepository(session)
         self._authentik = authentik or get_authentik_client()
 
     async def _check_rate_limit(self, actor_id: str) -> None:
@@ -84,11 +85,29 @@ class InviteService:
                 f"Role '{payload.role.value}' is not inviteable via this endpoint"
             )
 
+    async def _validate_school_for_invite(
+        self,
+        school_id: str,
+        claims: dict[str, object],
+        caller_role: str,
+    ) -> str:
+        """Return the school's district_id; 404 when school missing or out of scope."""
+        school = await self._schools.get_by_id(school_id)
+        if school is None or school.deleted_at is not None:
+            raise NotFoundError(f"School '{school_id}' not found")
+
+        if caller_role == "district_admin":
+            caller_district = str(claims.get("district_id", "") or "")
+            if caller_district != school.district_id:
+                raise NotFoundError("School not found")
+        return school.district_id
+
     async def create_invite(
         self,
         payload: AdminUserInviteCreate,
         actor_id: str,
         caller_role: str,
+        claims: dict[str, object],
     ) -> tuple[UserInvite, str]:
         """Create Authentik user (inactive), persist invite, send email."""
         self._validate_role_scope(payload, caller_role)
@@ -104,7 +123,15 @@ class InviteService:
         if pending is not None:
             raise ConflictError(f"A pending invite already exists for '{email}' — resend instead")
 
-        if payload.district_id:
+        district_id = payload.district_id
+        school_id = payload.school_id
+        if payload.role == UserRole.SCHOOL_ADMIN:
+            if not school_id:
+                raise ValidationError("school_id is required for school_admin invites")
+            district_id = await self._validate_school_for_invite(
+                school_id, claims, caller_role
+            )
+        elif payload.district_id:
             district = await self._districts.get_by_id(payload.district_id)
             if district is None or district.deleted_at is not None:
                 raise NotFoundError(f"District '{payload.district_id}' not found")
@@ -124,8 +151,8 @@ class InviteService:
             display_name=payload.display_name,
             invited_by_user_id=actor_id,
             invited_role=payload.role,
-            district_id=payload.district_id,
-            school_id=payload.school_id,
+            district_id=district_id,
+            school_id=school_id,
             token_hash=token_hash,
             authentik_id=authentik_id,
             expires_at=expires_at,
@@ -147,8 +174,8 @@ class InviteService:
             actor_id=actor_id,
             target_type="user_invite",
             target_id=created.id,
-            district_id=payload.district_id,
-            school_id=payload.school_id,
+            district_id=district_id,
+            school_id=school_id,
             metadata={"email": email, "role": payload.role.value},
         )
         logger.info("user_invite_sent", invite_id=created.id, email=email, by=actor_id)

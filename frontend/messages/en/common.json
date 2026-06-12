@@ -90,7 +90,20 @@
         "actions": "Actions"
       },
       "actions": {
-        "delete": "Delete {name}"
+        "delete": "Delete {name}",
+        "invite": "Invite admin for {name}"
+      },
+      "invite_modal": {
+        "title": "Invite School Admin — {name}",
+        "email_label": "Email",
+        "email_placeholder": "admin@school.example",
+        "name_label": "Display name",
+        "name_placeholder": "Full name",
+        "cancel": "Cancel",
+        "send": "Send invite",
+        "close": "Close",
+        "success": "Invitation sent to {email}. They have 7 days to accept.",
+        "done": "Done"
       },
       "modal": {
         "create_title": "New school",
@@ -116,6 +129,7 @@
       "aria_label": "School admin navigation",
       "dashboard": "Dashboard",
       "users": "Users",
+      "coordinators": "Coordinators",
       "teachers": "Teachers"
     },
     "dashboard": {

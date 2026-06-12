@@ -6,8 +6,8 @@ import { useTranslations, useFormatter } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { School as SchoolIcon, Plus, Trash2 } from "lucide-react";
-import { schoolsApi, districtsApi, type School, type District } from "@/lib/api";
+import { School as SchoolIcon, Plus, Trash2, UserPlus } from "lucide-react";
+import { schoolsApi, districtsApi, adminUsersApi, type School, type District } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { getUser } from "@/lib/auth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -25,6 +25,13 @@ const schoolSchema = z.object({
 
 type SchoolFormValues = z.infer<typeof schoolSchema>;
 
+const inviteSchema = z.object({
+  email: z.string().email(),
+  display_name: z.string().min(1).max(200),
+});
+
+type InviteFormValues = z.infer<typeof inviteSchema>;
+
 export function SchoolsClient() {
   const t = useTranslations("district_admin.schools");
   const format = useFormatter();
@@ -35,6 +42,8 @@ export function SchoolsClient() {
 
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<School | null>(null);
+  const [inviteTarget, setInviteTarget] = useState<School | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
   const [filterDistrictId, setFilterDistrictId] = useState<string>("");
 
   const effectiveDistrictId = isPlatformAdmin
@@ -69,12 +78,31 @@ export function SchoolsClient() {
     },
   });
 
+  const inviteMutation = useMutation({
+    mutationFn: (values: InviteFormValues & { school_id: string }) =>
+      adminUsersApi.invite(token ?? "", {
+        email: values.email,
+        display_name: values.display_name,
+        role: "school_admin",
+        school_id: values.school_id,
+      }),
+    onSuccess: (invite) => {
+      setInviteSuccess(invite.email);
+      inviteForm.reset();
+    },
+  });
+
   const form = useForm<SchoolFormValues>({
     resolver: zodResolver(schoolSchema),
     defaultValues: {
       name: "",
       district_id: user?.district_id ?? "",
     },
+  });
+
+  const inviteForm = useForm<InviteFormValues>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: { email: "", display_name: "" },
   });
 
   function openCreate() {
@@ -89,6 +117,17 @@ export function SchoolsClient() {
 
   async function handleSubmit(values: SchoolFormValues) {
     await createMutation.mutateAsync(values);
+  }
+
+  function openInvite(school: School) {
+    setInviteTarget(school);
+    setInviteSuccess(null);
+    inviteForm.reset({ email: "", display_name: "" });
+  }
+
+  async function handleInviteSubmit(values: InviteFormValues) {
+    if (!inviteTarget) return;
+    await inviteMutation.mutateAsync({ ...values, school_id: inviteTarget.id });
   }
 
   if (!mounted || isLoading) {
@@ -203,7 +242,15 @@ export function SchoolsClient() {
                     {format.dateTime(new Date(school.created_at))}
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex justify-end">
+                    <div className="flex justify-end gap-1">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => openInvite(school)}
+                        aria-label={t("actions.invite", { name: school.name })}
+                      >
+                        <UserPlus className="size-4" aria-hidden="true" />
+                      </Button>
                       <Button
                         variant="ghost"
                         size="icon"
@@ -270,6 +317,69 @@ export function SchoolsClient() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      <Modal
+        open={!!inviteTarget}
+        onClose={() => {
+          setInviteTarget(null);
+          setInviteSuccess(null);
+        }}
+        title={t("invite_modal.title", { name: inviteTarget?.name ?? "" })}
+        size="md"
+        closeLabel={t("invite_modal.close")}
+      >
+        {inviteSuccess ? (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              {t("invite_modal.success", { email: inviteSuccess })}
+            </p>
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => {
+                  setInviteTarget(null);
+                  setInviteSuccess(null);
+                }}
+              >
+                {t("invite_modal.done")}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={inviteForm.handleSubmit(handleInviteSubmit)} className="space-y-4">
+            <div>
+              <Label htmlFor="school-invite-email" required>
+                {t("invite_modal.email_label")}
+              </Label>
+              <Input
+                id="school-invite-email"
+                type="email"
+                {...inviteForm.register("email")}
+                placeholder={t("invite_modal.email_placeholder")}
+              />
+            </div>
+            <div>
+              <Label htmlFor="school-invite-name" required>
+                {t("invite_modal.name_label")}
+              </Label>
+              <Input
+                id="school-invite-name"
+                {...inviteForm.register("display_name")}
+                placeholder={t("invite_modal.name_placeholder")}
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button type="button" variant="outline" size="md" onClick={() => setInviteTarget(null)}>
+                {t("invite_modal.cancel")}
+              </Button>
+              <Button type="submit" variant="primary" size="md" loading={inviteMutation.isPending}>
+                {t("invite_modal.send")}
+              </Button>
+            </div>
+          </form>
+        )}
       </Modal>
 
       <Modal
