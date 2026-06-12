@@ -340,7 +340,7 @@ Integration test suite: for each row × column in Flow 2 v3 §4 permissions matr
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.1 (bulk import by Coordinator)
@@ -361,9 +361,9 @@ Integration test suite: for each row × column in Flow 2 v3 §4 permissions matr
 
 ### Acceptance
 
-1. [ ] Coordinator uploads sample CSV (50 rows)
-2. [ ] Dry-run validates per row, shows errors
-3. [ ] No actual user creation yet (commit button shows "Coming in M-06")
+1. [x] Coordinator uploads sample CSV (50 rows)
+2. [x] Dry-run validates per row, shows errors
+3. [x] No actual user creation yet (commit button shows "Coming in M-06")
 
 ### Out of scope
 

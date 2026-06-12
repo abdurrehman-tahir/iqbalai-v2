@@ -217,11 +217,55 @@
     "logout": "Sign out",
     "nav": {
       "aria_label": "Coordinator navigation",
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "bulk_import": "Bulk Import"
     },
     "dashboard": {
       "title": "Welcome, Coordinator",
       "subtitle": "Your grade-scoped dashboard is ready. Subject and grade management arrives in upcoming milestones."
+    },
+    "bulk_import": {
+      "title": "Bulk Import",
+      "subtitle": "Upload a CSV or XLSX roster to validate student rows before enrollment (M-06).",
+      "file_label": "Student roster file",
+      "choose_file": "Choose file",
+      "file_hint": "Required columns: name, email, grade. Optional: section, language. Max 5 MB, 5,000 rows.",
+      "run_dry_run": "Run dry-run validation",
+      "validating": "Validating…",
+      "results_title": "Dry-run results",
+      "commit_disabled": "Coming in M-06",
+      "commit_disabled_hint": "Student creation is enabled in milestone M-06",
+      "summary": {
+        "total": "{count} rows",
+        "valid": "{count} valid",
+        "invalid": "{count} invalid"
+      },
+      "table": {
+        "row": "Row",
+        "name": "Name",
+        "email": "Email",
+        "grade": "Grade",
+        "status": "Status",
+        "errors": "Errors"
+      },
+      "status": {
+        "valid": "Valid",
+        "invalid": "Invalid"
+      },
+      "errors": {
+        "invalid_type": "Only CSV and XLSX files are supported.",
+        "too_large": "File must be {max} MB or smaller."
+      },
+      "error_codes": {
+        "missing_name": "Name is required",
+        "missing_email": "Email is required",
+        "invalid_email": "Invalid email format",
+        "duplicate_email_in_file": "Duplicate email in file",
+        "email_in_other_school": "Email belongs to another school",
+        "missing_grade": "Grade is required",
+        "grade_out_of_scope": "Grade outside your scope",
+        "invalid_language": "Unsupported language"
+      }
     }
   },
   "admin": {

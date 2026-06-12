@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
@@ -13,7 +13,10 @@ import { useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 
-const NAV = [{ key: "dashboard", href: "/coordinator", icon: LayoutDashboard }] as const;
+const NAV = [
+  { key: "dashboard", href: "/coordinator", icon: LayoutDashboard },
+  { key: "bulk_import", href: "/coordinator/bulk-import", icon: Upload },
+] as const;
 
 export function CoordinatorShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("coordinator");

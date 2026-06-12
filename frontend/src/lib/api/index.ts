@@ -459,3 +459,62 @@ export const notificationsApi = {
   markRead: (token: string, id: string) =>
     request<void>(`/notifications/${id}/read`, { method: "POST" }, token),
 };
+
+// ── Bulk Import (Coordinator) ─────────────────────────────────────────────────
+
+export interface BulkImportRowResult {
+  row_number: number;
+  status: "valid" | "invalid";
+  errors: string[];
+  data: Record<string, string> | null;
+}
+
+export interface BulkImportJob {
+  id: string;
+  school_id: string;
+  imported_by_user_id: string;
+  upload_id: string;
+  total_rows: number;
+  success_rows: number;
+  failed_rows: number;
+  status: string;
+  rows: BulkImportRowResult[];
+  created_at: string;
+  completed_at: string | null;
+}
+
+async function uploadRequest<T>(path: string, formData: FormData, token: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let body: { error?: { code?: string; message?: string }; code?: string; message?: string } = {};
+    try {
+      body = await res.json();
+    } catch {
+      // ignore
+    }
+    const err = body.error ?? body;
+    throw new ApiError(
+      res.status,
+      err.code ?? "UNKNOWN_ERROR",
+      err.message ?? `Request failed with status ${res.status}`,
+    );
+  }
+
+  const envelope = await res.json();
+  return (envelope.data ?? envelope) as T;
+}
+
+export const bulkImportApi = {
+  dryRun: (token: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return uploadRequest<BulkImportJob>("/coordinator/bulk-imports/", formData, token);
+  },
+  get: (token: string, importId: string) =>
+    request<BulkImportJob>(`/coordinator/bulk-imports/${importId}`, {}, token),
+};
