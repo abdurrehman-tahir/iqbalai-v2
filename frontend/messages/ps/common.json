@@ -63,7 +63,8 @@
       "library": "__TODO__ Platform Library",
       "audit_log": "__TODO__ Audit Log",
       "tos_tab_tos": "د خدمت شرطونه",
-      "tos_tab_disclaimer": "رد کول"
+      "tos_tab_disclaimer": "رد کول",
+      "districts": "__TODO__ Districts"
     },
     "notifications": {
       "aria_label": "__TODO__ {count, plural, =0 {Notifications} one {1 unread notification} other {{count} unread notifications}}",
@@ -73,6 +74,47 @@
       "empty": "__TODO__ You have no notifications",
       "error": "__TODO__ Failed to load notifications",
       "retry": "__TODO__ Retry"
+    },
+    "districts": {
+      "title": "__TODO__ Districts",
+      "subtitle": "__TODO__ The top of the school org hierarchy. Each district groups the schools beneath it.",
+      "error": "__TODO__ Failed to load districts",
+      "retry": "__TODO__ Retry",
+      "add_button": "__TODO__ Add district",
+      "table_label": "__TODO__ Districts table",
+      "empty": {
+        "title": "__TODO__ No districts yet",
+        "description": "__TODO__ Create the first district to start building the school hierarchy.",
+        "cta": "__TODO__ Add first district"
+      },
+      "col": {
+        "name": "__TODO__ Name",
+        "region": "__TODO__ Region",
+        "language": "__TODO__ Language",
+        "created": "__TODO__ Created",
+        "actions": "__TODO__ Actions"
+      },
+      "actions": {
+        "delete": "__TODO__ Delete {name}"
+      },
+      "modal": {
+        "create_title": "__TODO__ New district",
+        "name_label": "__TODO__ Name",
+        "name_placeholder": "__TODO__ e.g. Lahore District",
+        "region_label": "__TODO__ Region (optional)",
+        "region_placeholder": "__TODO__ e.g. Punjab",
+        "language_label": "__TODO__ Language preference (optional)",
+        "language_placeholder": "__TODO__ e.g. ur",
+        "cancel": "__TODO__ Cancel",
+        "create": "__TODO__ Create",
+        "close": "__TODO__ Close"
+      },
+      "delete_modal": {
+        "title": "__TODO__ Delete district?",
+        "description": "__TODO__ Are you sure you want to delete \"{name}\"? Schools under it are not deleted.",
+        "cancel": "__TODO__ Cancel",
+        "confirm": "__TODO__ Delete"
+      }
     },
     "languages": {
       "title": "__TODO__ Languages",

@@ -47,6 +47,15 @@ class ConflictError(IqbalAIError):
         super().__init__("CONFLICT", message, status.HTTP_409_CONFLICT)
 
 
+class IdempotencyKeyMismatchError(IqbalAIError):
+    """Same Idempotency-Key reused with a different request body (ARCH §5.9)."""
+
+    def __init__(
+        self, message: str = "Idempotency-Key reused with a different request body"
+    ) -> None:
+        super().__init__("IDEMPOTENCY_KEY_MISMATCH", message, status.HTTP_409_CONFLICT)
+
+
 class PreconditionFailedError(IqbalAIError):
     """A required precondition was not met (e.g. last active admin cannot self-deactivate)."""
 

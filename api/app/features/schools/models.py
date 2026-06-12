@@ -34,6 +34,12 @@ class District(AuditMixin, SoftDeleteMixin, Base):
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
     name: Mapped[str] = mapped_column(String(200), nullable=False)
+    # Optional descriptive metadata captured at creation (flow-2 §3.1). `region` is a
+    # free-text geographic label; `language_preference` is a short locale/language code
+    # (e.g. "en", "ur"). Both are genuinely optional → nullable per §4.7. Kept as a plain
+    # code string (not a FK) — there is no editable language reference table at this stage.
+    region: Mapped[str | None] = mapped_column(String(200), nullable=True)
+    language_preference: Mapped[str | None] = mapped_column(String(20), nullable=True)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:

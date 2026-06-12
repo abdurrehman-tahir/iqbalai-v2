@@ -161,6 +161,47 @@ export const syllabiApi = {
     request<void>(`/admin/exam-syllabi/${id}`, { method: "DELETE" }, token),
 };
 
+// ── Districts ─────────────────────────────────────────────────────────────────
+
+export interface District {
+  id: string;
+  name: string;
+  region: string | null;
+  language_preference: string | null;
+  created_at: string;
+}
+
+export const districtsApi = {
+  list: (token: string) => request<District[]>("/admin/districts/", {}, token),
+  create: (
+    token: string,
+    data: { name: string; region?: string; language_preference?: string },
+  ) =>
+    request<District>(
+      "/admin/districts/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        // Idempotency-Key (ARCH §5.9): a retried POST (double-click, network retry)
+        // returns the cached district instead of creating a duplicate.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token,
+    ),
+  update: (
+    token: string,
+    id: string,
+    data: { name?: string; region?: string; language_preference?: string },
+  ) =>
+    request<District>(
+      `/admin/districts/${id}`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+  delete: (token: string, id: string) =>
+    request<void>(`/admin/districts/${id}`, { method: "DELETE" }, token),
+};
+
 // ── Personas ──────────────────────────────────────────────────────────────────
 
 export interface Persona {

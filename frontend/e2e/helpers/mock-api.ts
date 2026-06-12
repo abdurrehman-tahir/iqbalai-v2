@@ -39,12 +39,21 @@ interface AuditEntry {
   created_at: string;
 }
 
+interface District {
+  id: string;
+  name: string;
+  region: string | null;
+  language_preference: string | null;
+  created_at: string;
+}
+
 interface MockState {
   userId: string;
   email: string;
   tosAccepted: boolean;
   tosVersionId: string;
   tosContent: string;
+  districts: District[];
   syllabi: Syllabus[];
   tiers: SubscriptionTier[];
   personas: Persona[];
@@ -99,6 +108,7 @@ function createInitialState(): MockState {
     tosVersionId,
     tosContent:
       "IqbalAI Platform Terms of Service (E2E fixture).\n\nScroll to the bottom to accept.",
+    districts: [],
     syllabi: [],
     tiers: [],
     personas: [
@@ -218,6 +228,38 @@ async function handleApiRoute(state: MockState, route: Route) {
       status: 200,
       contentType: "application/json",
       body: envelope({ accepted: true }),
+    });
+    return;
+  }
+
+  if (method === "GET" && path === "/admin/districts/") {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: envelope(state.districts),
+    });
+    return;
+  }
+
+  if (method === "POST" && path === "/admin/districts/") {
+    const body = (await request.postDataJSON()) as {
+      name: string;
+      region?: string;
+      language_preference?: string;
+    };
+    const district: District = {
+      id: `district-${state.districts.length + 1}`,
+      name: body.name,
+      region: body.region ?? null,
+      language_preference: body.language_preference ?? null,
+      created_at: new Date().toISOString(),
+    };
+    state.districts.push(district);
+    audit(state, "district.created", "district", district.id, { name: body.name });
+    await route.fulfill({
+      status: 201,
+      contentType: "application/json",
+      body: envelope(district),
     });
     return;
   }

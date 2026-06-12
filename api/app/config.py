@@ -64,9 +64,7 @@ class Settings(BaseSettings):
     INFINITY_URL: str = "http://localhost:7997"
 
     # Browser origins allowed for cross-origin API calls (comma-separated).
-    CORS_ALLOWED_ORIGINS: str = (
-        "http://localhost:3000,http://127.0.0.1:3000"
-    )
+    CORS_ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     @property
     def cors_allowed_origins(self) -> list[str]:

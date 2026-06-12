@@ -55,6 +55,7 @@
       "aria_label": "Admin sidebar navigation",
       "open_menu": "Open navigation menu",
       "close_menu": "Close navigation menu",
+      "districts": "Districts",
       "languages": "Languages",
       "personas": "Teaching Personas",
       "exam_syllabi": "Exam Syllabi",
@@ -73,6 +74,47 @@
       "empty": "You have no notifications",
       "error": "Failed to load notifications",
       "retry": "Retry"
+    },
+    "districts": {
+      "title": "Districts",
+      "subtitle": "The top of the school org hierarchy. Each district groups the schools beneath it.",
+      "error": "Failed to load districts",
+      "retry": "Retry",
+      "add_button": "Add district",
+      "table_label": "Districts table",
+      "empty": {
+        "title": "No districts yet",
+        "description": "Create the first district to start building the school hierarchy.",
+        "cta": "Add first district"
+      },
+      "col": {
+        "name": "Name",
+        "region": "Region",
+        "language": "Language",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "actions": {
+        "delete": "Delete {name}"
+      },
+      "modal": {
+        "create_title": "New district",
+        "name_label": "Name",
+        "name_placeholder": "e.g. Lahore District",
+        "region_label": "Region (optional)",
+        "region_placeholder": "e.g. Punjab",
+        "language_label": "Language preference (optional)",
+        "language_placeholder": "e.g. ur",
+        "cancel": "Cancel",
+        "create": "Create",
+        "close": "Close"
+      },
+      "delete_modal": {
+        "title": "Delete district?",
+        "description": "Are you sure you want to delete \"{name}\"? Schools under it are not deleted.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
     },
     "languages": {
       "title": "Languages",

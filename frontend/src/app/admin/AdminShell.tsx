@@ -12,6 +12,7 @@ import {
   FileText,
   ClipboardList,
   Library,
+  Building2,
   Menu,
   X,
   LogOut,
@@ -30,6 +31,7 @@ interface NavItem {
 }
 
 const NAV_ITEMS: NavItem[] = [
+  { key: "districts", href: "/admin/districts", icon: Building2 },
   { key: "languages", href: "/admin/languages", icon: Globe },
   { key: "personas", href: "/admin/personas", icon: Users },
   { key: "exam_syllabi", href: "/admin/exam-syllabi", icon: BookOpen },
