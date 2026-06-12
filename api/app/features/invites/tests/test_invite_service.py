@@ -280,6 +280,23 @@ async def test_resend_issues_new_token() -> None:
     assert _hash_token(new_raw) == updated.token_hash
 
 
+async def test_school_admin_invites_teacher() -> None:
+    svc = _svc()
+    payload = AdminUserInviteCreate(
+        email="teacher@test.com",
+        display_name="Teacher One",
+        role=UserRole.TEACHER,
+    )
+    invite, _raw = await svc.create_invite(
+        payload,
+        actor_id="sa-1",
+        caller_role="school_admin",
+        claims=_claims("school_admin", district_id="dist-1") | {"school_id": "school-1"},
+    )
+    assert invite.invited_role == UserRole.TEACHER
+    assert invite.school_id == "school-1"
+
+
 async def test_school_admin_invites_coordinator_with_grade_scope() -> None:
     svc = _svc()
     payload = AdminUserInviteCreate(

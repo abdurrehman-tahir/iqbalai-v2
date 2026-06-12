@@ -94,6 +94,9 @@ class InviteService:
                 raise ValidationError("Insufficient role to invite Coordinator")
             if not payload.grade_scope:
                 raise ValidationError("grade_scope is required for coordinator invites")
+        elif payload.role == UserRole.TEACHER:
+            if caller_role not in ("platform_admin", "district_admin", "school_admin"):
+                raise ValidationError("Insufficient role to invite Teacher")
         else:
             raise ValidationError(
                 f"Role '{payload.role.value}' is not inviteable via this endpoint"
@@ -159,6 +162,14 @@ class InviteService:
             if not grades:
                 raise ValidationError("grade_scope must include at least one grade")
             scope_ids_json = {"grades": grades}
+        elif payload.role == UserRole.TEACHER:
+            if caller_role == "school_admin":
+                school_id = str(claims.get("school_id", "") or "") or school_id
+            if not school_id:
+                raise ValidationError("school_id is required for teacher invites")
+            district_id = await self._validate_school_for_invite(
+                school_id, claims, caller_role
+            )
         elif payload.district_id:
             district = await self._districts.get_by_id(payload.district_id)
             if district is None or district.deleted_at is not None:

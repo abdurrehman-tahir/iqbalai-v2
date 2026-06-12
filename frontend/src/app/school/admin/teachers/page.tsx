@@ -1,5 +1,5 @@
-import { SchoolAdminHomeClient } from "../SchoolAdminHomeClient";
+import { TeachersClient } from "./TeachersClient";
 
-export default function SchoolAdminTeachersPlaceholder() {
-  return <SchoolAdminHomeClient />;
+export default function SchoolAdminTeachersPage() {
+  return <TeachersClient />;
 }

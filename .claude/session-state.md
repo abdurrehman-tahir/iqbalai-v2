@@ -1,19 +1,13 @@
 # Session state (live — Claude Code updates this)
 
-**Purpose:** Survive context compaction without re-reading the milestone, flow spec, or ARCH from scratch.
-
----
-
 **Current milestone:** M-02 — School Onboarding
 **Branch:** milestone/M-02-school-onboarding
-**Current ticket:** T-033 — User lifecycle — **done** (committed)
-**Next intended step:** T-034 (Coordinator role: invitation + scope assignment)
+**Current ticket:** T-035 — done
+**Next intended step:** T-036 (Permission inheritance integration tests)
 
-**Done (T-033):**
-- Migration 0015 useraccountstatus; UserAccountStatus on User model
-- UserLifecycleService + admin_router (list/suspend/reactivate/deactivate)
-- AuthMiddleware account status check; post-login suspended/deactivated rejection
-- Authentik deactivate_user; UsersClient UI at /admin/users (+ district/school routes)
-- Tests: lifecycle service (5), admin users API (3), middleware suspended (1), UsersClient vitest (1)
+**Recent commits:**
+- `716f1c3` T-033 user lifecycle suspend/reactivate/deactivate
+- `85e7837` T-034 Coordinator invitation with grade scope
+- (pending) T-035 Teacher invitation + dashboard
 
-**Verified:** ruff OK, backend users+invites+middleware pytest 39/39, frontend vitest 41/41
+**Verified (T-035):** backend invites pytest 16/16, frontend vitest 45/45

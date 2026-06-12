@@ -170,6 +170,45 @@
         "success": "Invitation sent to {email}. They have 7 days to accept.",
         "done": "Done"
       }
+    },
+    "teachers": {
+      "title": "Teachers",
+      "subtitle": "Invite teachers to your school.",
+      "invite_button": "Invite teacher",
+      "error": "Failed to load teachers",
+      "retry": "Retry",
+      "table_label": "Teachers table",
+      "empty": {
+        "title": "No teachers yet",
+        "description": "Invite your first teacher to get started."
+      },
+      "col": {
+        "name": "Name",
+        "email": "Email",
+        "status": "Status"
+      },
+      "invite_modal": {
+        "title": "Invite Teacher",
+        "email_label": "Email",
+        "name_label": "Display name",
+        "cancel": "Cancel",
+        "send": "Send invite",
+        "close": "Close",
+        "success": "Invitation sent to {email}. They have 7 days to accept.",
+        "done": "Done"
+      }
+    }
+  },
+  "teacher": {
+    "header_title": "Teacher dashboard",
+    "logout": "Sign out",
+    "nav": {
+      "aria_label": "Teacher navigation",
+      "dashboard": "Dashboard"
+    },
+    "dashboard": {
+      "title": "Welcome, Teacher",
+      "subtitle": "Your teacher dashboard is ready. Onboarding and lecture tools arrive in upcoming milestones."
     }
   },
   "coordinator": {
