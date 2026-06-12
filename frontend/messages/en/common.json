@@ -60,6 +60,69 @@
       "error_generic": "Could not process invitation. The link may be expired or invalid."
     }
   },
+  "district_admin": {
+    "badge": "District",
+    "role": "District Admin",
+    "logout": "Sign out",
+    "nav": {
+      "aria_label": "District admin navigation",
+      "open_menu": "Open menu",
+      "schools": "Schools"
+    },
+    "schools": {
+      "title": "Schools",
+      "subtitle": "Manage schools within your district.",
+      "platform_subtitle": "Select a district to view and manage its schools.",
+      "district_filter_label": "District",
+      "district_filter_placeholder": "Select a district…",
+      "error": "Failed to load schools",
+      "retry": "Retry",
+      "add_button": "Add school",
+      "table_label": "Schools table",
+      "empty": {
+        "title": "No schools yet",
+        "description": "Create the first school in this district.",
+        "cta": "Add first school"
+      },
+      "col": {
+        "name": "Name",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "actions": {
+        "delete": "Delete {name}"
+      },
+      "modal": {
+        "create_title": "New school",
+        "district_label": "District",
+        "name_label": "Name",
+        "name_placeholder": "e.g. Sample School",
+        "cancel": "Cancel",
+        "create": "Create",
+        "close": "Close"
+      },
+      "delete_modal": {
+        "title": "Delete school?",
+        "description": "Are you sure you want to delete \"{name}\"?",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    }
+  },
+  "school_admin": {
+    "header_title": "School dashboard",
+    "logout": "Sign out",
+    "nav": {
+      "aria_label": "School admin navigation",
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "teachers": "Teachers"
+    },
+    "dashboard": {
+      "title": "Welcome to your school",
+      "subtitle": "Your school dashboard is ready. User and coordinator management arrives in upcoming milestones."
+    }
+  },
   "admin": {
     "sidebar_label": "Admin navigation",
     "admin_badge": "Admin",

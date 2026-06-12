@@ -39,3 +39,27 @@ class DistrictUpdate(BaseModel):
     name: str | None = Field(default=None, min_length=1, max_length=200)
     region: str | None = Field(default=None, max_length=200)
     language_preference: str | None = Field(default=None, max_length=20)
+
+
+class SchoolRead(BaseModel):
+    """Response schema for a single School."""
+
+    id: str
+    district_id: str
+    name: str
+    created_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class SchoolCreate(BaseModel):
+    """Payload for creating a new School within a district."""
+
+    name: str = Field(..., min_length=1, max_length=200)
+    district_id: str = Field(..., min_length=1, max_length=36)
+
+
+class SchoolUpdate(BaseModel):
+    """Payload for updating a School (all fields optional)."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=200)

@@ -45,6 +45,8 @@ class AuthService:
             "user_id": user.id,
             "email": user.email,
             "role": user.role,
+            "district_id": user.district_id,
+            "school_id": user.school_id,
             "is_first_login": is_first_login,
             "tos_acceptance_required": not tos_accepted,
             "current_tos_version_id": current_tos.id if current_tos else None,

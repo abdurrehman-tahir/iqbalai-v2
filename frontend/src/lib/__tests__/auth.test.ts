@@ -7,6 +7,7 @@ import {
   clearToken,
   getUser,
   setUser,
+  getPostLoginPath,
   type StoredUser,
 } from "../auth";
 
@@ -63,5 +64,19 @@ describe("getUser / setUser", () => {
   it("returns null when sessionStorage contains malformed JSON", () => {
     sessionStorage.setItem(USER_KEY, "{bad json");
     expect(getUser()).toBeNull();
+  });
+});
+
+describe("getPostLoginPath", () => {
+  it("routes district_admin to district schools dashboard", () => {
+    expect(getPostLoginPath("district_admin")).toBe("/admin/district/schools");
+  });
+
+  it("routes school_admin to school dashboard", () => {
+    expect(getPostLoginPath("school_admin")).toBe("/school/admin");
+  });
+
+  it("routes platform_admin to platform admin home", () => {
+    expect(getPostLoginPath("platform_admin")).toBe("/admin");
   });
 });

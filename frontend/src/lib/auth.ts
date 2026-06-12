@@ -10,6 +10,8 @@ export interface StoredUser {
   user_id: string;
   email: string;
   role: string;
+  district_id?: string | null;
+  school_id?: string | null;
   tos_acceptance_required: boolean;
   current_tos_version_id: string | null;
 }
@@ -60,6 +62,18 @@ export function getLoginUrl(): string {
     `&scope=openid+profile+email` +
     `&redirect_uri=${redirectUri}`
   );
+}
+
+/** Route a user lands on after login based on role (flow-2 §3.1). */
+export function getPostLoginPath(role: string): string {
+  switch (role) {
+    case "district_admin":
+      return "/admin/district/schools";
+    case "school_admin":
+      return "/school/admin";
+    default:
+      return "/admin";
+  }
 }
 
 export function getLogoutUrl(): string {

@@ -63,6 +63,8 @@ export const authApi = {
       user_id: string;
       email: string;
       role: string;
+      district_id?: string | null;
+      school_id?: string | null;
       is_first_login: boolean;
       tos_acceptance_required: boolean;
       current_tos_version_id: string | null;
@@ -254,6 +256,44 @@ export const adminUsersApi = {
       { method: "POST" },
       token,
     ),
+};
+
+// ── Schools (T-031) ─────────────────────────────────────────────────────────────
+
+export interface School {
+  id: string;
+  district_id: string;
+  name: string;
+  created_at: string;
+}
+
+export const schoolsApi = {
+  list: (token: string, districtId?: string) =>
+    request<School[]>(
+      districtId
+        ? `/admin/schools/?district_id=${encodeURIComponent(districtId)}`
+        : "/admin/schools/",
+      {},
+      token,
+    ),
+  create: (token: string, data: { name: string; district_id: string }) =>
+    request<School>(
+      "/admin/schools/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token,
+    ),
+  update: (token: string, id: string, data: { name?: string }) =>
+    request<School>(
+      `/admin/schools/${id}`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+  delete: (token: string, id: string) =>
+    request<void>(`/admin/schools/${id}`, { method: "DELETE" }, token),
 };
 
 // ── Personas ──────────────────────────────────────────────────────────────────

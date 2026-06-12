@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authApi, tosApi } from "@/lib/api";
-import { setToken, setUser } from "@/lib/auth";
+import { setToken, setUser, getPostLoginPath } from "@/lib/auth";
 import { TosModal } from "./TosModal";
 
 type Phase = "loading" | "tos" | "error";
@@ -88,6 +88,8 @@ export function OidcCallbackClient() {
         user_id: user.user_id,
         email: user.email,
         role: user.role,
+        district_id: user.district_id,
+        school_id: user.school_id,
         tos_acceptance_required: user.tos_acceptance_required,
         current_tos_version_id: user.current_tos_version_id,
       });
@@ -102,7 +104,7 @@ export function OidcCallbackClient() {
         });
         setPhase("tos");
       } else {
-        router.replace("/admin");
+        router.replace(getPostLoginPath(user.role));
       }
     } catch (err) {
       console.error("OIDC callback error:", err);
@@ -115,7 +117,10 @@ export function OidcCallbackClient() {
     if (!pendingToken || !tosData) return;
     try {
       await tosApi.acceptTos(pendingToken, tosData.id);
-      router.replace("/admin");
+      const stored = JSON.parse(sessionStorage.getItem("iqbalai_user") ?? "{}") as {
+        role?: string;
+      };
+      router.replace(getPostLoginPath(stored.role ?? "platform_admin"));
     } catch {
       setErrorMsg(t("error.tos_accept_failed"));
       setPhase("error");

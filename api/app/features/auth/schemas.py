@@ -13,6 +13,8 @@ class PostLoginResponse(BaseModel):
     user_id: str
     email: str
     role: UserRole
+    district_id: str | None = None
+    school_id: str | None = None
     is_first_login: bool
     # True when user has not yet accepted the current ToS
     tos_acceptance_required: bool
