@@ -5,6 +5,10 @@ Revises: school_0017
 Create Date: 2026-06-12
 
 T-033 (M-02): ACTIVE / SUSPENDED / DEACTIVATED lifecycle per flow-2 §3.5.
+
+Purpose: Add users.status lifecycle column (ACTIVE/SUSPENDED/DEACTIVATED).
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

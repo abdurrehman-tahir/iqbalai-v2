@@ -6,6 +6,10 @@ Create Date: 2026-06-12
 
 T-030 (M-02 School Onboarding): Platform Admin invites District Admin via email
 with a 7-day token. Tokens are stored hashed; raw token only appears in the email.
+
+Purpose: Add user_invites table for Path A admin email invitation flow.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

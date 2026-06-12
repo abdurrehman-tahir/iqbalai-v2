@@ -12,6 +12,10 @@ stage); see the model docstring for the rationale.
 
 These columns live on a tenant-root table (`districts`) which carries no RLS per
 ARCH §3.3 — nothing about RLS changes here.
+
+Purpose: Add optional region and language_preference metadata to districts.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

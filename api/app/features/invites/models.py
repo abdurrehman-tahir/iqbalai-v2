@@ -43,10 +43,16 @@ class UserInvite(AuditMixin, Base):
         nullable=False,
     )
     district_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("school.districts.id"), nullable=True
+        String(36),
+        ForeignKey("school.districts.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     school_id: Mapped[str | None] = mapped_column(
-        String(36), ForeignKey("school.schools.id"), nullable=True
+        String(36),
+        ForeignKey("school.schools.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
     )
     scope_ids_json: Mapped[dict[str, object] | None] = mapped_column(JSON, nullable=True)
     token_hash: Mapped[str] = mapped_column(String(64), nullable=False)

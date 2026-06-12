@@ -10,6 +10,10 @@ Per ARCH §3.3 `districts` and `schools` are NOT tenant-scoped — they *are* th
 tenants. Access is admin-only and controlled by role, so (unlike `school.users`)
 these tables deliberately carry **no RLS policy**. District-Admin scoping is
 enforced at the repository/role layer in T-029, not at the DB level.
+
+Purpose: Create districts and schools tenant-root tables for M-02 school onboarding.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

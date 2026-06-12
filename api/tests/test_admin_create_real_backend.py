@@ -11,13 +11,13 @@ from __future__ import annotations
 
 import os
 import uuid
-from collections.abc import Generator
+from collections.abc import AsyncGenerator
 from unittest.mock import AsyncMock, patch
 
 import httpx
 import pytest
+from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
-from starlette.testclient import TestClient
 
 import app.core.dependencies as deps_mod
 import app.db.engine as engine_mod
@@ -67,30 +67,27 @@ def _resolve_test_db_url() -> str:
     return f"postgresql+asyncpg://{user}:{password}@127.0.0.1:5432/{db}"
 
 
-def _postgres_reachable(db_url: str) -> bool:
-    import asyncio
-
+async def _postgres_reachable(db_url: str) -> bool:
     from sqlalchemy import text
     from sqlalchemy.ext.asyncio import create_async_engine
 
-    async def probe() -> bool:
-        engine = create_async_engine(db_url, pool_pre_ping=True)
-        try:
-            async with engine.connect() as conn:
-                await conn.execute(text("SELECT 1"))
-            return True
-        except OSError:
-            return False
-        except Exception:
-            return False
-        finally:
-            await engine.dispose()
-
-    return asyncio.run(probe())
+    engine = create_async_engine(db_url, pool_pre_ping=True)
+    try:
+        async with engine.connect() as conn:
+            await conn.execute(text("SELECT 1"))
+        return True
+    except OSError:
+        return False
+    except Exception:
+        return False
+    finally:
+        await engine.dispose()
 
 
 def _rebind_async_session_factory() -> None:
     """Point FastAPI DB deps at the current engine (import-time factory is stale)."""
+    import app.core.middleware as middleware_mod
+
     factory = async_sessionmaker(
         bind=engine_mod.get_engine(),
         class_=AsyncSession,
@@ -100,18 +97,26 @@ def _rebind_async_session_factory() -> None:
     )
     session_mod.async_session_factory = factory
     deps_mod.async_session_factory = factory
+    middleware_mod.async_session_factory = factory
+
+
+async def _dispose_engine() -> None:
+    engine = engine_mod._engine
+    if engine is not None:
+        await engine.dispose()
+    engine_mod._engine = None
 
 
 @pytest.fixture()
-def authed_client(monkeypatch: pytest.MonkeyPatch) -> Generator[TestClient, None, None]:
+async def authed_client(monkeypatch: pytest.MonkeyPatch) -> AsyncGenerator[AsyncClient, None]:
     """FastAPI app with platform_admin JWT claims injected at middleware."""
     db_url = _resolve_test_db_url()
-    if not _postgres_reachable(db_url):
+    if not await _postgres_reachable(db_url):
         pytest.skip("Postgres not reachable at configured DB_URL (need compose or CI service)")
 
     monkeypatch.setenv("DB_URL", db_url)
     get_settings.cache_clear()
-    engine_mod._engine = None
+    await _dispose_engine()
     _rebind_async_session_factory()
 
     with patch(
@@ -119,10 +124,12 @@ def authed_client(monkeypatch: pytest.MonkeyPatch) -> Generator[TestClient, None
         new_callable=AsyncMock,
         return_value=_PLATFORM_ADMIN_CLAIMS,
     ):
-        yield TestClient(create_app(), raise_server_exceptions=False)
+        transport = ASGITransport(app=create_app())
+        async with AsyncClient(transport=transport, base_url="http://test") as client:
+            yield client
 
     get_settings.cache_clear()
-    engine_mod._engine = None
+    await _dispose_engine()
 
 
 def _assert_create_succeeds(response: httpx.Response, resource: str) -> None:
@@ -138,28 +145,28 @@ def _assert_create_succeeds(response: httpx.Response, resource: str) -> None:
 # ── In-process real routes (require Postgres) ───────────────────────────────
 
 
-def test_exam_syllabus_create_accepts_ui_payload(authed_client: TestClient) -> None:
+async def test_exam_syllabus_create_accepts_ui_payload(authed_client: AsyncClient) -> None:
     """UI payload should create a syllabus — fails until exam_board is sent."""
     payload = {
         **EXAM_SYLLABUS_CREATE_FROM_UI,
         "name": f"{EXAM_SYLLABUS_CREATE_FROM_UI['name']} {uuid.uuid4().hex[:8]}",
     }
-    response = authed_client.post(
-        "/api/v1/admin/exam-syllabi",
+    response = await authed_client.post(
+        "/api/v1/admin/exam-syllabi/",
         json=payload,
         headers={"Authorization": "Bearer phase1-test-token"},
     )
     _assert_create_succeeds(response, "exam_syllabus")
 
 
-def test_subscription_tier_create_accepts_ui_payload(authed_client: TestClient) -> None:
+async def test_subscription_tier_create_accepts_ui_payload(authed_client: AsyncClient) -> None:
     """UI payload should create a tier — fails until slug + applies_to are sent."""
     payload = {
         **SUBSCRIPTION_TIER_CREATE_FROM_UI,
         "slug": f"school-basic-{uuid.uuid4().hex[:8]}",
     }
-    response = authed_client.post(
-        "/api/v1/admin/subscription-tiers",
+    response = await authed_client.post(
+        "/api/v1/admin/subscription-tiers/",
         json=payload,
         headers={"Authorization": "Bearer phase1-test-token"},
     )

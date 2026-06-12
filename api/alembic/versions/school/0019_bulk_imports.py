@@ -5,6 +5,10 @@ Revises: school_0018
 Create Date: 2026-06-12
 
 T-037 (M-02): bulk import skeleton per flow-2 §10.
+
+Purpose: Add bulk_imports table for coordinator CSV dry-run imports.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

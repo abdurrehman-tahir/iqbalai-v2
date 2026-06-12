@@ -130,7 +130,7 @@ class UserService:
             from app.core.exceptions import NotFoundError
 
             raise NotFoundError("User not found")
-        user.account_status = AccountStatus.SUSPENDED
+        user.status = UserAccountStatus.SUSPENDED
         return await self._repo.update(user)
 
     async def reactivate_on_tos_accept(self, user_id: str) -> User:
@@ -140,7 +140,7 @@ class UserService:
             from app.core.exceptions import NotFoundError
 
             raise NotFoundError("User not found")
-        if user.account_status == AccountStatus.SUSPENDED:
-            user.account_status = AccountStatus.ACTIVE
+        if user.status == UserAccountStatus.SUSPENDED:
+            user.status = UserAccountStatus.ACTIVE
             return await self._repo.update(user)
         return user

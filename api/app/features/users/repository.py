@@ -6,6 +6,7 @@ import structlog
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.base import not_deleted
 from app.features.users.models import User, UserAccountStatus, UserRole
 
 logger = structlog.get_logger(__name__)

@@ -7,6 +7,10 @@ Create Date: 2026-06-12
 Soft-deleted districts/schools kept the old full-table unique constraints, so
 re-creating the same name after delete failed with IntegrityError despite the
 service only checking active rows.
+
+Purpose: Scope district/school name uniqueness to active (non-deleted) rows.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations
