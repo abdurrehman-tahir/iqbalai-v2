@@ -474,7 +474,7 @@ export interface paths {
          * Upload CSV/XLSX for dry-run validation
          * @description Coordinator uploads a student roster file. Rows are validated against grade scope; no accounts are created until M-06.
          */
-        post: operations["create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post"];
+        post: operations["create_bulk_import_dry_run"];
         delete?: never;
         options?: never;
         head?: never;
@@ -489,7 +489,7 @@ export interface paths {
             cookie?: never;
         };
         /** Get bulk import dry-run results */
-        get: operations["get_bulk_import_api_v1_coordinator_bulk_imports__import_id__get"];
+        get: operations["get_bulk_import"];
         put?: never;
         post?: never;
         delete?: never;
@@ -606,7 +606,7 @@ export interface paths {
          * List recent audit log entries for the caller's school
          * @description Returns the 50 most recent immutable audit entries for the School Admin's school. Cross-school access is not permitted.
          */
-        get: operations["list_school_audit_log_api_v1_school_admin_audit_log__get"];
+        get: operations["list_school_audit_log"];
         put?: never;
         post?: never;
         delete?: never;
@@ -913,8 +913,8 @@ export interface components {
             /** Target Type */
             target_type: string | null;
         };
-        /** Body_create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post */
-        Body_create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post: {
+        /** Body_create_bulk_import_dry_run */
+        Body_create_bulk_import_dry_run: {
             /** File */
             file: string;
         };
@@ -3027,7 +3027,7 @@ export interface operations {
             };
         };
     };
-    create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post: {
+    create_bulk_import_dry_run: {
         parameters: {
             query?: never;
             header?: never;
@@ -3036,7 +3036,7 @@ export interface operations {
         };
         requestBody: {
             content: {
-                "multipart/form-data": components["schemas"]["Body_create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post"];
+                "multipart/form-data": components["schemas"]["Body_create_bulk_import_dry_run"];
             };
         };
         responses: {
@@ -3062,7 +3062,7 @@ export interface operations {
             };
         };
     };
-    get_bulk_import_api_v1_coordinator_bulk_imports__import_id__get: {
+    get_bulk_import: {
         parameters: {
             query?: never;
             header?: never;
@@ -3222,7 +3222,7 @@ export interface operations {
             };
         };
     };
-    list_school_audit_log_api_v1_school_admin_audit_log__get: {
+    list_school_audit_log: {
         parameters: {
             query?: never;
             header?: never;
@@ -3237,9 +3237,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["PaginatedEnvelope_AuditLogEntryRead_"];
                 };
             };
         };

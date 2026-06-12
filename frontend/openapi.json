@@ -245,7 +245,7 @@
         "title": "AuditLogEntryRead",
         "type": "object"
       },
-      "Body_create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post": {
+      "Body_create_bulk_import_dry_run": {
         "properties": {
           "file": {
             "contentMediaType": "application/octet-stream",
@@ -256,7 +256,7 @@
         "required": [
           "file"
         ],
-        "title": "Body_create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post",
+        "title": "Body_create_bulk_import_dry_run",
         "type": "object"
       },
       "Body_upload_file": {
@@ -3951,12 +3951,12 @@
     "/api/v1/coordinator/bulk-imports/": {
       "post": {
         "description": "Coordinator uploads a student roster file. Rows are validated against grade scope; no accounts are created until M-06.",
-        "operationId": "create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post",
+        "operationId": "create_bulk_import_dry_run",
         "requestBody": {
           "content": {
             "multipart/form-data": {
               "schema": {
-                "$ref": "#/components/schemas/Body_create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post"
+                "$ref": "#/components/schemas/Body_create_bulk_import_dry_run"
               }
             }
           },
@@ -3968,7 +3968,7 @@
               "application/json": {
                 "schema": {
                   "additionalProperties": true,
-                  "title": "Response Create Bulk Import Dry Run Api V1 Coordinator Bulk Imports  Post",
+                  "title": "Response Create Bulk Import Dry Run",
                   "type": "object"
                 }
               }
@@ -3994,7 +3994,7 @@
     },
     "/api/v1/coordinator/bulk-imports/{import_id}": {
       "get": {
-        "operationId": "get_bulk_import_api_v1_coordinator_bulk_imports__import_id__get",
+        "operationId": "get_bulk_import",
         "parameters": [
           {
             "in": "path",
@@ -4012,7 +4012,7 @@
               "application/json": {
                 "schema": {
                   "additionalProperties": true,
-                  "title": "Response Get Bulk Import Api V1 Coordinator Bulk Imports  Import Id  Get",
+                  "title": "Response Get Bulk Import",
                   "type": "object"
                 }
               }
@@ -4212,15 +4212,13 @@
     "/api/v1/school/admin/audit-log/": {
       "get": {
         "description": "Returns the 50 most recent immutable audit entries for the School Admin's school. Cross-school access is not permitted.",
-        "operationId": "list_school_audit_log_api_v1_school_admin_audit_log__get",
+        "operationId": "list_school_audit_log",
         "responses": {
           "200": {
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response List School Audit Log Api V1 School Admin Audit Log  Get",
-                  "type": "object"
+                  "$ref": "#/components/schemas/PaginatedEnvelope_AuditLogEntryRead_"
                 }
               }
             },

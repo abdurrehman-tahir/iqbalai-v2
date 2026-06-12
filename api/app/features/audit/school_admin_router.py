@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.exceptions import PermissionDeniedError
-from app.core.responses import paginated
+from app.core.responses import PaginatedEnvelope, paginated
 from app.features.audit.repository import AuditRepository
 from app.features.audit.schemas import AuditLogEntryRead
 
@@ -29,6 +29,8 @@ router = APIRouter(
 
 @router.get(
     "/",
+    response_model=PaginatedEnvelope[AuditLogEntryRead],
+    operation_id="list_school_audit_log",
     summary="List recent audit log entries for the caller's school",
     description=(
         "Returns the 50 most recent immutable audit entries for the School Admin's "

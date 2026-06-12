@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.responses import success
-from app.features.bulk_imports.schemas import BulkImportRead
 from app.features.bulk_imports.service import BulkImportService
 
 logger = structlog.get_logger(__name__)
@@ -20,6 +19,7 @@ router = APIRouter(prefix="/coordinator/bulk-imports", tags=["bulk-imports"])
     "/",
     response_model=dict,
     status_code=201,
+    operation_id="create_bulk_import_dry_run",
     summary="Upload CSV/XLSX for dry-run validation",
     description=(
         "Coordinator uploads a student roster file. Rows are validated against grade scope; "
@@ -47,6 +47,7 @@ async def create_bulk_import_dry_run(
 @router.get(
     "/{import_id}",
     response_model=dict,
+    operation_id="get_bulk_import",
     summary="Get bulk import dry-run results",
     dependencies=[require_role("coordinator")],
 )
