@@ -6,7 +6,7 @@
 
 **Current milestone:** M-02 — School Onboarding
 **Branch:** milestone/M-02-school-onboarding (from origin/staging @7000c23)
-**Current ticket:** T-029 — Platform Admin creates District: API + UI — **done** (committing)
+**Current ticket:** T-029 — Platform Admin creates District: API + UI — **done** (committed @045d339)
 **Dossier source files:** docs/backlog/M-02-school-onboarding.md; flow-2 §4/§3.1/§5.6; ARCH §5.1, §5.9, §6.7, §6.19
 
 **Done this session (T-029):**
