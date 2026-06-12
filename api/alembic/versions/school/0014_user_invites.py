@@ -21,11 +21,14 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
-    op.execute(
-        "CREATE TYPE school.user_invite_status AS ENUM ("
-        "'pending', 'accepted', 'expired', 'rejected', 'locked'"
-        ")"
-    )
+    conn = op.get_bind()
+    if conn.execute(
+        sa.text(
+            "SELECT 1 FROM information_schema.tables "
+            "WHERE table_schema = 'school' AND table_name = 'user_invites'"
+        )
+    ).scalar():
+        return
 
     op.create_table(
         "user_invites",
@@ -33,22 +36,8 @@ def upgrade() -> None:
         sa.Column("email", sa.String(255), nullable=False),
         sa.Column("display_name", sa.String(255), nullable=False),
         sa.Column("invited_by_user_id", sa.String(255), nullable=False),
-        sa.Column(
-            "invited_role",
-            sa.Enum(
-                "platform_admin",
-                "district_admin",
-                "school_admin",
-                "coordinator",
-                "teacher",
-                "student",
-                "parent",
-                name="userrole",
-                schema="school",
-                create_type=False,
-            ),
-            nullable=False,
-        ),
+        # users.role is plain text in this schema; avoid re-creating school.userrole here.
+        sa.Column("invited_role", sa.Text(), nullable=False),
         sa.Column("district_id", sa.String(36), sa.ForeignKey("school.districts.id"), nullable=True),
         sa.Column("school_id", sa.String(36), sa.ForeignKey("school.schools.id"), nullable=True),
         sa.Column("scope_ids_json", sa.JSON(), nullable=True),
@@ -68,7 +57,7 @@ def upgrade() -> None:
                 "locked",
                 name="user_invite_status",
                 schema="school",
-                create_type=False,
+                create_type=True,
             ),
             nullable=False,
             server_default="pending",

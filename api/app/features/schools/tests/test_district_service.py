@@ -69,6 +69,20 @@ async def test_create_district_rejects_duplicate_name(mock_session: AsyncMock) -
     repo.create.assert_not_awaited()
 
 
+async def test_create_district_allows_name_after_soft_delete(mock_session: AsyncMock) -> None:
+    """A soft-deleted district name can be reused for a new district."""
+    svc = DistrictService(mock_session)
+    repo = AsyncMock()
+    repo.get_active_by_name.return_value = None
+    repo.create.side_effect = lambda d: d
+    svc._repo = repo
+
+    created = await svc.create_district(DistrictCreate(name="mansehra"), actor_id="admin-1")
+
+    assert created.name == "mansehra"
+    repo.create.assert_awaited_once()
+
+
 async def test_get_district_missing_raises_not_found(mock_session: AsyncMock) -> None:
     """Fetching an unknown id raises NotFoundError."""
     svc = DistrictService(mock_session)

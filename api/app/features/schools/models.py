@@ -13,7 +13,7 @@ Teacher, Student). Scope IDs cascade downward from creation.
 
 from __future__ import annotations
 
-from sqlalchemy import ForeignKey, Index, String, UniqueConstraint
+from sqlalchemy import ForeignKey, Index, String, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7
@@ -28,7 +28,12 @@ class District(AuditMixin, SoftDeleteMixin, Base):
 
     __tablename__ = "districts"
     __table_args__ = (
-        UniqueConstraint("name", name="districts_name_uq"),
+        Index(
+            "districts_name_uq",
+            "name",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
         {"schema": "school"},
     )
 
@@ -58,7 +63,13 @@ class School(AuditMixin, SoftDeleteMixin, Base):
 
     __tablename__ = "schools"
     __table_args__ = (
-        UniqueConstraint("district_id", "name", name="schools_district_name_uq"),
+        Index(
+            "schools_district_name_uq",
+            "district_id",
+            "name",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
         Index("ix_schools_district_id", "district_id"),
         {"schema": "school"},
     )

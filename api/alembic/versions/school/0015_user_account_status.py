@@ -20,6 +20,30 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
+    conn = op.get_bind()
+    status_col = conn.execute(
+        sa.text(
+            "SELECT 1 FROM information_schema.columns "
+            "WHERE table_schema = 'school' AND table_name = 'users' AND column_name = 'status'"
+        )
+    ).scalar()
+    if status_col:
+        return
+
+    # Dev DBs may have a legacy account_status column + accountstatus enum from pre-migration drift.
+    legacy_col = conn.execute(
+        sa.text(
+            "SELECT 1 FROM information_schema.columns "
+            "WHERE table_schema = 'school' AND table_name = 'users' AND column_name = 'account_status'"
+        )
+    ).scalar()
+    if legacy_col:
+        op.execute("ALTER TYPE school.accountstatus ADD VALUE IF NOT EXISTS 'deactivated'")
+        op.execute("ALTER TYPE school.accountstatus RENAME TO useraccountstatus")
+        op.alter_column("users", "account_status", new_column_name="status", schema="school")
+        op.create_index("ix_users_status", "users", ["status"], schema="school")
+        return
+
     op.execute(
         "CREATE TYPE school.useraccountstatus AS ENUM ('active', 'suspended', 'deactivated')"
     )

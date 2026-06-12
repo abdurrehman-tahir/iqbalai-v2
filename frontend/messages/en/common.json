@@ -60,7 +60,8 @@
       "decline": "Decline",
       "missing_token": "Invalid invitation link — no token provided.",
       "success": "Your account is active. Sign in to continue.",
-      "go_login": "Go to sign in",
+      "success_sign_in_hint": "Use the email address that received this invitation and the password you just set.",
+      "go_login": "Sign in to your account",
       "declined": "Invitation declined.",
       "error_generic": "Could not process invitation. The link may be expired or invalid."
     }

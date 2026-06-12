@@ -9,6 +9,7 @@ import httpx
 import structlog
 
 from app.config import get_settings
+from app.core.exceptions import AuthentikApiError
 
 logger = structlog.get_logger(__name__)
 
@@ -50,7 +51,11 @@ class DevAuthentikClient:
     async def set_password(self, authentik_id: str, password: str) -> None:
         if authentik_id in self._users:
             self._users[authentik_id]["password"] = password
-        logger.info("dev_authentik_password_set", pk=authentik_id)
+        logger.warning(
+            "dev_authentik_password_set_stub_only",
+            pk=authentik_id,
+            hint="Set AUTHENTIK_API_TOKEN so invites update real Authentik users",
+        )
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None:
         logger.info("dev_authentik_group_added", pk=authentik_id, group=group_slug)
@@ -63,6 +68,53 @@ class AuthentikClient:
         self._base_url = base_url.rstrip("/")
         self._token = token
 
+    def _auth_headers(self) -> dict[str, str]:
+        return {"Authorization": f"Bearer {self._token}"}
+
+    def _raise_for_response(self, resp: httpx.Response, *, path: str) -> None:
+        if resp.is_success:
+            return
+
+        detail = resp.text
+        try:
+            payload = resp.json()
+            detail = str(payload.get("detail", payload))
+        except ValueError:
+            pass
+
+        logger.error(
+            "authentik_api_error",
+            status_code=resp.status_code,
+            path=path,
+            detail=detail[:200],
+        )
+
+        if resp.status_code in (401, 403) and "invalid" in detail.lower():
+            raise AuthentikApiError(
+                "Authentik API token is invalid or expired. Create a new token in "
+                "Authentik Admin → Directory → Tokens (Intent: API, user: akadmin) "
+                "and set AUTHENTIK_API_TOKEN in .env, then restart the api container."
+            )
+
+        raise AuthentikApiError(f"Authentik request failed ({resp.status_code}): {detail}")
+
+    async def _request(
+        self,
+        method: str,
+        path: str,
+        *,
+        json: dict[str, object] | None = None,
+    ) -> httpx.Response:
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.request(
+                method,
+                f"{self._base_url}{path}",
+                json=json,
+                headers=self._auth_headers(),
+            )
+        self._raise_for_response(resp, path=path)
+        return resp
+
     async def create_user(self, *, email: str, name: str, is_active: bool = False) -> str:
         payload = {
             "username": email,
@@ -70,42 +122,30 @@ class AuthentikClient:
             "name": name,
             "is_active": is_active,
         }
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(
-                f"{self._base_url}/core/users/",
-                json=payload,
-                headers={"Authorization": f"Bearer {self._token}"},
-            )
-            resp.raise_for_status()
-            data = resp.json()
-            return str(data["pk"])
+        resp = await self._request("POST", "/core/users/", json=payload)
+        data = resp.json()
+        return str(data["pk"])
 
     async def activate_user(self, authentik_id: str) -> None:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.patch(
-                f"{self._base_url}/core/users/{authentik_id}/",
-                json={"is_active": True},
-                headers={"Authorization": f"Bearer {self._token}"},
-            )
-            resp.raise_for_status()
+        await self._request(
+            "PATCH",
+            f"/core/users/{authentik_id}/",
+            json={"is_active": True},
+        )
 
     async def deactivate_user(self, authentik_id: str) -> None:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.patch(
-                f"{self._base_url}/core/users/{authentik_id}/",
-                json={"is_active": False},
-                headers={"Authorization": f"Bearer {self._token}"},
-            )
-            resp.raise_for_status()
+        await self._request(
+            "PATCH",
+            f"/core/users/{authentik_id}/",
+            json={"is_active": False},
+        )
 
     async def set_password(self, authentik_id: str, password: str) -> None:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.post(
-                f"{self._base_url}/core/users/{authentik_id}/set_password/",
-                json={"password": password},
-                headers={"Authorization": f"Bearer {self._token}"},
-            )
-            resp.raise_for_status()
+        await self._request(
+            "POST",
+            f"/core/users/{authentik_id}/set_password/",
+            json={"password": password},
+        )
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None:
         logger.info("authentik_add_to_group", pk=authentik_id, group=group_slug)
@@ -120,6 +160,10 @@ def get_authentik_client() -> AuthentikClientProtocol:
     settings = get_settings()
     if not settings.AUTHENTIK_API_TOKEN:
         if _dev_client is None:
+            logger.warning(
+                "authentik_dev_stub_active",
+                hint="Invites/passwords are NOT synced to Authentik — set AUTHENTIK_API_TOKEN",
+            )
             _dev_client = DevAuthentikClient()
         return _dev_client
     return AuthentikClient(settings.AUTHENTIK_API_URL, settings.AUTHENTIK_API_TOKEN)

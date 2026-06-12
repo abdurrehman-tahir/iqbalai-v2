@@ -42,6 +42,14 @@ class UserRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_by_email(self, email: str) -> list[User]:
+        result = await self._session.execute(
+            select(User)
+            .where(User.email == email.lower(), User.deleted_at.is_(None))
+            .order_by(User.created_at.asc())
+        )
+        return list(result.scalars().all())
+
     async def create(self, user: User) -> User:
         self._session.add(user)
         await self._session.commit()

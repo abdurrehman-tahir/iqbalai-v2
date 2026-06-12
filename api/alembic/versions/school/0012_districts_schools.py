@@ -25,6 +25,15 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
+    conn = op.get_bind()
+    if conn.execute(
+        sa.text(
+            "SELECT 1 FROM information_schema.tables "
+            "WHERE table_schema = 'school' AND table_name = 'districts'"
+        )
+    ).scalar():
+        return
+
     op.create_table(
         "districts",
         sa.Column("id", sa.String(36), primary_key=True),

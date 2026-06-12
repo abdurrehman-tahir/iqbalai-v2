@@ -7,6 +7,7 @@ import {
   clearToken,
   getUser,
   setUser,
+  getLoginUrl,
   getPostLoginPath,
   type StoredUser,
 } from "../auth";
@@ -64,6 +65,17 @@ describe("getUser / setUser", () => {
   it("returns null when sessionStorage contains malformed JSON", () => {
     sessionStorage.setItem(USER_KEY, "{bad json");
     expect(getUser()).toBeNull();
+  });
+});
+
+describe("getLoginUrl", () => {
+  it("adds prompt=login and login_hint for post-invite sign-in", () => {
+    const url = getLoginUrl({
+      promptLogin: true,
+      loginHint: "district@school.edu",
+    });
+    expect(url).toContain("prompt=login");
+    expect(url).toContain("login_hint=district%40school.edu");
   });
 });
 

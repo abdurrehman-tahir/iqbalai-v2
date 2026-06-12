@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { authApi } from "@/lib/api";
+import { clearToken, getLoginUrl } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ function AcceptInviteForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token") ?? "";
   const [done, setDone] = useState(false);
+  const [acceptedEmail, setAcceptedEmail] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -49,12 +51,20 @@ function AcceptInviteForm() {
     return (
       <div className="rounded-lg border border-green-200 bg-green-50 p-6 text-center space-y-4">
         <p className="text-sm text-green-800">{t("success")}</p>
-        <a
-          href="/auth/login"
+        <p className="text-xs text-green-700">{t("success_sign_in_hint")}</p>
+        <button
+          type="button"
           className="inline-flex h-10 items-center justify-center rounded-md bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700"
+          onClick={() => {
+            clearToken();
+            window.location.href = getLoginUrl({
+              promptLogin: true,
+              loginHint: acceptedEmail ?? undefined,
+            });
+          }}
         >
           {t("go_login")}
-        </a>
+        </button>
       </div>
     );
   }
@@ -63,12 +73,14 @@ function AcceptInviteForm() {
     setError(null);
     setSubmitting(true);
     try {
-      await authApi.acceptInvite({
+      const result = await authApi.acceptInvite({
         token,
         action: "accept",
         password: values.password,
         display_name: values.display_name || undefined,
       });
+      clearToken();
+      setAcceptedEmail(result.email ?? null);
       setDone(true);
     } catch (err) {
       setError(err instanceof Error ? err.message : t("error_generic"));

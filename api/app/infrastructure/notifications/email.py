@@ -2,9 +2,13 @@
 
 from __future__ import annotations
 
+import asyncio
+import smtplib
+from email.message import EmailMessage
+
 import structlog
 
-from app.config import get_settings
+from app.config import Settings, get_settings
 
 logger = structlog.get_logger(__name__)
 
@@ -32,6 +36,43 @@ async def send_invite_email(
     )
 
 
+def _send_smtp_sync(
+    *,
+    settings: Settings,
+    to: str,
+    subject: str,
+    body: str,
+) -> None:
+    if not settings.SMTP_HOST or not settings.SMTP_USERNAME or not settings.SMTP_PASSWORD:
+        raise RuntimeError("SMTP is not configured — set SMTP_HOST, SMTP_USERNAME, SMTP_PASSWORD")
+
+    msg = EmailMessage()
+    msg["Subject"] = subject
+    msg["From"] = settings.EMAIL_FROM
+    msg["To"] = to
+    msg.set_content(body)
+
+    if settings.SMTP_USE_SSL:
+        with smtplib.SMTP_SSL(
+            settings.SMTP_HOST,
+            settings.SMTP_PORT,
+            timeout=settings.SMTP_TIMEOUT,
+        ) as smtp:
+            smtp.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+            smtp.send_message(msg)
+        return
+
+    with smtplib.SMTP(
+        settings.SMTP_HOST,
+        settings.SMTP_PORT,
+        timeout=settings.SMTP_TIMEOUT,
+    ) as smtp:
+        if settings.SMTP_USE_TLS:
+            smtp.starttls()
+        smtp.login(settings.SMTP_USERNAME, settings.SMTP_PASSWORD)
+        smtp.send_message(msg)
+
+
 async def send_account_email(*, to: str, subject: str, body: str, template_key: str) -> None:
     """Send a templated account notification email."""
     settings = get_settings()
@@ -43,6 +84,23 @@ async def send_account_email(*, to: str, subject: str, body: str, template_key: 
             subject=subject,
             template_key=template_key,
             body_preview=body[:200],
+        )
+        return
+
+    if settings.EMAIL_PROVIDER == "smtp":
+        await asyncio.to_thread(
+            _send_smtp_sync,
+            settings=settings,
+            to=to,
+            subject=subject,
+            body=body,
+        )
+        logger.info(
+            "account_email_sent",
+            to=to,
+            subject=subject,
+            template_key=template_key,
+            provider="smtp",
         )
         return
 

@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from typing import cast
 
-from sqlalchemy import ForeignKeyConstraint, Table, UniqueConstraint
+from sqlalchemy import ForeignKeyConstraint, Index, Table
 
 from app.features.schools.models import District, School
 
@@ -66,20 +66,27 @@ def test_school_district_id_not_nullable() -> None:
     assert SCHOOLS.c.district_id.nullable is False
 
 
-def test_district_name_unique() -> None:
-    """District names are globally unique."""
-    uniques = {c.name for c in DISTRICTS.constraints if isinstance(c, UniqueConstraint)}
-    assert "districts_name_uq" in uniques
+def test_district_name_unique_among_active_rows() -> None:
+    """District names are globally unique among non-deleted rows."""
+    indexes = {idx.name: idx for idx in DISTRICTS.indexes if isinstance(idx, Index)}
+    districts_name_uq = indexes["districts_name_uq"]
+    assert districts_name_uq.unique is True
+    assert tuple(col.name for col in districts_name_uq.columns) == ("name",)
+    assert str(districts_name_uq.dialect_options["postgresql"]["where"]) == "deleted_at IS NULL"
 
 
-def test_school_name_unique_within_district() -> None:
-    """School names are unique within a district (not globally)."""
-    by_name = {
-        c.name: tuple(col.name for col in c.columns)
-        for c in SCHOOLS.constraints
-        if isinstance(c, UniqueConstraint)
-    }
-    assert by_name.get("schools_district_name_uq") == ("district_id", "name")
+def test_school_name_unique_within_district_among_active_rows() -> None:
+    """School names are unique within a district for non-deleted rows."""
+    indexes = {idx.name: idx for idx in SCHOOLS.indexes if isinstance(idx, Index)}
+    schools_district_name_uq = indexes["schools_district_name_uq"]
+    assert schools_district_name_uq.unique is True
+    assert tuple(col.name for col in schools_district_name_uq.columns) == (
+        "district_id",
+        "name",
+    )
+    assert str(schools_district_name_uq.dialect_options["postgresql"]["where"]) == (
+        "deleted_at IS NULL"
+    )
 
 
 def test_schools_district_id_indexed() -> None:

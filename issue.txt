@@ -1,0 +1,291 @@
+# iqbalai-v2 — local issue log (not committed)
+#
+# Purpose: track failures, root causes, and fixes while developing.
+# Add a new entry whenever something breaks (CI, local, E2E, compose, etc.).
+#
+# Format per entry:
+#   ## YYYY-MM-DD — short title
+#   Status: open | fixed | wontfix
+#   Symptom:
+#   Cause:
+#   Fix:
+#   Verify:
+#
+# This file is gitignored — safe for local notes; do not put secrets here.
+
+================================================================================
+ISSUE LOG
+================================================================================
+
+================================================================================
+CURRICULUM / PLATFORM LIBRARY UPLOAD (RAG ingest) — issue cluster
+================================================================================
+Surface: Platform Admin → /admin/library — upload reference books / curriculum PDFs.
+Pipeline: POST /api/v1/admin/library/ → MinIO → Celery library.ingest_platform_book
+  → pdfplumber extract → chunk → embed → Qdrant → status available.
+UI maps ingestion_failed → label "Failed" (red badge).
+
+---
+
+## 2026-06-11 — Platform Library upload: 500 on POST (Authentik actor_id too narrow)
+Status: fixed
+Symptom:
+  - POST /api/v1/admin/library/ → 500 INTERNAL_SERVER_ERROR
+  - Postgres: value too long for type character varying(36)
+  - Affects upload_records.uploaded_by and audit_log.actor_id
+Cause:
+  - Authentik JWT `sub` is a 64-char hash, not a UUID (36 chars).
+  - school_0010 migration used VARCHAR(36) for uploaded_by; audit actor_id same.
+Fix:
+  - api/alembic/versions/school/0014_widen_authentik_actor_columns.py
+    widens uploaded_by, audit_log.actor_id, notifications.recipient_user_id → VARCHAR(255)
+  - api/app/features/files/models.py, audit/models.py, notifications/models.py aligned
+  - Run: cd api && uv run alembic upgrade head
+Verify:
+  - POST /api/v1/admin/library/ → 202 Accepted (not 500)
+  - audit_logged action=platform_reference_book.uploaded in api logs
+
+---
+
+## 2026-06-11 — Platform Library upload: Celery asyncio loop crash in ingestion task
+Status: fixed
+Symptom:
+  - celery-worker: RuntimeError — Future attached to a different loop
+  - Ingestion task fails when calling run_db() for DB updates from prefork worker
+Cause:
+  - Celery prefork workers call asyncio.run() per task; reusing the API's module-level
+    async engine/session factory binds connections to a closed event loop.
+Fix:
+  - api/app/db/celery_async.py — run_db() creates a disposable engine per call,
+    disposes it before the loop closes
+  - api/app/features/library/tasks.py imports run_db from celery_async (not session)
+Verify:
+  - celery-worker logs show book_status_updated / ingestion_complete (no RuntimeError)
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: missing Compose profiles (minio / qdrant / workers)
+Status: fixed
+Symptom:
+  - Upload may return 202 but ingestion never completes
+  - celery-worker: Name or service not known (minio/infinity) OR no worker running
+Cause:
+  - Library upload needs: minio (file storage), qdrant (vectors), celery-worker (async ingest).
+  - Services are behind Compose profiles: rag (minio, qdrant, infinity), workers (celery).
+  - `docker compose up` alone starts only core (~7 containers) — no ingest pipeline.
+Fix:
+  - docker compose --profile rag --profile workers up
+  - With EMBEDDING_PROVIDER=local (default), infinity is optional — still need minio + qdrant + worker
+Verify:
+  - docker compose ps shows minio, qdrant, celery-worker Up
+  - Upload → status processing → available
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: ingestion fails (Infinity not running)
+Status: fixed
+Symptom:
+  - Upload POST /api/v1/admin/library/ → 202 Accepted; UI shows "ingesting"
+  - Shortly after → status ingestion_failed on frontend
+  - celery-worker: ingestion_failed error='[Errno -2] Name or service not known'
+  - curl http://localhost:7997/health fails
+Cause:
+  - When EMBEDDING_PROVIDER=infinity, task embeds via INFINITY_URL (http://infinity:7997).
+  - Infinity is behind Compose profile `rag`.
+  - Stack was running with `workers` but without `rag`, or infinity never started.
+  - Docker DNS cannot resolve hostname `infinity` when that container is absent.
+Fix:
+  - Dev default: EMBEDDING_PROVIDER=local in .env / docker-compose (embed in celery-worker)
+  - OR start rag profile and wait: curl -f http://localhost:7997/health before upload
+Verify:
+  - Upload PDF → status processing → available (not ingestion_failed)
+  - celery-worker logs: ingestion_complete
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: Infinity crash-loop (exit 137 / OOM)
+Status: fixed (mitigated; use local embedder on dev)
+Symptom:
+  - infinity-1 exited with code 137 (restarting) during/after upload
+  - celery-worker: ingestion_failed error='[Errno 111] Connection refused'
+  - Upload and pdf_extracted succeed; failure at embedding step only
+Cause:
+  - Infinity loads heavy ONNX models (BGE-M3 + bge-reranker-v2-m3) — ~2–4 GB RAM.
+  - On 8 GB host with core + authentik + observability + all profiles, container
+    is SIGKILL'd (137) while loading models.
+  - Ingestion races the crash: Celery calls :7997 exactly when Infinity is down.
+Fix:
+  - Run lean stack: docker compose --profile rag --profile workers up
+    (skip observability/events when not needed)
+  - docker-compose.yml: removed reranker from infinity command (BGE-M3 only) to
+    halve Infinity RAM for dev; mem_limit raised to 4g
+  - Prefer EMBEDDING_PROVIDER=local so Infinity is not required locally
+  - Increase Docker Desktop memory to 6–8 GB if using Infinity
+Verify:
+  - docker compose ps shows infinity Up (not restarting)
+  - curl -f http://localhost:7997/health → OK before upload
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: Infinity amd64 on Apple Silicon (Rosetta crash-loop)
+Status: fixed
+Symptom:
+  - docker compose up infinity warns:
+    "image's platform (linux/amd64) does not match host (linux/arm64/v8)"
+  - curl http://localhost:7997/health → (56) Connection reset by peer
+  - Infinity never reaches healthy; ingestion_failed Connection refused
+Cause:
+  - michaelf34/infinity:latest manifest is amd64-only (no arm64 tag on :latest).
+  - Docker runs it under Rosetta emulation on M-series Mac — unstable, crash-loops
+    during model load ("Waiting for application startup" then restart).
+Fix:
+  - docker-compose.yml: pin michaelf34/infinity:0.0.75 (multi-arch, includes arm64)
+  - healthcheck start_period: 300s (first model download takes 2–5 min)
+  - Dev workaround: EMBEDDING_PROVIDER=local — skip Infinity entirely on Mac
+Verify:
+  - docker image inspect michaelf34/infinity:0.0.75 --format '{{.Architecture}}' → arm64
+  - curl -f http://localhost:7997/health succeeds after warm-up (if using Infinity)
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: local low-RAM embedding backend
+Status: fixed
+Symptom:
+  - Same ingestion_failed on embedding step; Infinity unreliable on dev machine
+  - User requested alternative to Infinity (memory constraints on 8 GB Mac)
+Cause:
+  - Production stack locks BGE-M3 via Infinity (STACK_LOCK §4.3); not viable on
+    8 GB RAM with full compose stack.
+Fix:
+  - EMBEDDING_PROVIDER env: infinity (prod) | local (dev, default in compose)
+  - api/app/infrastructure/rag/embedder.py: local path uses fastembed (ONNX,
+    ~150 MB) inside celery-worker — no Infinity container required
+  - api/app/config.py: EMBEDDING_PROVIDER, EMBEDDING_MODEL, EMBEDDING_VECTOR_DIM
+  - api/pyproject.toml: fastembed dependency
+  - docker-compose.yml: pass EMBEDDING_* to api + celery-worker; default local
+  - .env / .env.example: EMBEDDING_PROVIDER=local
+  - Qdrant collection platform_chunks_local (384-dim) vs platform_chunks (1024)
+  - docs/DEV_CONTAINERS.md: infinity optional when EMBEDDING_PROVIDER=local
+Verify:
+  - docker exec iqbalai-v2-celery-worker-1 printenv EMBEDDING_PROVIDER → local
+  - docker exec ... python -c "import fastembed" → ok
+  - Upload PDF → ingestion_complete, status available
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: celery worker stale image / wrong provider
+Status: fixed
+Symptom:
+  - After local embedder code landed, upload still failed:
+    error='[Errno -2] Name or service not known' (still hitting Infinity)
+  - docker exec celery-worker: EMBEDDING_PROVIDER empty; get_settings() → infinity
+  - import fastembed → ModuleNotFoundError
+Cause:
+  - celery-worker image never rebuilt after pyproject.toml added fastembed
+  - Container not recreated after compose env vars added — no EMBEDDING_PROVIDER
+    injected; Pydantic default EMBEDDING_PROVIDER=infinity
+Fix:
+  - docker compose --profile workers build celery-worker
+  - docker compose --profile workers up -d --force-recreate celery-worker
+Verify:
+  - printenv EMBEDDING_PROVIDER=local; import fastembed succeeds
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: unsupported fastembed model name
+Status: fixed
+Symptom:
+  - local embedder: ValueError: Model intfloat/multilingual-e5-small is not
+    supported in TextEmbedding
+  - ingestion_failed immediately after pdf_extracted
+Cause:
+  - Initial local default model intfloat/multilingual-e5-small not in fastembed
+    TextEmbedding.list_supported_models()
+Fix:
+  - embedder.py _LOCAL_MODEL →
+    sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2 (384-dim,
+    multilingual, supported by fastembed)
+  - api/tests/test_embedder.py updated
+  - First run downloads model from Hugging Face (~5 min once); cached after
+Verify:
+  - docker exec celery-worker python -c "
+      from app.infrastructure.rag.embedder import embed_sync;
+      print(len(embed_sync(['test'])[0]))
+    " → 384
+  - Re-run ingest_platform_book for failed book → status available, chunk_count=N
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: UI shows "Failed" though HTTP upload succeeded
+Status: fixed (expected behaviour once ingest works; confusing during debugging)
+Symptom:
+  - User sees red "Failed" badge for file "Hamza Nawaz AI Engineer_updated"
+  - API logs show library_upload_accepted + 202 Accepted (upload itself OK)
+Cause:
+  - Upload and ingest are separate steps. 202 only means file accepted + task queued.
+  - Any embedding/Qdrant/DB failure sets status=ingestion_failed → UI label "Failed".
+  - Task also marks ingestion_failed on first error before Celery retries exhaust.
+Fix:
+  - Fix root ingest failure (entries above); delete failed row and re-upload, or
+    wait for Celery retry (120s) after worker/env fix
+  - frontend/messages/en/common.json: status.ingestion_failed → "Failed"
+Verify:
+  - After worker fix: refresh /admin/library → badge "Available" (green)
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: Postgres recovery mode on stack restart (transient)
+Status: fixed (operational — wait for postgres healthy)
+Symptom:
+  - celery-worker on stack boot: asyncpg CannotConnectNowError — database in recovery mode
+  - Early ingestion tasks fail until postgres finishes crash recovery
+Cause:
+  - docker compose restart while postgres replays WAL; celery-worker starts in parallel
+Fix:
+  - Wait until docker compose ps shows postgres (healthy), then retry upload
+  - Celery task retries automatically (max_retries=3, delay 120s)
+Verify:
+  - postgres healthy → upload ingests successfully
+
+---
+
+## 2026-06-11 — Platform Library PDF upload: end-to-end resolution summary
+Status: fixed
+Symptom:
+  - Platform Admin uploads PDF on /admin/library → ingesting → failed
+Cause (chain):
+  1. POST 500 — Authentik sub too long for VARCHAR(36) columns
+  2. Celery asyncio loop — run_db needed disposable engine
+  3. Missing compose profiles — minio/qdrant/worker not running
+  4. Infinity not running / OOM crash-loop / amd64-on-arm64 Rosetta crash-loop
+  5. Dev machine cannot reliably run Infinity alongside full stack
+  6. Local embedder added but worker not rebuilt / env not applied / bad model id
+Fix (recommended dev workflow — what resolved it locally):
+  - cd api && uv run alembic upgrade head   # school_0014 actor columns
+  - .env: EMBEDDING_PROVIDER=local
+  - docker compose --profile rag --profile workers build celery-worker
+  - docker compose --profile rag --profile workers up -d --force-recreate celery-worker
+  - Optional: docker compose stop infinity (not needed for local ingest)
+  - Delete failed library row in UI → re-upload PDF (or wait for Celery retry)
+  - Refresh /admin/library — expect status available
+Files touched (commit e403bb8 "file issue resolved"):
+  - api/app/infrastructure/rag/embedder.py, api/app/features/library/tasks.py
+  - api/app/db/celery_async.py, api/app/config.py, api/pyproject.toml
+  - api/alembic/versions/school/0014_widen_authentik_actor_columns.py
+  - docker-compose.yml, docs/DEV_CONTAINERS.md, .env.example
+  - api/tests/test_embedder.py
+Verify:
+  - Book ingested: chunk_count=N, status available
+  - Qdrant collection platform_chunks_local created
+  - celery-worker: ingestion_complete in logs
+
+================================================================================
+TEMPLATE — copy for the next issue
+================================================================================
+
+## YYYY-MM-DD — title
+Status: open
+Symptom:
+Cause:
+Fix:
+Verify:

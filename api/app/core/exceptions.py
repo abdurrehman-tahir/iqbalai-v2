@@ -95,6 +95,13 @@ class ValidationError(IqbalAIError):
         super().__init__("VALIDATION_ERROR", message, status.HTTP_422_UNPROCESSABLE_ENTITY)
 
 
+class AuthentikApiError(IqbalAIError):
+    """Authentik REST API call failed (token, permissions, or upstream error)."""
+
+    def __init__(self, message: str = "Authentik API error") -> None:
+        super().__init__("AUTHENTIK_API_ERROR", message, status.HTTP_502_BAD_GATEWAY)
+
+
 def _error_envelope(code: str, message: str) -> dict[str, object]:
     """Build the standard error envelope per ARCH §5.4."""
     return {"error": {"code": code, "message": message}}

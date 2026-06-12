@@ -47,8 +47,15 @@ class Settings(BaseSettings):
 
     # App URLs + email (T-030 invite flow)
     APP_URL: str = "http://localhost:3000"
-    EMAIL_PROVIDER: str = "log"
+    EMAIL_PROVIDER: str = "log"  # log | smtp | brevo (brevo not implemented yet)
     EMAIL_FROM: str = "noreply@iqbalai.local"
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 465
+    SMTP_USE_SSL: bool = True
+    SMTP_USE_TLS: bool = False
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_TIMEOUT: int = 30
 
     # LLM
     LLM_PROVIDER: str = "groq"

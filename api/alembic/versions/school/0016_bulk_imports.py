@@ -21,9 +21,15 @@ depends_on: str | None = None
 
 
 def upgrade() -> None:
-    op.execute(
-        "CREATE TYPE school.bulkimportstatus AS ENUM ('dry_run_complete')"
-    )
+    conn = op.get_bind()
+    if conn.execute(
+        sa.text(
+            "SELECT 1 FROM information_schema.tables "
+            "WHERE table_schema = 'school' AND table_name = 'bulk_imports'"
+        )
+    ).scalar():
+        return
+
     op.create_table(
         "bulk_imports",
         sa.Column("id", sa.String(36), primary_key=True),
@@ -40,7 +46,7 @@ def upgrade() -> None:
                 "dry_run_complete",
                 name="bulkimportstatus",
                 schema="school",
-                create_type=False,
+                create_type=True,
             ),
             nullable=False,
             server_default="dry_run_complete",
