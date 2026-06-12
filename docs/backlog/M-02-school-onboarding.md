@@ -404,7 +404,7 @@ Wire notification publishers for: invite_sent, invite_expired, invite_accepted, 
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §9 (audit log queryable — last 50)
@@ -418,8 +418,8 @@ School Admin dashboard "Audit Log" page: scoped to own school. Shows last 50 ent
 
 ### Acceptance
 
-1. [ ] School Admin sees own school's last 50 audit entries
-2. [ ] Cannot see other schools' audit logs
+1. [x] School Admin sees own school's last 50 audit entries
+2. [x] Cannot see other schools' audit logs
 
 ---
 

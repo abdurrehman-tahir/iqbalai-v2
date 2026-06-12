@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.features.audit.router import router as audit_router
+from app.features.audit.school_admin_router import router as school_audit_router
 from app.features.auth.router import router as auth_router
 from app.features.bulk_imports.router import router as bulk_imports_router
 from app.features.exam_syllabi.router import router as syllabi_router
@@ -43,3 +44,4 @@ router.include_router(subscriptions_router)
 router.include_router(library_router)
 router.include_router(notifications_router)
 router.include_router(audit_router)
+router.include_router(school_audit_router)

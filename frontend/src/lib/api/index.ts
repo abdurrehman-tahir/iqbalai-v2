@@ -340,6 +340,14 @@ export const schoolsApi = {
 export const schoolAdminApi = {
   getMySchool: (token: string) =>
     request<School>("/school/admin/school", {}, token),
+  listAuditLog: async (token: string) => {
+    const res = await request<{ items: AuditEntry[] }>(
+      "/school/admin/audit-log/",
+      {},
+      token,
+    );
+    return res.items ?? [];
+  },
 };
 
 // ── Personas ──────────────────────────────────────────────────────────────────
@@ -420,19 +428,19 @@ export const libraryApi = {
 export interface AuditEntry {
   id: string;
   action: string;
-  actor_id: string;
-  target_type: string;
+  actor_id: string | null;
+  target_type: string | null;
   target_id: string | null;
-  metadata: Record<string, unknown>;
   created_at: string;
 }
 
 export const auditApi = {
-  list: (token: string, params?: { actor?: string; action?: string }) => {
+  list: async (token: string, params?: { actor?: string; action?: string }) => {
     const qs = params
       ? "?" + new URLSearchParams(params as Record<string, string>).toString()
       : "";
-    return request<AuditEntry[]>(`/admin/audit-log${qs}`, {}, token);
+    const res = await request<{ items: AuditEntry[] }>(`/admin/audit-log${qs}`, {}, token);
+    return res.items ?? [];
   },
 };
 

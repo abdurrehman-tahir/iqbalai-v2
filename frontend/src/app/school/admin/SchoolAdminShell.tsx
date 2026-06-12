@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Users, GraduationCap, LayoutDashboard, LogOut, UserCog } from "lucide-react";
+import { Users, GraduationCap, LayoutDashboard, LogOut, UserCog, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
@@ -18,6 +18,7 @@ const NAV = [
   { key: "users", href: "/school/admin/users", icon: Users },
   { key: "coordinators", href: "/school/admin/coordinators", icon: UserCog },
   { key: "teachers", href: "/school/admin/teachers", icon: GraduationCap },
+  { key: "audit_log", href: "/school/admin/audit-log", icon: ClipboardList },
 ] as const;
 
 export function SchoolAdminShell({ children }: { children: React.ReactNode }) {

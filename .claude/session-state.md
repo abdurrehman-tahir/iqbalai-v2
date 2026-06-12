@@ -2,11 +2,11 @@
 
 **Current milestone:** M-02 — School Onboarding
 **Branch:** milestone/M-02-school-onboarding
-**Current ticket:** T-038 — done
-**Next intended step:** T-039 (School Admin Audit Log page)
+**Current ticket:** T-039 — done
+**Next intended step:** T-040 (Milestone M-02 PR + demo)
 
-**Done (T-038):**
-- Account namespace template registry (7 keys × 4 locales)
-- Wired invite, lifecycle, bulk-import publishers + hourly invite expiry sweep
+**Done (T-039):**
+- GET `/school/admin/audit-log/` scoped to JWT school_id (last 50)
+- School Admin audit log page + nav + API client
 
-**Verified:** backend pytest 224/224, frontend vitest 46/46
+**Verified:** backend pytest 228/228, frontend vitest 47/47
