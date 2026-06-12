@@ -37,6 +37,7 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Milestone:** M-03
 **Estimate:** 2 days
 **Status:** done
+**Commit:** 4fd0698
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.2 (Subject catalog lifecycle #4)
