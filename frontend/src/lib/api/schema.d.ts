@@ -856,12 +856,6 @@ export interface components {
             token: string;
         };
         /**
-         * AccountStatus
-         * @description Account lifecycle status — full lifecycle in M-02; ToS decline uses SUSPENDED.
-         * @enum {string}
-         */
-        AccountStatus: "active" | "suspended";
-        /**
          * AdminUserInviteCreate
          * @description Payload for POST /admin/users — invite a next-level admin.
          */
@@ -1239,7 +1233,7 @@ export interface components {
          */
         PostLoginResponse: {
             /** @default active */
-            account_status: components["schemas"]["AccountStatus"];
+            account_status: components["schemas"]["UserAccountStatus"];
             /** Current Tos Version Id */
             current_tos_version_id: string | null;
             /** District Id */

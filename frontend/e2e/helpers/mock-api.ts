@@ -259,7 +259,7 @@ async function handleApiRoute(state: MockState, route: Route) {
     return;
   }
 
-  if (method === "GET" && path === "/admin/districts/") {
+  if (method === "GET" && path === "/admin/districts") {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -268,7 +268,7 @@ async function handleApiRoute(state: MockState, route: Route) {
     return;
   }
 
-  if (method === "POST" && path === "/admin/districts/") {
+  if (method === "POST" && path === "/admin/districts") {
     const body = (await request.postDataJSON()) as {
       name: string;
       region?: string;

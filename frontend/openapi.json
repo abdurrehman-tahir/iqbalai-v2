@@ -50,15 +50,6 @@
         "title": "AcceptInviteRequest",
         "type": "object"
       },
-      "AccountStatus": {
-        "description": "Account lifecycle status \u2014 full lifecycle in M-02; ToS decline uses SUSPENDED.",
-        "enum": [
-          "active",
-          "suspended"
-        ],
-        "title": "AccountStatus",
-        "type": "string"
-      },
       "AdminUserInviteCreate": {
         "description": "Payload for POST /admin/users \u2014 invite a next-level admin.",
         "properties": {
@@ -1092,7 +1083,7 @@
         "description": "Response from POST /api/v1/auth/post-login.",
         "properties": {
           "account_status": {
-            "$ref": "#/components/schemas/AccountStatus",
+            "$ref": "#/components/schemas/UserAccountStatus",
             "default": "active"
           },
           "current_tos_version_id": {
