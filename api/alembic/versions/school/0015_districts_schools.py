@@ -1,7 +1,7 @@
 """Add districts and schools tables to school schema.
 
-Revision ID: school_0012
-Revises: school_0011
+Revision ID: school_0015
+Revises: school_0014
 Create Date: 2026-06-12
 
 T-028 (M-02 School Onboarding): create the org-hierarchy root tables.
@@ -18,8 +18,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "school_0012"
-down_revision: str = "school_0011"
+revision: str = "school_0015"
+down_revision: str = "school_0014"
 branch_labels: tuple[()] = ()
 depends_on: str | None = None
 

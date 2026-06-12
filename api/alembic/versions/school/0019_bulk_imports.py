@@ -1,7 +1,7 @@
 """Add bulk_imports table for coordinator dry-run imports.
 
-Revision ID: school_0016
-Revises: school_0015
+Revision ID: school_0019
+Revises: school_0018
 Create Date: 2026-06-12
 
 T-037 (M-02): bulk import skeleton per flow-2 §10.
@@ -14,8 +14,8 @@ from sqlalchemy.dialects.postgresql import JSONB
 
 from alembic import op
 
-revision: str = "school_0016"
-down_revision: str = "school_0015"
+revision: str = "school_0019"
+down_revision: str = "school_0018"
 branch_labels: tuple[()] = ()
 depends_on: str | None = None
 

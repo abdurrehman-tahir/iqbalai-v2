@@ -1,7 +1,7 @@
 """Add user account status column for lifecycle management.
 
-Revision ID: school_0015
-Revises: school_0014
+Revision ID: school_0018
+Revises: school_0017
 Create Date: 2026-06-12
 
 T-033 (M-02): ACTIVE / SUSPENDED / DEACTIVATED lifecycle per flow-2 §3.5.
@@ -13,8 +13,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "school_0015"
-down_revision: str = "school_0014"
+revision: str = "school_0018"
+down_revision: str = "school_0017"
 branch_labels: tuple[()] = ()
 depends_on: str | None = None
 

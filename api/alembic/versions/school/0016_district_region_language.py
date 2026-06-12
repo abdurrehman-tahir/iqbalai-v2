@@ -1,7 +1,7 @@
 """Add region and language_preference to school.districts.
 
-Revision ID: school_0013
-Revises: school_0012
+Revision ID: school_0016
+Revises: school_0015
 Create Date: 2026-06-12
 
 T-029 (M-02 School Onboarding): Platform Admin captures optional district metadata
@@ -20,8 +20,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "school_0013"
-down_revision: str = "school_0012"
+revision: str = "school_0016"
+down_revision: str = "school_0015"
 branch_labels: tuple[()] = ()
 depends_on: str | None = None
 

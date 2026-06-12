@@ -1,7 +1,7 @@
 """Scope district/school name uniqueness to active (non-deleted) rows.
 
-Revision ID: school_0017
-Revises: school_0016
+Revision ID: school_0020
+Revises: school_0019
 Create Date: 2026-06-12
 
 Soft-deleted districts/schools kept the old full-table unique constraints, so
@@ -15,8 +15,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "school_0017"
-down_revision: str = "school_0016"
+revision: str = "school_0020"
+down_revision: str = "school_0019"
 branch_labels: tuple[()] = ()
 depends_on: str | None = None
 

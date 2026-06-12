@@ -1,7 +1,7 @@
 """Add user_invites table for Path A admin invitation flow.
 
-Revision ID: school_0014
-Revises: school_0013
+Revision ID: school_0017
+Revises: school_0016
 Create Date: 2026-06-12
 
 T-030 (M-02 School Onboarding): Platform Admin invites District Admin via email
@@ -14,8 +14,8 @@ import sqlalchemy as sa
 
 from alembic import op
 
-revision: str = "school_0014"
-down_revision: str = "school_0013"
+revision: str = "school_0017"
+down_revision: str = "school_0016"
 branch_labels: tuple[()] = ()
 depends_on: str | None = None
 
