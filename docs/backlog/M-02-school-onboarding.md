@@ -312,7 +312,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §4 permissions matrix

@@ -25,7 +25,7 @@ router = APIRouter(tags=["invites"])
     summary="Invite a next-level admin (Path A)",
     operation_id="admin_users_invite",
     status_code=201,
-    dependencies=[require_role("district_admin")],
+    dependencies=[require_role("school_admin")],
 )
 async def invite_admin_user(
     payload: AdminUserInviteCreate,
@@ -57,7 +57,7 @@ async def invite_admin_user(
     response_model=dict,
     summary="Resend an invitation with a fresh 7-day token",
     operation_id="admin_users_resend_invite",
-    dependencies=[require_role("district_admin")],
+    dependencies=[require_role("school_admin")],
 )
 async def resend_invite(
     invite_id: str,

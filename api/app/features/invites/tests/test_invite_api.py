@@ -107,7 +107,11 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.invites.service.get_redis", lambda: FakeRedis())
 
 
-def _build_client(role: str = "platform_admin", district_id: str | None = None) -> AsyncClient:
+def _build_client(
+    role: str = "platform_admin",
+    district_id: str | None = None,
+    school_id: str | None = None,
+) -> AsyncClient:
     app = FastAPI()
     app.include_router(v1_router, prefix="/api/v1")
     setup_exception_handlers(app)
@@ -119,6 +123,8 @@ def _build_client(role: str = "platform_admin", district_id: str | None = None) 
         data: dict[str, object] = {"sub": "admin-1", "role": role, "tenant_id": "t1"}
         if district_id is not None:
             data["district_id"] = district_id
+        if school_id is not None:
+            data["school_id"] = school_id
         return data
 
     app.dependency_overrides[get_db] = _fake_db
@@ -174,6 +180,23 @@ async def test_district_admin_invites_school_admin_returns_201() -> None:
     body = resp.json()
     assert body["data"]["invited_role"] == "school_admin"
     assert body["data"]["school_id"] == "school-1"
+
+
+async def test_school_admin_invites_coordinator_returns_201() -> None:
+    async with _build_client(
+        role="school_admin", district_id="dist-1", school_id="school-1"
+    ) as client:
+        resp = await client.post(
+            "/api/v1/admin/users",
+            json={
+                "email": "coord-sa@test.com",
+                "display_name": "Coordinator",
+                "role": "coordinator",
+                "grade_scope": ["Grade 9", "Grade 10"],
+            },
+        )
+    assert resp.status_code == 201
+    assert resp.json()["data"]["invited_role"] == "coordinator"
 
 
 async def test_accept_invite_public_no_auth() -> None:
