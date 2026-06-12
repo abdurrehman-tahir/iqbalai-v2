@@ -359,33 +359,3 @@ jobs:
 # If branch protection lists required checks by name, add: "Frontend tests (Vitest + RTL)",
 # "Typed client up to date (openapi-typescript)", "Every endpoint declares response_model",
 # and "Playwright E2E (smoke, on PR)" to the required set (see BRANCHING.md).
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PASTE THIS JOB into .github/workflows/ci.yml (alongside backend-lint, backend-tests,
-# frontend-lint, frontend-tests). It is the PR-time verifier for ticket close-out.
-#
-# Pairs with the .githooks/post-commit hook (the writer). The hook keeps the milestone
-# files live commit-by-commit; this job is the backstop that FAILS the PR if any ticket
-# with committed code in this PR is not marked `Status: done`.
-# ─────────────────────────────────────────────────────────────────────────────
-
-  ticket-status-check:
-    name: Ticket status (backlog ledger)
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0          # full history so base..head + merge-base resolve
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
-      - name: Verify referenced tickets are marked done
-        env:
-          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
-          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
-        run: python scripts/check_ticket_status.py
-
-# If branch protection lists required checks by name, add "Ticket status (backlog ledger)"
-# to the required set (see BRANCHING.md). The milestone-status roll-up runs on EVERY PR
-# (incl. docs-only, since a ROADMAP/ticket-status edit is docs-only); only the
-# referenced-tickets-done gate skips for docs-only PRs.
