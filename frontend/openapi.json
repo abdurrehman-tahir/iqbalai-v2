@@ -1,6 +1,55 @@
 {
   "components": {
     "schemas": {
+      "AcceptInviteRequest": {
+        "properties": {
+          "action": {
+            "enum": [
+              "accept",
+              "reject"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 8,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "token": {
+            "minLength": 16,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "action"
+        ],
+        "title": "AcceptInviteRequest",
+        "type": "object"
+      },
       "AccountStatus": {
         "description": "Account lifecycle status \u2014 full lifecycle in M-02; ToS decline uses SUSPENDED.",
         "enum": [
@@ -9,6 +58,71 @@
         ],
         "title": "AccountStatus",
         "type": "string"
+      },
+      "AdminUserInviteCreate": {
+        "description": "Payload for POST /admin/users \u2014 invite a next-level admin.",
+        "properties": {
+          "display_name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "district_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District Id"
+          },
+          "email": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "grade_scope": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Scope"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
+          }
+        },
+        "required": [
+          "email",
+          "display_name",
+          "role"
+        ],
+        "title": "AdminUserInviteCreate",
+        "type": "object"
       },
       "AuditLogEntryRead": {
         "description": "Read schema for a single audit log row.\n\nmetadata_json is returned as a raw string \u2014 callers parse JSON as needed.\nIntentionally no write schema: audit rows are created only via the\ninfrastructure helper (app/infrastructure/audit/log.py), never via the API.",
@@ -131,6 +245,20 @@
         "title": "AuditLogEntryRead",
         "type": "object"
       },
+      "Body_create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post",
+        "type": "object"
+      },
       "Body_upload_file": {
         "properties": {
           "file": {
@@ -226,6 +354,90 @@
           "effective_at"
         ],
         "title": "DisclaimerVersionRead",
+        "type": "object"
+      },
+      "DistrictCreate": {
+        "description": "Payload for creating a new District.",
+        "properties": {
+          "language_preference": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language Preference"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "DistrictCreate",
+        "type": "object"
+      },
+      "DistrictUpdate": {
+        "description": "Payload for updating a District (all fields optional).",
+        "properties": {
+          "language_preference": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language Preference"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "title": "DistrictUpdate",
         "type": "object"
       },
       "ExamSyllabusCreate": {
@@ -894,6 +1106,17 @@
             ],
             "title": "Current Tos Version Id"
           },
+          "district_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District Id"
+          },
           "email": {
             "title": "Email",
             "type": "string"
@@ -904,6 +1127,17 @@
           },
           "role": {
             "$ref": "#/components/schemas/UserRole"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
           },
           "tos_acceptance_required": {
             "title": "Tos Acceptance Required",
@@ -923,6 +1157,49 @@
           "current_tos_version_id"
         ],
         "title": "PostLoginResponse",
+        "type": "object"
+      },
+      "SchoolCreate": {
+        "description": "Payload for creating a new School within a district.",
+        "properties": {
+          "district_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "District Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "district_id"
+        ],
+        "title": "SchoolCreate",
+        "type": "object"
+      },
+      "SchoolUpdate": {
+        "description": "Payload for updating a School (all fields optional).",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "SchoolUpdate",
         "type": "object"
       },
       "SubscriptionTierCreate": {
@@ -1718,6 +1995,16 @@
         "title": "UploadStatusResponse",
         "type": "object"
       },
+      "UserAccountStatus": {
+        "description": "User lifecycle status per flow-2 \u00a73.5.",
+        "enum": [
+          "active",
+          "suspended",
+          "deactivated"
+        ],
+        "title": "UserAccountStatus",
+        "type": "string"
+      },
       "UserRead": {
         "description": "User response schema.",
         "properties": {
@@ -1766,6 +2053,20 @@
               }
             ],
             "title": "School Id"
+          },
+          "scoped_ids": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoped Ids"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UserAccountStatus"
           }
         },
         "required": [
@@ -1774,6 +2075,7 @@
           "email",
           "display_name",
           "role",
+          "status",
           "school_id",
           "district_id",
           "created_at"
@@ -1976,6 +2278,208 @@
         "summary": "Publish a new Disclaimer version",
         "tags": [
           "tos"
+        ]
+      }
+    },
+    "/api/v1/admin/districts/": {
+      "get": {
+        "operationId": "districts_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts List",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List all districts",
+        "tags": [
+          "districts"
+        ]
+      },
+      "post": {
+        "operationId": "districts_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DistrictCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts Create",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a new district",
+        "tags": [
+          "districts"
+        ]
+      }
+    },
+    "/api/v1/admin/districts/{district_id}": {
+      "delete": {
+        "operationId": "districts_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "district_id",
+            "required": true,
+            "schema": {
+              "title": "District Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete a district",
+        "tags": [
+          "districts"
+        ]
+      },
+      "get": {
+        "operationId": "districts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "district_id",
+            "required": true,
+            "schema": {
+              "title": "District Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single district",
+        "tags": [
+          "districts"
+        ]
+      },
+      "put": {
+        "operationId": "districts_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "district_id",
+            "required": true,
+            "schema": {
+              "title": "District Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DistrictUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts Update",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update a district",
+        "tags": [
+          "districts"
         ]
       }
     },
@@ -2655,6 +3159,236 @@
         ]
       }
     },
+    "/api/v1/admin/schools/": {
+      "get": {
+        "operationId": "schools_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "district_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "District Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools List",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List schools (scoped to caller's district)",
+        "tags": [
+          "schools"
+        ]
+      },
+      "post": {
+        "operationId": "schools_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchoolCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools Create",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a school within a district",
+        "tags": [
+          "schools"
+        ]
+      }
+    },
+    "/api/v1/admin/schools/{school_id}": {
+      "delete": {
+        "operationId": "schools_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete a school",
+        "tags": [
+          "schools"
+        ]
+      },
+      "get": {
+        "operationId": "schools_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single school",
+        "tags": [
+          "schools"
+        ]
+      },
+      "put": {
+        "operationId": "schools_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchoolUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools Update",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update a school",
+        "tags": [
+          "schools"
+        ]
+      }
+    },
     "/api/v1/admin/subscription-tiers/": {
       "get": {
         "operationId": "list_subscription_tiers",
@@ -2907,6 +3641,291 @@
         ]
       }
     },
+    "/api/v1/admin/users": {
+      "post": {
+        "operationId": "admin_users_invite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUserInviteCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Invite",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Invite a next-level admin (Path A)",
+        "tags": [
+          "invites"
+        ]
+      }
+    },
+    "/api/v1/admin/users/": {
+      "get": {
+        "operationId": "admin_users_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users List",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List users in caller's scope",
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{invite_id}/resend": {
+      "post": {
+        "operationId": "admin_users_resend_invite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "invite_id",
+            "required": true,
+            "schema": {
+              "title": "Invite Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Resend Invite",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resend an invitation with a fresh 7-day token",
+        "tags": [
+          "invites"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}/deactivate": {
+      "post": {
+        "operationId": "admin_users_deactivate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Deactivate",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Permanently deactivate a user account (one-way)",
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}/reactivate": {
+      "post": {
+        "operationId": "admin_users_reactivate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Reactivate",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reactivate a suspended user account",
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}/suspend": {
+      "post": {
+        "operationId": "admin_users_suspend",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Suspend",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Suspend a user account",
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/auth/accept-invite": {
+      "post": {
+        "operationId": "auth_accept_invite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptInviteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Auth Accept Invite",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept or reject an admin invitation",
+        "tags": [
+          "invites"
+        ]
+      }
+    },
     "/api/v1/auth/post-login": {
       "post": {
         "description": "Called by the frontend after every successful Authentik OIDC callback. Creates a User row on first login. Returns ToS acceptance status so the frontend can show the acceptance modal if needed.",
@@ -2926,6 +3945,94 @@
         "summary": "Post-OIDC-login handler",
         "tags": [
           "auth"
+        ]
+      }
+    },
+    "/api/v1/coordinator/bulk-imports/": {
+      "post": {
+        "description": "Coordinator uploads a student roster file. Rows are validated against grade scope; no accounts are created until M-06.",
+        "operationId": "create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_bulk_import_dry_run_api_v1_coordinator_bulk_imports__post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Create Bulk Import Dry Run Api V1 Coordinator Bulk Imports  Post",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload CSV/XLSX for dry-run validation",
+        "tags": [
+          "bulk-imports"
+        ]
+      }
+    },
+    "/api/v1/coordinator/bulk-imports/{import_id}": {
+      "get": {
+        "operationId": "get_bulk_import_api_v1_coordinator_bulk_imports__import_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "title": "Import Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Bulk Import Api V1 Coordinator Bulk Imports  Import Id  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get bulk import dry-run results",
+        "tags": [
+          "bulk-imports"
         ]
       }
     },
@@ -3099,6 +4206,97 @@
         "summary": "Mark a notification as read",
         "tags": [
           "notifications"
+        ]
+      }
+    },
+    "/api/v1/school/admin/audit-log/": {
+      "get": {
+        "description": "Returns the 50 most recent immutable audit entries for the School Admin's school. Cross-school access is not permitted.",
+        "operationId": "list_school_audit_log_api_v1_school_admin_audit_log__get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response List School Audit Log Api V1 School Admin Audit Log  Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List recent audit log entries for the caller's school",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
+    "/api/v1/school/admin/school": {
+      "get": {
+        "operationId": "school_admin_get_my_school",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response School Admin Get My School",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get the School Admin's own school",
+        "tags": [
+          "school-admin"
+        ]
+      }
+    },
+    "/api/v1/school/admin/schools/{school_id}": {
+      "get": {
+        "operationId": "school_admin_get_school",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response School Admin Get School",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a school by ID (School Admin \u2014 own school only)",
+        "tags": [
+          "school-admin"
         ]
       }
     },
