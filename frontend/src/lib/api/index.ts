@@ -3,7 +3,37 @@
  * All fetch calls go through here — never use raw fetch() in components.
  */
 
+import type {
+  DisclaimerVersionRead,
+  ExamSyllabusCreate,
+  ExamSyllabusRead,
+  ExamSyllabusUpdate,
+  LibraryUploadParams,
+  LibraryUploadResponse,
+  Notification,
+  PersonaRead,
+  PersonaUpdate,
+  PostLoginResponse,
+  SubscriptionTierCreate,
+  SubscriptionTierRead,
+  SubscriptionTierUpdate,
+  TosAcceptResponse,
+  TosDeclineResponse,
+  TosVersion,
+  TosVersionRead,
+} from "./types";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+
+export type {
+  AuditEntry,
+  Notification,
+  PersonaRead as Persona,
+  ExamSyllabusRead as Syllabus,
+  SubscriptionTierRead as SubscriptionTier,
+  LibraryBookRead as LibraryBook,
+  TosVersion,
+} from "./types";
 
 export class ApiError extends Error {
   constructor(
@@ -15,6 +45,60 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
+}
+
+type ValidationDetail = {
+  loc?: unknown[];
+  msg?: string;
+  type?: string;
+};
+
+function formatValidationDetail(detail: ValidationDetail): string {
+  const path = Array.isArray(detail.loc)
+    ? detail.loc.filter((part) => part !== "body").join(".")
+    : "";
+  const msg = detail.msg ?? "Validation error";
+  return path ? `${path}: ${msg}` : msg;
+}
+
+function parseApiErrorBody(
+  body: unknown,
+  status: number,
+): { code: string; message: string; details?: unknown } {
+  if (body && typeof body === "object") {
+    const record = body as Record<string, unknown>;
+
+    if (record.error && typeof record.error === "object") {
+      const err = record.error as Record<string, unknown>;
+      return {
+        code: String(err.code ?? "UNKNOWN_ERROR"),
+        message: String(err.message ?? `Request failed with status ${status}`),
+        details: err.details,
+      };
+    }
+
+    if (Array.isArray(record.detail)) {
+      const details = record.detail as ValidationDetail[];
+      return {
+        code: "VALIDATION_ERROR",
+        message: details.map(formatValidationDetail).join("; "),
+        details,
+      };
+    }
+
+    if (typeof record.code === "string") {
+      return {
+        code: record.code,
+        message: String(record.message ?? `Request failed with status ${status}`),
+        details: record.details,
+      };
+    }
+  }
+
+  return {
+    code: "UNKNOWN_ERROR",
+    message: `Request failed with status ${status}`,
+  };
 }
 
 async function request<T>(
@@ -52,11 +136,18 @@ async function request<T>(
   if (res.status === 204) return undefined as T;
 
   const envelope = await res.json();
-  // All our endpoints wrap responses in { success: true, data: ... }
   return (envelope.data ?? envelope) as T;
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
+async function requestFormData<T>(
+  path: string,
+  formData: FormData,
+  token?: string,
+): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
 
 export const authApi = {
   postLogin: (token: string) =>
@@ -101,24 +192,22 @@ export const usersApi = {
   getMe: (token: string) => request<UserProfile>("/users/me", {}, token),
 };
 
-// ── ToS ───────────────────────────────────────────────────────────────────────
+  if (!res.ok) {
+    let body: unknown = {};
+    try {
+      body = await res.json();
+    } catch {
+      // ignore parse errors
+    }
+    const parsed = parseApiErrorBody(body, res.status);
+    throw new ApiError(res.status, parsed.code, parsed.message, parsed.details);
+  }
 
-/** API shape from FastAPI TosVersionRead */
-interface TosVersionApi {
-  id: string;
-  version_number: number;
-  content_md: string;
-  effective_at: string;
+  const envelope = await res.json();
+  return (envelope.data ?? envelope) as T;
 }
 
-export interface TosVersion {
-  id: string;
-  version: number;
-  content: string;
-  effective_at: string;
-}
-
-function mapTosVersion(raw: TosVersionApi): TosVersion {
+function mapTosVersion(raw: TosVersionRead): TosVersion {
   return {
     id: raw.id,
     version: raw.version_number,
@@ -127,35 +216,55 @@ function mapTosVersion(raw: TosVersionApi): TosVersion {
   };
 }
 
+function mapDisclaimer(raw: DisclaimerVersionRead): TosVersion {
+  return {
+    id: raw.id,
+    version: raw.version_number,
+    content: raw.content,
+    effective_at: raw.effective_at,
+  };
+}
+
+// ── Auth ──────────────────────────────────────────────────────────────────────
+
+export const authApi = {
+  postLogin: (token: string) =>
+    request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
+};
+
+// ── ToS ───────────────────────────────────────────────────────────────────────
+
 export const tosApi = {
   getCurrent: async (token: string) =>
-    mapTosVersion(await request<TosVersionApi>("/tos/current", {}, token)),
+    mapTosVersion(await request<TosVersionRead>("/tos/current", {}, token)),
   acceptTos: (token: string, tosVersionId: string) =>
-    request<{ accepted: boolean }>(
+    request<TosAcceptResponse>(
       "/users/me/accept-tos",
       { method: "POST", body: JSON.stringify({ tos_version_id: tosVersionId }) },
       token,
     ),
+  declineTos: (token: string) =>
+    request<TosDeclineResponse>(
+      "/users/me/decline-tos",
+      { method: "POST", body: JSON.stringify({}) },
+      token,
+    ),
   list: async (token: string) =>
-    (await request<TosVersionApi[]>("/admin/tos", {}, token)).map(mapTosVersion),
+    (await request<TosVersionRead[]>("/admin/tos", {}, token)).map(mapTosVersion),
   publish: async (token: string, content: string) => {
-    const raw = await request<{ id: string; version_number: number }>(
+    const raw = await request<TosVersionRead>(
       "/admin/tos",
       { method: "POST", body: JSON.stringify({ content_md: content }) },
       token,
     );
     return { id: raw.id, version: raw.version_number };
   },
-  listDisclaimer: async (token: string): Promise<TosVersion[]> => {
-    const raw = await request<Array<{ id: string; version_number: number; content: string; effective_at: string }>>(
-      "/admin/disclaimer",
-      {},
-      token,
-    );
-    return raw.map((d) => ({ id: d.id, version: d.version_number, content: d.content, effective_at: d.effective_at }));
-  },
+  listDisclaimer: async (token: string) =>
+    (await request<DisclaimerVersionRead[]>("/admin/disclaimer", {}, token)).map(
+      mapDisclaimer,
+    ),
   publishDisclaimer: async (token: string, content: string) => {
-    const raw = await request<{ id: string; version_number: number }>(
+    const raw = await request<DisclaimerVersionRead>(
       "/admin/disclaimer",
       { method: "POST", body: JSON.stringify({ content }) },
       token,
@@ -166,25 +275,17 @@ export const tosApi = {
 
 // ── Exam Syllabi ──────────────────────────────────────────────────────────────
 
-export interface Syllabus {
-  id: string;
-  name: string;
-  description: string | null;
-  version: number;
-  is_active: boolean;
-}
-
 export const syllabiApi = {
   list: (token: string) =>
-    request<Syllabus[]>("/admin/exam-syllabi", {}, token),
-  create: (token: string, data: { name: string; description?: string }) =>
-    request<Syllabus>(
+    request<ExamSyllabusRead[]>("/admin/exam-syllabi", {}, token),
+  create: (token: string, data: ExamSyllabusCreate) =>
+    request<ExamSyllabusRead>(
       "/admin/exam-syllabi",
       { method: "POST", body: JSON.stringify(data) },
       token,
     ),
-  update: (token: string, id: string, data: Partial<Syllabus>) =>
-    request<Syllabus>(
+  update: (token: string, id: string, data: ExamSyllabusUpdate) =>
+    request<ExamSyllabusRead>(
       `/admin/exam-syllabi/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
       token,
@@ -352,24 +453,11 @@ export const schoolAdminApi = {
 
 // ── Personas ──────────────────────────────────────────────────────────────────
 
-export interface Persona {
-  id: string;
-  name: string;
-  description: string | null;
-  system_prompt: string;
-  is_custom: boolean;
-  is_active: boolean;
-}
-
 export const personasApi = {
   list: (token: string) =>
-    request<Persona[]>("/admin/personas", {}, token),
-  update: (
-    token: string,
-    id: string,
-    data: { system_prompt?: string; description?: string; is_active?: boolean },
-  ) =>
-    request<Persona>(
+    request<PersonaRead[]>("/admin/personas", {}, token),
+  update: (token: string, id: string, data: PersonaUpdate) =>
+    request<PersonaRead>(
       `/admin/personas/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
       token,
@@ -378,26 +466,17 @@ export const personasApi = {
 
 // ── Subscription Tiers ────────────────────────────────────────────────────────
 
-export interface SubscriptionTier {
-  id: string;
-  name: string;
-  pricing_monthly_pkr: number;
-  caps: Record<string, unknown>;
-  applies_to_role: string;
-  is_active: boolean;
-}
-
 export const subscriptionsApi = {
   list: (token: string) =>
-    request<SubscriptionTier[]>("/admin/subscription-tiers", {}, token),
-  create: (token: string, data: Omit<SubscriptionTier, "id">) =>
-    request<SubscriptionTier>(
+    request<SubscriptionTierRead[]>("/admin/subscription-tiers", {}, token),
+  create: (token: string, data: SubscriptionTierCreate) =>
+    request<SubscriptionTierRead>(
       "/admin/subscription-tiers",
       { method: "POST", body: JSON.stringify(data) },
       token,
     ),
-  update: (token: string, id: string, data: Partial<SubscriptionTier>) =>
-    request<SubscriptionTier>(
+  update: (token: string, id: string, data: SubscriptionTierUpdate) =>
+    request<SubscriptionTierRead>(
       `/admin/subscription-tiers/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
       token,
@@ -408,17 +487,37 @@ export const subscriptionsApi = {
 
 // ── Library ───────────────────────────────────────────────────────────────────
 
-export interface LibraryBook {
-  id: string;
-  filename: string;
-  status: "ingesting" | "available" | "ingestion_failed" | "soft_deleted";
-  tags: { subject_id?: string; grade_range?: string[]; language?: string; content_type?: string };
-  created_at: string;
-}
-
 export const libraryApi = {
-  list: (token: string) =>
-    request<LibraryBook[]>("/admin/library", {}, token),
+  list: async (token: string) => {
+    const page = await request<import("./types").LibraryBookListResponse>(
+      "/admin/library",
+      {},
+      token,
+    );
+    return page.items;
+  },
+  upload: (token: string, params: LibraryUploadParams) => {
+    const qs = new URLSearchParams();
+    qs.set("title", params.title);
+    if (params.content_type) qs.set("content_type", params.content_type);
+    if (params.subject_tag) qs.set("subject_tag", params.subject_tag);
+    if (params.grade_range_min != null) {
+      qs.set("grade_range_min", String(params.grade_range_min));
+    }
+    if (params.grade_range_max != null) {
+      qs.set("grade_range_max", String(params.grade_range_max));
+    }
+    if (params.language) qs.set("language", params.language);
+
+    const formData = new FormData();
+    formData.append("file", params.file);
+
+    return requestFormData<LibraryUploadResponse>(
+      `/admin/library?${qs.toString()}`,
+      formData,
+      token,
+    );
+  },
   softDelete: (token: string, id: string) =>
     request<void>(`/admin/library/${id}`, { method: "DELETE" }, token),
 };
@@ -446,22 +545,13 @@ export const auditApi = {
 
 // ── Notifications ─────────────────────────────────────────────────────────────
 
-export interface Notification {
-  id: string;
-  feature_namespace: string;
-  title: string;
-  body: string;
-  is_read: boolean;
-  created_at: string;
-}
-
 export const notificationsApi = {
   list: async (token: string): Promise<Notification[]> => {
-    const res = await request<{ items: Notification[]; total: number; unread_count: number }>(
-      "/notifications",
-      {},
-      token,
-    );
+    const res = await request<{
+      items: Notification[];
+      total: number;
+      unread_count: number;
+    }>("/notifications", {}, token);
     return res.items;
   },
   markRead: (token: string, id: string) =>

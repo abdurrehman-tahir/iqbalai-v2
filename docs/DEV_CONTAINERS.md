@@ -2,14 +2,14 @@
 
 **Purpose:** the full stack is 16 containers, but most milestones need only ~7. This maps which containers each milestone needs so your machine isn't running the heavy ones (infinity, observability, etc.) before they're useful.
 
-> Requires the Compose profiles + `EVENTS_ENABLED` guard from **M-01a / T-235** to be merged for the `--profile` commands and the lean core boot to work. Until then the map below is still valid for planning (you can `docker compose stop <svc>` the ones you don't need).
+> Requires the Compose profiles + `EVENTS_ENABLED` guard from **M-01a / T-236** to be merged for the `--profile` commands and the lean core boot to work.
 
 ## How it works (Compose profiles)
 
 Core services carry **no** profile, so they always start. Optional groups are tagged with a profile and start only when that profile is on.
 
 - **core (always on, ~7):** `postgres`, `redis`, `authentik-server`, `authentik-worker`, `authentik-redis`, `api`, `frontend` — enough to log in + do CRUD/UI.
-- **`rag`:** `qdrant`, `infinity`, `minio`
+- **`rag`:** `qdrant`, `infinity`, `minio` — with `EMBEDDING_PROVIDER=local` (default in compose), **infinity is optional** for library upload; Celery embeds in-process via fastembed/ONNX (~150 MB).
 - **`workers`:** `celery-worker`, `celery-beat`
 - **`events`:** `nats` (also needs `EVENTS_ENABLED=true` — see note)
 - **`observability`:** `prometheus`, `grafana`, `loki` (off by default; only for perf/dashboards)
@@ -38,5 +38,6 @@ NATS connects **eagerly** at app startup (`init_nats()` in the §16.1 lifespan),
 
 ## Notes
 - Authentik is 3 of the heaviest containers but is needed from M-01 on (login), so it stays in core.
-- `infinity` (BGE-M3 embeddings) is RAM-heavy and only runs under `rag`.
+- `infinity` (BGE-M3 embeddings) is RAM-heavy and only runs under `rag`. Skip it locally by keeping `EMBEDDING_PROVIDER=local` (default) — embeddings run inside `celery-worker` via fastembed (ONNX) instead.
+- **Apple Silicon:** compose pins `michaelf34/infinity:0.0.75` (multi-arch). Do **not** use `:latest` locally — it is amd64-only and crash-loops under Rosetta. First boot downloads ~2 GB of models; wait until `curl -f http://localhost:7997/health` succeeds (often 2–5 min).
 - `mem_limit`s are set on the heavy services (authentik trio, infinity, qdrant) so they can't starve the host even when running.

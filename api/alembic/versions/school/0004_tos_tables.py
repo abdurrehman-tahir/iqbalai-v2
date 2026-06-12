@@ -4,6 +4,10 @@ Revision ID: school_0004
 Revises: school_0003
 Create Date: 2026-05-25
 
+
+Purpose: Add ToS, Disclaimer, and user acceptance tables (T-016/T-019).
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

@@ -7,6 +7,10 @@ Revision ID: school_0010
 Revises: school_0009
 Create Date: 2026-05-26
 
+
+Purpose: Add platform reference books table for M-01 library.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

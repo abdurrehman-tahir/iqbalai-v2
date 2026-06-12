@@ -12,6 +12,10 @@ Revision ID: school_0011
 Revises: school_0010
 Create Date: 2026-06-03
 
+
+Purpose: Widen ToS acceptance user_id columns to match Authentik sub width.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

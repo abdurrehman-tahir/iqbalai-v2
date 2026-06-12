@@ -29,6 +29,7 @@ router = APIRouter(prefix="/admin/library", tags=["library"])
 @router.post(
     "/",
     response_model=LibraryUploadResponse,
+    operation_id="upload_library_book",
     status_code=202,
     summary="Upload a platform reference book",
     description=(
@@ -73,6 +74,7 @@ async def upload_library_book(
 @router.get(
     "/",
     response_model=LibraryBookListResponse,
+    operation_id="list_library_books",
     summary="List platform reference books",
     description="Returns non-deleted books newest-first.",
     dependencies=[require_role("platform_admin")],
@@ -95,6 +97,7 @@ async def list_library_books(
 @router.delete(
     "/{book_id}",
     response_model=LibraryBookRead,
+    operation_id="delete_library_book",
     summary="Soft-delete a platform reference book",
     description=(
         "Marks the book deleted. MinIO file and Qdrant embeddings are retained "
@@ -111,4 +114,4 @@ async def delete_library_book(
     actor_id = str(claims["sub"])
     svc = LibraryService(db)
     book = await svc.soft_delete(book_id=book_id, actor_id=actor_id)
-    return LibraryBookRead.model_validate(book)  # type: ignore[return-value]
+    return LibraryBookRead.model_validate(book)

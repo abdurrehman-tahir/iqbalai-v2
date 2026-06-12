@@ -41,6 +41,24 @@ class AuthService:
 
         user, is_first_login = await self._user_svc.get_or_create_from_jwt(claims)
 
+        # Suspended users must re-accept ToS before proceeding (Flow 1 §5.6).
+        if user.account_status == AccountStatus.SUSPENDED:
+            current_tos = await self._tos_repo.get_current_tos()
+            logger.info(
+                "post_login_suspended",
+                user_id=user.id,
+                role=user.role.value,
+            )
+            return {
+                "user_id": user.id,
+                "email": user.email,
+                "role": user.role,
+                "is_first_login": is_first_login,
+                "tos_acceptance_required": current_tos is not None,
+                "current_tos_version_id": current_tos.id if current_tos else None,
+                "account_status": user.account_status,
+            }
+
         # Check ToS acceptance status
         current_tos = await self._tos_repo.get_current_tos()
         tos_accepted = True
@@ -64,4 +82,5 @@ class AuthService:
             "is_first_login": is_first_login,
             "tos_acceptance_required": not tos_accepted,
             "current_tos_version_id": current_tos.id if current_tos else None,
+            "account_status": user.account_status,
         }

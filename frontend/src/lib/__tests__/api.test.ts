@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { notificationsApi, tosApi, ApiError } from "../api/index";
+import {
+  auditApi,
+  authApi,
+  libraryApi,
+  notificationsApi,
+  personasApi,
+  subscriptionsApi,
+  syllabiApi,
+  tosApi,
+  ApiError,
+} from "../api/index";
 
 // Helper: build a fake fetch that returns the given body with status 200.
 function mockFetch(body: unknown, status = 200) {
@@ -39,14 +49,17 @@ describe("envelope unwrapping", () => {
 
   it("throws ApiError on non-2xx response", async () => {
     global.fetch = mockFetch(
-      { code: "NOT_FOUND", message: "Resource not found" },
+      { error: { code: "NOT_FOUND", message: "Resource not found" } },
       404,
     );
     await expect(tosApi.getCurrent("tok")).rejects.toBeInstanceOf(ApiError);
   });
 
   it("ApiError carries status and code", async () => {
-    global.fetch = mockFetch({ code: "FORBIDDEN", message: "Access denied" }, 403);
+    global.fetch = mockFetch(
+      { error: { code: "FORBIDDEN", message: "Access denied" } },
+      403,
+    );
     try {
       await tosApi.getCurrent("tok");
     } catch (err) {
@@ -127,5 +140,148 @@ describe("tosApi.list", () => {
     const result = await tosApi.list("tok");
     expect(result[0].version).toBe(3);
     expect(result[0].content).toBe("# ToS v3");
+  });
+});
+
+describe("tosApi.acceptTos + declineTos", () => {
+  it("acceptTos posts version id", async () => {
+    global.fetch = mockFetch({
+      data: { accepted: true, tos_version_id: "t1", accepted_at: "2026-01-01T00:00:00Z" },
+    });
+    const result = await tosApi.acceptTos("tok", "t1");
+    expect(result.accepted).toBe(true);
+  });
+
+  it("declineTos returns suspended status", async () => {
+    global.fetch = mockFetch({ data: { declined: true, status: "suspended" } });
+    const result = await tosApi.declineTos("tok");
+    expect(result.status).toBe("suspended");
+  });
+});
+
+describe("authApi.postLogin", () => {
+  it("returns post-login payload", async () => {
+    global.fetch = mockFetch({
+      data: {
+        user_id: "u1",
+        email: "a@test.com",
+        role: "platform_admin",
+        is_first_login: false,
+        tos_acceptance_required: true,
+        current_tos_version_id: "t1",
+        account_status: "active",
+      },
+    });
+    const result = await authApi.postLogin("tok");
+    expect(result.tos_acceptance_required).toBe(true);
+  });
+});
+
+describe("personasApi", () => {
+  it("lists and updates personas", async () => {
+    global.fetch = mockFetch({
+      data: [{ id: "p1", name: "Strict", system_prompt_en: "x", slug: "strict", is_custom: false, is_active: true, created_at: "" }],
+    });
+    const list = await personasApi.list("tok");
+    expect(list[0].name).toBe("Strict");
+
+    global.fetch = mockFetch({
+      data: { id: "p1", name: "Strict", system_prompt_en: "y", slug: "strict", is_custom: false, is_active: true, created_at: "" },
+    });
+    const updated = await personasApi.update("tok", "p1", { system_prompt_en: "y" });
+    expect(updated.system_prompt_en).toBe("y");
+  });
+});
+
+describe("syllabiApi", () => {
+  it("CRUD helpers unwrap data", async () => {
+    global.fetch = mockFetch({ data: [] });
+    expect(await syllabiApi.list("tok")).toEqual([]);
+
+    global.fetch = mockFetch({
+      data: { id: "s1", name: "Matric", exam_board: "Punjab Board", version_number: 1, is_active: true },
+    });
+    const created = await syllabiApi.create("tok", {
+      name: "Matric",
+      exam_board: "Punjab Board",
+      language: "en",
+    });
+    expect(created.name).toBe("Matric");
+  });
+});
+
+describe("subscriptionsApi", () => {
+  it("lists tiers", async () => {
+    global.fetch = mockFetch({
+      data: [{ id: "t1", name: "Basic", slug: "basic", applies_to: "school", pricing_monthly_pkr: 1, caps: {}, is_active: true, created_at: "" }],
+    });
+    const tiers = await subscriptionsApi.list("tok");
+    expect(tiers[0].name).toBe("Basic");
+  });
+});
+
+describe("auditApi + libraryApi", () => {
+  it("auditApi passes filter query params", async () => {
+    global.fetch = mockFetch({
+      items: [
+        {
+          id: "a1",
+          action: "tos.published",
+          actor_id: "u1",
+          target_type: "tos",
+          target_id: "t1",
+          metadata: {},
+          created_at: "",
+        },
+      ],
+      total: 1,
+      page: 1,
+      page_size: 50,
+      pages: 1,
+    });
+    const entries = await auditApi.list("tok", { actor: "u1", action: "tos" });
+    expect(entries[0].action).toBe("tos.published");
+  });
+
+  it("libraryApi lists books", async () => {
+    global.fetch = mockFetch({
+      items: [{ id: "b1", title: "f.pdf", status: "available", created_at: "" }],
+      total: 1,
+    });
+    const books = await libraryApi.list("tok");
+    expect(books[0].title).toBe("f.pdf");
+  });
+
+  it("libraryApi uploads a PDF via multipart to /admin/library", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 202,
+      json: () =>
+        Promise.resolve({
+          book_id: "b2",
+          upload_id: "u2",
+          status: "processing",
+        }),
+    });
+
+    const file = new File(["pdf"], "guide.pdf", { type: "application/pdf" });
+    const result = await libraryApi.upload("tok", {
+      file,
+      title: "guide",
+      language: "en",
+      content_type: "curriculum",
+    });
+
+    expect(result.book_id).toBe("b2");
+    const [url, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toContain("/admin/library?");
+    expect(url).toContain("title=guide");
+    expect(url).toContain("content_type=curriculum");
+    expect(init.body).toBeInstanceOf(FormData);
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+    expect((init.headers as Record<string, string>)["Content-Type"]).toBeUndefined();
   });
 });

@@ -24,10 +24,18 @@ import { clearToken, getUser, getLogoutUrl, type StoredUser } from "@/lib/auth";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 // useRouter import removed — logout uses window.location directly
 
+// Role-aware nav (T-227). Each entry declares the roles permitted to see it,
+// mirroring the backend `require_role` guarding the matching routes
+// (flow-1-platform-setup §4). The shell is the single source of reachability:
+// every new page registers its nav entry + allowed roles here, so no page can
+// become an orphan and no user sees a link to a route they cannot access.
+const PLATFORM_ADMIN = "platform_admin";
+
 interface NavItem {
   key: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
+  roles: readonly string[];
 }
 
 const NAV_ITEMS: NavItem[] = [
@@ -42,14 +50,27 @@ const NAV_ITEMS: NavItem[] = [
   { key: "audit_log", href: "/admin/audit-log", icon: ClipboardList },
 ];
 
-function SidebarNav({ onNavigate }: { onNavigate?: () => void }) {
+/** Nav items the given role is permitted to see. `null` (no/unknown user) → none. */
+function navItemsForRole(role: string | null): NavItem[] {
+  if (role === null) return [];
+  return NAV_ITEMS.filter((item) => item.roles.includes(role));
+}
+
+function SidebarNav({
+  role,
+  onNavigate,
+}: {
+  role: string | null;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const t = useTranslations("admin.nav");
+  const items = navItemsForRole(role);
 
   return (
     <nav aria-label={t("aria_label")}>
       <ul className="space-y-1 px-3 py-4">
-        {NAV_ITEMS.map(({ key, href, icon: Icon }) => {
+        {items.map(({ key, href, icon: Icon }) => {
           const active = pathname.startsWith(href);
           return (
             <li key={key}>
@@ -107,7 +128,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         </div>
 
         <div className="flex flex-1 flex-col justify-between overflow-y-auto">
-          <SidebarNav />
+          <SidebarNav role={user?.role ?? null} />
 
           {/* Bottom actions */}
           <div className="px-3 py-4 border-t border-gray-100 space-y-1">
@@ -156,7 +177,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
           </Button>
         </div>
         <div className="flex flex-1 flex-col justify-between overflow-y-auto">
-          <SidebarNav onNavigate={() => setDrawerOpen(false)} />
+          <SidebarNav role={user?.role ?? null} onNavigate={() => setDrawerOpen(false)} />
           <div className="px-3 py-4 border-t border-gray-100">
             <Button
               variant="ghost"

@@ -11,6 +11,13 @@ from sqlalchemy.orm import Mapped, mapped_column
 from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7
 
 
+class AccountStatus(str, enum.Enum):
+    """Account lifecycle status — full lifecycle in M-02; ToS decline uses SUSPENDED."""
+
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+
+
 class UserRole(str, enum.Enum):
     """Six-level role hierarchy per ARCH §6.7."""
 

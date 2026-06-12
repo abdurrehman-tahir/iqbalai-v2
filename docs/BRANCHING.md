@@ -178,6 +178,20 @@ What we use instead (all free, all already configured):
 
 This means: GitHub itself won't *block* a direct push, but you'll know about it within minutes (audit workflow files an issue), and the social/process layer keeps Hamza on the rails for normal work. For a 2-person team, this is sufficient.
 
+#### Required status checks (the list to enforce when protection is unpaywalled)
+
+Branch-protection "require status checks to pass" can't be set in GitHub settings on this free repo, so **this list is the source of truth** — a PR is mergeable only when every check below is green. When the repo moves to a Team/Org account, copy these exact job names into Settings → Rules → Rulesets → "Require status checks to pass".
+
+| Check name (matches the `name:` in `ci.yml`) | Added | Blocks because |
+|---|---|---|
+| `Ticket status (backlog ledger)` | M-00 | Every ticket with committed code must be marked `Status: done`. |
+| `Frontend tests (Vitest + RTL)` | M-01a | FE changes ship tests; no green PR with zero FE tests (CI invariant 7). |
+| `Typed client up to date (openapi-typescript)` | M-01a | `schema.d.ts` must be regenerated from the live OpenAPI, never hand-mirrored (AMENDMENTS A-002). |
+| `Every endpoint declares response_model` | M-01a | Every FastAPI route declares `response_model=` + `operation_id=` so the OpenAPI/typed client stay accurate. |
+| `Playwright E2E (smoke, on PR)` | M-01a | A `@smoke` Playwright run guards the critical path on every PR. The full suite runs nightly (`Playwright E2E (full suite, nightly)`), off the PR path, so it never blocks a merge. |
+
+The backend gates (`backend-lint`, `backend-tests`, `alembic-check`) and FE `frontend-lint` are also expected green; the table above lists the *named* checks M-01a's CI-invariant-7 specifically requires.
+
 ---
 
 ## Things that are forbidden
@@ -198,3 +212,4 @@ This means: GitHub itself won't *block* a direct push, but you'll know about it 
 |---|---|---|
 | 2026-05-11 | Initial branching rules | @abdurrehman (with Claude) |
 | 2026-05-11 | Free-tier reality: replaced "configure branch protection" with audit-workflow + CODEOWNERS approach. Real protection enabled when repo moves to Team/Org account. | @abdurrehman (with Claude) |
+| 2026-06-06 | T-229: documented the required-status-check set (the four M-01a FE/integration gates + the ticket-ledger gate) as the source of truth while protection is paywalled. | @abdurrehman (with Claude) |

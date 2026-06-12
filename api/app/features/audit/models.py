@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, Index, String, Text
+from sqlalchemy import DateTime, Index, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base, _uuid7
@@ -35,7 +35,8 @@ class AuditLogEntry(Base):
     # e.g. "user.created", "tos.published", "syllabus.updated"
     action: Mapped[str] = mapped_column(String(100), nullable=False)
     # NULL when the action is system-initiated (no human actor)
-    actor_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # VARCHAR(255) — stores Authentik sub claim; matches users.authentik_id width
+    actor_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     actor_role: Mapped[str | None] = mapped_column(String(50), nullable=True)
     # e.g. "user", "tos_version", "exam_syllabus"
     target_type: Mapped[str | None] = mapped_column(String(100), nullable=True)
@@ -48,8 +49,10 @@ class AuditLogEntry(Base):
     # Store IPv6 addresses (up to 45 chars: "ffff:ffff:ffff:ffff:ffff:ffff:255.255.255.255")
     ip_address: Mapped[str | None] = mapped_column(String(45), nullable=True)
     # No updated_at — rows are immutable. created_at is the only timestamp needed.
+    # DB-side UTC clock (ARCH §4.3) so rows written via raw SQL still timestamp.
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
+        server_default=text("now() AT TIME ZONE 'UTC'"),
         nullable=False,
         default=lambda: datetime.now(timezone.utc),
     )

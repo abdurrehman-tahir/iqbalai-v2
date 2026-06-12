@@ -29,9 +29,10 @@ async def _fetch_jwks(jwks_url: str) -> dict[str, Any]:
     async with httpx.AsyncClient(timeout=10.0) as client:
         response = await client.get(jwks_url)
         response.raise_for_status()
-        _jwks_cache = response.json()
+        fresh: dict[str, Any] = response.json()
+        _jwks_cache = fresh
         _jwks_cache_expires_at = now + _JWKS_TTL_SECONDS
-        return _jwks_cache
+        return fresh
 
 
 def _signing_key_for_token(token: str, jwks: dict[str, Any]) -> Any | None:

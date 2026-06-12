@@ -4,6 +4,10 @@ Revision ID: school_0001
 Revises:
 Create Date: 2026-05-20
 
+
+Purpose: Register the school schema with Alembic for dual-head tracking.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

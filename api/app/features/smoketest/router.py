@@ -14,7 +14,7 @@ logger = structlog.get_logger(__name__)
 router = APIRouter(prefix="/smoketest")
 
 
-@router.post("/rag")
+@router.post("/rag", response_model=dict, operation_id="smoketest_rag")
 async def smoketest_rag(body: dict[str, str]) -> dict[str, object]:
     """Run a sample RAG query. Returns empty chunks since no content is ingested yet."""
     query = body.get("query", "sample")
@@ -29,7 +29,7 @@ async def smoketest_rag(body: dict[str, str]) -> dict[str, object]:
     return {"chunks": chunks, "status": "ok", "query": query}
 
 
-@router.post("/llm")
+@router.post("/llm", response_model=dict, operation_id="smoketest_llm")
 async def smoketest_llm(body: dict[str, str]) -> dict[str, object]:
     """Run a sample LLM call."""
     prompt = body.get("prompt", "Say hello in one sentence.")

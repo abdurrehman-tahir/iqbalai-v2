@@ -14,7 +14,7 @@
 |---|---|---|---|---|---|---|
 | M-00 | Foundation: infra + containers + base code | 0 | T-001 to T-015 | ~1.5 weeks | done | All services run locally; smoke-test API returns 200 |
 | M-01 | Platform Setup: Platform Admin + ToS + personas + langs | 1 | T-016 to T-027 | ~3-4 days | in-progress | Platform Admin logs in, configures personas, exam syllabi, languages |
-| M-01a | Foundation Remediation + FE/Integration Enforcement | 1 | T-223 to T-237 | ~1 week | drafted | Nav reaches every page; ToS renders/scrolls; FE tests + typed client + model-first migrations enforced in CI |
+| M-01a | Foundation Remediation + FE/Integration Enforcement | 1 | T-223 to T-237 | ~1 week | done | Nav reaches every page; ToS renders/scrolls; FE tests + typed client + model-first migrations enforced in CI |
 | M-02 | School Onboarding: District + School + role hierarchy | 1 | T-028 to T-040 | ~3-4 days | drafted | Platform Admin creates a District, then School, then School Admin who logs in |
 | M-03 | Subjects + Grade/Section/Subject offerings | 2 | T-041 to T-052 | ~2-3 days | drafted | School Admin creates Coordinator, Coordinator creates Grade/Section/Subjects, assigns Teacher |
 | M-04 | Teacher Onboarding + Content Library (school-tier) | 2 | T-053 to T-068 | ~3-4 days | drafted | Teacher logs in, uploads curriculum, sees it ingest + appear in their library |

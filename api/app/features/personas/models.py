@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from sqlalchemy import Boolean, String, Text
+from sqlalchemy import Boolean, Index, String, Text, text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, _uuid7
@@ -17,7 +17,18 @@ class TeachingPersona(AuditMixin, Base):
     """
 
     __tablename__ = "teaching_personas"
-    __table_args__ = ({"schema": "school"},)
+    # Exactly one custom-slot persona may exist (the school-customisable slot). A
+    # partial unique index lets the four built-ins coexist (is_custom=False) while
+    # constraining is_custom=True rows to a single occupant (ARCH §4.7).
+    __table_args__ = (
+        Index(
+            "teaching_personas_custom_slot_uq",
+            "is_custom",
+            unique=True,
+            postgresql_where=text("is_custom"),
+        ),
+        {"schema": "school"},
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
     name: Mapped[str] = mapped_column(String(100), nullable=False)

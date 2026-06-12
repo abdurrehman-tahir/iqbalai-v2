@@ -6,6 +6,7 @@ import { useTranslations } from "next-intl";
 import { authApi, tosApi, ApiError } from "@/lib/api";
 import { setToken, setUser, getPostLoginPath } from "@/lib/auth";
 import { TosModal } from "./TosModal";
+import { SuspendedPage } from "./SuspendedPage";
 
 type Phase = "loading" | "tos" | "suspended" | "error";
 
@@ -94,6 +95,14 @@ export function OidcCallbackClient() {
         current_tos_version_id: user.current_tos_version_id,
       });
 
+      if (
+        user.account_status === "suspended" &&
+        !user.tos_acceptance_required
+      ) {
+        setPhase("suspended");
+        return;
+      }
+
       if (user.tos_acceptance_required && user.current_tos_version_id) {
         // Fetch ToS content to display in modal
         const tos = await tosApi.getCurrent(token);
@@ -132,12 +141,16 @@ export function OidcCallbackClient() {
     }
   }
 
-  function handleTosDecline() {
-    // Per spec §5.1 — decline logs the user out
-    import("@/lib/auth").then(({ clearToken, getLogoutUrl }) => {
-      clearToken();
-      window.location.href = getLogoutUrl();
-    });
+  async function handleTosDecline() {
+    if (!pendingToken) return;
+    try {
+      await tosApi.declineTos(pendingToken);
+      import("@/lib/auth").then(({ clearToken }) => clearToken());
+      setPhase("suspended");
+    } catch {
+      setErrorMsg(t("error.tos_decline_failed"));
+      setPhase("error");
+    }
   }
 
   if (phase === "loading") {

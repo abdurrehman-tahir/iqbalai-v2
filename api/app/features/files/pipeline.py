@@ -9,6 +9,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.base import not_deleted
 from app.features.files.models import UploadRecord
 from app.features.files.profiles import UploadProfile
 from app.features.files.schemas import UploadInitiated, UploadStatus
@@ -68,7 +69,7 @@ async def run_upload_pipeline(
             UploadRecord.sha256 == file_sha256,
             UploadRecord.profile == profile.name,
             UploadRecord.school_id == school_id,
-            UploadRecord.deleted_at.is_(None),
+            not_deleted(UploadRecord),
         )
     )
     existing_record = existing.scalar_one_or_none()
@@ -97,7 +98,7 @@ async def run_upload_pipeline(
         bucket=profile.bucket,
         school_id=school_id,
         uploaded_by=uploaded_by,
-        status="ready",
+        status=UploadStatus.READY,
     )
     session.add(record)
     await session.commit()

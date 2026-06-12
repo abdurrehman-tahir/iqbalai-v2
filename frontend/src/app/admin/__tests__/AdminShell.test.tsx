@@ -61,23 +61,54 @@ describe("AdminShell — user display", () => {
   });
 });
 
-describe("AdminShell — navigation", () => {
-  beforeEach(() => { mockGetUser.mockReturnValue(null); });
+function makeUser(role: string) {
+  return {
+    user_id: "u1",
+    email: "admin@iqbalai.com",
+    role,
+    tos_acceptance_required: false,
+    current_tos_version_id: null,
+  };
+}
 
-  it("renders all sidebar nav links", () => {
+describe("AdminShell — role-aware navigation (T-227)", () => {
+  it("renders the platform_admin's nav items", async () => {
+    mockGetUser.mockReturnValue(makeUser("platform_admin"));
+    await act(async () => {
+      render(<AdminShell><div /></AdminShell>);
+    });
+    const hrefs = screen.getAllByRole("link").map((l) => l.getAttribute("href"));
+    // Desktop sidebar + mobile drawer each render the set → assert membership.
+    for (const href of [
+      "/admin/languages",
+      "/admin/personas",
+      "/admin/exam-syllabi",
+      "/admin/subscription-tiers",
+      "/admin/tos",
+      "/admin/library",
+      "/admin/audit-log",
+    ]) {
+      expect(hrefs).toContain(href);
+    }
+  });
+
+  it("hides admin items from a role above which they sit (teacher sees none)", async () => {
+    mockGetUser.mockReturnValue(makeUser("teacher"));
+    await act(async () => {
+      render(<AdminShell><div /></AdminShell>);
+    });
+    expect(screen.queryByRole("link", { name: /languages/i })).toBeNull();
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
+  });
+
+  it("renders no nav items before the user resolves (null user → empty)", () => {
+    mockGetUser.mockReturnValue(null);
     render(<AdminShell><div /></AdminShell>);
-    const links = screen.getAllByRole("link");
-    const hrefs = links.map((l) => l.getAttribute("href"));
-    expect(hrefs).toContain("/admin/languages");
-    expect(hrefs).toContain("/admin/personas");
-    expect(hrefs).toContain("/admin/exam-syllabi");
-    expect(hrefs).toContain("/admin/subscription-tiers");
-    expect(hrefs).toContain("/admin/tos");
-    expect(hrefs).toContain("/admin/library");
-    expect(hrefs).toContain("/admin/audit-log");
+    expect(screen.queryAllByRole("link")).toHaveLength(0);
   });
 
   it("renders children in the main content area", () => {
+    mockGetUser.mockReturnValue(null);
     render(<AdminShell><p>hello world</p></AdminShell>);
     expect(screen.getByText("hello world")).toBeInTheDocument();
   });

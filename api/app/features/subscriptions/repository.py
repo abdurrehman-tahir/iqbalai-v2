@@ -8,6 +8,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.base import not_deleted
 from app.features.subscriptions.models import SubscriptionTier
 
 logger = structlog.get_logger(__name__)
@@ -20,7 +21,7 @@ class SubscriptionRepository:
     async def list_tiers(self) -> list[SubscriptionTier]:
         """Return all non-soft-deleted tiers."""
         result = await self._session.execute(
-            select(SubscriptionTier).where(SubscriptionTier.deleted_at.is_(None))
+            select(SubscriptionTier).where(not_deleted(SubscriptionTier))
         )
         return list(result.scalars().all())
 

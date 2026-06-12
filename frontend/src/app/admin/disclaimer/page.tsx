@@ -1,5 +1,6 @@
-import { TosAdminClient } from "../tos/TosAdminClient";
+import { redirect } from "next/navigation";
 
+/** Orphan route — redirect into the ToS tab (T-231). */
 export default function DisclaimerPage() {
-  return <TosAdminClient type="disclaimer" />;
+  redirect("/admin/tos?tab=disclaimer");
 }

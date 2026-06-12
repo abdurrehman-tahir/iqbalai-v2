@@ -477,6 +477,19 @@ type LectureRead = components["schemas"]["LectureRead"];
 interface LectureRead { id: string; title: string; /* ... */ }
 ```
 
+**Type request bodies from the generated `*Create`/`*Update` schema — never an inline object literal.** This is the most common real bug: the *read* type gets generated but the *create* payload is hand-typed, so it silently drifts from the contract (M-01a: `syllabiApi.create` shipped `{ name, description }` while the API required `exam_board` and had no `description` → 422 on every create).
+
+```tsx
+type ExamSyllabusCreate = components["schemas"]["ExamSyllabusCreate"];
+// CORRECT — request body typed from the generated Create schema
+create: (token, data: ExamSyllabusCreate) => request<ExamSyllabusRead>("/admin/exam-syllabi", { method: "POST", body: JSON.stringify(data) }, token)
+
+// WRONG — inline literal drifts from the contract (missing exam_board, extra description)
+create: (token, data: { name: string; description?: string }) => request<ExamSyllabusRead>(...)
+```
+
+**Parse the error envelope correctly.** Read errors from `body.error.code` / `body.error.message` (not top level), and parse FastAPI 422 `detail[]` into a readable message; every mutation has an `onError` that surfaces it — a silently-freezing modal is a bug, not a non-event.
+
 **Query key convention** (hierarchical, lockable):
 - `[<feature>]` — all data in feature
 - `[<feature>, <surface>]` — a specific listing
@@ -488,6 +501,8 @@ interface LectureRead { id: string; title: string; /* ... */ }
 - `swr`
 - Calling the API from inside `useEffect` (use `useQuery` instead)
 - Hand-writing or `interface`-mirroring API request/response types — they're **generated** from the backend OpenAPI (`pnpm gen:api`); import from `@/lib/api/schema` (AMENDMENTS A-002)
+- Typing a request body with an inline object literal instead of the generated `*Create`/`*Update` schema (silently drifts from the contract — M-01a create-flow bug)
+- Reading errors from `body.code`/`body.message` (use `body.error.*`) or leaving a mutation without an `onError` that surfaces the message
 
 **Mutations include `Idempotency-Key` header automatically via `apiClient`. Don't roll your own.**
 
@@ -691,6 +706,8 @@ it("renders an error state with retry on failure", () => {
 ```
 
 **Playwright `@smoke` — the page acceptance path.** For any new/changed page, write one `@smoke` E2E driving the ticket's **UX-acceptance checklist**: reachable from the nav, renders real content (not a blank shell), primary flow works.
+
+**Create/update smoke runs against the REAL backend — never mock the contract.** A mocked create test certifies your own assumption, not the API (M-01a: every create 422'd while mocked tests stayed green and `e2e-smoke` passed). At least the create/update `@smoke` paths run against the real seeded compose backend and assert the real success response (201 + persisted row); and a **contract test** asserts your mock payloads + client request types match the generated `*Create`/`*Update` schemas, failing on any divergence.
 
 ```ts
 test("@smoke teacher reaches the lecture list and sees content", async ({ page }) => {

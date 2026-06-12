@@ -122,3 +122,25 @@ class UserService:
     async def get_me(self, authentik_id: str) -> User | None:
         """Return the User record for the currently authenticated user."""
         return await self._repo.get_by_authentik_id(authentik_id)
+
+    async def suspend_for_tos_decline(self, user_id: str) -> User:
+        """Mark account SUSPENDED when the user declines ToS (Flow 1 §5.6)."""
+        user = await self._repo.get_by_id(user_id)
+        if user is None:
+            from app.core.exceptions import NotFoundError
+
+            raise NotFoundError("User not found")
+        user.account_status = AccountStatus.SUSPENDED
+        return await self._repo.update(user)
+
+    async def reactivate_on_tos_accept(self, user_id: str) -> User:
+        """Restore ACTIVE when a suspended user accepts the current ToS."""
+        user = await self._repo.get_by_id(user_id)
+        if user is None:
+            from app.core.exceptions import NotFoundError
+
+            raise NotFoundError("User not found")
+        if user.account_status == AccountStatus.SUSPENDED:
+            user.account_status = AccountStatus.ACTIVE
+            return await self._repo.update(user)
+        return user

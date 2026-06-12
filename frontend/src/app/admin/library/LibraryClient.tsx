@@ -16,15 +16,34 @@ import { Modal } from "@/components/ui/modal";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { cn } from "@/lib/utils";
+import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const MAX_FILE_SIZE_MB = 100;
 
-const STATUS_VARIANT: Record<LibraryBook["status"], "secondary" | "warning" | "success" | "destructive" | "outline"> = {
+const STATUS_VARIANT: Record<
+  string,
+  "secondary" | "warning" | "success" | "destructive" | "outline"
+> = {
+  processing: "warning",
   ingesting: "warning",
   available: "success",
   ingestion_failed: "destructive",
   soft_deleted: "secondary",
 };
+
+function parseGradeRange(input: string): { min?: number; max?: number } {
+  const grades = input
+    .split(",")
+    .map((part) => parseInt(part.replace(/\D/g, ""), 10))
+    .filter((n) => !Number.isNaN(n) && n >= 1 && n <= 16);
+  if (grades.length === 0) return {};
+  return { min: Math.min(...grades), max: Math.max(...grades) };
+}
+
+function titleFromFilename(filename: string): string {
+  const stripped = filename.replace(/\.pdf$/i, "").trim();
+  return stripped || filename;
+}
 
 export function LibraryClient() {
   const t = useTranslations("admin.library");
@@ -62,36 +81,19 @@ export function LibraryClient() {
     mutationFn: async () => {
       if (!uploadFile || !token) throw new Error("No file or token");
 
-      const formData = new FormData();
-      formData.append("file", uploadFile);
-      formData.append("profile", "platform_reference_book");
-      formData.append(
-        "tags",
-        JSON.stringify({
-          language: tags.language || undefined,
-          content_type: tags.content_type || undefined,
-          grade_range: tags.grade_range
-            ? tags.grade_range.split(",").map((s) => s.trim())
-            : undefined,
-          subject_id: tags.subject_id || undefined,
-        }),
+      const { min: grade_range_min, max: grade_range_max } = parseGradeRange(
+        tags.grade_range,
       );
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/files/upload`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        },
-      );
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { message?: string };
-        throw new Error(body.message ?? "Upload failed");
-      }
-
-      return res.json();
+      return libraryApi.upload(token, {
+        file: uploadFile,
+        title: titleFromFilename(uploadFile.name),
+        language: tags.language || "en",
+        content_type: tags.content_type || "curriculum",
+        subject_tag: tags.subject_id || undefined,
+        grade_range_min,
+        grade_range_max,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["library"] });
@@ -122,9 +124,9 @@ export function LibraryClient() {
   if (!mounted || isLoading) {
     return (
       <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
         <div className="flex items-center justify-between">
-          <Skeleton className="h-8 w-48" />
-          <Skeleton className="h-10 w-32" />
+          <Skeleton className="h-10 w-32 ms-auto" aria-hidden="true" />
         </div>
         <div className="space-y-3">
           {Array.from({ length: 4 }).map((_, i) => (
@@ -137,11 +139,14 @@ export function LibraryClient() {
 
   if (isError) {
     return (
-      <ErrorState
-        description={t("error")}
-        onRetry={() => refetch()}
-        retryLabel={t("retry")}
-      />
+      <div className="space-y-6">
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
+        <ErrorState
+          description={t("error")}
+          onRetry={() => refetch()}
+          retryLabel={t("retry")}
+        />
+      </div>
     );
   }
 
@@ -149,12 +154,8 @@ export function LibraryClient() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
       <div className="flex items-start justify-between gap-4 flex-wrap">
-        <div>
-          <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
-          <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
-        </div>
+        <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
         <Button
           variant="primary"
           size="md"
@@ -202,23 +203,25 @@ export function LibraryClient() {
                     <div className="flex items-center gap-2">
                       <FileText className="size-4 text-gray-400 shrink-0" aria-hidden="true" />
                       <span className="font-medium text-gray-900 break-all">
-                        {book.filename}
+                        {book.title}
                       </span>
                     </div>
                   </td>
                   <td className="px-4 py-3 hidden sm:table-cell">
                     <div className="flex flex-wrap gap-1">
-                      {book.tags.language && (
-                        <Badge variant="secondary">{book.tags.language}</Badge>
+                      {book.language && (
+                        <Badge variant="secondary">{book.language}</Badge>
                       )}
-                      {book.tags.content_type && (
-                        <Badge variant="outline">{book.tags.content_type}</Badge>
+                      {book.content_type && (
+                        <Badge variant="outline">{book.content_type}</Badge>
                       )}
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={STATUS_VARIANT[book.status]}>
-                      {t(`status.${book.status}`)}
+                    <Badge variant={STATUS_VARIANT[book.status] ?? "outline"}>
+                      {t(
+                        `status.${book.status === "processing" ? "ingesting" : book.status}`,
+                      )}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">
@@ -233,7 +236,7 @@ export function LibraryClient() {
                         size="icon"
                         onClick={() => setDeleteTarget(book)}
                         aria-label={t("actions.delete", {
-                          name: book.filename,
+                          name: book.title,
                         })}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
                       >
@@ -393,7 +396,7 @@ export function LibraryClient() {
         onClose={() => setDeleteTarget(null)}
         title={t("delete_modal.title")}
         description={t("delete_modal.description", {
-          name: deleteTarget?.filename ?? "",
+          name: deleteTarget?.title ?? "",
         })}
         size="sm"
         closeLabel={t("delete_modal.cancel")}

@@ -4,6 +4,10 @@ Revision ID: school_0006
 Revises: school_0005
 Create Date: 2026-05-26
 
+
+Purpose: Add teaching personas table with custom-slot partial unique index.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations

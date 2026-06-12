@@ -9,7 +9,10 @@
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:e2e": "playwright test"
+    "test:coverage": "vitest run --coverage",
+    "test:watch": "vitest",
+    "e2e": "playwright test",
+    "gen:api": "cd ../api && uv run python -m app.openapi_export > ../frontend/openapi.json && cd ../frontend && openapi-typescript ./openapi.json -o src/lib/api/schema.d.ts"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.4.0",
@@ -37,10 +40,12 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@vitejs/plugin-react": "^4.3.4",
+    "@vitest/coverage-v8": "^2.1.8",
     "autoprefixer": "^10.4.20",
     "eslint": "^9",
     "eslint-config-next": "15.1.0",
     "jsdom": "^29.1.1",
+    "openapi-typescript": "^7.13.0",
     "postcss": "^8",
     "tailwindcss": "^3.4.17",
     "typescript": "^5",

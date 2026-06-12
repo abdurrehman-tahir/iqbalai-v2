@@ -6,6 +6,10 @@ Revision ID: school_0008
 Revises: school_0007
 Create Date: 2026-05-25
 
+
+Purpose: Add in-app notifications table.
+Risk: low
+Reversible: yes
 """
 
 from __future__ import annotations
