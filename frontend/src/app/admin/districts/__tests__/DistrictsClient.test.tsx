@@ -21,11 +21,15 @@ vi.mock("@/hooks/use-client-auth", () => ({
 const listMock = vi.fn();
 const createMock = vi.fn();
 const deleteMock = vi.fn();
+const inviteMock = vi.fn();
 vi.mock("@/lib/api", () => ({
   districtsApi: {
     list: (...a: unknown[]) => listMock(...a),
     create: (...a: unknown[]) => createMock(...a),
     delete: (...a: unknown[]) => deleteMock(...a),
+  },
+  adminUsersApi: {
+    invite: (...a: unknown[]) => inviteMock(...a),
   },
 }));
 
@@ -105,6 +109,44 @@ describe("DistrictsClient — create", () => {
         name: "Karachi District",
         region: "",
         language_preference: "",
+      }),
+    );
+  });
+});
+
+describe("DistrictsClient — invite", () => {
+  it("opens invite modal and submits", async () => {
+    const user = userEvent.setup();
+    listMock.mockResolvedValue([sampleDistrict]);
+    inviteMock.mockResolvedValue({
+      id: "inv-1",
+      email: "da@test.com",
+      display_name: "DA",
+      invited_role: "district_admin",
+      district_id: sampleDistrict.id,
+      school_id: null,
+      status: "pending",
+      expires_at: "2026-06-19T00:00:00Z",
+      resent_count: 0,
+      created_at: "2026-06-12T00:00:00Z",
+    });
+    renderWithClient(<DistrictsClient />);
+
+    await waitFor(() => expect(screen.getByText("Lahore District")).toBeInTheDocument());
+
+    await user.click(screen.getByRole("button", { name: "actions.invite" }));
+    await user.type(screen.getByLabelText(/invite_modal.email_label/), "da@test.com");
+    await user.type(screen.getByLabelText(/invite_modal.name_label/), "District Admin");
+    await act(async () => {
+      await user.click(screen.getByRole("button", { name: "invite_modal.send" }));
+    });
+
+    await waitFor(() =>
+      expect(inviteMock).toHaveBeenCalledWith("test-token", {
+        email: "da@test.com",
+        display_name: "District Admin",
+        role: "district_admin",
+        district_id: sampleDistrict.id,
       }),
     );
   });

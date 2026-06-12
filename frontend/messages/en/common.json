@@ -44,6 +44,20 @@
       "empty_content": "Terms content is unavailable. Contact your administrator.",
       "accept": "I Accept",
       "decline": "Decline & Sign Out"
+    },
+    "accept_invite": {
+      "title": "Accept your invitation",
+      "subtitle": "Set a password to activate your administrator account.",
+      "name_label": "Display name (optional)",
+      "password_label": "Password",
+      "confirm_password_label": "Confirm password",
+      "accept": "Accept invitation",
+      "decline": "Decline",
+      "missing_token": "Invalid invitation link — no token provided.",
+      "success": "Your account is active. Sign in to continue.",
+      "go_login": "Go to sign in",
+      "declined": "Invitation declined.",
+      "error_generic": "Could not process invitation. The link may be expired or invalid."
     }
   },
   "admin": {
@@ -95,7 +109,20 @@
         "actions": "Actions"
       },
       "actions": {
-        "delete": "Delete {name}"
+        "delete": "Delete {name}",
+        "invite": "Invite admin for {name}"
+      },
+      "invite_modal": {
+        "title": "Invite District Admin — {name}",
+        "email_label": "Email",
+        "email_placeholder": "admin@district.example",
+        "name_label": "Display name",
+        "name_placeholder": "Full name",
+        "cancel": "Cancel",
+        "send": "Send invite",
+        "close": "Close",
+        "success": "Invitation sent to {email}. They have 7 days to accept.",
+        "done": "Done"
       },
       "modal": {
         "create_title": "New district",

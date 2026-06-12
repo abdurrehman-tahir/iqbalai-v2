@@ -67,6 +67,17 @@ export const authApi = {
       tos_acceptance_required: boolean;
       current_tos_version_id: string | null;
     }>("/auth/post-login", { method: "POST" }, token),
+
+  acceptInvite: (data: {
+    token: string;
+    action: "accept" | "reject";
+    password?: string;
+    display_name?: string;
+  }) =>
+    request<{ status: string; email?: string; message: string }>(
+      "/auth/accept-invite",
+      { method: "POST", body: JSON.stringify(data) },
+    ),
 };
 
 // ── ToS ───────────────────────────────────────────────────────────────────────
@@ -200,6 +211,49 @@ export const districtsApi = {
     ),
   delete: (token: string, id: string) =>
     request<void>(`/admin/districts/${id}`, { method: "DELETE" }, token),
+};
+
+// ── Admin user invites (T-030) ────────────────────────────────────────────────
+
+export interface UserInvite {
+  id: string;
+  email: string;
+  display_name: string;
+  invited_role: string;
+  district_id: string | null;
+  school_id: string | null;
+  status: string;
+  expires_at: string;
+  resent_count: number;
+  created_at: string;
+}
+
+export const adminUsersApi = {
+  invite: (
+    token: string,
+    data: {
+      email: string;
+      display_name: string;
+      role: string;
+      district_id?: string;
+      school_id?: string;
+    },
+  ) =>
+    request<UserInvite>(
+      "/admin/users",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token,
+    ),
+  resend: (token: string, inviteId: string) =>
+    request<UserInvite>(
+      `/admin/users/${inviteId}/resend`,
+      { method: "POST" },
+      token,
+    ),
 };
 
 // ── Personas ──────────────────────────────────────────────────────────────────

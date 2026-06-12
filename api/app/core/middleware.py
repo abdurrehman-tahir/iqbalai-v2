@@ -25,6 +25,7 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/openapi.json",
         "/api/v1/auth/callback",
         "/api/v1/auth/login",
+        "/api/v1/auth/accept-invite",
         "/metrics",
     }
 )

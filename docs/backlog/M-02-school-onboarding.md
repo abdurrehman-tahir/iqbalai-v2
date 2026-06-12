@@ -99,7 +99,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.1 (Path A admin invitation flow)

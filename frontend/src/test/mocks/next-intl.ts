@@ -15,7 +15,7 @@ export const useTranslations = vi.fn(() => (key: string, params?: Record<string,
 });
 
 export const useFormatter = vi.fn(() => ({
-  dateTime: (_date: Date) => "Jan 1, 2026",
+  dateTime: (date: Date) => date.toISOString().slice(0, 10),
 }));
 
 export const useLocale = vi.fn(() => "en");

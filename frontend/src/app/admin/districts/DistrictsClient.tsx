@@ -6,8 +6,8 @@ import { useTranslations, useFormatter } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Building2, Plus, Trash2 } from "lucide-react";
-import { districtsApi, type District } from "@/lib/api";
+import { Building2, Plus, Trash2, UserPlus } from "lucide-react";
+import { districtsApi, adminUsersApi, type District } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
@@ -25,6 +25,13 @@ const districtSchema = z.object({
 
 type DistrictFormValues = z.infer<typeof districtSchema>;
 
+const inviteSchema = z.object({
+  email: z.string().email(),
+  display_name: z.string().min(1).max(255),
+});
+
+type InviteFormValues = z.infer<typeof inviteSchema>;
+
 export function DistrictsClient() {
   const t = useTranslations("admin.districts");
   const format = useFormatter();
@@ -32,6 +39,8 @@ export function DistrictsClient() {
   const { mounted, token } = useClientAuth();
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<District | null>(null);
+  const [inviteTarget, setInviteTarget] = useState<District | null>(null);
+  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["districts", "list"],
@@ -56,14 +65,42 @@ export function DistrictsClient() {
     },
   });
 
+  const inviteMutation = useMutation({
+    mutationFn: (values: InviteFormValues & { district_id: string }) =>
+      adminUsersApi.invite(token ?? "", {
+        ...values,
+        role: "district_admin",
+      }),
+    onSuccess: (invite) => {
+      setInviteSuccess(invite.email);
+      inviteForm.reset();
+    },
+  });
+
   const form = useForm<DistrictFormValues>({
     resolver: zodResolver(districtSchema),
     defaultValues: { name: "", region: "", language_preference: "" },
   });
 
+  const inviteForm = useForm<InviteFormValues>({
+    resolver: zodResolver(inviteSchema),
+    defaultValues: { email: "", display_name: "" },
+  });
+
   function openCreate() {
     setShowCreate(true);
     form.reset({ name: "", region: "", language_preference: "" });
+  }
+
+  function openInvite(district: District) {
+    setInviteTarget(district);
+    setInviteSuccess(null);
+    inviteForm.reset({ email: "", display_name: "" });
+  }
+
+  async function handleInviteSubmit(values: InviteFormValues) {
+    if (!inviteTarget) return;
+    await inviteMutation.mutateAsync({ ...values, district_id: inviteTarget.id });
   }
 
   async function handleSubmit(values: DistrictFormValues) {
@@ -159,6 +196,15 @@ export function DistrictsClient() {
                       <Button
                         variant="ghost"
                         size="icon"
+                        onClick={() => openInvite(district)}
+                        aria-label={t("actions.invite", { name: district.name })}
+                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                      >
+                        <UserPlus className="size-4" aria-hidden="true" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon"
                         onClick={() => setDeleteTarget(district)}
                         aria-label={t("actions.delete", { name: district.name })}
                         className="text-red-500 hover:text-red-700 hover:bg-red-50"
@@ -236,6 +282,92 @@ export function DistrictsClient() {
             </Button>
           </div>
         </form>
+      </Modal>
+
+      {/* Invite district admin modal */}
+      <Modal
+        open={!!inviteTarget}
+        onClose={() => {
+          setInviteTarget(null);
+          setInviteSuccess(null);
+        }}
+        title={t("invite_modal.title", { name: inviteTarget?.name ?? "" })}
+        size="md"
+        closeLabel={t("invite_modal.close")}
+      >
+        {inviteSuccess ? (
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">
+              {t("invite_modal.success", { email: inviteSuccess })}
+            </p>
+            <div className="flex justify-end">
+              <Button
+                variant="primary"
+                size="md"
+                onClick={() => {
+                  setInviteTarget(null);
+                  setInviteSuccess(null);
+                }}
+              >
+                {t("invite_modal.done")}
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <form onSubmit={inviteForm.handleSubmit(handleInviteSubmit)} className="space-y-4">
+            <div>
+              <Label htmlFor="invite-email" required>
+                {t("invite_modal.email_label")}
+              </Label>
+              <Input
+                id="invite-email"
+                type="email"
+                {...inviteForm.register("email")}
+                placeholder={t("invite_modal.email_placeholder")}
+              />
+              {inviteForm.formState.errors.email && (
+                <p className="text-xs text-red-600 mt-1" role="alert">
+                  {inviteForm.formState.errors.email.message}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <Label htmlFor="invite-name" required>
+                {t("invite_modal.name_label")}
+              </Label>
+              <Input
+                id="invite-name"
+                {...inviteForm.register("display_name")}
+                placeholder={t("invite_modal.name_placeholder")}
+              />
+              {inviteForm.formState.errors.display_name && (
+                <p className="text-xs text-red-600 mt-1" role="alert">
+                  {inviteForm.formState.errors.display_name.message}
+                </p>
+              )}
+            </div>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <Button
+                type="button"
+                variant="outline"
+                size="md"
+                onClick={() => setInviteTarget(null)}
+              >
+                {t("invite_modal.cancel")}
+              </Button>
+              <Button
+                type="submit"
+                variant="primary"
+                size="md"
+                loading={inviteMutation.isPending}
+              >
+                {t("invite_modal.send")}
+              </Button>
+            </div>
+          </form>
+        )}
       </Modal>
 
       {/* Delete confirmation modal */}

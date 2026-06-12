@@ -42,6 +42,13 @@ class Settings(BaseSettings):
     OIDC_CLIENT_ID: str = "iqbalai-api"
     OIDC_CLIENT_SECRET: str = "change_me"
     OIDC_JWKS_URL: str = "http://localhost:9000/application/o/iqbalai/jwks/"
+    AUTHENTIK_API_URL: str = "http://localhost:9000/api/v3"
+    AUTHENTIK_API_TOKEN: str = ""
+
+    # App URLs + email (T-030 invite flow)
+    APP_URL: str = "http://localhost:3000"
+    EMAIL_PROVIDER: str = "log"
+    EMAIL_FROM: str = "noreply@iqbalai.local"
 
     # LLM
     LLM_PROVIDER: str = "groq"

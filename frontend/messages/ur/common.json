@@ -44,6 +44,20 @@
       "empty_content": "__TODO__ Terms content is unavailable. Contact your administrator.",
       "accept": "__TODO__ I Accept",
       "decline": "__TODO__ Decline & Sign Out"
+    },
+    "accept_invite": {
+      "title": "__TODO__ Accept your invitation",
+      "subtitle": "__TODO__ Set a password to activate your administrator account.",
+      "name_label": "__TODO__ Display name (optional)",
+      "password_label": "__TODO__ Password",
+      "confirm_password_label": "__TODO__ Confirm password",
+      "accept": "__TODO__ Accept invitation",
+      "decline": "__TODO__ Decline",
+      "missing_token": "__TODO__ Invalid invitation link — no token provided.",
+      "success": "__TODO__ Your account is active. Sign in to continue.",
+      "go_login": "__TODO__ Go to sign in",
+      "declined": "__TODO__ Invitation declined.",
+      "error_generic": "__TODO__ Could not process invitation. The link may be expired or invalid."
     }
   },
   "admin": {
@@ -95,7 +109,20 @@
         "actions": "__TODO__ Actions"
       },
       "actions": {
-        "delete": "__TODO__ Delete {name}"
+        "delete": "__TODO__ Delete {name}",
+        "invite": "__TODO__ Invite admin for {name}"
+      },
+      "invite_modal": {
+        "title": "__TODO__ Invite District Admin — {name}",
+        "email_label": "__TODO__ Email",
+        "email_placeholder": "__TODO__ admin@district.example",
+        "name_label": "__TODO__ Display name",
+        "name_placeholder": "__TODO__ Full name",
+        "cancel": "__TODO__ Cancel",
+        "send": "__TODO__ Send invite",
+        "close": "__TODO__ Close",
+        "success": "__TODO__ Invitation sent to {email}. They have 7 days to accept.",
+        "done": "__TODO__ Done"
       },
       "modal": {
         "create_title": "__TODO__ New district",

@@ -38,6 +38,16 @@ class FakeRedis:
     async def get(self, key: str) -> str | None:
         return self.store.get(key)
 
+    async def incr(self, key: str) -> int:
+        current = int(self.store.get(key, "0"))
+        current += 1
+        self.store[key] = str(current)
+        return current
+
+    async def expire(self, key: str, seconds: int) -> bool:
+        self.ttls[key] = seconds
+        return True
+
 
 @pytest.fixture
 def fake_redis(monkeypatch: pytest.MonkeyPatch) -> FakeRedis:
