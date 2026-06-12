@@ -1,6 +1,6 @@
 # M-02 — School Onboarding: District + School + Role Hierarchy
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-028 through T-040
 **Spec source:** `flow-2-admin-coordinator-setup.md` v3
@@ -428,7 +428,7 @@ School Admin dashboard "Audit Log" page: scoped to own school. Shows last 50 ent
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 0.5 days
-**Status:** todo
+**Status:** done
 
 PR with demo video showing District → School → Admin → Coordinator → Teacher flow.
 
