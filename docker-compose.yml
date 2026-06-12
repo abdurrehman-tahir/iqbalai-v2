@@ -187,13 +187,14 @@ services:
 
   infinity:
     profiles: ["rag"]
-    image: michaelf34/infinity:latest
-    mem_limit: 2g
+    # Pin a multi-arch tag — `latest` is amd64-only and breaks on Apple Silicon (Rosetta crash-loop).
+    image: michaelf34/infinity:0.0.75
+    mem_limit: 4g
     restart: unless-stopped
+    # Reranker omitted locally — halves RAM (~2 GB). Re-add bge-reranker-v2-m3 for full RAG retrieval.
     command: >
       v2
       --model-id BAAI/bge-m3
-      --model-id BAAI/bge-reranker-v2-m3
       --port 7997
       --engine optimum
     volumes:
@@ -206,8 +207,8 @@ services:
       test: ["CMD-SHELL", "curl -f http://localhost:7997/health || exit 1"]
       interval: 30s
       timeout: 15s
-      retries: 5
-      start_period: 120s
+      retries: 10
+      start_period: 300s
 
   api:
     build:
@@ -235,6 +236,9 @@ services:
       LLM_FALLBACK_BASE_URL: ${LLM_FALLBACK_BASE_URL:-}
       LLM_FALLBACK_API_KEY: ${LLM_FALLBACK_API_KEY:-}
       LLM_FALLBACK_MODEL: ${LLM_FALLBACK_MODEL:-gpt-4o-mini}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-local}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_VECTOR_DIM: ${EMBEDDING_VECTOR_DIM:-0}
       INFINITY_URL: ${INFINITY_URL:-http://infinity:7997}
       CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-http://localhost:3000,http://127.0.0.1:3000}
     volumes:
@@ -267,6 +271,14 @@ services:
       DB_URL: ${DB_URL}
       REDIS_URL: ${REDIS_URL}
       NATS_URL: ${NATS_URL}
+      MINIO_ENDPOINT: ${MINIO_ENDPOINT}
+      MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
+      MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
+      QDRANT_URL: ${QDRANT_URL}
+      EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-local}
+      EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
+      EMBEDDING_VECTOR_DIM: ${EMBEDDING_VECTOR_DIM:-0}
+      INFINITY_URL: ${INFINITY_URL:-http://infinity:7997}
       LLM_PROVIDER: ${LLM_PROVIDER}
       LLM_BASE_URL: ${LLM_BASE_URL}
       LLM_API_KEY: ${LLM_API_KEY}

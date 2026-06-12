@@ -26,6 +26,18 @@ export type TosVersionRead = Schemas["TosVersionRead"];
 export type DisclaimerVersionRead = Schemas["DisclaimerVersionRead"];
 export type LibraryBookRead = Schemas["LibraryBookRead"];
 export type LibraryBookListResponse = Schemas["LibraryBookListResponse"];
+export type LibraryUploadResponse = Schemas["LibraryUploadResponse"];
+
+/** Multipart upload metadata (query params; file is sent as FormData). */
+export interface LibraryUploadParams {
+  file: File;
+  title: string;
+  content_type?: string;
+  subject_tag?: string | null;
+  grade_range_min?: number | null;
+  grade_range_max?: number | null;
+  language?: string;
+}
 export type AuditLogEntryRead = Schemas["AuditLogEntryRead"];
 export type AuditLogListResponse = Schemas["PaginatedEnvelope_AuditLogEntryRead_"];
 export type NotificationRead = Schemas["NotificationRead"];

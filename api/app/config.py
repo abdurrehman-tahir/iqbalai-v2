@@ -62,7 +62,10 @@ class Settings(BaseSettings):
     VA_MODEL: str = ""
     SCORING_MODEL: str = ""
 
-    # Infinity embeddings
+    # Embeddings — infinity (prod) or local sentence-transformers (dev, low RAM)
+    EMBEDDING_PROVIDER: str = "infinity"  # infinity | local
+    EMBEDDING_MODEL: str = ""  # empty = provider default (BGE-M3 or MiniLM)
+    EMBEDDING_VECTOR_DIM: int = 0  # 0 = provider default (1024 or 384)
     INFINITY_URL: str = "http://localhost:7997"
 
     # Browser origins allowed for cross-origin API calls (comma-separated).

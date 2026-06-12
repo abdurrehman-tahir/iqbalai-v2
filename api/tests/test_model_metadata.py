@@ -98,13 +98,13 @@ def test_every_foreign_key_has_ondelete_and_index() -> None:
 _ENUM_COLUMNS = [
     ("users", "role"),
     ("users", "account_status"),
+]
+
+# Varchar-backed enum labels in migrations; ORM uses native_enum=False (create_type=False).
+_VARCHAR_ENUM_COLUMNS = [
     ("upload_records", "status"),
     ("platform_reference_books", "content_type"),
     ("platform_reference_books", "status"),
-]
-
-# Subscription enums are varchar in school_0007; school_0013 promotes them to native enums.
-_VARCHAR_ENUM_COLUMNS = [
     ("subscription_tiers", "applies_to"),
     ("subscriptions", "subscriber_type"),
     ("subscriptions", "status"),

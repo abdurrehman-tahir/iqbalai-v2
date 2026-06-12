@@ -8,6 +8,8 @@ import type {
   ExamSyllabusCreate,
   ExamSyllabusRead,
   ExamSyllabusUpdate,
+  LibraryUploadParams,
+  LibraryUploadResponse,
   Notification,
   PersonaRead,
   PersonaUpdate,
@@ -127,6 +129,37 @@ async function request<T>(
   }
 
   if (res.status === 204) return undefined as T;
+
+  const envelope = await res.json();
+  return (envelope.data ?? envelope) as T;
+}
+
+async function requestFormData<T>(
+  path: string,
+  formData: FormData,
+  token?: string,
+): Promise<T> {
+  const headers: Record<string, string> = {};
+  if (token) {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
+
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers,
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let body: unknown = {};
+    try {
+      body = await res.json();
+    } catch {
+      // ignore parse errors
+    }
+    const parsed = parseApiErrorBody(body, res.status);
+    throw new ApiError(res.status, parsed.code, parsed.message, parsed.details);
+  }
 
   const envelope = await res.json();
   return (envelope.data ?? envelope) as T;
@@ -263,6 +296,28 @@ export const libraryApi = {
       token,
     );
     return page.items;
+  },
+  upload: (token: string, params: LibraryUploadParams) => {
+    const qs = new URLSearchParams();
+    qs.set("title", params.title);
+    if (params.content_type) qs.set("content_type", params.content_type);
+    if (params.subject_tag) qs.set("subject_tag", params.subject_tag);
+    if (params.grade_range_min != null) {
+      qs.set("grade_range_min", String(params.grade_range_min));
+    }
+    if (params.grade_range_max != null) {
+      qs.set("grade_range_max", String(params.grade_range_max));
+    }
+    if (params.language) qs.set("language", params.language);
+
+    const formData = new FormData();
+    formData.append("file", params.file);
+
+    return requestFormData<LibraryUploadResponse>(
+      `/admin/library?${qs.toString()}`,
+      formData,
+      token,
+    );
   },
   softDelete: (token: string, id: string) =>
     request<void>(`/admin/library/${id}`, { method: "DELETE" }, token),

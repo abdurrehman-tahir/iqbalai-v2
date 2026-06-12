@@ -435,12 +435,56 @@ async function handleApiRoute(state: MockState, route: Route) {
     return;
   }
 
+  if (method === "POST" && path === "/admin/library") {
+    const title = url.searchParams.get("title") ?? "upload.pdf";
+    const bookId = `lib-${state.library.length + 1}`;
+    const now = new Date().toISOString();
+    state.library.unshift({
+      id: bookId,
+      filename: title,
+      status: "processing",
+      tags: {
+        language: url.searchParams.get("language") ?? "en",
+        content_type: url.searchParams.get("content_type") ?? "curriculum",
+      },
+      created_at: now,
+    });
+    await route.fulfill({
+      status: 202,
+      contentType: "application/json",
+      body: JSON.stringify({
+        book_id: bookId,
+        upload_id: `upload-${bookId}`,
+        status: "processing",
+        message: "Upload accepted; ingestion queued on the ingestion worker.",
+      }),
+    });
+    return;
+  }
+
   if (method === "GET" && path === "/admin/library") {
     // LibraryBookListResponse is a bare {items, total} (no SuccessEnvelope data wrapper).
+    const items = state.library.map((entry) => ({
+      id: entry.id,
+      upload_id: `upload-${entry.id}`,
+      title: entry.filename,
+      content_type: String(entry.tags.content_type ?? "curriculum"),
+      subject_tag: null,
+      grade_range_min: null,
+      grade_range_max: null,
+      language: String(entry.tags.language ?? "en"),
+      sha256: "mock-sha256",
+      status: entry.status,
+      qdrant_collection: "platform_chunks",
+      chunk_count: null,
+      created_at: entry.created_at,
+      updated_at: entry.created_at,
+      deleted_at: null,
+    }));
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ items: state.library, total: state.library.length }),
+      body: JSON.stringify({ items, total: items.length }),
     });
     return;
   }

@@ -27,13 +27,13 @@ class ReferenceBookStatus(StrEnum):
 
 
 def _pg_enum(enum_cls: type[StrEnum], name: str) -> SAEnum:
-    """Native Postgres enum bound to the school schema (ARCH §4.4)."""
+    """Enum labels stored as varchar until a future Alembic promotion (ARCH §4.4)."""
     return SAEnum(
         enum_cls,
         name=name,
         schema="school",
         values_callable=lambda e: [m.value for m in e],
-        native_enum=True,
+        native_enum=False,
         create_type=False,
     )
 

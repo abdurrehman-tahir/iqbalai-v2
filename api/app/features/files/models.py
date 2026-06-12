@@ -24,14 +24,15 @@ class UploadRecord(AuditMixin, SoftDeleteMixin, Base):
     minio_key: Mapped[str] = mapped_column(String(1000), nullable=False)
     bucket: Mapped[str] = mapped_column(String(255), nullable=False)
     school_id: Mapped[str | None] = mapped_column(String(36), nullable=True, index=True)
-    uploaded_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # VARCHAR(255) — stores Authentik sub claim; matches users.authentik_id width
+    uploaded_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
     status: Mapped[UploadStatus] = mapped_column(
         SAEnum(
             UploadStatus,
             name="upload_records_status_enum",
             schema="school",
             values_callable=lambda e: [m.value for m in e],
-            native_enum=True,
+            native_enum=False,
             create_type=False,
         ),
         nullable=False,

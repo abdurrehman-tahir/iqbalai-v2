@@ -26,7 +26,8 @@ class Notification(AuditMixin, SoftDeleteMixin, Base):
     )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
-    recipient_user_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    # VARCHAR(255) — stores Authentik sub claim; matches users.authentik_id width
+    recipient_user_id: Mapped[str] = mapped_column(String(255), nullable=False)
     # One of the 7 locked namespaces — validated at publish time in infrastructure layer
     feature_namespace: Mapped[str] = mapped_column(String(50), nullable=False)
     # e.g. "account.invite_sent", "quiz.grade_released"

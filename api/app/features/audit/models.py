@@ -35,7 +35,8 @@ class AuditLogEntry(Base):
     # e.g. "user.created", "tos.published", "syllabus.updated"
     action: Mapped[str] = mapped_column(String(100), nullable=False)
     # NULL when the action is system-initiated (no human actor)
-    actor_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    # VARCHAR(255) — stores Authentik sub claim; matches users.authentik_id width
+    actor_id: Mapped[str | None] = mapped_column(String(255), nullable=True)
     actor_role: Mapped[str | None] = mapped_column(String(50), nullable=True)
     # e.g. "user", "tos_version", "exam_syllabus"
     target_type: Mapped[str | None] = mapped_column(String(100), nullable=True)

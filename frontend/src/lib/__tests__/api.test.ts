@@ -251,4 +251,37 @@ describe("auditApi + libraryApi", () => {
     const books = await libraryApi.list("tok");
     expect(books[0].title).toBe("f.pdf");
   });
+
+  it("libraryApi uploads a PDF via multipart to /admin/library", async () => {
+    global.fetch = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 202,
+      json: () =>
+        Promise.resolve({
+          book_id: "b2",
+          upload_id: "u2",
+          status: "processing",
+        }),
+    });
+
+    const file = new File(["pdf"], "guide.pdf", { type: "application/pdf" });
+    const result = await libraryApi.upload("tok", {
+      file,
+      title: "guide",
+      language: "en",
+      content_type: "curriculum",
+    });
+
+    expect(result.book_id).toBe("b2");
+    const [url, init] = (global.fetch as ReturnType<typeof vi.fn>).mock.calls[0] as [
+      string,
+      RequestInit,
+    ];
+    expect(url).toContain("/admin/library?");
+    expect(url).toContain("title=guide");
+    expect(url).toContain("content_type=curriculum");
+    expect(init.body).toBeInstanceOf(FormData);
+    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+    expect((init.headers as Record<string, string>)["Content-Type"]).toBeUndefined();
+  });
 });

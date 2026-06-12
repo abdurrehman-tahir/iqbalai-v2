@@ -20,12 +20,30 @@ import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
 
 const MAX_FILE_SIZE_MB = 100;
 
-const STATUS_VARIANT: Record<LibraryBook["status"], "secondary" | "warning" | "success" | "destructive" | "outline"> = {
+const STATUS_VARIANT: Record<
+  string,
+  "secondary" | "warning" | "success" | "destructive" | "outline"
+> = {
+  processing: "warning",
   ingesting: "warning",
   available: "success",
   ingestion_failed: "destructive",
   soft_deleted: "secondary",
 };
+
+function parseGradeRange(input: string): { min?: number; max?: number } {
+  const grades = input
+    .split(",")
+    .map((part) => parseInt(part.replace(/\D/g, ""), 10))
+    .filter((n) => !Number.isNaN(n) && n >= 1 && n <= 16);
+  if (grades.length === 0) return {};
+  return { min: Math.min(...grades), max: Math.max(...grades) };
+}
+
+function titleFromFilename(filename: string): string {
+  const stripped = filename.replace(/\.pdf$/i, "").trim();
+  return stripped || filename;
+}
 
 export function LibraryClient() {
   const t = useTranslations("admin.library");
@@ -63,36 +81,19 @@ export function LibraryClient() {
     mutationFn: async () => {
       if (!uploadFile || !token) throw new Error("No file or token");
 
-      const formData = new FormData();
-      formData.append("file", uploadFile);
-      formData.append("profile", "platform_reference_book");
-      formData.append(
-        "tags",
-        JSON.stringify({
-          language: tags.language || undefined,
-          content_type: tags.content_type || undefined,
-          grade_range: tags.grade_range
-            ? tags.grade_range.split(",").map((s) => s.trim())
-            : undefined,
-          subject_id: tags.subject_id || undefined,
-        }),
+      const { min: grade_range_min, max: grade_range_max } = parseGradeRange(
+        tags.grade_range,
       );
 
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/files/upload`,
-        {
-          method: "POST",
-          headers: { Authorization: `Bearer ${token}` },
-          body: formData,
-        },
-      );
-
-      if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { message?: string };
-        throw new Error(body.message ?? "Upload failed");
-      }
-
-      return res.json();
+      return libraryApi.upload(token, {
+        file: uploadFile,
+        title: titleFromFilename(uploadFile.name),
+        language: tags.language || "en",
+        content_type: tags.content_type || "curriculum",
+        subject_tag: tags.subject_id || undefined,
+        grade_range_min,
+        grade_range_max,
+      });
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["library"] });
@@ -217,8 +218,10 @@ export function LibraryClient() {
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <Badge variant={STATUS_VARIANT[book.status]}>
-                      {t(`status.${book.status}`)}
+                    <Badge variant={STATUS_VARIANT[book.status] ?? "outline"}>
+                      {t(
+                        `status.${book.status === "processing" ? "ingesting" : book.status}`,
+                      )}
                     </Badge>
                   </td>
                   <td className="px-4 py-3 text-gray-500 text-xs hidden md:table-cell">

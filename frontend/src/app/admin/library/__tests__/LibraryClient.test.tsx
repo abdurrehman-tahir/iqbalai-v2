@@ -9,9 +9,11 @@ vi.mock("@/hooks/use-client-auth", () => ({
 }));
 
 const mockList = vi.fn();
+const mockUpload = vi.fn();
 vi.mock("@/lib/api", () => ({
   libraryApi: {
     list: (...a: unknown[]) => mockList(...a),
+    upload: (...a: unknown[]) => mockUpload(...a),
     softDelete: vi.fn(),
   },
 }));

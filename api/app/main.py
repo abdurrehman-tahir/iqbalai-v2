@@ -15,7 +15,11 @@ from app.config import get_settings
 from app.core.exceptions import setup_exception_handlers
 from app.core.logging import configure_logging
 from app.core.middleware import AuthMiddleware
+from app.infrastructure.celery.celery_app import celery_app  # noqa: F401 — Redis broker bootstrap
 from app.infrastructure.events import close_nats, init_nats
+
+# Register ingestion tasks on the Redis-backed Celery app before any apply_async call.
+import app.features.library.tasks  # noqa: F401, E402
 
 logger = structlog.get_logger(__name__)
 

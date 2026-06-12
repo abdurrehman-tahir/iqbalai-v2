@@ -25,6 +25,7 @@ dependencies = [
     # T-024 — Platform Library ingestion pipeline
     "pdfplumber>=0.11.0",                # PDF text extraction (lightweight fallback per STACK_LOCK §4.3)
     "langchain-text-splitters>=0.3.0",   # RecursiveCharacterTextSplitter (pre-approved deviation §7.7)
+    "fastembed>=0.6.0",                  # local dev embeddings when EMBEDDING_PROVIDER=local (ONNX, low RAM)
 ]
 
 [dependency-groups]
