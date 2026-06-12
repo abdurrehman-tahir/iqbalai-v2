@@ -43,7 +43,9 @@ test.describe("Districts admin @smoke", () => {
     await page.fill("#district-region", "Punjab");
     await page.getByRole("button", { name: /^create$/i }).click();
 
-    await expect(page.getByRole("cell", { name: "Lahore District" })).toBeVisible({
+    await expect(
+      page.getByRole("cell", { name: "Lahore District", exact: true }),
+    ).toBeVisible({
       timeout: 5_000,
     });
   });
