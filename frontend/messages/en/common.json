@@ -351,6 +351,37 @@
         "confirm": "Archive"
       }
     },
+    "grade_detail": {
+      "back": "Back to grades",
+      "error": "Failed to load grade",
+      "retry": "Retry",
+      "session_label": "Session: {session}",
+      "sections": {
+        "title": "Sections",
+        "add_button": "Add section",
+        "error": "Failed to load sections",
+        "empty": {
+          "title": "No sections yet",
+          "description": "Add sections like A, B, or C for this grade."
+        },
+        "archive": "Archive {name}",
+        "duplicate_error": "A section with this name already exists.",
+        "generic_error": "Something went wrong.",
+        "modal": {
+          "title": "Add section",
+          "name_label": "Section name",
+          "name_placeholder": "e.g. A",
+          "cancel": "Cancel",
+          "create": "Create"
+        },
+        "archive_modal": {
+          "title": "Archive section?",
+          "description": "Archive section \"{name}\"?",
+          "cancel": "Cancel",
+          "confirm": "Archive"
+        }
+      }
+    },
     "sessions": {
       "active_label": "Session: {label}",
       "no_active": "No active session",

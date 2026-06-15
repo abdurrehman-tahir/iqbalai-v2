@@ -1429,6 +1429,67 @@
         "title": "SchoolUpdate",
         "type": "object"
       },
+      "SectionCreate": {
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SectionCreate",
+        "type": "object"
+      },
+      "SectionRead": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "grade_id": {
+            "title": "Grade Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_default_internal": {
+            "title": "Is Default Internal",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SectionStatus"
+          }
+        },
+        "required": [
+          "id",
+          "grade_id",
+          "name",
+          "is_default_internal",
+          "status",
+          "created_at"
+        ],
+        "title": "SectionRead",
+        "type": "object"
+      },
+      "SectionStatus": {
+        "enum": [
+          "active",
+          "archived"
+        ],
+        "title": "SectionStatus",
+        "type": "string"
+      },
       "SubjectCreate": {
         "description": "Payload for creating a new Subject in the caller's school catalogue.",
         "properties": {
@@ -1860,6 +1921,23 @@
         "title": "SuccessEnvelope[PostLoginResponse]",
         "type": "object"
       },
+      "SuccessEnvelope_SectionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SectionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SectionRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_SubjectRead_": {
         "properties": {
           "data": {
@@ -2082,6 +2160,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[PersonaRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_SectionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SectionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[SectionRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_SubjectRead__": {
@@ -4855,6 +4954,149 @@
         "summary": "Archive a grade",
         "tags": [
           "grades"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/sections/": {
+      "get": {
+        "operationId": "sections_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_SectionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List visible sections for a grade",
+        "tags": [
+          "sections"
+        ]
+      },
+      "post": {
+        "operationId": "sections_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SectionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add a section to a grade",
+        "tags": [
+          "sections"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/sections/{section_id}/archive": {
+      "post": {
+        "operationId": "sections_archive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "section_id",
+            "required": true,
+            "schema": {
+              "title": "Section Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SectionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive a section",
+        "tags": [
+          "sections"
         ]
       }
     },

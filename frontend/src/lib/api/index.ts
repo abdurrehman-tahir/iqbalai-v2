@@ -23,6 +23,8 @@ import type {
   GradeCreate,
   GradeRead,
   GradeUpdate,
+  SectionCreate,
+  SectionRead,
   SubscriptionTierCreate,
   SubscriptionTierRead,
   SubscriptionTierUpdate,
@@ -662,6 +664,22 @@ export const gradesApi = {
       },
       token
     ),
+  get: (token: string, id: string) => request<GradeRead>(`/grades/${id}`, {}, token),
   archive: (token: string, id: string) =>
     request<GradeRead>(`/grades/${id}/archive`, { method: "POST" }, token),
+};
+
+// ── Sections (Coordinator) — T-044 ──────────────────────────────────────────────
+
+export const sectionsApi = {
+  list: (token: string, gradeId: string) =>
+    request<SectionRead[]>(`/grades/${gradeId}/sections/`, {}, token),
+  create: (token: string, gradeId: string, data: SectionCreate) =>
+    request<SectionRead>(
+      `/grades/${gradeId}/sections/`,
+      { method: "POST", body: JSON.stringify(data), headers: { "Idempotency-Key": crypto.randomUUID() } },
+      token
+    ),
+  archive: (token: string, gradeId: string, sectionId: string) =>
+    request<SectionRead>(`/grades/${gradeId}/sections/${sectionId}/archive`, { method: "POST" }, token),
 };

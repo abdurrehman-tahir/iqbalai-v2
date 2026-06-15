@@ -620,6 +620,41 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/grades/{grade_id}/sections/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List visible sections for a grade */
+        get: operations["sections_list"];
+        put?: never;
+        /** Add a section to a grade */
+        post: operations["sections_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/grades/{grade_id}/sections/{section_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive a section */
+        post: operations["sections_archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -1512,6 +1547,33 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** SectionCreate */
+        SectionCreate: {
+            /** Name */
+            name: string;
+        };
+        /** SectionRead */
+        SectionRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Grade Id */
+            grade_id: string;
+            /** Id */
+            id: string;
+            /** Is Default Internal */
+            is_default_internal: boolean;
+            /** Name */
+            name: string;
+            status: components["schemas"]["SectionStatus"];
+        };
+        /**
+         * SectionStatus
+         * @enum {string}
+         */
+        SectionStatus: "active" | "archived";
         /**
          * SubjectCreate
          * @description Payload for creating a new Subject in the caller's school catalogue.
@@ -1703,6 +1765,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[SectionRead] */
+        SuccessEnvelope_SectionRead_: {
+            data: components["schemas"]["SectionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[SubjectRead] */
         SuccessEnvelope_SubjectRead_: {
             data: components["schemas"]["SubjectRead"];
@@ -1810,6 +1881,16 @@ export interface components {
         SuccessEnvelope_list_PersonaRead__: {
             /** Data */
             data: components["schemas"]["PersonaRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[SectionRead]] */
+        SuccessEnvelope_list_SectionRead__: {
+            /** Data */
+            data: components["schemas"]["SectionRead"][];
             /**
              * Message
              * @default ok
@@ -3717,6 +3798,104 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_GradeRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sections_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_SectionRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sections_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SectionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SectionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    sections_archive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+                section_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SectionRead_"];
                 };
             };
             /** @description Validation Error */

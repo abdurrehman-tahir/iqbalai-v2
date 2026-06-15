@@ -6,6 +6,7 @@ import { useTranslations, useFormatter } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import Link from "next/link";
 import { Archive, GraduationCap, Plus } from "lucide-react";
 import { gradesApi, ApiError, type Grade } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
@@ -136,7 +137,11 @@ export function GradesClient() {
             <tbody className="divide-y divide-gray-100">
               {grades.map((grade) => (
                 <tr key={grade.id}>
-                  <td className="px-4 py-3 text-sm font-medium text-gray-900">{grade.name}</td>
+                  <td className="px-4 py-3 text-sm font-medium text-gray-900">
+                    <Link href={`/coordinator/grades/${grade.id}`} className="text-brand-700 hover:underline">
+                      {grade.name}
+                    </Link>
+                  </td>
                   <td className="px-4 py-3 text-sm text-gray-600">{grade.academic_session}</td>
                   <td className="px-4 py-3">
                     <Badge variant={grade.status === "active" ? "success" : "secondary"}>
