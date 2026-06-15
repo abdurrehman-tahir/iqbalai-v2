@@ -65,10 +65,22 @@ class _FakeSubjectRepo:
         subject.deleted_at = datetime.now(timezone.utc)
 
 
+class _FakeOfferingRepo:
+    counts: dict[str, int] = {}
+
+    def __init__(self, session: Any) -> None:
+        pass
+
+    async def count_active_by_subject(self, subject_id: str) -> int:
+        return self.counts.get(subject_id, 0)
+
+
 @pytest.fixture(autouse=True)
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeSubjectRepo.store = {}
+    _FakeOfferingRepo.counts = {}
     monkeypatch.setattr("app.features.subjects.service.SubjectRepository", _FakeSubjectRepo)
+    monkeypatch.setattr("app.features.subjects.service.OfferingRepository", _FakeOfferingRepo)
     monkeypatch.setattr("app.features.subjects.service.audit", AsyncMock())
 
 
