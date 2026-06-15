@@ -620,6 +620,92 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/grades/{grade_id}/offerings/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List subject offerings for a grade */
+        get: operations["offerings_list"];
+        put?: never;
+        /** Offer a subject to a grade */
+        post: operations["offerings_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/grades/{grade_id}/offerings/eligible-teachers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List teachers eligible for assignment with capacity info */
+        get: operations["offerings_eligible_teachers"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/grades/{grade_id}/offerings/{offering_id}/archive": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Archive a grade subject offering */
+        post: operations["offerings_archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/grades/{grade_id}/offerings/{offering_id}/assign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Assign a teacher to an offering */
+        post: operations["offerings_assign_teacher"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/grades/{grade_id}/offerings/{offering_id}/unassign": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Unassign the teacher from an offering */
+        post: operations["offerings_unassign_teacher"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/grades/{grade_id}/sections/": {
         parameters: {
             query?: never;
@@ -1232,6 +1318,21 @@ export interface components {
             /** Region */
             region?: string | null;
         };
+        /** EligibleTeacherRead */
+        EligibleTeacherRead: {
+            /** Assignment Count */
+            assignment_count: number;
+            /** At Capacity */
+            at_capacity: boolean;
+            /** Capacity */
+            capacity: number;
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /** Id */
+            id: string;
+        };
         /**
          * ExamSyllabusCreate
          * @description Payload for creating a new ExamSyllabus.
@@ -1451,6 +1552,52 @@ export interface components {
             /** Title */
             title: string;
         };
+        /** OfferingAssign */
+        OfferingAssign: {
+            /**
+             * Override
+             * @default false
+             */
+            override: boolean;
+            /** Teacher Id */
+            teacher_id: string;
+        };
+        /** OfferingCreate */
+        OfferingCreate: {
+            /** Subject Id */
+            subject_id: string;
+        };
+        /** OfferingRead */
+        OfferingRead: {
+            /** Academic Session */
+            academic_session: string;
+            /** Assigned Teacher Id */
+            assigned_teacher_id: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Grade Id */
+            grade_id: string;
+            /** Id */
+            id: string;
+            /** School Id */
+            school_id: string;
+            status: components["schemas"]["OfferingStatus"];
+            /** Subject Id */
+            subject_id: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+        };
+        /**
+         * OfferingStatus
+         * @enum {string}
+         */
+        OfferingStatus: "active" | "archived";
         /** PaginatedEnvelope[AuditLogEntryRead] */
         PaginatedEnvelope_AuditLogEntryRead_: {
             /** Items */
@@ -1747,6 +1894,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[OfferingRead] */
+        SuccessEnvelope_OfferingRead_: {
+            data: components["schemas"]["OfferingRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[PersonaRead] */
         SuccessEnvelope_PersonaRead_: {
             data: components["schemas"]["PersonaRead"];
@@ -1857,6 +2013,16 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[list[EligibleTeacherRead]] */
+        SuccessEnvelope_list_EligibleTeacherRead__: {
+            /** Data */
+            data: components["schemas"]["EligibleTeacherRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[ExamSyllabusRead]] */
         SuccessEnvelope_list_ExamSyllabusRead__: {
             /** Data */
@@ -1871,6 +2037,16 @@ export interface components {
         SuccessEnvelope_list_GradeRead__: {
             /** Data */
             data: components["schemas"]["GradeRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[OfferingRead]] */
+        SuccessEnvelope_list_OfferingRead__: {
+            /** Data */
+            data: components["schemas"]["OfferingRead"][];
             /**
              * Message
              * @default ok
@@ -3798,6 +3974,207 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_GradeRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offerings_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_OfferingRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offerings_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferingCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_OfferingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offerings_eligible_teachers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_EligibleTeacherRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offerings_archive: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+                offering_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_OfferingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offerings_assign_teacher: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: string | null;
+            };
+            path: {
+                grade_id: string;
+                offering_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["OfferingAssign"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_OfferingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    offerings_unassign_teacher: {
+        parameters: {
+            query?: never;
+            header?: {
+                "If-Match"?: string | null;
+            };
+            path: {
+                grade_id: string;
+                offering_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_OfferingRead_"];
                 };
             };
             /** @description Validation Error */

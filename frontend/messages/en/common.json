@@ -380,6 +380,44 @@
           "cancel": "Cancel",
           "confirm": "Archive"
         }
+      },
+      "offerings": {
+        "title": "Subject offerings",
+        "add_button": "Offer a subject",
+        "error": "Failed to load offerings",
+        "empty": {
+          "title": "No offerings yet",
+          "description": "Offer subjects from your catalogue to this grade."
+        },
+        "unassigned": "No teacher assigned",
+        "archive": "Archive offering",
+        "duplicate_error": "This subject is already offered to this grade.",
+        "generic_error": "Something went wrong.",
+        "modal": {
+          "title": "Offer a subject",
+          "subject_label": "Subject",
+          "subject_placeholder": "Select a subject",
+          "cancel": "Cancel",
+          "create": "Offer"
+        },
+        "archive_modal": {
+          "title": "Archive offering?",
+          "description": "Archive this subject offering?",
+          "cancel": "Cancel",
+          "confirm": "Archive"
+        },
+        "assign": {
+          "button": "Assign teacher",
+          "unassign": "Unassign",
+          "title": "Assign teacher",
+          "at_capacity": "At capacity ({count}/{cap})",
+          "override_label": "Override capacity limit (logged)",
+          "override_confirm": "This override is audit-logged. Assign anyway?",
+          "cancel": "Cancel",
+          "confirm": "Assign",
+          "capacity_error": "Teacher is at capacity.",
+          "generic_error": "Assignment failed."
+        }
       }
     },
     "sessions": {

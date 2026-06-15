@@ -11,6 +11,7 @@ from app.features.grades.models import Grade, GradeStatus
 from app.features.grades.repository import GradeRepository
 from app.features.grades.schemas import GradeCreate, GradeUpdate
 from app.features.grades.scope import assert_grade_in_scope, derive_level_ordinal
+from app.features.offerings.repository import OfferingRepository
 from app.features.sections.repository import SectionRepository
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
@@ -32,6 +33,7 @@ class GradeService:
         self._user_repo = UserRepository(session)
         self._session_repo = AcademicSessionRepository(session)
         self._section_repo = SectionRepository(session)
+        self._offering_repo = OfferingRepository(session)
 
     async def _load_actor(self, claims: dict[str, object]):
         actor_id = str(claims.get("sub", ""))
@@ -145,6 +147,7 @@ class GradeService:
         grade = await self.get_grade(id, claims)
         grade.status = GradeStatus.ARCHIVED
         await self._section_repo.archive_all_for_grade(grade.id)
+        await self._offering_repo.archive_all_for_grade(grade.id)
         updated = await self._repo.update(grade)
         await audit(
             session=self._session,

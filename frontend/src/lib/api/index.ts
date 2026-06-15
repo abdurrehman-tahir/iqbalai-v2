@@ -25,6 +25,10 @@ import type {
   GradeUpdate,
   SectionCreate,
   SectionRead,
+  OfferingCreate,
+  OfferingRead,
+  OfferingAssign,
+  EligibleTeacherRead,
   SubscriptionTierCreate,
   SubscriptionTierRead,
   SubscriptionTierUpdate,
@@ -682,4 +686,33 @@ export const sectionsApi = {
     ),
   archive: (token: string, gradeId: string, sectionId: string) =>
     request<SectionRead>(`/grades/${gradeId}/sections/${sectionId}/archive`, { method: "POST" }, token),
+};
+
+// ── Offerings (Coordinator) — T-045/T-046 ───────────────────────────────────────
+
+export const offeringsApi = {
+  list: (token: string, gradeId: string) =>
+    request<OfferingRead[]>(`/grades/${gradeId}/offerings/`, {}, token),
+  create: (token: string, gradeId: string, data: OfferingCreate) =>
+    request<OfferingRead>(
+      `/grades/${gradeId}/offerings/`,
+      { method: "POST", body: JSON.stringify(data), headers: { "Idempotency-Key": crypto.randomUUID() } },
+      token
+    ),
+  archive: (token: string, gradeId: string, offeringId: string) =>
+    request<OfferingRead>(`/grades/${gradeId}/offerings/${offeringId}/archive`, { method: "POST" }, token),
+  eligibleTeachers: (token: string, gradeId: string) =>
+    request<EligibleTeacherRead[]>(`/grades/${gradeId}/offerings/eligible-teachers`, {}, token),
+  assign: (token: string, gradeId: string, offeringId: string, data: OfferingAssign, ifMatch: string) =>
+    request<OfferingRead>(
+      `/grades/${gradeId}/offerings/${offeringId}/assign`,
+      { method: "POST", body: JSON.stringify(data), headers: { "If-Match": ifMatch } },
+      token
+    ),
+  unassign: (token: string, gradeId: string, offeringId: string, ifMatch: string) =>
+    request<OfferingRead>(
+      `/grades/${gradeId}/offerings/${offeringId}/unassign`,
+      { method: "POST", headers: { "If-Match": ifMatch } },
+      token
+    ),
 };

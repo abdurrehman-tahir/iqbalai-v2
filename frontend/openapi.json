@@ -570,6 +570,44 @@
         "title": "DistrictUpdate",
         "type": "object"
       },
+      "EligibleTeacherRead": {
+        "properties": {
+          "assignment_count": {
+            "title": "Assignment Count",
+            "type": "integer"
+          },
+          "at_capacity": {
+            "title": "At Capacity",
+            "type": "boolean"
+          },
+          "capacity": {
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "email",
+          "assignment_count",
+          "capacity",
+          "at_capacity"
+        ],
+        "title": "EligibleTeacherRead",
+        "type": "object"
+      },
       "ExamSyllabusCreate": {
         "description": "Payload for creating a new ExamSyllabus.",
         "properties": {
@@ -1167,6 +1205,110 @@
         ],
         "title": "NotificationRead",
         "type": "object"
+      },
+      "OfferingAssign": {
+        "properties": {
+          "override": {
+            "default": false,
+            "title": "Override",
+            "type": "boolean"
+          },
+          "teacher_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Teacher Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "teacher_id"
+        ],
+        "title": "OfferingAssign",
+        "type": "object"
+      },
+      "OfferingCreate": {
+        "properties": {
+          "subject_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id"
+        ],
+        "title": "OfferingCreate",
+        "type": "object"
+      },
+      "OfferingRead": {
+        "properties": {
+          "academic_session": {
+            "title": "Academic Session",
+            "type": "string"
+          },
+          "assigned_teacher_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Teacher Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "grade_id": {
+            "title": "Grade Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OfferingStatus"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "grade_id",
+          "subject_id",
+          "assigned_teacher_id",
+          "academic_session",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "OfferingRead",
+        "type": "object"
+      },
+      "OfferingStatus": {
+        "enum": [
+          "active",
+          "archived"
+        ],
+        "title": "OfferingStatus",
+        "type": "string"
       },
       "PaginatedEnvelope_AuditLogEntryRead_": {
         "properties": {
@@ -1887,6 +2029,23 @@
         "title": "SuccessEnvelope[GradeRead]",
         "type": "object"
       },
+      "SuccessEnvelope_OfferingRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OfferingRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[OfferingRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_PersonaRead_": {
         "properties": {
           "data": {
@@ -2099,6 +2258,27 @@
         "title": "SuccessEnvelope[list[DisclaimerVersionRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_EligibleTeacherRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EligibleTeacherRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[EligibleTeacherRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_ExamSyllabusRead__": {
         "properties": {
           "data": {
@@ -2139,6 +2319,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[GradeRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_OfferingRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OfferingRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[OfferingRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_PersonaRead__": {
@@ -4954,6 +5155,335 @@
         "summary": "Archive a grade",
         "tags": [
           "grades"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/": {
+      "get": {
+        "operationId": "offerings_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_OfferingRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List subject offerings for a grade",
+        "tags": [
+          "offerings"
+        ]
+      },
+      "post": {
+        "operationId": "offerings_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferingCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_OfferingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Offer a subject to a grade",
+        "tags": [
+          "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/eligible-teachers": {
+      "get": {
+        "operationId": "offerings_eligible_teachers",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_EligibleTeacherRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List teachers eligible for assignment with capacity info",
+        "tags": [
+          "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/{offering_id}/archive": {
+      "post": {
+        "operationId": "offerings_archive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "offering_id",
+            "required": true,
+            "schema": {
+              "title": "Offering Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_OfferingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive a grade subject offering",
+        "tags": [
+          "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/{offering_id}/assign": {
+      "post": {
+        "operationId": "offerings_assign_teacher",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "offering_id",
+            "required": true,
+            "schema": {
+              "title": "Offering Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferingAssign"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_OfferingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assign a teacher to an offering",
+        "tags": [
+          "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/{offering_id}/unassign": {
+      "post": {
+        "operationId": "offerings_unassign_teacher",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "offering_id",
+            "required": true,
+            "schema": {
+              "title": "Offering Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_OfferingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unassign the teacher from an offering",
+        "tags": [
+          "offerings"
         ]
       }
     },

@@ -13,7 +13,8 @@ from __future__ import annotations
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ConflictError, NotFoundError, PermissionDeniedError
+from app.core.exceptions import ConflictError, NotFoundError, PermissionDeniedError, PreconditionFailedError
+from app.features.offerings.repository import OfferingRepository
 from app.features.subjects.models import Subject, SubjectStatus
 from app.features.subjects.repository import SubjectRepository
 from app.features.subjects.schemas import SubjectCreate, SubjectUpdate
@@ -39,6 +40,7 @@ class SubjectService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
         self._repo = SubjectRepository(session)
+        self._offering_repo = OfferingRepository(session)
 
     async def list_subjects(
         self, claims: dict[str, object], include_archived: bool = False
@@ -117,14 +119,14 @@ class SubjectService:
         return updated
 
     async def archive_subject(self, id: str, claims: dict[str, object], actor_id: str) -> Subject:
-        """Archive a subject (status -> archived); idempotent if already archived.
-
-        Deferred (T-044): once GradeSubjectOfferings exist, archiving must be blocked
-        while the subject has active offerings (flow-2 §3.2). T-041 has no offerings
-        table yet, so archive is always permitted here — the enforcement lands with
-        the offering model in T-044.
-        """
+        """Archive a subject (status -> archived); blocked while active offerings exist."""
         subject = await self.get_subject(id, claims)
+        active_offerings = await self._offering_repo.count_active_by_subject(subject.id)
+        if active_offerings > 0:
+            raise PreconditionFailedError(
+                f"Cannot archive subject '{subject.name}' while {active_offerings} active "
+                "grade offering(s) exist — archive those offerings first"
+            )
         subject.status = SubjectStatus.ARCHIVED
         updated = await self._repo.update(subject)
         await audit(

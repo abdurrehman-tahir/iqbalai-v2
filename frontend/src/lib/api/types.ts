@@ -27,6 +27,11 @@ export type GradeStatus = Schemas["GradeStatus"];
 export type SectionCreate = Schemas["SectionCreate"];
 export type SectionRead = Schemas["SectionRead"];
 export type SectionStatus = Schemas["SectionStatus"];
+export type OfferingCreate = Schemas["OfferingCreate"];
+export type OfferingRead = Schemas["OfferingRead"];
+export type OfferingAssign = Schemas["OfferingAssign"];
+export type OfferingStatus = Schemas["OfferingStatus"];
+export type EligibleTeacherRead = Schemas["EligibleTeacherRead"];
 export type TosVersionCreate = Schemas["TosVersionCreate"];
 export type TosAcceptRequest = Schemas["TosAcceptRequest"];
 
