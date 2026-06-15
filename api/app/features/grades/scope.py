@@ -6,7 +6,15 @@ import re
 
 from app.core.dependencies import ROLE_HIERARCHY
 from app.core.exceptions import PermissionDeniedError, ValidationError
+from app.features.grades.cross_grade import assert_cross_grade_access
 from app.features.users.models import User
+
+__all__ = [
+    "assert_cross_grade_access",
+    "assert_grade_in_scope",
+    "derive_level_ordinal",
+    "parse_grade_scope",
+]
 
 
 def parse_grade_scope(scoped_ids: str | None) -> set[str]:
