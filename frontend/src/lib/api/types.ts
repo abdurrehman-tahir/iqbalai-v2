@@ -17,6 +17,13 @@ export type SubscriptionTierCreate = Schemas["SubscriptionTierCreate"];
 export type SubscriptionTierUpdate = Schemas["SubscriptionTierUpdate"];
 export type TosVersionCreate = Schemas["TosVersionCreate"];
 export type TosAcceptRequest = Schemas["TosAcceptRequest"];
+export type DistrictCreate = Schemas["DistrictCreate"];
+export type DistrictUpdate = Schemas["DistrictUpdate"];
+export type SchoolCreate = Schemas["SchoolCreate"];
+export type SchoolUpdate = Schemas["SchoolUpdate"];
+export type AdminUserInviteCreate = Schemas["AdminUserInviteCreate"];
+export type AcceptInviteRequest = Schemas["AcceptInviteRequest"];
+export type DisclaimerVersionCreate = Schemas["DisclaimerVersionCreate"];
 
 // ── Read / response types (SuccessEnvelope `data` shapes) ─────────────────────
 export type PersonaRead = Schemas["PersonaRead"];
