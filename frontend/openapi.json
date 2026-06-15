@@ -783,6 +783,103 @@
         "title": "ExamSyllabusUpdate",
         "type": "object"
       },
+      "GradeCreate": {
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "GradeCreate",
+        "type": "object"
+      },
+      "GradeRead": {
+        "properties": {
+          "academic_session": {
+            "title": "Academic Session",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "level_ordinal": {
+            "title": "Level Ordinal",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "promoted_from_grade_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Promoted From Grade Id"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GradeStatus"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "name",
+          "academic_session",
+          "level_ordinal",
+          "promoted_from_grade_id",
+          "status",
+          "created_at"
+        ],
+        "title": "GradeRead",
+        "type": "object"
+      },
+      "GradeStatus": {
+        "enum": [
+          "active",
+          "archived"
+        ],
+        "title": "GradeStatus",
+        "type": "string"
+      },
+      "GradeUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "GradeUpdate",
+        "type": "object"
+      },
       "HTTPValidationError": {
         "properties": {
           "detail": {
@@ -1712,6 +1809,23 @@
         "title": "SuccessEnvelope[ExamSyllabusRead]",
         "type": "object"
       },
+      "SuccessEnvelope_GradeRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GradeRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[GradeRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_PersonaRead_": {
         "properties": {
           "data": {
@@ -1926,6 +2040,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[ExamSyllabusRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_GradeRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/GradeRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[GradeRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_PersonaRead__": {
@@ -4504,6 +4639,222 @@
         "summary": "Get current Disclaimer version",
         "tags": [
           "tos"
+        ]
+      }
+    },
+    "/api/v1/grades/": {
+      "get": {
+        "operationId": "grades_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Archived",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_GradeRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List grades for the active academic session",
+        "tags": [
+          "grades"
+        ]
+      },
+      "post": {
+        "operationId": "grades_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a grade pinned to the active academic session",
+        "tags": [
+          "grades"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}": {
+      "get": {
+        "operationId": "grades_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single grade",
+        "tags": [
+          "grades"
+        ]
+      },
+      "put": {
+        "operationId": "grades_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit a grade name",
+        "tags": [
+          "grades"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/archive": {
+      "post": {
+        "operationId": "grades_archive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive a grade",
+        "tags": [
+          "grades"
         ]
       }
     },

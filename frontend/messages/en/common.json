@@ -245,6 +245,7 @@
       "aria_label": "Coordinator navigation",
       "dashboard": "Dashboard",
       "subjects": "Subjects",
+      "grades": "Grades",
       "bulk_import": "Bulk Import"
     },
     "dashboard": {
@@ -301,6 +302,50 @@
       },
       "archive_modal": {
         "title": "Archive subject?",
+        "description": "Archive \"{name}\"? It will be hidden from the default list but kept for records.",
+        "cancel": "Cancel",
+        "confirm": "Archive"
+      }
+    },
+    "grades": {
+      "title": "Grades",
+      "subtitle": "Manage grades for the active academic session — add or archive.",
+      "add_button": "Add grade",
+      "show_archived": "Show archived",
+      "error": "Failed to load grades",
+      "retry": "Retry",
+      "table_label": "Grades table",
+      "empty": {
+        "title": "No grades yet",
+        "description": "Add your first grade for the active session.",
+        "cta": "Add grade"
+      },
+      "col": {
+        "name": "Name",
+        "session": "Session",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "archived": "Archived"
+      },
+      "actions": {
+        "archive": "Archive {name}"
+      },
+      "modal": {
+        "create_title": "Add grade",
+        "cancel": "Cancel",
+        "create": "Create",
+        "name_label": "Grade name",
+        "name_placeholder": "e.g. Grade 9",
+        "duplicate_error": "A grade with this name already exists for this session.",
+        "scope_error": "This grade is outside your assigned scope.",
+        "generic_error": "Something went wrong. Please try again."
+      },
+      "archive_modal": {
+        "title": "Archive grade?",
         "description": "Archive \"{name}\"? It will be hidden from the default list but kept for records.",
         "cancel": "Cancel",
         "confirm": "Archive"

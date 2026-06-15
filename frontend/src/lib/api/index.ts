@@ -20,6 +20,9 @@ import type {
   AcademicSessionCreate,
   AcademicSessionRead,
   ActiveSessionRead,
+  GradeCreate,
+  GradeRead,
+  GradeUpdate,
   SubscriptionTierCreate,
   SubscriptionTierRead,
   SubscriptionTierUpdate,
@@ -40,6 +43,9 @@ export type {
   SubjectCreate,
   SubjectUpdate,
   SubjectStatus,
+  GradeRead as Grade,
+  GradeCreate,
+  GradeStatus,
   LibraryBookRead as LibraryBook,
   TosVersion,
 } from "./types";
@@ -635,4 +641,27 @@ export const academicSessionsApi = {
     ),
   activate: (token: string, id: string) =>
     request<AcademicSessionRead>(`/academic-sessions/${id}/activate`, { method: "POST" }, token),
+};
+
+// ── Grades (Coordinator) — T-043 ────────────────────────────────────────────────
+
+export const gradesApi = {
+  list: (token: string, includeArchived = false) =>
+    request<GradeRead[]>(
+      includeArchived ? "/grades/?include_archived=true" : "/grades/",
+      {},
+      token
+    ),
+  create: (token: string, data: GradeCreate) =>
+    request<GradeRead>(
+      "/grades/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  archive: (token: string, id: string) =>
+    request<GradeRead>(`/grades/${id}/archive`, { method: "POST" }, token),
 };

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, LayoutDashboard, LogOut, Upload } from "lucide-react";
+import { BookOpen, GraduationCap, LayoutDashboard, LogOut, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
@@ -17,6 +17,7 @@ import { AcademicSessionHeader } from "./AcademicSessionHeader";
 const NAV = [
   { key: "dashboard", href: "/coordinator", icon: LayoutDashboard },
   { key: "subjects", href: "/coordinator/subjects", icon: BookOpen },
+  { key: "grades", href: "/coordinator/grades", icon: GraduationCap },
   { key: "bulk_import", href: "/coordinator/bulk-import", icon: Upload },
 ] as const;
 

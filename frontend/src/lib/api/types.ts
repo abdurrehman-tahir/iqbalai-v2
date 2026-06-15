@@ -20,6 +20,10 @@ export type SubjectUpdate = Schemas["SubjectUpdate"];
 export type AcademicSessionCreate = Schemas["AcademicSessionCreate"];
 export type AcademicSessionRead = Schemas["AcademicSessionRead"];
 export type ActiveSessionRead = Schemas["ActiveSessionRead"];
+export type GradeCreate = Schemas["GradeCreate"];
+export type GradeRead = Schemas["GradeRead"];
+export type GradeUpdate = Schemas["GradeUpdate"];
+export type GradeStatus = Schemas["GradeStatus"];
 export type TosVersionCreate = Schemas["TosVersionCreate"];
 export type TosAcceptRequest = Schemas["TosAcceptRequest"];
 
