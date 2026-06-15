@@ -459,7 +459,7 @@ jobs:
       - name: Contract test (mocks + client request types vs schema.d.ts)
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
-        run: pnpm test --run src/lib/api/__tests__/fe-be-contract.test.ts
+        run: pnpm test src/lib/api/__tests__/fe-be-contract.test.ts
 
 # ── Add to the SAME ci.yml a scheduled trigger for the full E2E suite (nightly) ──
 # on:
