@@ -306,6 +306,22 @@
         "confirm": "Archive"
       }
     },
+    "sessions": {
+      "active_label": "Session: {label}",
+      "no_active": "No active session",
+      "manage_button": "Manage sessions",
+      "manage_title": "Academic sessions",
+      "list_label": "School sessions",
+      "active_badge": "active",
+      "set_active": "Set active",
+      "label_field": "Session label",
+      "label_placeholder": "e.g. 2025-2026",
+      "label_required": "Session label is required",
+      "create_and_activate": "Create & activate",
+      "cancel": "Cancel",
+      "duplicate_error": "A session with this label already exists.",
+      "generic_error": "Something went wrong. Please try again."
+    },
     "bulk_import": {
       "title": "Bulk Import",
       "subtitle": "Upload a CSV or XLSX roster to validate student rows before enrollment (M-06).",

@@ -4,6 +4,58 @@
  */
 
 export interface paths {
+    "/api/v1/academic-sessions/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List academic sessions in the caller's school */
+        get: operations["academic_sessions_list"];
+        put?: never;
+        /** Create a new academic session */
+        post: operations["academic_sessions_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/academic-sessions/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the school's active academic session */
+        get: operations["academic_sessions_get_active"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/academic-sessions/{session_id}/activate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark an academic session as active (deactivates prior) */
+        post: operations["academic_sessions_activate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/audit-log/": {
         parameters: {
             query?: never;
@@ -894,6 +946,47 @@ export interface paths {
 export type webhooks = Record<string, never>;
 export interface components {
     schemas: {
+        /**
+         * AcademicSessionCreate
+         * @description Payload for creating a new Academic Session.
+         */
+        AcademicSessionCreate: {
+            /** End Date */
+            end_date?: string | null;
+            /** Label */
+            label: string;
+            /**
+             * Set Active
+             * @description If true, mark this session active (deactivates any prior active session)
+             * @default false
+             */
+            set_active: boolean;
+            /** Start Date */
+            start_date?: string | null;
+        };
+        /**
+         * AcademicSessionRead
+         * @description Response schema for a single Academic Session.
+         */
+        AcademicSessionRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** End Date */
+            end_date: string | null;
+            /** Id */
+            id: string;
+            /** Is Active */
+            is_active: boolean;
+            /** Label */
+            label: string;
+            /** School Id */
+            school_id: string;
+            /** Start Date */
+            start_date: string | null;
+        };
         /** AcceptInviteRequest */
         AcceptInviteRequest: {
             /**
@@ -907,6 +1000,15 @@ export interface components {
             password?: string | null;
             /** Token */
             token: string;
+        };
+        /**
+         * ActiveSessionRead
+         * @description The school's currently active academic session label (may be null).
+         */
+        ActiveSessionRead: {
+            /** Label */
+            label: string | null;
+            session: components["schemas"]["AcademicSessionRead"] | null;
         };
         /**
          * AdminUserInviteCreate
@@ -1440,6 +1542,24 @@ export interface components {
             /** Pricing Monthly Pkr */
             pricing_monthly_pkr?: number | null;
         };
+        /** SuccessEnvelope[AcademicSessionRead] */
+        SuccessEnvelope_AcademicSessionRead_: {
+            data: components["schemas"]["AcademicSessionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[ActiveSessionRead] */
+        SuccessEnvelope_ActiveSessionRead_: {
+            data: components["schemas"]["ActiveSessionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[DeletedResponse] */
         SuccessEnvelope_DeletedResponse_: {
             data: components["schemas"]["DeletedResponse"];
@@ -1542,6 +1662,16 @@ export interface components {
         /** SuccessEnvelope[UserRead] */
         SuccessEnvelope_UserRead_: {
             data: components["schemas"]["UserRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[AcademicSessionRead]] */
+        SuccessEnvelope_list_AcademicSessionRead__: {
+            /** Data */
+            data: components["schemas"]["AcademicSessionRead"][];
             /**
              * Message
              * @default ok
@@ -1837,6 +1967,110 @@ export interface components {
 }
 export type $defs = Record<string, never>;
 export interface operations {
+    academic_sessions_list: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_AcademicSessionRead__"];
+                };
+            };
+        };
+    };
+    academic_sessions_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["AcademicSessionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_AcademicSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    academic_sessions_get_active: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ActiveSessionRead_"];
+                };
+            };
+        };
+    };
+    academic_sessions_activate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_AcademicSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_audit_log: {
         parameters: {
             query?: {

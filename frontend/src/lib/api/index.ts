@@ -17,6 +17,9 @@ import type {
   SubjectCreate,
   SubjectRead,
   SubjectUpdate,
+  AcademicSessionCreate,
+  AcademicSessionRead,
+  ActiveSessionRead,
   SubscriptionTierCreate,
   SubscriptionTierRead,
   SubscriptionTierUpdate,
@@ -612,4 +615,24 @@ export const subjectsApi = {
     request<SubjectRead>(`/subjects/${id}`, { method: "PUT", body: JSON.stringify(data) }, token),
   archive: (token: string, id: string) =>
     request<SubjectRead>(`/subjects/${id}/archive`, { method: "POST" }, token),
+};
+
+// ── Academic Sessions (Coordinator) — T-042 ─────────────────────────────────────
+
+export const academicSessionsApi = {
+  list: (token: string) => request<AcademicSessionRead[]>("/academic-sessions/", {}, token),
+  getActive: (token: string) =>
+    request<ActiveSessionRead>("/academic-sessions/active", {}, token),
+  create: (token: string, data: AcademicSessionCreate) =>
+    request<AcademicSessionRead>(
+      "/academic-sessions/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  activate: (token: string, id: string) =>
+    request<AcademicSessionRead>(`/academic-sessions/${id}/activate`, { method: "POST" }, token),
 };

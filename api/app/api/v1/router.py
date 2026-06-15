@@ -19,6 +19,7 @@ from app.features.schools.router import router as districts_router
 from app.features.schools.school_admin_router import router as school_admin_router
 from app.features.schools.school_router import router as schools_router
 from app.features.smoketest.router import router as smoketest_router
+from app.features.academic_sessions.router import router as academic_sessions_router
 from app.features.subjects.router import router as subjects_router
 from app.features.subscriptions.router import router as subscriptions_router
 from app.features.tos.router import router as tos_router
@@ -41,6 +42,7 @@ router.include_router(school_admin_router)
 router.include_router(invites_router)
 router.include_router(bulk_imports_router)
 router.include_router(personas_router)
+router.include_router(academic_sessions_router)
 router.include_router(subjects_router)
 router.include_router(subscriptions_router)
 router.include_router(library_router)

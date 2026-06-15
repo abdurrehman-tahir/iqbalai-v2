@@ -17,6 +17,9 @@ export type SubscriptionTierCreate = Schemas["SubscriptionTierCreate"];
 export type SubscriptionTierUpdate = Schemas["SubscriptionTierUpdate"];
 export type SubjectCreate = Schemas["SubjectCreate"];
 export type SubjectUpdate = Schemas["SubjectUpdate"];
+export type AcademicSessionCreate = Schemas["AcademicSessionCreate"];
+export type AcademicSessionRead = Schemas["AcademicSessionRead"];
+export type ActiveSessionRead = Schemas["ActiveSessionRead"];
 export type TosVersionCreate = Schemas["TosVersionCreate"];
 export type TosAcceptRequest = Schemas["TosAcceptRequest"];
 

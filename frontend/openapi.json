@@ -1,6 +1,113 @@
 {
   "components": {
     "schemas": {
+      "AcademicSessionCreate": {
+        "description": "Payload for creating a new Academic Session.",
+        "properties": {
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "label": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "set_active": {
+            "default": false,
+            "description": "If true, mark this session active (deactivates any prior active session)",
+            "title": "Set Active",
+            "type": "boolean"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "AcademicSessionCreate",
+        "type": "object"
+      },
+      "AcademicSessionRead": {
+        "description": "Response schema for a single Academic Session.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "label",
+          "is_active",
+          "start_date",
+          "end_date",
+          "created_at"
+        ],
+        "title": "AcademicSessionRead",
+        "type": "object"
+      },
       "AcceptInviteRequest": {
         "properties": {
           "action": {
@@ -48,6 +155,38 @@
           "action"
         ],
         "title": "AcceptInviteRequest",
+        "type": "object"
+      },
+      "ActiveSessionRead": {
+        "description": "The school's currently active academic session label (may be null).",
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AcademicSessionRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "label",
+          "session"
+        ],
+        "title": "ActiveSessionRead",
         "type": "object"
       },
       "AdminUserInviteCreate": {
@@ -1488,6 +1627,40 @@
         "title": "SubscriptionTierUpdate",
         "type": "object"
       },
+      "SuccessEnvelope_AcademicSessionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AcademicSessionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[AcademicSessionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_ActiveSessionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ActiveSessionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ActiveSessionRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DeletedResponse_": {
         "properties": {
           "data": {
@@ -1690,6 +1863,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[UserRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_AcademicSessionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AcademicSessionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[AcademicSessionRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_DisclaimerVersionRead__": {
@@ -2279,6 +2473,129 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/academic-sessions/": {
+      "get": {
+        "operationId": "academic_sessions_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_AcademicSessionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List academic sessions in the caller's school",
+        "tags": [
+          "academic-sessions"
+        ]
+      },
+      "post": {
+        "operationId": "academic_sessions_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcademicSessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_AcademicSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a new academic session",
+        "tags": [
+          "academic-sessions"
+        ]
+      }
+    },
+    "/api/v1/academic-sessions/active": {
+      "get": {
+        "operationId": "academic_sessions_get_active",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ActiveSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get the school's active academic session",
+        "tags": [
+          "academic-sessions"
+        ]
+      }
+    },
+    "/api/v1/academic-sessions/{session_id}/activate": {
+      "post": {
+        "operationId": "academic_sessions_activate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_AcademicSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark an academic session as active (deactivates prior)",
+        "tags": [
+          "academic-sessions"
+        ]
+      }
+    },
     "/api/v1/admin/audit-log/": {
       "get": {
         "description": "Returns audit entries newest-first. Filter by school_id to scope results to a specific school. Leave school_id unset to see platform-wide entries.",
