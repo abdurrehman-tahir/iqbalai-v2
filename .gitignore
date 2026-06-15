@@ -155,3 +155,10 @@ secrets/
 # ---------- Generated ----------
 *.generated.*
 celerybeat-schedule
+
+# Playwright generated output (reports, traces, failure videos/screenshots)
+frontend/test-results/
+frontend/playwright-report/
+
+# Local developer issue log (not for VCS)
+issue.txt

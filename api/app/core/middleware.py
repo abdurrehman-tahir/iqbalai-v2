@@ -10,6 +10,10 @@ from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
 from app.core.security import decode_jwt
+from app.db.session import async_session_factory
+from app.features.users.models import User, UserAccountStatus
+from app.features.users.repository import UserRepository
+from app.features.users.service import _ROLE_LOGIN_PRIORITY
 
 logger = structlog.get_logger(__name__)
 
@@ -25,9 +29,72 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/openapi.json",
         "/api/v1/auth/callback",
         "/api/v1/auth/login",
+        "/api/v1/auth/accept-invite",
         "/metrics",
     }
 )
+
+
+def _enrich_claims_from_user(claims: dict[str, object], user: User) -> dict[str, object]:
+    """Override JWT role/scope with the app database — Authentik tokens lack app roles."""
+    enriched = dict(claims)
+    enriched["role"] = user.role.value
+    enriched["user_id"] = user.id
+    if user.district_id:
+        enriched["district_id"] = user.district_id
+    if user.school_id:
+        enriched["school_id"] = user.school_id
+    return enriched
+
+
+async def _resolve_active_user(claims: dict[str, object]) -> User | None:
+    """Look up the active app user for JWT sub (fallback: email for invite ID mismatch)."""
+    authentik_id = str(claims.get("sub", ""))
+    if not authentik_id:
+        return None
+
+    async with async_session_factory() as session:
+        repo = UserRepository(session)
+        user = await repo.get_by_authentik_id(authentik_id)
+        if user is not None:
+            return user
+
+        email = str(claims.get("email", "")).strip().lower()
+        if not email:
+            return None
+
+        matches = await repo.list_by_email(email)
+        if not matches:
+            return None
+
+        return max(matches, key=lambda row: _ROLE_LOGIN_PRIORITY.get(row.role, 0))
+
+
+def _account_status_block(user: User) -> JSONResponse | None:
+    """Return a 403 response when the user account is not active."""
+    if user.deleted_at is not None or user.status == UserAccountStatus.DEACTIVATED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": {
+                    "code": "ACCOUNT_DEACTIVATED",
+                    "message": "Account deactivated — contact your administrator",
+                }
+            },
+        )
+
+    if user.status == UserAccountStatus.SUSPENDED:
+        return JSONResponse(
+            status_code=403,
+            content={
+                "error": {
+                    "code": "ACCOUNT_SUSPENDED",
+                    "message": "Account suspended — contact your administrator",
+                }
+            },
+        )
+
+    return None
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -71,6 +138,13 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     }
                 },
             )
+
+        user = await _resolve_active_user(claims)
+        if user is not None:
+            blocked = _account_status_block(user)
+            if blocked is not None:
+                return blocked
+            claims = _enrich_claims_from_user(claims, user)
 
         request.state.claims = claims
         return await call_next(request)

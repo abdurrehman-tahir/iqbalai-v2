@@ -3,10 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { authApi, tosApi } from "@/lib/api";
-import { setToken, setUser } from "@/lib/auth";
+import { authApi, tosApi, ApiError } from "@/lib/api";
+import { setToken, setUser, getPostLoginPath } from "@/lib/auth";
 import { TosModal } from "./TosModal";
-import { SuspendedPage } from "./SuspendedPage";
 
 type Phase = "loading" | "tos" | "suspended" | "error";
 
@@ -54,30 +53,24 @@ export function OidcCallbackClient() {
 
   async function exchangeCode(code: string) {
     try {
-      const authentikBase =
-        process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
-      const clientId =
-        process.env.NEXT_PUBLIC_AUTHENTIK_CLIENT_ID ?? "iqbalai-frontend";
+      const authentikBase = process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
+      const clientId = process.env.NEXT_PUBLIC_AUTHENTIK_CLIENT_ID ?? "iqbalai-frontend";
       const redirectUri =
-        (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") +
-        "/auth/callback";
+        (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") + "/auth/callback";
 
-      const res = await fetch(
-        `${authentikBase}/application/o/token/`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/x-www-form-urlencoded" },
-          body: new URLSearchParams({
-            grant_type: "authorization_code",
-            code,
-            client_id: clientId,
-            redirect_uri: redirectUri,
-          }),
-        },
-      );
+      const res = await fetch(`${authentikBase}/application/o/token/`, {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: new URLSearchParams({
+          grant_type: "authorization_code",
+          code,
+          client_id: clientId,
+          redirect_uri: redirectUri,
+        }),
+      });
 
       if (!res.ok) throw new Error("Token exchange failed");
-      const tokenData = await res.json() as { access_token: string };
+      const tokenData = (await res.json()) as { access_token: string };
       const token = tokenData.access_token;
 
       setToken(token);
@@ -89,14 +82,13 @@ export function OidcCallbackClient() {
         user_id: user.user_id,
         email: user.email,
         role: user.role,
+        district_id: user.district_id,
+        school_id: user.school_id,
         tos_acceptance_required: user.tos_acceptance_required,
         current_tos_version_id: user.current_tos_version_id,
       });
 
-      if (
-        user.account_status === "suspended" &&
-        !user.tos_acceptance_required
-      ) {
+      if (user.account_status === "suspended" && !user.tos_acceptance_required) {
         setPhase("suspended");
         return;
       }
@@ -111,10 +103,15 @@ export function OidcCallbackClient() {
         });
         setPhase("tos");
       } else {
-        router.replace("/admin");
+        router.replace(getPostLoginPath(user.role));
       }
     } catch (err) {
       console.error("OIDC callback error:", err);
+      if (err instanceof ApiError && err.code === "ACCOUNT_SUSPENDED") {
+        setErrorMsg(t("error.account_suspended"));
+        setPhase("suspended");
+        return;
+      }
       setErrorMsg(t("error.generic"));
       setPhase("error");
     }
@@ -124,7 +121,10 @@ export function OidcCallbackClient() {
     if (!pendingToken || !tosData) return;
     try {
       await tosApi.acceptTos(pendingToken, tosData.id);
-      router.replace("/admin");
+      const stored = JSON.parse(sessionStorage.getItem("iqbalai_user") ?? "{}") as {
+        role?: string;
+      };
+      router.replace(getPostLoginPath(stored.role ?? "platform_admin"));
     } catch {
       setErrorMsg(t("error.tos_accept_failed"));
       setPhase("error");
@@ -157,15 +157,18 @@ export function OidcCallbackClient() {
     );
   }
 
-  if (phase === "suspended") {
-    return <SuspendedPage />;
-  }
-
-  if (phase === "error") {
+  if (phase === "error" || phase === "suspended") {
     return (
       <main className="flex min-h-screen items-center justify-center p-8">
         <div className="max-w-sm text-center space-y-4">
-          <p className="text-red-600 font-medium">{errorMsg}</p>
+          <h1 className={phase === "suspended" ? "text-lg font-semibold text-gray-900" : undefined}>
+            {phase === "suspended" ? t("suspended.title") : undefined}
+          </h1>
+          <p
+            className={phase === "suspended" ? "text-sm text-gray-600" : "text-red-600 font-medium"}
+          >
+            {errorMsg || (phase === "suspended" ? t("suspended.message") : "")}
+          </p>
           <a href="/login" className="text-sm text-brand-600 underline">
             {t("error.back_to_login")}
           </a>
@@ -177,11 +180,7 @@ export function OidcCallbackClient() {
   return (
     <main className="min-h-screen">
       {tosData && (
-        <TosModal
-          tos={tosData}
-          onAccept={handleTosAccept}
-          onDecline={handleTosDecline}
-        />
+        <TosModal tos={tosData} onAccept={handleTosAccept} onDecline={handleTosDecline} />
       )}
     </main>
   );

@@ -1,6 +1,6 @@
 # M-02 — School Onboarding: District + School + Role Hierarchy
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-028 through T-040
 **Spec source:** `flow-2-admin-coordinator-setup.md` v3
@@ -24,7 +24,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.1 (user creation cascades through hierarchy)
@@ -63,7 +63,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §4 (permissions matrix — Platform Admin creates District Admin/District)
@@ -99,7 +99,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.1 (Path A admin invitation flow)
@@ -142,7 +142,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §4 permissions matrix
@@ -176,7 +176,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.1 Path A continued
@@ -208,7 +208,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.5 (full lifecycle)
@@ -243,7 +243,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.1 (School Admin creates Coordinator)
@@ -276,7 +276,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.1 + §4 (School Admin creates Teacher)
@@ -312,7 +312,7 @@ Platform Admin creates the first District + School. Creates first District Admin
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §4 permissions matrix
@@ -340,7 +340,7 @@ Integration test suite: for each row × column in Flow 2 v3 §4 permissions matr
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.1 (bulk import by Coordinator)
@@ -361,9 +361,9 @@ Integration test suite: for each row × column in Flow 2 v3 §4 permissions matr
 
 ### Acceptance
 
-1. [ ] Coordinator uploads sample CSV (50 rows)
-2. [ ] Dry-run validates per row, shows errors
-3. [ ] No actual user creation yet (commit button shows "Coming in M-06")
+1. [x] Coordinator uploads sample CSV (50 rows)
+2. [x] Dry-run validates per row, shows errors
+3. [x] No actual user creation yet (commit button shows "Coming in M-06")
 
 ### Out of scope
 
@@ -376,7 +376,7 @@ Integration test suite: for each row × column in Flow 2 v3 §4 permissions matr
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §7 (notification table)
@@ -393,9 +393,9 @@ Wire notification publishers for: invite_sent, invite_expired, invite_accepted, 
 
 ### Acceptance
 
-1. [ ] All 7 template keys fire correctly
-2. [ ] Recipients receive in-app + email per Flow 2 §7
-3. [ ] All 4 languages
+1. [x] All 7 template keys fire correctly
+2. [x] Recipients receive in-app + email per Flow 2 §7
+3. [x] All 4 languages
 
 ---
 
@@ -404,7 +404,7 @@ Wire notification publishers for: invite_sent, invite_expired, invite_accepted, 
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §9 (audit log queryable — last 50)
@@ -418,8 +418,8 @@ School Admin dashboard "Audit Log" page: scoped to own school. Shows last 50 ent
 
 ### Acceptance
 
-1. [ ] School Admin sees own school's last 50 audit entries
-2. [ ] Cannot see other schools' audit logs
+1. [x] School Admin sees own school's last 50 audit entries
+2. [x] Cannot see other schools' audit logs
 
 ---
 
@@ -428,7 +428,7 @@ School Admin dashboard "Audit Log" page: scoped to own school. Shows last 50 ent
 **Layer:** 1
 **Milestone:** M-02
 **Estimate:** 0.5 days
-**Status:** todo
+**Status:** done
 
 PR with demo video showing District → School → Admin → Coordinator → Teacher flow.
 

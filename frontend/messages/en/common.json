@@ -32,9 +32,14 @@
         "auth_denied": "Login was denied or cancelled.",
         "no_code": "No authorisation code received.",
         "generic": "An error occurred during sign in. Please try again.",
+        "account_suspended": "Your account has been suspended. Contact your administrator.",
         "tos_accept_failed": "Failed to record your acceptance. Please try again.",
         "tos_decline_failed": "Failed to record your decline. Please try again.",
         "back_to_login": "Back to login"
+      },
+      "suspended": {
+        "title": "Account suspended",
+        "message": "Your account has been suspended. Contact your administrator to regain access."
       }
     },
     "suspended": {
@@ -50,6 +55,243 @@
       "empty_content": "Terms content is unavailable. Contact your administrator.",
       "accept": "I Accept",
       "decline": "Decline & Sign Out"
+    },
+    "accept_invite": {
+      "title": "Accept your invitation",
+      "subtitle": "Set a password to activate your administrator account.",
+      "name_label": "Display name (optional)",
+      "password_label": "Password",
+      "confirm_password_label": "Confirm password",
+      "accept": "Accept invitation",
+      "decline": "Decline",
+      "missing_token": "Invalid invitation link — no token provided.",
+      "success": "Your account is active. Sign in to continue.",
+      "success_sign_in_hint": "Use the email address that received this invitation and the password you just set.",
+      "go_login": "Sign in to your account",
+      "declined": "Invitation declined.",
+      "error_generic": "Could not process invitation. The link may be expired or invalid."
+    }
+  },
+  "district_admin": {
+    "badge": "District",
+    "role": "District Admin",
+    "logout": "Sign out",
+    "nav": {
+      "aria_label": "District admin navigation",
+      "open_menu": "Open menu",
+      "schools": "Schools",
+      "users": "Users"
+    },
+    "schools": {
+      "title": "Schools",
+      "subtitle": "Manage schools within your district.",
+      "platform_subtitle": "Select a district to view and manage its schools.",
+      "district_filter_label": "District",
+      "district_filter_placeholder": "Select a district…",
+      "error": "Failed to load schools",
+      "retry": "Retry",
+      "add_button": "Add school",
+      "table_label": "Schools table",
+      "empty": {
+        "title": "No schools yet",
+        "description": "Create the first school in this district.",
+        "cta": "Add first school"
+      },
+      "col": {
+        "name": "Name",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "actions": {
+        "delete": "Delete {name}",
+        "invite": "Invite admin for {name}"
+      },
+      "invite_modal": {
+        "title": "Invite School Admin — {name}",
+        "email_label": "Email",
+        "email_placeholder": "admin@school.example",
+        "name_label": "Display name",
+        "name_placeholder": "Full name",
+        "cancel": "Cancel",
+        "send": "Send invite",
+        "close": "Close",
+        "success": "Invitation sent to {email}. They have 7 days to accept.",
+        "done": "Done"
+      },
+      "modal": {
+        "create_title": "New school",
+        "district_label": "District",
+        "name_label": "Name",
+        "name_placeholder": "e.g. Sample School",
+        "cancel": "Cancel",
+        "create": "Create",
+        "close": "Close"
+      },
+      "delete_modal": {
+        "title": "Delete school?",
+        "description": "Are you sure you want to delete \"{name}\"?",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    }
+  },
+  "school_admin": {
+    "header_title": "School dashboard",
+    "logout": "Sign out",
+    "nav": {
+      "aria_label": "School admin navigation",
+      "dashboard": "Dashboard",
+      "users": "Users",
+      "coordinators": "Coordinators",
+      "teachers": "Teachers",
+      "audit_log": "Audit Log"
+    },
+    "dashboard": {
+      "title": "Welcome to your school",
+      "subtitle": "Your school dashboard is ready. User and coordinator management arrives in upcoming milestones."
+    },
+    "coordinators": {
+      "title": "Coordinators",
+      "subtitle": "Invite coordinators and assign their grade scope.",
+      "invite_button": "Invite coordinator",
+      "error": "Failed to load coordinators",
+      "retry": "Retry",
+      "table_label": "Coordinators table",
+      "empty": {
+        "title": "No coordinators yet",
+        "description": "Invite your first coordinator with a grade scope."
+      },
+      "col": {
+        "name": "Name",
+        "email": "Email",
+        "scope": "Grade scope",
+        "status": "Status"
+      },
+      "invite_modal": {
+        "title": "Invite Coordinator",
+        "email_label": "Email",
+        "name_label": "Display name",
+        "scope_label": "Grade scope",
+        "cancel": "Cancel",
+        "send": "Send invite",
+        "close": "Close",
+        "success": "Invitation sent to {email}. They have 7 days to accept.",
+        "done": "Done"
+      }
+    },
+    "teachers": {
+      "title": "Teachers",
+      "subtitle": "Invite teachers to your school.",
+      "invite_button": "Invite teacher",
+      "error": "Failed to load teachers",
+      "retry": "Retry",
+      "table_label": "Teachers table",
+      "empty": {
+        "title": "No teachers yet",
+        "description": "Invite your first teacher to get started."
+      },
+      "col": {
+        "name": "Name",
+        "email": "Email",
+        "status": "Status"
+      },
+      "invite_modal": {
+        "title": "Invite Teacher",
+        "email_label": "Email",
+        "name_label": "Display name",
+        "cancel": "Cancel",
+        "send": "Send invite",
+        "close": "Close",
+        "success": "Invitation sent to {email}. They have 7 days to accept.",
+        "done": "Done"
+      }
+    },
+    "audit_log": {
+      "title": "Audit Log",
+      "subtitle": "Recent actions in your school. Last 50 entries shown.",
+      "error": "Failed to load audit log",
+      "retry": "Retry",
+      "table_label": "School audit log entries",
+      "showing_last": "Showing {count} most recent entries",
+      "empty": {
+        "title": "No audit entries yet",
+        "description": "Actions in your school will appear here."
+      },
+      "col": {
+        "when": "When",
+        "action": "Action",
+        "actor": "Actor (ID)",
+        "target": "Target"
+      }
+    }
+  },
+  "teacher": {
+    "header_title": "Teacher dashboard",
+    "logout": "Sign out",
+    "nav": {
+      "aria_label": "Teacher navigation",
+      "dashboard": "Dashboard"
+    },
+    "dashboard": {
+      "title": "Welcome, Teacher",
+      "subtitle": "Your teacher dashboard is ready. Onboarding and lecture tools arrive in upcoming milestones."
+    }
+  },
+  "coordinator": {
+    "header_title": "Coordinator dashboard",
+    "scope_label": "Scope: {scope}",
+    "logout": "Sign out",
+    "nav": {
+      "aria_label": "Coordinator navigation",
+      "dashboard": "Dashboard",
+      "bulk_import": "Bulk Import"
+    },
+    "dashboard": {
+      "title": "Welcome, Coordinator",
+      "subtitle": "Your grade-scoped dashboard is ready. Subject and grade management arrives in upcoming milestones."
+    },
+    "bulk_import": {
+      "title": "Bulk Import",
+      "subtitle": "Upload a CSV or XLSX roster to validate student rows before enrollment (M-06).",
+      "file_label": "Student roster file",
+      "choose_file": "Choose file",
+      "file_hint": "Required columns: name, email, grade. Optional: section, language. Max 5 MB, 5,000 rows.",
+      "run_dry_run": "Run dry-run validation",
+      "validating": "Validating…",
+      "results_title": "Dry-run results",
+      "commit_disabled": "Coming in M-06",
+      "commit_disabled_hint": "Student creation is enabled in milestone M-06",
+      "summary": {
+        "total": "{count} rows",
+        "valid": "{count} valid",
+        "invalid": "{count} invalid"
+      },
+      "table": {
+        "row": "Row",
+        "name": "Name",
+        "email": "Email",
+        "grade": "Grade",
+        "status": "Status",
+        "errors": "Errors"
+      },
+      "status": {
+        "valid": "Valid",
+        "invalid": "Invalid"
+      },
+      "errors": {
+        "invalid_type": "Only CSV and XLSX files are supported.",
+        "too_large": "File must be {max} MB or smaller."
+      },
+      "error_codes": {
+        "missing_name": "Name is required",
+        "missing_email": "Email is required",
+        "invalid_email": "Invalid email format",
+        "duplicate_email_in_file": "Duplicate email in file",
+        "email_in_other_school": "Email belongs to another school",
+        "missing_grade": "Grade is required",
+        "grade_out_of_scope": "Grade outside your scope",
+        "invalid_language": "Unsupported language"
+      }
     }
   },
   "admin": {
@@ -61,6 +303,8 @@
       "aria_label": "Admin sidebar navigation",
       "open_menu": "Open navigation menu",
       "close_menu": "Close navigation menu",
+      "districts": "Districts",
+      "users": "Users",
       "languages": "Languages",
       "personas": "Teaching Personas",
       "exam_syllabi": "Exam Syllabi",
@@ -71,6 +315,62 @@
       "tos_tab_tos": "Terms of Service",
       "tos_tab_disclaimer": "Disclaimer"
     },
+    "users": {
+      "title": "Users",
+      "subtitle": "Manage user accounts in your scope — suspend, reactivate, or deactivate.",
+      "error": "Failed to load users",
+      "retry": "Retry",
+      "table_label": "Users table",
+      "empty": {
+        "title": "No users yet",
+        "description": "Users appear here after they accept an invitation or are created in your scope."
+      },
+      "col": {
+        "name": "Name",
+        "email": "Email",
+        "role": "Role",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "suspended": "Suspended",
+        "deactivated": "Deactivated"
+      },
+      "roles": {
+        "platform_admin": "Platform Admin",
+        "district_admin": "District Admin",
+        "school_admin": "School Admin",
+        "coordinator": "Coordinator",
+        "teacher": "Teacher",
+        "student": "Student",
+        "parent": "Parent"
+      },
+      "actions": {
+        "suspend": "Suspend",
+        "reactivate": "Reactivate",
+        "deactivate": "Deactivate"
+      },
+      "confirm": {
+        "cancel": "Cancel",
+        "suspend": {
+          "title": "Suspend user?",
+          "description": "Suspend \"{name}\"? They will be unable to sign in until reactivated.",
+          "confirm": "Suspend"
+        },
+        "reactivate": {
+          "title": "Reactivate user?",
+          "description": "Reactivate \"{name}\"? They will be able to sign in again.",
+          "confirm": "Reactivate"
+        },
+        "deactivate": {
+          "title": "Deactivate user?",
+          "description": "Permanently deactivate \"{name}\"? This cannot be undone.",
+          "confirm": "Deactivate"
+        }
+      }
+    },
     "notifications": {
       "aria_label": "{count, plural, =0 {Notifications} one {1 unread notification} other {{count} unread notifications}}",
       "panel_label": "Notifications panel",
@@ -79,6 +379,60 @@
       "empty": "You have no notifications",
       "error": "Failed to load notifications",
       "retry": "Retry"
+    },
+    "districts": {
+      "title": "Districts",
+      "subtitle": "The top of the school org hierarchy. Each district groups the schools beneath it.",
+      "error": "Failed to load districts",
+      "retry": "Retry",
+      "add_button": "Add district",
+      "table_label": "Districts table",
+      "empty": {
+        "title": "No districts yet",
+        "description": "Create the first district to start building the school hierarchy.",
+        "cta": "Add first district"
+      },
+      "col": {
+        "name": "Name",
+        "region": "Region",
+        "language": "Language",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "actions": {
+        "delete": "Delete {name}",
+        "invite": "Invite admin for {name}"
+      },
+      "invite_modal": {
+        "title": "Invite District Admin — {name}",
+        "email_label": "Email",
+        "email_placeholder": "admin@district.example",
+        "name_label": "Display name",
+        "name_placeholder": "Full name",
+        "cancel": "Cancel",
+        "send": "Send invite",
+        "close": "Close",
+        "success": "Invitation sent to {email}. They have 7 days to accept.",
+        "done": "Done"
+      },
+      "modal": {
+        "create_title": "New district",
+        "name_label": "Name",
+        "name_placeholder": "e.g. Lahore District",
+        "region_label": "Region (optional)",
+        "region_placeholder": "e.g. Punjab",
+        "language_label": "Language preference (optional)",
+        "language_placeholder": "e.g. ur",
+        "cancel": "Cancel",
+        "create": "Create",
+        "close": "Close"
+      },
+      "delete_modal": {
+        "title": "Delete district?",
+        "description": "Are you sure you want to delete \"{name}\"? Schools under it are not deleted.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
     },
     "languages": {
       "title": "Languages",

@@ -30,6 +30,14 @@ class UserRole(str, enum.Enum):
     PARENT = "parent"
 
 
+class UserAccountStatus(str, enum.Enum):
+    """User lifecycle status per flow-2 §3.5."""
+
+    ACTIVE = "active"
+    SUSPENDED = "suspended"
+    DEACTIVATED = "deactivated"
+
+
 class User(AuditMixin, SoftDeleteMixin, Base):
     """User table in the school schema per ARCH §6.2 + §4.1."""
 
@@ -57,17 +65,17 @@ class User(AuditMixin, SoftDeleteMixin, Base):
         ),
         nullable=False,
     )
-    account_status: Mapped[AccountStatus] = mapped_column(
+    status: Mapped[UserAccountStatus] = mapped_column(
         SAEnum(
-            AccountStatus,
-            name="accountstatus",
+            UserAccountStatus,
+            name="useraccountstatus",
             schema="school",
             values_callable=lambda statuses: [s.value for s in statuses],
             native_enum=True,
             create_type=False,
         ),
         nullable=False,
-        server_default="active",
+        default=UserAccountStatus.ACTIVE,
     )
     school_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     district_id: Mapped[str | None] = mapped_column(String(36), nullable=True)

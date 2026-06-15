@@ -97,7 +97,7 @@ def test_every_foreign_key_has_ondelete_and_index() -> None:
 # Stable value sets backed by native Postgres enums (ARCH §4.4).
 _ENUM_COLUMNS = [
     ("users", "role"),
-    ("users", "account_status"),
+    ("users", "status"),
 ]
 
 # Varchar-backed enum labels in migrations; ORM uses native_enum=False (create_type=False).

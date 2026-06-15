@@ -44,6 +44,20 @@ class Settings(BaseSettings):
     OIDC_CLIENT_ID: str = "iqbalai-api"
     OIDC_CLIENT_SECRET: str = "change_me"
     OIDC_JWKS_URL: str = "http://localhost:9000/application/o/iqbalai/jwks/"
+    AUTHENTIK_API_URL: str = "http://localhost:9000/api/v3"
+    AUTHENTIK_API_TOKEN: str = ""
+
+    # App URLs + email (T-030 invite flow)
+    APP_URL: str = "http://localhost:3000"
+    EMAIL_PROVIDER: str = "log"  # log | smtp | brevo (brevo not implemented yet)
+    EMAIL_FROM: str = "noreply@iqbalai.local"
+    SMTP_HOST: str = ""
+    SMTP_PORT: int = 465
+    SMTP_USE_SSL: bool = True
+    SMTP_USE_TLS: bool = False
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_TIMEOUT: int = 30
 
     # LLM
     LLM_PROVIDER: str = "groq"

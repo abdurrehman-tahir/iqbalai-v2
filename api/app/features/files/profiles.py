@@ -45,10 +45,27 @@ PLATFORM_REFERENCE_BOOK = UploadProfile(
     description="Platform-level reference book — uploaded by Platform Admin; global SHA-256 dedup",
 )
 
+BULK_IMPORT = UploadProfile(
+    name="bulk_import",
+    bucket="imports",
+    key_prefix="bulk-imports",
+    allowed_mime_types=frozenset(
+        {
+            "text/csv",
+            "application/csv",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        }
+    ),
+    magic_bytes=[b"PK\x03\x04"],  # XLSX; CSV skips magic check in pipeline caller
+    max_size_bytes=5 * 1024 * 1024,  # 5 MB per Flow 2 §6
+    description="Coordinator student bulk import — CSV/XLSX, dry-run validation (T-037)",
+)
+
 # Registry: name → profile
 _REGISTRY: dict[str, UploadProfile] = {
     RECOVERY_BUNDLE.name: RECOVERY_BUNDLE,
     PLATFORM_REFERENCE_BOOK.name: PLATFORM_REFERENCE_BOOK,
+    BULK_IMPORT.name: BULK_IMPORT,
 }
 
 

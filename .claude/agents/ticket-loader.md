@@ -8,8 +8,10 @@ description: |
   literal first action whenever the user asks to implement any T-XXX ticket. The main
   session must NOT read the milestone / flow spec / wide ARCHITECTURE ranges directly.
 tools:
-  - view
-  - bash
+  - Read
+  - Bash
+  - Grep
+  - Glob
 ---
 
 # ticket-loader

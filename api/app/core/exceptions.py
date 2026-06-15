@@ -47,11 +47,38 @@ class ConflictError(IqbalAIError):
         super().__init__("CONFLICT", message, status.HTTP_409_CONFLICT)
 
 
+class IdempotencyKeyMismatchError(IqbalAIError):
+    """Same Idempotency-Key reused with a different request body (ARCH §5.9)."""
+
+    def __init__(
+        self, message: str = "Idempotency-Key reused with a different request body"
+    ) -> None:
+        super().__init__("IDEMPOTENCY_KEY_MISMATCH", message, status.HTTP_409_CONFLICT)
+
+
 class PreconditionFailedError(IqbalAIError):
     """A required precondition was not met (e.g. last active admin cannot self-deactivate)."""
 
     def __init__(self, message: str = "Precondition failed") -> None:
         super().__init__("PRECONDITION_FAILED", message, status.HTTP_412_PRECONDITION_FAILED)
+
+
+class AccountSuspendedError(IqbalAIError):
+    """User account is suspended."""
+
+    def __init__(
+        self, message: str = "Account suspended — contact your administrator"
+    ) -> None:
+        super().__init__("ACCOUNT_SUSPENDED", message, status.HTTP_403_FORBIDDEN)
+
+
+class AccountDeactivatedError(IqbalAIError):
+    """User account is deactivated (one-way)."""
+
+    def __init__(
+        self, message: str = "Account deactivated — contact your administrator"
+    ) -> None:
+        super().__init__("ACCOUNT_DEACTIVATED", message, status.HTTP_403_FORBIDDEN)
 
 
 class TosAcceptanceRequiredError(IqbalAIError):
@@ -66,6 +93,13 @@ class ValidationError(IqbalAIError):
 
     def __init__(self, message: str = "Validation error") -> None:
         super().__init__("VALIDATION_ERROR", message, status.HTTP_422_UNPROCESSABLE_ENTITY)
+
+
+class AuthentikApiError(IqbalAIError):
+    """Authentik REST API call failed (token, permissions, or upstream error)."""
+
+    def __init__(self, message: str = "Authentik API error") -> None:
+        super().__init__("AUTHENTIK_API_ERROR", message, status.HTTP_502_BAD_GATEWAY)
 
 
 def _error_envelope(code: str, message: str) -> dict[str, object]:

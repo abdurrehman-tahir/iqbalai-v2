@@ -32,6 +32,8 @@ def _build_minio_key(
 
 def _validate_magic_bytes(data: bytes, profile: UploadProfile) -> bool:
     """Check that the file starts with one of the expected magic byte sequences."""
+    if not profile.magic_bytes:
+        return True
     return any(data[: len(magic)] == magic for magic in profile.magic_bytes)
 
 
@@ -42,6 +44,8 @@ async def run_upload_pipeline(
     session: AsyncSession,
     school_id: str | None = None,
     uploaded_by: str | None = None,
+    *,
+    skip_magic_check: bool = False,
 ) -> UploadInitiated:
     """Execute the upload pipeline for a file.
 
@@ -49,7 +53,7 @@ async def run_upload_pipeline(
     Returns UploadInitiated immediately (202 Accepted pattern).
     """
     # 1. Magic-byte validation
-    if not _validate_magic_bytes(data, profile):
+    if not skip_magic_check and not _validate_magic_bytes(data, profile):
         raise ValueError(f"File does not match expected format for profile '{profile.name}'")
 
     # 2. Size limit check

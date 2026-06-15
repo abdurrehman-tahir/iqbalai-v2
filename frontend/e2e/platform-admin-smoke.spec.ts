@@ -5,6 +5,7 @@
  * Real Authentik + compose bring-up is a manual / nightly concern; API contract
  * coverage lives in admin-create-real.spec.ts (@smoke @real).
  */
+
 import { test, expect, type Page } from "@playwright/test";
 import { installPlatformAdminMocks } from "./helpers/mock-api";
 

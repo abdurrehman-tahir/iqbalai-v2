@@ -1,0 +1,4628 @@
+{
+  "components": {
+    "schemas": {
+      "AcceptInviteRequest": {
+        "properties": {
+          "action": {
+            "enum": [
+              "accept",
+              "reject"
+            ],
+            "title": "Action",
+            "type": "string"
+          },
+          "display_name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Display Name"
+          },
+          "password": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "minLength": 8,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Password"
+          },
+          "token": {
+            "minLength": 16,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "action"
+        ],
+        "title": "AcceptInviteRequest",
+        "type": "object"
+      },
+      "AdminUserInviteCreate": {
+        "description": "Payload for POST /admin/users \u2014 invite a next-level admin.",
+        "properties": {
+          "display_name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "district_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District Id"
+          },
+          "email": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "grade_scope": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Scope"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
+          }
+        },
+        "required": [
+          "email",
+          "display_name",
+          "role"
+        ],
+        "title": "AdminUserInviteCreate",
+        "type": "object"
+      },
+      "AuditLogEntryRead": {
+        "description": "Read schema for a single audit log row.\n\nmetadata_json is returned as a raw string \u2014 callers parse JSON as needed.\nIntentionally no write schema: audit rows are created only via the\ninfrastructure helper (app/infrastructure/audit/log.py), never via the API.",
+        "properties": {
+          "action": {
+            "title": "Action",
+            "type": "string"
+          },
+          "actor_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Id"
+          },
+          "actor_role": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Actor Role"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "district_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ip_address": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ip Address"
+          },
+          "metadata_json": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Metadata Json"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
+          },
+          "target_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Id"
+          },
+          "target_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Type"
+          }
+        },
+        "required": [
+          "id",
+          "action",
+          "actor_id",
+          "actor_role",
+          "target_type",
+          "target_id",
+          "school_id",
+          "district_id",
+          "metadata_json",
+          "ip_address",
+          "created_at"
+        ],
+        "title": "AuditLogEntryRead",
+        "type": "object"
+      },
+      "Body_create_bulk_import_dry_run": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_create_bulk_import_dry_run",
+        "type": "object"
+      },
+      "Body_upload_file": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_file",
+        "type": "object"
+      },
+      "Body_upload_library_book": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_upload_library_book",
+        "type": "object"
+      },
+      "DeletedResponse": {
+        "description": "Payload for soft-delete endpoints \u2014 `data` of a `SuccessEnvelope`.",
+        "properties": {
+          "deleted": {
+            "default": true,
+            "title": "Deleted",
+            "type": "boolean"
+          }
+        },
+        "title": "DeletedResponse",
+        "type": "object"
+      },
+      "DisclaimerVersionCreate": {
+        "description": "Publish a new Disclaimer version (Platform Admin only). 500-char limit.",
+        "properties": {
+          "content": {
+            "maxLength": 500,
+            "minLength": 5,
+            "title": "Content",
+            "type": "string"
+          },
+          "language": {
+            "default": "en",
+            "maxLength": 10,
+            "title": "Language",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "DisclaimerVersionCreate",
+        "type": "object"
+      },
+      "DisclaimerVersionRead": {
+        "description": "Disclaimer version response.",
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "effective_at": {
+            "format": "date-time",
+            "title": "Effective At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "version_number": {
+            "title": "Version Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version_number",
+          "content",
+          "language",
+          "effective_at"
+        ],
+        "title": "DisclaimerVersionRead",
+        "type": "object"
+      },
+      "DistrictCreate": {
+        "description": "Payload for creating a new District.",
+        "properties": {
+          "language_preference": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language Preference"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "DistrictCreate",
+        "type": "object"
+      },
+      "DistrictUpdate": {
+        "description": "Payload for updating a District (all fields optional).",
+        "properties": {
+          "language_preference": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language Preference"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "title": "DistrictUpdate",
+        "type": "object"
+      },
+      "ExamSyllabusCreate": {
+        "description": "Payload for creating a new ExamSyllabus.",
+        "properties": {
+          "exam_board": {
+            "maxLength": 100,
+            "title": "Exam Board",
+            "type": "string"
+          },
+          "grade_range_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Range Max"
+          },
+          "grade_range_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Range Min"
+          },
+          "language": {
+            "default": "en",
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 255,
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "required": [
+          "name",
+          "exam_board"
+        ],
+        "title": "ExamSyllabusCreate",
+        "type": "object"
+      },
+      "ExamSyllabusRead": {
+        "description": "Response schema for a single ExamSyllabus.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "exam_board": {
+            "title": "Exam Board",
+            "type": "string"
+          },
+          "grade_range_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Range Max"
+          },
+          "grade_range_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Range Min"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "version_number": {
+            "title": "Version Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "exam_board",
+          "region",
+          "grade_range_min",
+          "grade_range_max",
+          "language",
+          "version_number",
+          "is_active",
+          "created_at"
+        ],
+        "title": "ExamSyllabusRead",
+        "type": "object"
+      },
+      "ExamSyllabusUpdate": {
+        "description": "Payload for updating an ExamSyllabus (all fields optional).",
+        "properties": {
+          "exam_board": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exam Board"
+          },
+          "grade_range_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Range Max"
+          },
+          "grade_range_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Range Min"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          }
+        },
+        "title": "ExamSyllabusUpdate",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "LibraryBookListResponse": {
+        "description": "Paginated list of platform reference books.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LibraryBookRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "LibraryBookListResponse",
+        "type": "object"
+      },
+      "LibraryBookRead": {
+        "description": "Full book record returned to the caller.",
+        "properties": {
+          "chunk_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chunk Count"
+          },
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "deleted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deleted At"
+          },
+          "grade_range_max": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Range Max"
+          },
+          "grade_range_min": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Range Min"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "qdrant_collection": {
+            "title": "Qdrant Collection",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "subject_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Tag"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "upload_id": {
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "upload_id",
+          "title",
+          "content_type",
+          "subject_tag",
+          "grade_range_min",
+          "grade_range_max",
+          "language",
+          "sha256",
+          "status",
+          "qdrant_collection",
+          "chunk_count",
+          "created_at",
+          "updated_at",
+          "deleted_at"
+        ],
+        "title": "LibraryBookRead",
+        "type": "object"
+      },
+      "LibraryUploadResponse": {
+        "description": "Returned after POST /admin/library \u2014 202 Accepted.",
+        "properties": {
+          "book_id": {
+            "title": "Book Id",
+            "type": "string"
+          },
+          "message": {
+            "default": "Upload accepted; ingestion queued on the ingestion worker.",
+            "title": "Message",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "upload_id": {
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "book_id",
+          "upload_id",
+          "status"
+        ],
+        "title": "LibraryUploadResponse",
+        "type": "object"
+      },
+      "NotificationListResponse": {
+        "description": "Paginated notification list with unread counter for the bell badge.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/NotificationRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          },
+          "unread_count": {
+            "title": "Unread Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "unread_count"
+        ],
+        "title": "NotificationListResponse",
+        "type": "object"
+      },
+      "NotificationRead": {
+        "description": "Read schema for a single notification row.",
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "feature_namespace": {
+            "title": "Feature Namespace",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_read": {
+            "title": "Is Read",
+            "type": "boolean"
+          },
+          "read_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Read At"
+          },
+          "recipient_user_id": {
+            "title": "Recipient User Id",
+            "type": "string"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
+          },
+          "template_key": {
+            "title": "Template Key",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "recipient_user_id",
+          "feature_namespace",
+          "template_key",
+          "title",
+          "body",
+          "is_read",
+          "read_at",
+          "school_id",
+          "created_at"
+        ],
+        "title": "NotificationRead",
+        "type": "object"
+      },
+      "PaginatedEnvelope_AuditLogEntryRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/AuditLogEntryRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "pages"
+        ],
+        "title": "PaginatedEnvelope[AuditLogEntryRead]",
+        "type": "object"
+      },
+      "PersonaRead": {
+        "description": "Response schema for a single TeachingPersona.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "is_custom": {
+            "title": "Is Custom",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          },
+          "system_prompt_en": {
+            "title": "System Prompt En",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "is_custom",
+          "is_active",
+          "system_prompt_en",
+          "created_at"
+        ],
+        "title": "PersonaRead",
+        "type": "object"
+      },
+      "PersonaUpdate": {
+        "description": "Payload for updating a TeachingPersona (all fields optional).\n\nOnly Platform Admin may call this. Changes apply to NEW sessions only;\nin-flight sessions continue using the previously cached system prompt.",
+        "properties": {
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "system_prompt_en": {
+            "anyOf": [
+              {
+                "maxLength": 8000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System Prompt En"
+          },
+          "system_prompt_ps": {
+            "anyOf": [
+              {
+                "maxLength": 8000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System Prompt Ps"
+          },
+          "system_prompt_sd": {
+            "anyOf": [
+              {
+                "maxLength": 8000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System Prompt Sd"
+          },
+          "system_prompt_ur": {
+            "anyOf": [
+              {
+                "maxLength": 8000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "System Prompt Ur"
+          }
+        },
+        "title": "PersonaUpdate",
+        "type": "object"
+      },
+      "PostLoginResponse": {
+        "description": "Response from POST /api/v1/auth/post-login.",
+        "properties": {
+          "account_status": {
+            "$ref": "#/components/schemas/UserAccountStatus",
+            "default": "active"
+          },
+          "current_tos_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Tos Version Id"
+          },
+          "district_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District Id"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "is_first_login": {
+            "title": "Is First Login",
+            "type": "boolean"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
+          },
+          "tos_acceptance_required": {
+            "title": "Tos Acceptance Required",
+            "type": "boolean"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "role",
+          "is_first_login",
+          "tos_acceptance_required",
+          "current_tos_version_id"
+        ],
+        "title": "PostLoginResponse",
+        "type": "object"
+      },
+      "SchoolCreate": {
+        "description": "Payload for creating a new School within a district.",
+        "properties": {
+          "district_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "District Id",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "district_id"
+        ],
+        "title": "SchoolCreate",
+        "type": "object"
+      },
+      "SchoolUpdate": {
+        "description": "Payload for updating a School (all fields optional).",
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "SchoolUpdate",
+        "type": "object"
+      },
+      "SubscriptionTierCreate": {
+        "description": "Payload for creating a new SubscriptionTier.",
+        "properties": {
+          "applies_to": {
+            "enum": [
+              "district",
+              "school"
+            ],
+            "title": "Applies To",
+            "type": "string"
+          },
+          "caps": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caps"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pricing_monthly_pkr": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Pricing Monthly Pkr",
+            "type": "integer"
+          },
+          "slug": {
+            "maxLength": 50,
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "slug",
+          "applies_to"
+        ],
+        "title": "SubscriptionTierCreate",
+        "type": "object"
+      },
+      "SubscriptionTierRead": {
+        "description": "Response schema for a single SubscriptionTier.",
+        "properties": {
+          "applies_to": {
+            "title": "Applies To",
+            "type": "string"
+          },
+          "caps": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caps"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "pricing_monthly_pkr": {
+            "title": "Pricing Monthly Pkr",
+            "type": "integer"
+          },
+          "slug": {
+            "title": "Slug",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "slug",
+          "description",
+          "applies_to",
+          "pricing_monthly_pkr",
+          "caps",
+          "is_active",
+          "created_at"
+        ],
+        "title": "SubscriptionTierRead",
+        "type": "object"
+      },
+      "SubscriptionTierUpdate": {
+        "description": "Payload for updating a SubscriptionTier (all fields optional).",
+        "properties": {
+          "caps": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Caps"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_active": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Is Active"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "pricing_monthly_pkr": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Pricing Monthly Pkr"
+          }
+        },
+        "title": "SubscriptionTierUpdate",
+        "type": "object"
+      },
+      "SuccessEnvelope_DeletedResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DeletedResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[DeletedResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_DisclaimerVersionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DisclaimerVersionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[DisclaimerVersionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_ExamSyllabusRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ExamSyllabusRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ExamSyllabusRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_PersonaRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PersonaRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[PersonaRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_PostLoginResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PostLoginResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[PostLoginResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SubscriptionTierRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SubscriptionTierRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SubscriptionTierRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SyllabusTopicRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SyllabusTopicRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SyllabusTopicRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_TosAcceptResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TosAcceptResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[TosAcceptResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_TosDeclineResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TosDeclineResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[TosDeclineResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_TosVersionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TosVersionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[TosVersionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_UserRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/UserRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[UserRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_DisclaimerVersionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/DisclaimerVersionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[DisclaimerVersionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_ExamSyllabusRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ExamSyllabusRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[ExamSyllabusRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_PersonaRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PersonaRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[PersonaRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_SubscriptionTierRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SubscriptionTierRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[SubscriptionTierRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_SyllabusTopicRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SyllabusTopicRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[SyllabusTopicRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_TosVersionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TosVersionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[TosVersionRead]]",
+        "type": "object"
+      },
+      "SyllabusTopicCreate": {
+        "description": "Payload for creating a new SyllabusTopic.",
+        "properties": {
+          "order_index": {
+            "default": 0,
+            "title": "Order Index",
+            "type": "integer"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "syllabus_id": {
+            "title": "Syllabus Id",
+            "type": "string"
+          },
+          "title": {
+            "maxLength": 255,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "syllabus_id",
+          "title"
+        ],
+        "title": "SyllabusTopicCreate",
+        "type": "object"
+      },
+      "SyllabusTopicRead": {
+        "description": "Response schema for a single SyllabusTopic.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "depth": {
+            "title": "Depth",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "order_index": {
+            "title": "Order Index",
+            "type": "integer"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "syllabus_id": {
+            "title": "Syllabus Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "syllabus_id",
+          "parent_id",
+          "title",
+          "depth",
+          "order_index",
+          "created_at"
+        ],
+        "title": "SyllabusTopicRead",
+        "type": "object"
+      },
+      "TosAcceptRequest": {
+        "description": "User accepts the current ToS.",
+        "properties": {
+          "tos_version_id": {
+            "title": "Tos Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tos_version_id"
+        ],
+        "title": "TosAcceptRequest",
+        "type": "object"
+      },
+      "TosAcceptResponse": {
+        "description": "Confirmation of ToS acceptance.",
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "accepted_at": {
+            "format": "date-time",
+            "title": "Accepted At",
+            "type": "string"
+          },
+          "tos_version_id": {
+            "title": "Tos Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accepted",
+          "tos_version_id",
+          "accepted_at"
+        ],
+        "title": "TosAcceptResponse",
+        "type": "object"
+      },
+      "TosDeclineResponse": {
+        "description": "Confirmation of ToS decline \u2014 account enters SUSPENDED state.",
+        "properties": {
+          "declined": {
+            "title": "Declined",
+            "type": "boolean"
+          },
+          "status": {
+            "default": "suspended",
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "declined"
+        ],
+        "title": "TosDeclineResponse",
+        "type": "object"
+      },
+      "TosVersionCreate": {
+        "description": "Publish a new ToS version (Platform Admin only).",
+        "properties": {
+          "content_md": {
+            "minLength": 10,
+            "title": "Content Md",
+            "type": "string"
+          },
+          "language": {
+            "default": "en",
+            "maxLength": 10,
+            "title": "Language",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content_md"
+        ],
+        "title": "TosVersionCreate",
+        "type": "object"
+      },
+      "TosVersionRead": {
+        "description": "ToS version response.",
+        "properties": {
+          "content_md": {
+            "title": "Content Md",
+            "type": "string"
+          },
+          "effective_at": {
+            "format": "date-time",
+            "title": "Effective At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "version_number": {
+            "title": "Version Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "version_number",
+          "content_md",
+          "language",
+          "effective_at"
+        ],
+        "title": "TosVersionRead",
+        "type": "object"
+      },
+      "UploadInitiated": {
+        "description": "Response returned immediately after upload (202 Accepted).",
+        "properties": {
+          "message": {
+            "default": "",
+            "title": "Message",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UploadStatus"
+          },
+          "status_url": {
+            "title": "Status Url",
+            "type": "string"
+          },
+          "upload_id": {
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_id",
+          "status",
+          "status_url"
+        ],
+        "title": "UploadInitiated",
+        "type": "object"
+      },
+      "UploadStatus": {
+        "enum": [
+          "pending",
+          "ready",
+          "failed",
+          "duplicate"
+        ],
+        "title": "UploadStatus",
+        "type": "string"
+      },
+      "UploadStatusResponse": {
+        "description": "Response for GET /uploads/{id}.\n\n`upload_id` is the public name for the record's primary key (`id`). The\nvalidation alias lets `model_validate(record)` read it straight off the\nORM row, while the serialized output keeps the `upload_id` field name so the\nAPI contract (and the generated typed client) is unchanged.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "filename": {
+            "title": "Filename",
+            "type": "string"
+          },
+          "minio_key": {
+            "title": "Minio Key",
+            "type": "string"
+          },
+          "profile": {
+            "title": "Profile",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UploadStatus"
+          },
+          "upload_id": {
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_id",
+          "status",
+          "profile",
+          "filename",
+          "size_bytes",
+          "sha256",
+          "minio_key",
+          "created_at"
+        ],
+        "title": "UploadStatusResponse",
+        "type": "object"
+      },
+      "UserAccountStatus": {
+        "description": "User lifecycle status per flow-2 \u00a73.5.",
+        "enum": [
+          "active",
+          "suspended",
+          "deactivated"
+        ],
+        "title": "UserAccountStatus",
+        "type": "string"
+      },
+      "UserRead": {
+        "description": "User response schema.",
+        "properties": {
+          "authentik_id": {
+            "title": "Authentik Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "district_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District Id"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/UserRole"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
+          },
+          "scoped_ids": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scoped Ids"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UserAccountStatus"
+          }
+        },
+        "required": [
+          "id",
+          "authentik_id",
+          "email",
+          "display_name",
+          "role",
+          "status",
+          "school_id",
+          "district_id",
+          "created_at"
+        ],
+        "title": "UserRead",
+        "type": "object"
+      },
+      "UserRole": {
+        "description": "Six-level role hierarchy per ARCH \u00a76.7.",
+        "enum": [
+          "platform_admin",
+          "district_admin",
+          "school_admin",
+          "coordinator",
+          "teacher",
+          "student",
+          "parent"
+        ],
+        "title": "UserRole",
+        "type": "string"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "IqbalAI v2 backend \u2014 AI-powered education platform",
+    "title": "IqbalAI API",
+    "version": "0.1.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/api/v1/admin/audit-log/": {
+      "get": {
+        "description": "Returns audit entries newest-first. Filter by school_id to scope results to a specific school. Leave school_id unset to see platform-wide entries.",
+        "operationId": "list_audit_log",
+        "parameters": [
+          {
+            "description": "Filter by school tenant",
+            "in": "query",
+            "name": "school_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by school tenant",
+              "title": "School Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 500,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEnvelope_AuditLogEntryRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List recent audit log entries (Platform Admin only)",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
+    "/api/v1/admin/disclaimer": {
+      "get": {
+        "operationId": "admin_list_disclaimer",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_DisclaimerVersionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List all Disclaimer versions (admin)",
+        "tags": [
+          "tos"
+        ]
+      },
+      "post": {
+        "operationId": "publish_disclaimer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisclaimerVersionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DisclaimerVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish a new Disclaimer version",
+        "tags": [
+          "tos"
+        ]
+      }
+    },
+    "/api/v1/admin/districts/": {
+      "get": {
+        "operationId": "districts_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts List",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List all districts",
+        "tags": [
+          "districts"
+        ]
+      },
+      "post": {
+        "operationId": "districts_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DistrictCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts Create",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a new district",
+        "tags": [
+          "districts"
+        ]
+      }
+    },
+    "/api/v1/admin/districts/{district_id}": {
+      "delete": {
+        "operationId": "districts_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "district_id",
+            "required": true,
+            "schema": {
+              "title": "District Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete a district",
+        "tags": [
+          "districts"
+        ]
+      },
+      "get": {
+        "operationId": "districts_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "district_id",
+            "required": true,
+            "schema": {
+              "title": "District Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single district",
+        "tags": [
+          "districts"
+        ]
+      },
+      "put": {
+        "operationId": "districts_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "district_id",
+            "required": true,
+            "schema": {
+              "title": "District Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DistrictUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Districts Update",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update a district",
+        "tags": [
+          "districts"
+        ]
+      }
+    },
+    "/api/v1/admin/exam-syllabi/": {
+      "get": {
+        "operationId": "list_syllabi",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_ExamSyllabusRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List all exam syllabi",
+        "tags": [
+          "exam-syllabi"
+        ]
+      },
+      "post": {
+        "operationId": "create_syllabus",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamSyllabusCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ExamSyllabusRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a new exam syllabus",
+        "tags": [
+          "exam-syllabi"
+        ]
+      }
+    },
+    "/api/v1/admin/exam-syllabi/{syllabus_id}": {
+      "delete": {
+        "operationId": "delete_syllabus",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "syllabus_id",
+            "required": true,
+            "schema": {
+              "title": "Syllabus Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DeletedResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete an exam syllabus",
+        "tags": [
+          "exam-syllabi"
+        ]
+      },
+      "get": {
+        "operationId": "get_syllabus",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "syllabus_id",
+            "required": true,
+            "schema": {
+              "title": "Syllabus Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ExamSyllabusRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single exam syllabus",
+        "tags": [
+          "exam-syllabi"
+        ]
+      },
+      "put": {
+        "operationId": "update_syllabus",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "syllabus_id",
+            "required": true,
+            "schema": {
+              "title": "Syllabus Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamSyllabusUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ExamSyllabusRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update an exam syllabus (bumps version_number)",
+        "tags": [
+          "exam-syllabi"
+        ]
+      }
+    },
+    "/api/v1/admin/exam-syllabi/{syllabus_id}/topics": {
+      "get": {
+        "operationId": "list_topics",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "syllabus_id",
+            "required": true,
+            "schema": {
+              "title": "Syllabus Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_SyllabusTopicRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List topics for a syllabus",
+        "tags": [
+          "exam-syllabi"
+        ]
+      },
+      "post": {
+        "operationId": "create_topic",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "syllabus_id",
+            "required": true,
+            "schema": {
+              "title": "Syllabus Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SyllabusTopicCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SyllabusTopicRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a topic under a syllabus",
+        "tags": [
+          "exam-syllabi"
+        ]
+      }
+    },
+    "/api/v1/admin/exam-syllabi/{syllabus_id}/topics/{topic_id}": {
+      "delete": {
+        "operationId": "delete_topic",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "syllabus_id",
+            "required": true,
+            "schema": {
+              "title": "Syllabus Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "topic_id",
+            "required": true,
+            "schema": {
+              "title": "Topic Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DeletedResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete a topic",
+        "tags": [
+          "exam-syllabi"
+        ]
+      }
+    },
+    "/api/v1/admin/library/": {
+      "get": {
+        "description": "Returns non-deleted books newest-first.",
+        "operationId": "list_library_books",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryBookListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List platform reference books",
+        "tags": [
+          "library"
+        ]
+      },
+      "post": {
+        "description": "Upload a PDF to the Platform Library. Returns 202 immediately; ingestion runs asynchronously on the ingestion worker.",
+        "operationId": "upload_library_book",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "title",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "content_type",
+            "required": false,
+            "schema": {
+              "default": "reference",
+              "pattern": "^(curriculum|reference)$",
+              "title": "Content Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subject_tag",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 255,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Tag"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_range_min",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 16,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Range Min"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_range_max",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 16,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Range Max"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "default": "en",
+              "pattern": "^(en|ur|sd|ps)$",
+              "title": "Language",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_library_book"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryUploadResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload a platform reference book",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/admin/library/{book_id}": {
+      "delete": {
+        "description": "Marks the book deleted. MinIO file and Qdrant embeddings are retained per \u00a75.3 (soft-delete with citations preserved).",
+        "operationId": "delete_library_book",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "book_id",
+            "required": true,
+            "schema": {
+              "title": "Book Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LibraryBookRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete a platform reference book",
+        "tags": [
+          "library"
+        ]
+      }
+    },
+    "/api/v1/admin/personas/": {
+      "get": {
+        "operationId": "list_personas",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_PersonaRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List all teaching personas",
+        "tags": [
+          "personas"
+        ]
+      }
+    },
+    "/api/v1/admin/personas/{persona_id}": {
+      "get": {
+        "operationId": "get_persona",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "persona_id",
+            "required": true,
+            "schema": {
+              "title": "Persona Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_PersonaRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single teaching persona",
+        "tags": [
+          "personas"
+        ]
+      },
+      "put": {
+        "operationId": "update_persona",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "persona_id",
+            "required": true,
+            "schema": {
+              "title": "Persona Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PersonaUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_PersonaRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update a teaching persona's prompts or active status",
+        "tags": [
+          "personas"
+        ]
+      }
+    },
+    "/api/v1/admin/schools/": {
+      "get": {
+        "operationId": "schools_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "district_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "District Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools List",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List schools (scoped to caller's district)",
+        "tags": [
+          "schools"
+        ]
+      },
+      "post": {
+        "operationId": "schools_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchoolCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools Create",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a school within a district",
+        "tags": [
+          "schools"
+        ]
+      }
+    },
+    "/api/v1/admin/schools/{school_id}": {
+      "delete": {
+        "operationId": "schools_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools Delete",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete a school",
+        "tags": [
+          "schools"
+        ]
+      },
+      "get": {
+        "operationId": "schools_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools Get",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single school",
+        "tags": [
+          "schools"
+        ]
+      },
+      "put": {
+        "operationId": "schools_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SchoolUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Schools Update",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update a school",
+        "tags": [
+          "schools"
+        ]
+      }
+    },
+    "/api/v1/admin/subscription-tiers/": {
+      "get": {
+        "operationId": "list_subscription_tiers",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_SubscriptionTierRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List all subscription tiers",
+        "tags": [
+          "subscriptions"
+        ]
+      },
+      "post": {
+        "operationId": "create_subscription_tier",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionTierCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubscriptionTierRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a new subscription tier",
+        "tags": [
+          "subscriptions"
+        ]
+      }
+    },
+    "/api/v1/admin/subscription-tiers/{tier_id}": {
+      "delete": {
+        "operationId": "delete_subscription_tier",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tier_id",
+            "required": true,
+            "schema": {
+              "title": "Tier Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DeletedResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete a subscription tier",
+        "tags": [
+          "subscriptions"
+        ]
+      },
+      "get": {
+        "operationId": "get_subscription_tier",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tier_id",
+            "required": true,
+            "schema": {
+              "title": "Tier Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubscriptionTierRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single subscription tier",
+        "tags": [
+          "subscriptions"
+        ]
+      },
+      "put": {
+        "operationId": "update_subscription_tier",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "tier_id",
+            "required": true,
+            "schema": {
+              "title": "Tier Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubscriptionTierUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubscriptionTierRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update a subscription tier",
+        "tags": [
+          "subscriptions"
+        ]
+      }
+    },
+    "/api/v1/admin/tos": {
+      "get": {
+        "operationId": "admin_list_tos",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TosVersionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List all ToS versions (admin)",
+        "tags": [
+          "tos"
+        ]
+      },
+      "post": {
+        "operationId": "publish_tos",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TosVersionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TosVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish a new ToS version",
+        "tags": [
+          "tos"
+        ]
+      }
+    },
+    "/api/v1/admin/users": {
+      "post": {
+        "operationId": "admin_users_invite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AdminUserInviteCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Invite",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Invite a next-level admin (Path A)",
+        "tags": [
+          "invites"
+        ]
+      }
+    },
+    "/api/v1/admin/users/": {
+      "get": {
+        "operationId": "admin_users_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users List",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List users in caller's scope",
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{invite_id}/resend": {
+      "post": {
+        "operationId": "admin_users_resend_invite",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "invite_id",
+            "required": true,
+            "schema": {
+              "title": "Invite Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Resend Invite",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Resend an invitation with a fresh 7-day token",
+        "tags": [
+          "invites"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}/deactivate": {
+      "post": {
+        "operationId": "admin_users_deactivate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Deactivate",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Permanently deactivate a user account (one-way)",
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}/reactivate": {
+      "post": {
+        "operationId": "admin_users_reactivate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Reactivate",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reactivate a suspended user account",
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/admin/users/{user_id}/suspend": {
+      "post": {
+        "operationId": "admin_users_suspend",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "user_id",
+            "required": true,
+            "schema": {
+              "title": "User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Admin Users Suspend",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Suspend a user account",
+        "tags": [
+          "admin-users"
+        ]
+      }
+    },
+    "/api/v1/auth/accept-invite": {
+      "post": {
+        "operationId": "auth_accept_invite",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcceptInviteRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Auth Accept Invite",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept or reject an admin invitation",
+        "tags": [
+          "invites"
+        ]
+      }
+    },
+    "/api/v1/auth/post-login": {
+      "post": {
+        "description": "Called by the frontend after every successful Authentik OIDC callback. Creates a User row on first login. Returns ToS acceptance status so the frontend can show the acceptance modal if needed.",
+        "operationId": "post_login",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_PostLoginResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Post-OIDC-login handler",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/coordinator/bulk-imports/": {
+      "post": {
+        "description": "Coordinator uploads a student roster file. Rows are validated against grade scope; no accounts are created until M-06.",
+        "operationId": "create_bulk_import_dry_run",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_create_bulk_import_dry_run"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Create Bulk Import Dry Run",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload CSV/XLSX for dry-run validation",
+        "tags": [
+          "bulk-imports"
+        ]
+      }
+    },
+    "/api/v1/coordinator/bulk-imports/{import_id}": {
+      "get": {
+        "operationId": "get_bulk_import",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "title": "Import Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Get Bulk Import",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get bulk import dry-run results",
+        "tags": [
+          "bulk-imports"
+        ]
+      }
+    },
+    "/api/v1/disclaimer/current": {
+      "get": {
+        "operationId": "get_current_disclaimer",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DisclaimerVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get current Disclaimer version",
+        "tags": [
+          "tos"
+        ]
+      }
+    },
+    "/api/v1/health": {
+      "get": {
+        "description": "Liveness probe \u2014 always returns 200 if the app is running.",
+        "operationId": "health_check",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Health Check",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health Check",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/health/ready": {
+      "get": {
+        "description": "Readiness probe \u2014 checks that the app can accept traffic.",
+        "operationId": "readiness_check",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "type": "string"
+                  },
+                  "title": "Response Readiness Check",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Readiness Check",
+        "tags": [
+          "health"
+        ]
+      }
+    },
+    "/api/v1/notifications/": {
+      "get": {
+        "description": "Returns non-deleted notifications newest-first, with unread count for bell badge.",
+        "operationId": "list_notifications",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 200,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationListResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List notifications for the current user",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/notifications/{notif_id}/read": {
+      "post": {
+        "description": "The authenticated user may only mark their own notifications as read.",
+        "operationId": "mark_notification_read",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "notif_id",
+            "required": true,
+            "schema": {
+              "title": "Notif Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NotificationRead"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark a notification as read",
+        "tags": [
+          "notifications"
+        ]
+      }
+    },
+    "/api/v1/school/admin/audit-log/": {
+      "get": {
+        "description": "Returns the 50 most recent immutable audit entries for the School Admin's school. Cross-school access is not permitted.",
+        "operationId": "list_school_audit_log",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEnvelope_AuditLogEntryRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List recent audit log entries for the caller's school",
+        "tags": [
+          "audit"
+        ]
+      }
+    },
+    "/api/v1/school/admin/school": {
+      "get": {
+        "operationId": "school_admin_get_my_school",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response School Admin Get My School",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get the School Admin's own school",
+        "tags": [
+          "school-admin"
+        ]
+      }
+    },
+    "/api/v1/school/admin/schools/{school_id}": {
+      "get": {
+        "operationId": "school_admin_get_school",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "school_id",
+            "required": true,
+            "schema": {
+              "title": "School Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response School Admin Get School",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a school by ID (School Admin \u2014 own school only)",
+        "tags": [
+          "school-admin"
+        ]
+      }
+    },
+    "/api/v1/smoketest/llm": {
+      "post": {
+        "description": "Run a sample LLM call.",
+        "operationId": "smoketest_llm",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "title": "Body",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Smoketest Llm",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Smoketest Llm",
+        "tags": [
+          "smoketest"
+        ]
+      }
+    },
+    "/api/v1/smoketest/rag": {
+      "post": {
+        "description": "Run a sample RAG query. Returns empty chunks since no content is ingested yet.",
+        "operationId": "smoketest_rag",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "title": "Body",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": true,
+                  "title": "Response Smoketest Rag",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Smoketest Rag",
+        "tags": [
+          "smoketest"
+        ]
+      }
+    },
+    "/api/v1/tos/current": {
+      "get": {
+        "operationId": "get_current_tos",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TosVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get current ToS version",
+        "tags": [
+          "tos"
+        ]
+      }
+    },
+    "/api/v1/tos/versions": {
+      "get": {
+        "operationId": "list_tos_versions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TosVersionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List all ToS versions",
+        "tags": [
+          "tos"
+        ]
+      }
+    },
+    "/api/v1/uploads": {
+      "post": {
+        "description": "Upload a file through the pipeline.\n\nReturns 202 Accepted immediately with a tracking URL.\nPer ARCH \u00a711.16 canonical endpoint shape.",
+        "operationId": "upload_file",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "profile",
+            "required": false,
+            "schema": {
+              "default": "recovery_bundle",
+              "title": "Profile",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_upload_file"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadInitiated"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload File",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
+    "/api/v1/uploads/{upload_id}": {
+      "get": {
+        "description": "Get the status of a previously initiated upload.",
+        "operationId": "get_upload_status",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "upload_id",
+            "required": true,
+            "schema": {
+              "title": "Upload Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UploadStatusResponse"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get Upload Status",
+        "tags": [
+          "uploads"
+        ]
+      }
+    },
+    "/api/v1/users/me": {
+      "get": {
+        "operationId": "get_me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_UserRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get current user profile",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/api/v1/users/me/accept-tos": {
+      "post": {
+        "operationId": "accept_tos",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TosAcceptRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TosAcceptResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Accept the current ToS",
+        "tags": [
+          "tos"
+        ]
+      }
+    },
+    "/api/v1/users/me/decline-tos": {
+      "post": {
+        "operationId": "decline_tos",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TosDeclineResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Decline the current ToS",
+        "tags": [
+          "tos"
+        ]
+      }
+    },
+    "/metrics": {
+      "get": {
+        "description": "Endpoint that serves Prometheus metrics.",
+        "operationId": "metrics_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Metrics"
+      }
+    }
+  }
+}

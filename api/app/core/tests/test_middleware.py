@@ -12,6 +12,7 @@ from starlette.routing import Route
 from starlette.testclient import TestClient
 
 from app.core.middleware import PUBLIC_PATHS, AuthMiddleware
+from app.features.users.models import User, UserAccountStatus, UserRole
 
 
 def _echo_claims(request: Request) -> JSONResponse:
@@ -106,16 +107,57 @@ def test_invalid_token_body_has_error_code(client: TestClient) -> None:
 # ---------------------------------------------------------------------------
 
 
+def _db_user(**overrides: object) -> User:
+    user = User(
+        id="user-db-1",
+        authentik_id="user-123",
+        email="admin@district.edu",
+        display_name="District Admin",
+        role=UserRole.DISTRICT_ADMIN,
+        status=UserAccountStatus.ACTIVE,
+        district_id="district-abc",
+    )
+    for key, value in overrides.items():
+        setattr(user, key, value)
+    return user
+
+
 def test_valid_token_passes_through(client: TestClient) -> None:
     fake_claims = {"sub": "user-123", "role": "teacher", "email": "t@school.pk"}
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
-        response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
     assert response.status_code == 200
 
 
-def test_valid_token_claims_set_on_request_state(client: TestClient) -> None:
+def test_valid_token_claims_enriched_from_database(client: TestClient) -> None:
+    fake_claims = {"sub": "user-123", "role": "student", "email": "admin@district.edu"}
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+    body = response.json()
+    assert body["claims"]["sub"] == "user-123"
+    assert body["claims"]["role"] == "district_admin"
+    assert body["claims"]["district_id"] == "district-abc"
+    assert body["claims"]["user_id"] == "user-db-1"
+
+
+def test_suspended_user_returns_403(client: TestClient) -> None:
     fake_claims = {"sub": "user-123", "role": "teacher"}
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
-        response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
-    assert response.json()["claims"]["sub"] == "user-123"
-    assert response.json()["claims"]["role"] == "teacher"
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(status=UserAccountStatus.SUSPENDED),
+        ):
+            response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "ACCOUNT_SUSPENDED"

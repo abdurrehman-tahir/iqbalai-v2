@@ -18,10 +18,12 @@ dependencies = [
     "structlog>=24.2.0",
     "python-jose[cryptography]>=3.3.0",
     "celery[redis]>=5.3.0",
+    "redis>=5.0.0",  # T-029 — async cache client (redis.asyncio); STACK_LOCK §locks Redis 7
     "nats-py>=2.6.0",
     "boto3>=1.34.0",
     "prometheus-fastapi-instrumentator>=0.9.0",
     "python-multipart>=0.0.9",
+    "openpyxl>=3.1.0",                 # T-037 — bulk import XLSX parsing
     # T-024 — Platform Library ingestion pipeline
     "pdfplumber>=0.11.0",                # PDF text extraction (lightweight fallback per STACK_LOCK §4.3)
     "langchain-text-splitters>=0.3.0",   # RecursiveCharacterTextSplitter (pre-approved deviation §7.7)

@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.features.users.models import UserRole
+from app.features.users.models import UserAccountStatus, UserRole
 
 
 class UserRead(BaseModel):
@@ -17,8 +17,10 @@ class UserRead(BaseModel):
     email: str
     display_name: str
     role: UserRole
+    status: UserAccountStatus
     school_id: str | None
     district_id: str | None
+    scoped_ids: str | None = None
     created_at: datetime
 
     model_config = {"from_attributes": True}

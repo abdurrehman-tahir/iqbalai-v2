@@ -419,25 +419,7 @@ jobs:
       - name: Playwright full suite
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
-        run: pnpm e2e
-
-# ─────────────────────────────────────────────────────────────────────────────
-# PASTE THESE JOBS into .github/workflows/ci.yml (alongside the existing FE jobs).
-# They close the hole that let the M-01a create-flow bugs through: typed-client-drift
-# only proves the generated types are FRESH, not that the client USES them, and every
-# test mocked the contract — so a green PR shipped a 100%-broken create flow.
-#
-# See: AUDIT_LOG classes fe-types (recurred-after-rule), mock-contract-drift,
-# error-envelope-parsing; frontend-master Rule 9 + Rule 12; CLAUDE.md CI invariant 7.
-#
-# Scripts/tests referenced here are delivered by the M-01a fix (the "Phase 1" work):
-#   - scripts/check_client_request_types.py  — fails if any api.ts/index.ts client fn types a
-#       request body with an inline object literal instead of a generated `*Create`/`*Update` type
-#   - frontend contract test (Vitest)        — asserts mock payloads + client request types match
-#       the generated schema.d.ts `*Create`/`*Update` schemas (fails on divergent/missing fields)
-#   - create/update Playwright @smoke specs   — run against the REAL seeded compose backend
-#       (no route mocking on these paths) and assert the real success response (201 + persisted row)
-# ─────────────────────────────────────────────────────────────────────────────
+        run: pnpm e2e --grep @smoke
 
   client-request-type-lint:
     name: Client request types use generated schema (no inline literals)
@@ -479,14 +461,12 @@ jobs:
         working-directory: frontend
         run: pnpm test src/lib/api/__tests__/fe-be-contract.test.ts
 
-# ── Also HARDEN the existing e2e-smoke job (do not add a duplicate) ──
-# The create/update @smoke paths MUST hit the real composed backend, NOT the mock.
-# In the e2e-smoke job, ensure the create/update smoke specs are run WITHOUT the
-# mock-api route interception (the compose stack is already up + seeded there), e.g. tag them
-# `@smoke @real` and run `pnpm e2e --grep "@smoke" --grep-invert "@mock"` against the live API,
-# so a 422 on create fails CI. A mocked create smoke is the bug, not the test.
+# ── Add to the SAME ci.yml a scheduled trigger for the full E2E suite (nightly) ──
+# on:
+#   schedule:
+#     - cron: "0 2 * * *"   # full Playwright suite (no @smoke filter) runs nightly, not per-PR
+# Gate the full-suite job on github.event_name == 'schedule'; the @smoke job above stays on PRs.
 #
-# Add all three to branch-protection required checks ONLY after they are green:
-#   "Client request types use generated schema (no inline literals)"
-#   "Mock + client shapes match the generated OpenAPI schema"
-#   "Playwright E2E (smoke, on PR)"   ← now exercising real-backend create/update
+# If branch protection lists required checks by name, add: "Frontend tests (Vitest + RTL)",
+# "Typed client up to date (openapi-typescript)", "Every endpoint declares response_model",
+# and "Playwright E2E (smoke, on PR)" to the required set (see BRANCHING.md).

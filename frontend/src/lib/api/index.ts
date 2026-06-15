@@ -4,7 +4,12 @@
  */
 
 import type {
+  AcceptInviteRequest,
+  AdminUserInviteCreate,
+  DisclaimerVersionCreate,
   DisclaimerVersionRead,
+  DistrictCreate,
+  DistrictUpdate,
   ExamSyllabusCreate,
   ExamSyllabusRead,
   ExamSyllabusUpdate,
@@ -14,19 +19,21 @@ import type {
   PersonaRead,
   PersonaUpdate,
   PostLoginResponse,
+  SchoolCreate,
+  SchoolUpdate,
   SubscriptionTierCreate,
   SubscriptionTierRead,
   SubscriptionTierUpdate,
   TosAcceptResponse,
   TosDeclineResponse,
   TosVersion,
+  TosVersionCreate,
   TosVersionRead,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
 export type {
-  AuditEntry,
   Notification,
   PersonaRead as Persona,
   ExamSyllabusRead as Syllabus,
@@ -40,7 +47,7 @@ export class ApiError extends Error {
     public status: number,
     public code: string,
     message: string,
-    public details?: unknown,
+    public details?: unknown
   ) {
     super(message);
     this.name = "ApiError";
@@ -63,7 +70,7 @@ function formatValidationDetail(detail: ValidationDetail): string {
 
 function parseApiErrorBody(
   body: unknown,
-  status: number,
+  status: number
 ): { code: string; message: string; details?: unknown } {
   if (body && typeof body === "object") {
     const record = body as Record<string, unknown>;
@@ -101,11 +108,7 @@ function parseApiErrorBody(
   };
 }
 
-async function request<T>(
-  path: string,
-  options: RequestInit = {},
-  token?: string,
-): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> | undefined),
@@ -118,14 +121,24 @@ async function request<T>(
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (!res.ok) {
-    let body: unknown = {};
+    let errorJson: {
+      error?: { code?: string; message?: string };
+      code?: string;
+      message?: string;
+      details?: unknown;
+    } = {};
     try {
-      body = await res.json();
+      errorJson = await res.json();
     } catch {
       // ignore parse errors
     }
-    const parsed = parseApiErrorBody(body, res.status);
-    throw new ApiError(res.status, parsed.code, parsed.message, parsed.details);
+    const err = errorJson.error ?? errorJson;
+    throw new ApiError(
+      res.status,
+      err.code ?? "UNKNOWN_ERROR",
+      err.message ?? `Request failed with status ${res.status}`,
+      errorJson.details
+    );
   }
 
   if (res.status === 204) return undefined as T;
@@ -134,11 +147,7 @@ async function request<T>(
   return (envelope.data ?? envelope) as T;
 }
 
-async function requestFormData<T>(
-  path: string,
-  formData: FormData,
-  token?: string,
-): Promise<T> {
+async function requestFormData<T>(path: string, formData: FormData, token?: string): Promise<T> {
   const headers: Record<string, string> = {};
   if (token) {
     headers["Authorization"] = `Bearer ${token}`;
@@ -165,6 +174,35 @@ async function requestFormData<T>(
   return (envelope.data ?? envelope) as T;
 }
 
+export const authApi = {
+  postLogin: (token: string) =>
+    request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
+
+  acceptInvite: (data: AcceptInviteRequest) =>
+    request<{ status: string; email?: string; message: string }>("/auth/accept-invite", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
+// ── Users ─────────────────────────────────────────────────────────────────────
+
+export interface UserProfile {
+  id: string;
+  email: string;
+  display_name: string;
+  role: string;
+  status: string;
+  scoped_ids: string | null;
+  district_id: string | null;
+  school_id: string | null;
+  created_at: string;
+}
+
+export const usersApi = {
+  getMe: (token: string) => request<UserProfile>("/users/me", {}, token),
+};
+
 function mapTosVersion(raw: TosVersionRead): TosVersion {
   return {
     id: raw.id,
@@ -183,13 +221,6 @@ function mapDisclaimer(raw: DisclaimerVersionRead): TosVersion {
   };
 }
 
-// ── Auth ──────────────────────────────────────────────────────────────────────
-
-export const authApi = {
-  postLogin: (token: string) =>
-    request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
-};
-
 // ── ToS ───────────────────────────────────────────────────────────────────────
 
 export const tosApi = {
@@ -199,33 +230,33 @@ export const tosApi = {
     request<TosAcceptResponse>(
       "/users/me/accept-tos",
       { method: "POST", body: JSON.stringify({ tos_version_id: tosVersionId }) },
-      token,
+      token
     ),
   declineTos: (token: string) =>
     request<TosDeclineResponse>(
       "/users/me/decline-tos",
       { method: "POST", body: JSON.stringify({}) },
-      token,
+      token
     ),
   list: async (token: string) =>
     (await request<TosVersionRead[]>("/admin/tos", {}, token)).map(mapTosVersion),
   publish: async (token: string, content: string) => {
+    const payload: TosVersionCreate = { content_md: content, language: "en" };
     const raw = await request<TosVersionRead>(
       "/admin/tos",
-      { method: "POST", body: JSON.stringify({ content_md: content }) },
-      token,
+      { method: "POST", body: JSON.stringify(payload) },
+      token
     );
     return { id: raw.id, version: raw.version_number };
   },
   listDisclaimer: async (token: string) =>
-    (await request<DisclaimerVersionRead[]>("/admin/disclaimer", {}, token)).map(
-      mapDisclaimer,
-    ),
+    (await request<DisclaimerVersionRead[]>("/admin/disclaimer", {}, token)).map(mapDisclaimer),
   publishDisclaimer: async (token: string, content: string) => {
+    const payload: DisclaimerVersionCreate = { content, language: "en" };
     const raw = await request<DisclaimerVersionRead>(
       "/admin/disclaimer",
-      { method: "POST", body: JSON.stringify({ content }) },
-      token,
+      { method: "POST", body: JSON.stringify(payload) },
+      token
     );
     return { id: raw.id, version: raw.version_number };
   },
@@ -234,53 +265,177 @@ export const tosApi = {
 // ── Exam Syllabi ──────────────────────────────────────────────────────────────
 
 export const syllabiApi = {
-  list: (token: string) =>
-    request<ExamSyllabusRead[]>("/admin/exam-syllabi", {}, token),
+  list: (token: string) => request<ExamSyllabusRead[]>("/admin/exam-syllabi", {}, token),
   create: (token: string, data: ExamSyllabusCreate) =>
     request<ExamSyllabusRead>(
       "/admin/exam-syllabi",
       { method: "POST", body: JSON.stringify(data) },
-      token,
+      token
     ),
   update: (token: string, id: string, data: ExamSyllabusUpdate) =>
     request<ExamSyllabusRead>(
       `/admin/exam-syllabi/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   delete: (token: string, id: string) =>
     request<void>(`/admin/exam-syllabi/${id}`, { method: "DELETE" }, token),
 };
 
+// ── Districts ─────────────────────────────────────────────────────────────────
+
+export interface District {
+  id: string;
+  name: string;
+  region: string | null;
+  language_preference: string | null;
+  created_at: string;
+}
+
+export const districtsApi = {
+  list: (token: string) => request<District[]>("/admin/districts/", {}, token),
+  create: (token: string, data: DistrictCreate) =>
+    request<District>(
+      "/admin/districts/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        // Idempotency-Key (ARCH §5.9): a retried POST (double-click, network retry)
+        // returns the cached district instead of creating a duplicate.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  update: (token: string, id: string, data: DistrictUpdate) =>
+    request<District>(
+      `/admin/districts/${id}`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  delete: (token: string, id: string) =>
+    request<void>(`/admin/districts/${id}`, { method: "DELETE" }, token),
+};
+
+// ── Admin user invites (T-030) ────────────────────────────────────────────────
+
+export interface UserInvite {
+  id: string;
+  email: string;
+  display_name: string;
+  invited_role: string;
+  district_id: string | null;
+  school_id: string | null;
+  status: string;
+  expires_at: string;
+  resent_count: number;
+  created_at: string;
+}
+
+export interface AdminUser {
+  id: string;
+  email: string;
+  display_name: string;
+  role: string;
+  status: string;
+  district_id: string | null;
+  school_id: string | null;
+  scoped_ids: string | null;
+  created_at: string;
+}
+
+export const adminUsersApi = {
+  list: (token: string) => request<AdminUser[]>("/admin/users/", {}, token),
+  suspend: (token: string, userId: string) =>
+    request<AdminUser>(`/admin/users/${userId}/suspend`, { method: "POST" }, token),
+  reactivate: (token: string, userId: string) =>
+    request<AdminUser>(`/admin/users/${userId}/reactivate`, { method: "POST" }, token),
+  deactivate: (token: string, userId: string) =>
+    request<AdminUser>(`/admin/users/${userId}/deactivate`, { method: "POST" }, token),
+  invite: (token: string, data: AdminUserInviteCreate) =>
+    request<UserInvite>(
+      "/admin/users",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  resend: (token: string, inviteId: string) =>
+    request<UserInvite>(`/admin/users/${inviteId}/resend`, { method: "POST" }, token),
+};
+
+// ── Schools (T-031) ─────────────────────────────────────────────────────────────
+
+export interface School {
+  id: string;
+  district_id: string;
+  name: string;
+  created_at: string;
+}
+
+export const schoolsApi = {
+  list: (token: string, districtId?: string) =>
+    request<School[]>(
+      districtId
+        ? `/admin/schools/?district_id=${encodeURIComponent(districtId)}`
+        : "/admin/schools/",
+      {},
+      token
+    ),
+  create: (token: string, data: SchoolCreate) =>
+    request<School>(
+      "/admin/schools/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  update: (token: string, id: string, data: SchoolUpdate) =>
+    request<School>(`/admin/schools/${id}`, { method: "PUT", body: JSON.stringify(data) }, token),
+  delete: (token: string, id: string) =>
+    request<void>(`/admin/schools/${id}`, { method: "DELETE" }, token),
+};
+
+// ── School Admin (T-032) ────────────────────────────────────────────────────────
+
+export const schoolAdminApi = {
+  getMySchool: (token: string) => request<School>("/school/admin/school", {}, token),
+  listAuditLog: async (token: string) => {
+    const res = await request<{ items: AuditEntry[] }>("/school/admin/audit-log/", {}, token);
+    return res.items ?? [];
+  },
+};
+
 // ── Personas ──────────────────────────────────────────────────────────────────
 
 export const personasApi = {
-  list: (token: string) =>
-    request<PersonaRead[]>("/admin/personas", {}, token),
+  list: (token: string) => request<PersonaRead[]>("/admin/personas", {}, token),
   update: (token: string, id: string, data: PersonaUpdate) =>
     request<PersonaRead>(
       `/admin/personas/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
 };
 
 // ── Subscription Tiers ────────────────────────────────────────────────────────
 
 export const subscriptionsApi = {
-  list: (token: string) =>
-    request<SubscriptionTierRead[]>("/admin/subscription-tiers", {}, token),
+  list: (token: string) => request<SubscriptionTierRead[]>("/admin/subscription-tiers", {}, token),
   create: (token: string, data: SubscriptionTierCreate) =>
     request<SubscriptionTierRead>(
       "/admin/subscription-tiers",
       { method: "POST", body: JSON.stringify(data) },
-      token,
+      token
     ),
   update: (token: string, id: string, data: SubscriptionTierUpdate) =>
     request<SubscriptionTierRead>(
       `/admin/subscription-tiers/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   delete: (token: string, id: string) =>
     request<void>(`/admin/subscription-tiers/${id}`, { method: "DELETE" }, token),
@@ -293,7 +448,7 @@ export const libraryApi = {
     const page = await request<import("./types").LibraryBookListResponse>(
       "/admin/library",
       {},
-      token,
+      token
     );
     return page.items;
   },
@@ -316,7 +471,7 @@ export const libraryApi = {
     return requestFormData<LibraryUploadResponse>(
       `/admin/library?${qs.toString()}`,
       formData,
-      token,
+      token
     );
   },
   softDelete: (token: string, id: string) =>
@@ -325,16 +480,20 @@ export const libraryApi = {
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 
+export interface AuditEntry {
+  id: string;
+  action: string;
+  actor_id: string | null;
+  target_type: string | null;
+  target_id: string | null;
+  created_at: string;
+}
+
 export const auditApi = {
   list: async (token: string, params?: { actor?: string; action?: string }) => {
-    const qs = params
-      ? "?" + new URLSearchParams(params as Record<string, string>).toString()
-      : "";
-    const page = await request<
-      import("./types").AuditLogListResponse | import("./types").AuditLogEntryRead[]
-    >(`/admin/audit-log${qs}`, {}, token);
-    if (Array.isArray(page)) return page;
-    return page.items ?? [];
+    const qs = params ? "?" + new URLSearchParams(params as Record<string, string>).toString() : "";
+    const res = await request<{ items: AuditEntry[] }>(`/admin/audit-log${qs}`, {}, token);
+    return res.items ?? [];
   },
 };
 
@@ -351,4 +510,63 @@ export const notificationsApi = {
   },
   markRead: (token: string, id: string) =>
     request<void>(`/notifications/${id}/read`, { method: "POST" }, token),
+};
+
+// ── Bulk Import (Coordinator) ─────────────────────────────────────────────────
+
+export interface BulkImportRowResult {
+  row_number: number;
+  status: "valid" | "invalid";
+  errors: string[];
+  data: Record<string, string> | null;
+}
+
+export interface BulkImportJob {
+  id: string;
+  school_id: string;
+  imported_by_user_id: string;
+  upload_id: string;
+  total_rows: number;
+  success_rows: number;
+  failed_rows: number;
+  status: string;
+  rows: BulkImportRowResult[];
+  created_at: string;
+  completed_at: string | null;
+}
+
+async function uploadRequest<T>(path: string, formData: FormData, token: string): Promise<T> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+    body: formData,
+  });
+
+  if (!res.ok) {
+    let errorJson: { error?: { code?: string; message?: string }; code?: string; message?: string } = {};
+    try {
+      errorJson = await res.json();
+    } catch {
+      // ignore
+    }
+    const err = errorJson.error ?? errorJson;
+    throw new ApiError(
+      res.status,
+      err.code ?? "UNKNOWN_ERROR",
+      err.message ?? `Request failed with status ${res.status}`
+    );
+  }
+
+  const envelope = await res.json();
+  return (envelope.data ?? envelope) as T;
+}
+
+export const bulkImportApi = {
+  dryRun: (token: string, file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    return uploadRequest<BulkImportJob>("/coordinator/bulk-imports/", formData, token);
+  },
+  get: (token: string, importId: string) =>
+    request<BulkImportJob>(`/coordinator/bulk-imports/${importId}`, {}, token),
 };
