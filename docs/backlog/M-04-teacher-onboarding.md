@@ -520,7 +520,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3 / 6
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3 (audit-logged actions)
@@ -537,10 +537,10 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Each library mutation writes an audit entry (actor, action, target, scope, time)
-2. [ ] private→public publish is logged
-3. [ ] Capacity override (School Admin) flagged/elevated
-4. [ ] Audit page shows M-04 actions, scope-restricted per role
+1. [x] Each library mutation writes an audit entry (actor, action, target, scope, time)
+2. [x] private→public publish is logged
+3. [x] Capacity override (School Admin) flagged/elevated
+4. [x] Audit page shows M-04 actions, scope-restricted per role
 
 ### Out of scope
 - Audit export (Phase 2)

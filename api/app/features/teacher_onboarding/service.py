@@ -24,6 +24,7 @@ from app.features.teacher_onboarding.schemas import (
 )
 from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
+from app.features.audit.actions import CAPACITY_UPDATED
 from app.infrastructure.audit.log import audit
 from app.infrastructure.notifications.account import notify_account_event
 
@@ -177,7 +178,7 @@ class TeacherOnboardingService:
 
         await audit(
             session=self._session,
-            action="capacity.updated",
+            action=CAPACITY_UPDATED,
             actor_id=str(claims.get("sub", "")),
             actor_role=user.role.value,
             target_type="user",

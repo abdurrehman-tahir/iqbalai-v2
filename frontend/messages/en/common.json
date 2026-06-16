@@ -222,6 +222,16 @@
         "action": "Action",
         "actor": "Actor (ID)",
         "target": "Target"
+      },
+      "flagged": "Flagged",
+      "actions": {
+        "school_library_item_uploaded": "Library item uploaded",
+        "school_library_item_published": "Reference published to school",
+        "school_library_item_deleted": "Library item deleted",
+        "school_library_item_ingested": "Library item ingested",
+        "school_library_item_selection_removed": "Library selection removed",
+        "capacity_updated": "Teacher capacity updated",
+        "capacity_override": "Capacity override (elevated)"
       }
     }
   },

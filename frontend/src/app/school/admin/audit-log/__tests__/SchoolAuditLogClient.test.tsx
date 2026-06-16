@@ -51,4 +51,23 @@ describe("SchoolAuditLogClient", () => {
     await waitFor(() => expect(screen.getByText("user.invite_sent")).toBeInTheDocument());
     expect(screen.getByText("showing_last")).toBeInTheDocument();
   });
+
+  it("renders friendly labels for M-04 audit actions", async () => {
+    listAuditLogMock.mockResolvedValue([
+      {
+        id: "a2",
+        action: "school_library_item.published",
+        actor_id: "teacher-1",
+        target_type: "school_library_item",
+        target_id: "item-1",
+        created_at: "2026-06-12T11:00:00Z",
+      },
+    ]);
+
+    renderWithClient(<SchoolAuditLogClient />);
+
+    await waitFor(() =>
+      expect(screen.getByText("actions.school_library_item_published")).toBeInTheDocument(),
+    );
+  });
 });

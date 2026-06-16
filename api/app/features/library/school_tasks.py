@@ -207,6 +207,32 @@ async def _persist_chunks(
     await session.commit()
 
 
+async def _audit_ingestion_complete(
+    session: AsyncSession,
+    library_item_id: str,
+    school_id: str,
+) -> None:
+    from app.features.audit.actions import SCHOOL_LIBRARY_ITEM_INGESTED
+    from app.infrastructure.audit.log import audit
+
+    item = await _load_item(session, library_item_id, school_id)
+    if item is None:
+        return
+    await audit(
+        session=session,
+        action=SCHOOL_LIBRARY_ITEM_INGESTED,
+        actor_id=None,
+        actor_role="system",
+        target_type="school_library_item",
+        target_id=item.id,
+        school_id=school_id,
+        metadata={
+            "title": item.title,
+            "content_type": item.content_type.value,
+        },
+    )
+
+
 async def _notify_ingestion_available(
     session: AsyncSession,
     library_item_id: str,
@@ -362,6 +388,9 @@ def ingest_school_library_item(
             )
         )
 
+        run_db(
+            lambda session: _audit_ingestion_complete(session, library_item_id, school_id)
+        )
         run_db(
             lambda session: _notify_ingestion_available(session, library_item_id, school_id)
         )

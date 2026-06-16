@@ -3,6 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations, useFormatter } from "next-intl";
 import { ClipboardList } from "lucide-react";
+import { auditActionLabelKey, isFlaggedAuditEntry } from "@/lib/audit/actionLabels";
 import { schoolAdminApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -84,7 +85,22 @@ export function SchoolAuditLogClient() {
                       timeStyle: "short",
                     })}
                   </td>
-                  <td className="px-4 py-3 font-medium text-gray-900">{entry.action}</td>
+                  <td className="px-4 py-3 font-medium text-gray-900">
+                    {(() => {
+                      const labelKey = auditActionLabelKey(entry.action);
+                      const label = labelKey ? t(`actions.${labelKey}`) : entry.action;
+                      return (
+                        <span className="inline-flex items-center gap-2">
+                          {label}
+                          {isFlaggedAuditEntry(entry) ? (
+                            <span className="rounded bg-amber-100 px-2 py-0.5 text-xs font-medium text-amber-900">
+                              {t("flagged")}
+                            </span>
+                          ) : null}
+                        </span>
+                      );
+                    })()}
+                  </td>
                   <td className="px-4 py-3 text-gray-500 text-xs hidden sm:table-cell break-all">
                     {entry.actor_id ?? "—"}
                   </td>

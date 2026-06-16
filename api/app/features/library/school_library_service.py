@@ -32,6 +32,12 @@ from app.features.library.school_models import (
 )
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
+from app.features.audit.actions import (
+    SCHOOL_LIBRARY_ITEM_DELETED,
+    SCHOOL_LIBRARY_ITEM_PUBLISHED,
+    SCHOOL_LIBRARY_ITEM_SELECTION_REMOVED,
+    SCHOOL_LIBRARY_ITEM_UPLOADED,
+)
 from app.infrastructure.audit.log import audit
 from app.infrastructure.storage.client import sha256_of_bytes
 
@@ -124,6 +130,20 @@ class SchoolLibraryService:
                 LibraryIngestionStatus.FAILED,
             ):
                 self._enqueue_ingestion(existing_item)
+            await audit(
+                session=self._session,
+                action=SCHOOL_LIBRARY_ITEM_UPLOADED,
+                actor_id=authentik_id,
+                actor_role=user.role.value,
+                target_type="school_library_item",
+                target_id=existing_item.id,
+                school_id=user.school_id,
+                metadata={
+                    "title": existing_item.title,
+                    "storage_deduplicated": True,
+                    "selection_created": selection_created,
+                },
+            )
             logger.info(
                 "school_library_upload_deduped",
                 item_id=existing_item.id,
@@ -174,6 +194,21 @@ class SchoolLibraryService:
         from app.features.library.school_library_notifications import publish_library_item_uploaded
 
         await publish_library_item_uploaded(self._session, saved, actor_id=user.id)
+
+        await audit(
+            session=self._session,
+            action=SCHOOL_LIBRARY_ITEM_UPLOADED,
+            actor_id=authentik_id,
+            actor_role=user.role.value,
+            target_type="school_library_item",
+            target_id=saved.id,
+            school_id=user.school_id,
+            metadata={
+                "title": saved.title,
+                "content_type": saved.content_type.value,
+                "storage_deduplicated": storage_deduplicated,
+            },
+        )
 
         self._enqueue_ingestion(saved)
 
@@ -296,6 +331,16 @@ class SchoolLibraryService:
         from app.features.library.school_library_notifications import notify_library_item_published
 
         await notify_library_item_published(self._session, item, actor=user)
+        await audit(
+            session=self._session,
+            action=SCHOOL_LIBRARY_ITEM_PUBLISHED,
+            actor_id=authentik_id,
+            actor_role=user.role.value,
+            target_type="school_library_item",
+            target_id=item.id,
+            school_id=user.school_id,
+            metadata={"title": item.title},
+        )
         logger.info(
             "school_library_reference_published",
             item_id=item.id,
@@ -327,6 +372,16 @@ class SchoolLibraryService:
         if selection is None:
             raise NotFoundError("Library selection not found")
         await self._repo.soft_delete_selection(selection)
+        await audit(
+            session=self._session,
+            action=SCHOOL_LIBRARY_ITEM_SELECTION_REMOVED,
+            actor_id=authentik_id,
+            actor_role=user.role.value,
+            target_type="school_library_item",
+            target_id=item.id,
+            school_id=user.school_id,
+            metadata={"title": item.title, "visibility": item.visibility.value},
+        )
         logger.info(
             "school_library_selection_removed",
             item_id=item.id,
@@ -349,7 +404,7 @@ class SchoolLibraryService:
 
         await audit(
             session=self._session,
-            action="school_library_item.deleted",
+            action=SCHOOL_LIBRARY_ITEM_DELETED,
             actor_id=authentik_id,
             actor_role=user.role.value,
             target_type="school_library_item",

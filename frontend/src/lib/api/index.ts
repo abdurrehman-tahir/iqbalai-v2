@@ -605,6 +605,7 @@ export interface AuditEntry {
   actor_id: string | null;
   target_type: string | null;
   target_id: string | null;
+  metadata_json?: string | null;
   created_at: string;
 }
 
