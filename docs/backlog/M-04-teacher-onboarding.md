@@ -552,7 +552,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 6
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.1-§3.4 (full onboarding + library flow)
@@ -569,11 +569,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] E2E runs green in CI end-to-end
-2. [ ] Ingestion pipeline asserted (status → available, chunks in Qdrant, topic tree for curriculum)
-3. [ ] Privacy toggle + private→public one-way asserted
-4. [ ] Cross-grade filter (Grade 9 sees ≤9) asserted
-5. [ ] Idempotent / re-runnable with fresh tenants; uses a fixture PDF (no external download)
+1. [x] E2E runs green in CI end-to-end
+2. [x] Ingestion pipeline asserted (status → available, chunks in Qdrant, topic tree for curriculum)
+3. [x] Privacy toggle + private→public one-way asserted
+4. [x] Cross-grade filter (Grade 9 sees ≤9) asserted
+5. [x] Idempotent / re-runnable with fresh tenants; uses a fixture PDF (no external download)
 
 ### Out of scope
 - Frontend Playwright E2E (Phase 2 unless already established)
