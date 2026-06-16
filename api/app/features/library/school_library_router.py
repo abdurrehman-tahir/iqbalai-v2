@@ -128,6 +128,28 @@ async def get_school_library_item(
     return success(SchoolLibraryItemRead.model_validate(item))
 
 
+@router.delete(
+    "/{item_id}",
+    response_model=SuccessEnvelope[SchoolLibraryItemRead],
+    operation_id="school_library_delete_item",
+    summary="Soft-delete a school library item",
+    description=(
+        "Marks the item deleted. Storage and Qdrant embeddings are retained "
+        "so existing lecture citations remain valid."
+    ),
+    dependencies=[require_role("teacher")],
+)
+async def delete_school_library_item(
+    item_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SuccessEnvelope[SchoolLibraryItemRead]:
+    svc = SchoolLibraryService(db)
+    item = await svc.soft_delete_item(item_id, authentik_id=str(claims.get("sub", "")))
+    logger.info("school_library_delete_endpoint", item_id=item.id)
+    return success(SchoolLibraryItemRead.model_validate(item))
+
+
 @router.post(
     "/{item_id}/publish",
     response_model=SuccessEnvelope[SchoolLibraryItemRead],

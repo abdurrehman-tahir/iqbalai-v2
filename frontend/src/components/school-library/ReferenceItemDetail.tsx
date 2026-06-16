@@ -13,6 +13,7 @@ import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LibraryIngestionPanel } from "./LibraryIngestionPanel";
+import { LibraryItemDeletePanel } from "./LibraryItemDeletePanel";
 
 const STATUS_VARIANT: Record<
   string,
@@ -27,9 +28,10 @@ const STATUS_VARIANT: Record<
 interface ReferenceItemDetailProps {
   itemId: string;
   uploadHref: string;
+  libraryHref: string;
 }
 
-export function ReferenceItemDetail({ itemId, uploadHref }: ReferenceItemDetailProps) {
+export function ReferenceItemDetail({ itemId, uploadHref, libraryHref }: ReferenceItemDetailProps) {
   const t = useTranslations("school_library.reference");
   const router = useRouter();
   const queryClient = useQueryClient();
@@ -175,6 +177,12 @@ export function ReferenceItemDetail({ itemId, uploadHref }: ReferenceItemDetailP
           </Button>
         </div>
       )}
+
+      <LibraryItemDeletePanel
+        itemId={itemId}
+        libraryHref={libraryHref}
+        canDelete={isOwner}
+      />
 
       {actionMessage && (
         <p className="text-sm text-green-700" role="status">

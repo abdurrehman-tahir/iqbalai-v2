@@ -377,6 +377,13 @@
         "pending": "This item is waiting to be ingested.",
         "ingesting": "Ingestion is in progress — this page updates automatically."
       }
+    },
+    "lifecycle": {
+      "delete_section_title": "Delete from library",
+      "delete_section_help": "Soft-deletes this item from the library. Stored content is retained for existing citations.",
+      "delete_button": "Delete item",
+      "deleting": "Deleting…",
+      "delete_error": "Could not delete this item."
     }
   },
   "teacher": {

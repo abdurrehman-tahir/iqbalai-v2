@@ -397,6 +397,55 @@ async def test_remove_selection_soft_deletes_selection() -> None:
 
 
 @pytest.mark.asyncio
+async def test_soft_delete_item_sets_deleted_at_and_audits() -> None:
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher = _teacher()
+    curriculum = _item(
+        content_type=LibraryContentType.CURRICULUM,
+        visibility=LibraryVisibility.SCHOOL_PUBLIC,
+        created_by="teacher-1",
+    )
+    deleted = _item(
+        content_type=LibraryContentType.CURRICULUM,
+        visibility=LibraryVisibility.SCHOOL_PUBLIC,
+        created_by="teacher-1",
+    )
+    deleted.deleted_at = datetime.now(timezone.utc)
+
+    async def _fake_audit(**kwargs: object) -> None:
+        pass
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
+        patch.object(svc._repo, "get_by_id", return_value=curriculum),
+        patch.object(svc._repo, "soft_delete_item", return_value=deleted) as soft_delete,
+        patch("app.features.library.school_library_service.audit", _fake_audit),
+    ):
+        result = await svc.soft_delete_item("item-1", authentik_id="auth-teacher-1")
+
+    assert result.deleted_at is not None
+    soft_delete.assert_awaited_once_with(curriculum)
+
+
+@pytest.mark.asyncio
+async def test_soft_delete_item_blocks_non_owner_teacher() -> None:
+    from app.core.exceptions import PermissionDeniedError
+
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher = _teacher()
+    other_item = _item(created_by="other-teacher")
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
+        patch.object(svc._repo, "get_by_id", return_value=other_item),
+    ):
+        with pytest.raises(PermissionDeniedError):
+            await svc.soft_delete_item("item-1", authentik_id="auth-teacher-1")
+
+
+@pytest.mark.asyncio
 async def test_coordinator_reference_upload_forces_public() -> None:
     session = AsyncMock()
     svc = SchoolLibraryService(session)

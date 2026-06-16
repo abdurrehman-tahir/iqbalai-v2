@@ -74,6 +74,12 @@ class SchoolLibraryRepository:
         selection.deleted_at = datetime.now(timezone.utc)
         await self._session.commit()
 
+    async def soft_delete_item(self, item: SchoolLibraryItem) -> SchoolLibraryItem:
+        item.deleted_at = datetime.now(timezone.utc)
+        await self._session.commit()
+        await self._session.refresh(item)
+        return item
+
     def _visible_to_user(self, school_id: str, user_id: str):
         selection_exists = (
             select(SchoolLibraryItemSelection.id)

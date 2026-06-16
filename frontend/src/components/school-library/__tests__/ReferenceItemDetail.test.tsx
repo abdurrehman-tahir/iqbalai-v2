@@ -72,7 +72,11 @@ describe("ReferenceItemDetail (T-059)", () => {
   it("shows publish action for private items owned by the viewer", async () => {
     getMock.mockResolvedValue(privateItem);
     renderWithProviders(
-      <ReferenceItemDetail itemId="ref-item-1" uploadHref="/teacher/library/reference/upload" />,
+      <ReferenceItemDetail
+        itemId="ref-item-1"
+        uploadHref="/teacher/library/reference/upload"
+        libraryHref="/teacher/library"
+      />,
     );
 
     await waitFor(() => expect(screen.getByText("Private — only you")).toBeInTheDocument());
@@ -85,7 +89,11 @@ describe("ReferenceItemDetail (T-059)", () => {
     const user = userEvent.setup();
 
     renderWithProviders(
-      <ReferenceItemDetail itemId="ref-item-1" uploadHref="/teacher/library/reference/upload" />,
+      <ReferenceItemDetail
+        itemId="ref-item-1"
+        uploadHref="/teacher/library/reference/upload"
+        libraryHref="/teacher/library"
+      />,
     );
 
     await waitFor(() => expect(screen.getByRole("button", { name: /Make available to school/i })).toBeInTheDocument());
@@ -98,7 +106,11 @@ describe("ReferenceItemDetail (T-059)", () => {
   it("shows unpublish blocked message for public items", async () => {
     getMock.mockResolvedValue(publicItem);
     renderWithProviders(
-      <ReferenceItemDetail itemId="ref-item-1" uploadHref="/teacher/library/reference/upload" />,
+      <ReferenceItemDetail
+        itemId="ref-item-1"
+        uploadHref="/teacher/library/reference/upload"
+        libraryHref="/teacher/library"
+      />,
     );
 
     await waitFor(() => expect(screen.getByText("School public")).toBeInTheDocument());
@@ -112,7 +124,11 @@ describe("ReferenceItemDetail (T-059)", () => {
     const user = userEvent.setup();
 
     renderWithProviders(
-      <ReferenceItemDetail itemId="ref-item-1" uploadHref="/teacher/library/reference/upload" />,
+      <ReferenceItemDetail
+        itemId="ref-item-1"
+        uploadHref="/teacher/library/reference/upload"
+        libraryHref="/teacher/library"
+      />,
     );
 
     await waitFor(() => expect(screen.getByRole("button", { name: /Remove my selection/i })).toBeInTheDocument());

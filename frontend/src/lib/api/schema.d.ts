@@ -913,7 +913,11 @@ export interface paths {
         get: operations["school_library_get_item"];
         put?: never;
         post?: never;
-        delete?: never;
+        /**
+         * Soft-delete a school library item
+         * @description Marks the item deleted. Storage and Qdrant embeddings are retained so existing lecture citations remain valid.
+         */
+        delete: operations["school_library_delete_item"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4956,6 +4960,37 @@ export interface operations {
             query?: {
                 grade_level_ordinal?: number | null;
             };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_delete_item: {
+        parameters: {
+            query?: never;
             header?: never;
             path: {
                 item_id: string;

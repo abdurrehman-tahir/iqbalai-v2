@@ -32,6 +32,7 @@ from app.features.library.school_models import (
 )
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
+from app.infrastructure.audit.log import audit
 from app.infrastructure.storage.client import sha256_of_bytes
 
 logger = structlog.get_logger(__name__)
@@ -270,6 +271,11 @@ class SchoolLibraryService:
             return True
         return user.role in _ADMIN_UPLOAD_ROLES
 
+    def _can_delete_item(self, item: SchoolLibraryItem, user: User) -> bool:
+        if item.created_by == user.id:
+            return True
+        return user.role in _ADMIN_UPLOAD_ROLES
+
     async def publish_reference(self, item_id: str, authentik_id: str) -> SchoolLibraryItem:
         """Publish a private reference book to the school library (one-way)."""
         user = await self._require_uploader(authentik_id)
@@ -321,6 +327,41 @@ class SchoolLibraryService:
             user_id=user.id,
         )
         return item
+
+    async def soft_delete_item(self, item_id: str, authentik_id: str) -> SchoolLibraryItem:
+        """Soft-delete a library item — row and vectors retained for citation integrity."""
+        user = await self._require_uploader(authentik_id)
+        assert user.school_id is not None
+        item = await self._get_school_item(item_id, user.school_id)
+        if not self._can_delete_item(item, user):
+            raise PermissionDeniedError("You can only delete library items you uploaded")
+        if not await self._can_view_item(item, user.id):
+            raise NotFoundError("Library item not found")
+
+        deleted = await self._repo.soft_delete_item(item)
+
+        await audit(
+            session=self._session,
+            action="school_library_item.deleted",
+            actor_id=authentik_id,
+            actor_role=user.role.value,
+            target_type="school_library_item",
+            target_id=item.id,
+            school_id=user.school_id,
+            metadata={
+                "title": item.title,
+                "content_type": item.content_type.value,
+                "visibility": item.visibility.value,
+            },
+        )
+
+        logger.info(
+            "school_library_item_soft_deleted",
+            item_id=item.id,
+            school_id=user.school_id,
+            actor_id=user.id,
+        )
+        return deleted
 
     async def retry_ingestion(self, item_id: str, authentik_id: str) -> SchoolLibraryItem:
         """Re-queue ingestion for a failed or pending library item."""

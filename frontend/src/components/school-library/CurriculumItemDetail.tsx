@@ -1,15 +1,18 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { schoolLibraryApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
+import { getUser } from "@/lib/auth";
 import { Badge } from "@/components/ui/badge";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { parseTopicTree, TopicTreeView } from "./TopicTreeView";
 import { LibraryIngestionPanel } from "./LibraryIngestionPanel";
+import { LibraryItemDeletePanel } from "./LibraryItemDeletePanel";
 
 const STATUS_VARIANT: Record<
   string,
@@ -24,11 +27,17 @@ const STATUS_VARIANT: Record<
 interface CurriculumItemDetailProps {
   itemId: string;
   uploadHref: string;
+  libraryHref: string;
 }
 
-export function CurriculumItemDetail({ itemId, uploadHref }: CurriculumItemDetailProps) {
+export function CurriculumItemDetail({ itemId, uploadHref, libraryHref }: CurriculumItemDetailProps) {
   const t = useTranslations("school_library.curriculum");
   const { mounted, token } = useClientAuth();
+  const [userId, setUserId] = useState<string | null>(null);
+
+  useEffect(() => {
+    setUserId(getUser()?.user_id ?? null);
+  }, []);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["school-library", "item", itemId],
@@ -55,6 +64,7 @@ export function CurriculumItemDetail({ itemId, uploadHref }: CurriculumItemDetai
 
   const tree = parseTopicTree(data);
   const statusKey = data.ingestion_status as keyof typeof STATUS_VARIANT;
+  const isOwner = userId !== null && data.created_by === userId;
 
   return (
     <div className="space-y-6">
@@ -107,6 +117,12 @@ export function CurriculumItemDetail({ itemId, uploadHref }: CurriculumItemDetai
           )}
         </div>
       </section>
+
+      <LibraryItemDeletePanel
+        itemId={itemId}
+        libraryHref={libraryHref}
+        canDelete={isOwner}
+      />
 
       <Link href={uploadHref} className="text-sm font-medium text-brand-700 hover:underline">
         {t("detail.upload_another")}

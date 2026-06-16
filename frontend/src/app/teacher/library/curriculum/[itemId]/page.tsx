@@ -10,6 +10,7 @@ export default async function TeacherCurriculumDetailPage({
     <CurriculumItemDetail
       itemId={itemId}
       uploadHref="/teacher/library/curriculum/upload"
+      libraryHref="/teacher/library"
     />
   );
 }

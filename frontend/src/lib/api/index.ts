@@ -583,6 +583,12 @@ export const schoolLibraryApi = {
       { method: "DELETE" },
       token,
     ),
+  deleteItem: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(
+      `/school/library/${itemId}`,
+      { method: "DELETE" },
+      token,
+    ),
   retryIngestion: (token: string, itemId: string) =>
     request<import("./types").SchoolLibraryItemRead>(
       `/school/library/${itemId}/retry-ingestion`,

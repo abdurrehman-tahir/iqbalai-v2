@@ -4,14 +4,23 @@ import { NextIntlClientProvider } from "next-intl";
 import { CurriculumItemDetail } from "../CurriculumItemDetail";
 import en from "../../../../messages/en/common.json";
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ push: vi.fn() }),
+}));
+
 vi.mock("@/hooks/use-client-auth", () => ({
   useClientAuth: () => ({ mounted: true, token: "test-token" }),
+}));
+
+vi.mock("@/lib/auth", () => ({
+  getUser: () => ({ user_id: "user-1" }),
 }));
 
 const getMock = vi.fn();
 vi.mock("@/lib/api", () => ({
   schoolLibraryApi: {
     get: (...args: unknown[]) => getMock(...args),
+    deleteItem: vi.fn(),
   },
 }));
 
@@ -34,6 +43,7 @@ describe("CurriculumItemDetail (T-058)", () => {
       grade_level_ordinal: 9,
       ingestion_status: "available",
       visibility: "school_public",
+      created_by: "user-1",
       topic_tree_jsonb: {
         chapters: [
           {
@@ -46,7 +56,11 @@ describe("CurriculumItemDetail (T-058)", () => {
     });
 
     renderWithProviders(
-      <CurriculumItemDetail itemId="item-1" uploadHref="/coordinator/library/curriculum/upload" />,
+      <CurriculumItemDetail
+        itemId="item-1"
+        uploadHref="/coordinator/library/curriculum/upload"
+        libraryHref="/coordinator/curriculum"
+      />,
     );
 
     expect(await screen.findByRole("status")).toHaveTextContent("Available");

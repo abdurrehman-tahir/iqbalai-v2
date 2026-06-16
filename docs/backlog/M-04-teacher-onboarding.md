@@ -454,7 +454,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3, §3.4 (SOFT_DELETED / REMOVED; existing lectures retain citations)
@@ -471,11 +471,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Soft-deleting a curriculum hides it from the library + new selection
-2. [ ] The underlying row + vectors are retained (citation integrity for future lectures)
-3. [ ] Removing a selection of a public item leaves the item for other selectors
-4. [ ] Soft-deleted items don't appear in browse/search/filter
-5. [ ] Audit entry written on delete
+1. [x] Soft-deleting a curriculum hides it from the library + new selection
+2. [x] The underlying row + vectors are retained (citation integrity for future lectures)
+3. [x] Removing a selection of a public item leaves the item for other selectors
+4. [x] Soft-deleted items don't appear in browse/search/filter
+5. [x] Audit entry written on delete
 
 ### Out of scope
 - Hard-delete / purge (Phase 2; prohibited-action territory per safety rules anyway)

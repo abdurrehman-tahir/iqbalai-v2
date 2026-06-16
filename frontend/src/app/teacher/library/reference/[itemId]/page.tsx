@@ -10,6 +10,7 @@ export default async function TeacherReferenceDetailPage({
     <ReferenceItemDetail
       itemId={itemId}
       uploadHref="/teacher/library/reference/upload"
+      libraryHref="/teacher/library"
     />
   );
 }
