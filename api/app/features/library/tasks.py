@@ -27,7 +27,11 @@ from app.db.celery_async import run_db
 from app.infrastructure.celery.celery_app import celery_app
 from app.infrastructure.ingestion.chunker import chunk_text
 from app.infrastructure.ingestion.extractor import extract_text_from_pdf
-from app.infrastructure.rag.embedder import embed_sync, embedding_vector_dim, platform_chunks_collection
+from app.infrastructure.rag.embedder import (
+    embed_sync,
+    embedding_vector_dim,
+    platform_chunks_collection,
+)
 from app.infrastructure.storage.client import download_bytes
 
 logger = structlog.get_logger(__name__)

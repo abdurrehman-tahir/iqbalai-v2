@@ -52,6 +52,27 @@ def platform_chunks_collection() -> str:
     return "platform_chunks"
 
 
+def reference_book_chunks_collection() -> str:
+    """School-tier reference book vectors (ARCH §7.6)."""
+    if embedding_provider() == "local":
+        return "reference_book_chunks_local"
+    return "reference_book_chunks"
+
+
+def curriculum_chunks_collection() -> str:
+    """School-tier curriculum vectors (ARCH §7.6)."""
+    if embedding_provider() == "local":
+        return "curriculum_chunks_local"
+    return "curriculum_chunks"
+
+
+def school_library_collection(content_type: str) -> str:
+    """Resolve Qdrant collection for a school library item content type."""
+    if content_type == "curriculum":
+        return curriculum_chunks_collection()
+    return reference_book_chunks_collection()
+
+
 def _infinity_embed_sync(texts: list[str]) -> list[list[float]]:
     settings = get_settings()
     model = embedding_model_name()

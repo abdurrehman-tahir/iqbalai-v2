@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime, timezone
 from enum import StrEnum
 
-from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, text
+from sqlalchemy import DateTime, ForeignKey, Index, Integer, String, Text, text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -127,3 +127,34 @@ class SchoolLibraryItemSelection(AuditMixin, SoftDeleteMixin, Base):
         default=lambda: datetime.now(timezone.utc),
         server_default=text("now() AT TIME ZONE 'UTC'"),
     )
+
+
+class SchoolLibraryItemChunk(AuditMixin, Base):
+    """Chunk metadata for an ingested school library item (vectors live in Qdrant)."""
+
+    __tablename__ = "library_item_chunks"
+    __table_args__ = (
+        Index("ix_library_item_chunks_library_item_id", "library_item_id"),
+        Index("ix_library_item_chunks_school_id", "school_id"),
+        Index(
+            "library_item_chunks_item_index_uq",
+            "library_item_id",
+            "chunk_index",
+            unique=True,
+        ),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    library_item_id: Mapped[str] = mapped_column(
+        ForeignKey("school.library_items.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    school_id: Mapped[str] = mapped_column(
+        ForeignKey("school.schools.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    chunk_index: Mapped[int] = mapped_column(Integer, nullable=False)
+    page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    qdrant_point_id: Mapped[str] = mapped_column(String(36), nullable=False)
+    chunk_text: Mapped[str] = mapped_column(Text, nullable=False)

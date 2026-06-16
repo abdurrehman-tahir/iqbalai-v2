@@ -99,6 +99,9 @@ async def test_upload_creates_pending_item() -> None:
             ),
         ),
         patch("app.features.library.school_library_service.sha256_of_bytes", return_value="b" * 64),
+        patch(
+            "app.features.library.school_tasks.ingest_school_library_item.apply_async"
+        ) as mock_ingest,
     ):
         result = await svc.upload(
             data=b"%PDF-1.4 test",
@@ -110,14 +113,18 @@ async def test_upload_creates_pending_item() -> None:
     assert result.item.ingestion_status == "pending"
     assert result.storage_deduplicated is False
     assert result.selection_created is True
+    mock_ingest.assert_called_once_with(
+        args=["item-new", "school-1"],
+        queue="ingestion",
+    )
 
 
 @pytest.mark.asyncio
-async def test_upload_dedup_reuses_existing_item_and_creates_selection() -> None:
+async def test_upload_dedup_requeues_ingestion_when_pending() -> None:
     session = AsyncMock()
     svc = SchoolLibraryService(session)
     teacher2 = _teacher(user_id="teacher-2")
-    existing = _item(created_by="teacher-1")
+    existing = _item(created_by="teacher-1", ingestion_status=LibraryIngestionStatus.PENDING)
     meta = SchoolLibraryUploadRequest(title="Physics Notes")
 
     with (
@@ -132,6 +139,46 @@ async def test_upload_dedup_reuses_existing_item_and_creates_selection() -> None
             ),
         ),
         patch("app.features.library.school_library_service.sha256_of_bytes", return_value="a" * 64),
+        patch(
+            "app.features.library.school_tasks.ingest_school_library_item.apply_async"
+        ) as mock_ingest,
+    ):
+        await svc.upload(
+            data=b"%PDF-same",
+            filename="notes.pdf",
+            meta=meta,
+            authentik_id="auth-teacher-1",
+        )
+
+    mock_ingest.assert_called_once_with(args=["item-1", "school-1"], queue="ingestion")
+
+
+@pytest.mark.asyncio
+async def test_upload_dedup_reuses_existing_item_and_creates_selection() -> None:
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher2 = _teacher(user_id="teacher-2")
+    existing = _item(
+        created_by="teacher-1",
+        ingestion_status=LibraryIngestionStatus.AVAILABLE,
+    )
+    meta = SchoolLibraryUploadRequest(title="Physics Notes")
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher2),
+        patch.object(svc._repo, "get_by_school_sha256", return_value=existing),
+        patch.object(svc._repo, "get_selection", return_value=None),
+        patch.object(
+            svc._repo,
+            "save_selection",
+            return_value=SchoolLibraryItemSelection(
+                id="sel-2", library_item_id="item-1", user_id="teacher-2"
+            ),
+        ),
+        patch("app.features.library.school_library_service.sha256_of_bytes", return_value="a" * 64),
+        patch(
+            "app.features.library.school_tasks.ingest_school_library_item.apply_async"
+        ) as mock_ingest,
     ):
         result = await svc.upload(
             data=b"%PDF-same",
@@ -143,6 +190,7 @@ async def test_upload_dedup_reuses_existing_item_and_creates_selection() -> None
     assert result.storage_deduplicated is True
     assert result.item.id == "item-1"
     assert result.selection_created is True
+    mock_ingest.assert_not_called()
 
 
 @pytest.mark.asyncio

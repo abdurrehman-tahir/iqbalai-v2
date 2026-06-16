@@ -97,6 +97,11 @@ class SchoolLibraryService:
         existing_item = await self._repo.get_by_school_sha256(user.school_id, file_sha256)
         if existing_item is not None:
             _, selection_created = await self._ensure_selection(existing_item.id, user.id)
+            if existing_item.ingestion_status in (
+                LibraryIngestionStatus.PENDING,
+                LibraryIngestionStatus.FAILED,
+            ):
+                self._enqueue_ingestion(existing_item)
             logger.info(
                 "school_library_upload_deduped",
                 item_id=existing_item.id,
@@ -144,6 +149,8 @@ class SchoolLibraryService:
         saved = await self._repo.save_item(item)
         _, selection_created = await self._ensure_selection(saved.id, user.id)
 
+        self._enqueue_ingestion(saved)
+
         logger.info(
             "school_library_upload_created",
             item_id=saved.id,
@@ -155,4 +162,18 @@ class SchoolLibraryService:
             storage_deduplicated=storage_deduplicated,
             selection_created=selection_created,
             message="Upload accepted; item pending ingestion.",
+        )
+
+    def _enqueue_ingestion(self, item: SchoolLibraryItem) -> None:
+        """Queue async RAG ingestion for a library item (T-056)."""
+        from app.features.library.school_tasks import ingest_school_library_item
+
+        ingest_school_library_item.apply_async(
+            args=[item.id, item.school_id],
+            queue="ingestion",
+        )
+        logger.info(
+            "school_library_ingestion_queued",
+            item_id=item.id,
+            school_id=item.school_id,
         )

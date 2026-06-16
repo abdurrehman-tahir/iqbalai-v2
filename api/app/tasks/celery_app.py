@@ -5,6 +5,11 @@ from app.infrastructure.celery.celery_app import celery_app
 
 # Ingestion tasks pull optional PDF/langchain deps — register when available.
 try:
+    import app.features.library.school_tasks  # noqa: F401
+except ImportError:
+    pass
+
+try:
     import app.features.library.tasks  # noqa: F401
 except ImportError:
     pass
