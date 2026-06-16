@@ -5,6 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { teacherOnboardingApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
+import { TeacherCapacitySettings } from "@/components/teacher/TeacherCapacitySettings";
 
 export function TeacherHomeClient() {
   const t = useTranslations("teacher.dashboard");
@@ -37,6 +38,8 @@ export function TeacherHomeClient() {
           {t("ready_banner")}
         </div>
       )}
+
+      {!isLoading && onboarding && <TeacherCapacitySettings onboarding={onboarding} />}
 
       <div className="rounded-lg border border-dashed border-gray-300 bg-white p-12 text-center">
         <p className="text-lg font-medium text-gray-900">{t("title")}</p>

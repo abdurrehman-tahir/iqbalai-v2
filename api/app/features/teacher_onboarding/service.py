@@ -8,12 +8,15 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, PreconditionFailedError
+from app.features.offerings.service import DEFAULT_TEACHER_CAPACITY
 from app.features.offerings.repository import OfferingRepository
 from app.features.subjects.models import Subject, SubjectStatus
 from app.features.subjects.repository import SubjectRepository
 from app.features.teacher_onboarding.models import TeacherProfile
 from app.features.teacher_onboarding.repository import TeacherProfileRepository
 from app.features.teacher_onboarding.schemas import (
+    TeacherCapacityUpdate,
+    TeacherCapacityUpdateRead,
     TeacherOnboardingRead,
     TeacherOnboardingState,
     TeacherProfileComplete,
@@ -21,6 +24,8 @@ from app.features.teacher_onboarding.schemas import (
 )
 from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
+from app.infrastructure.audit.log import audit
+from app.infrastructure.notifications.account import notify_account_event
 
 logger = structlog.get_logger(__name__)
 
@@ -30,10 +35,13 @@ def derive_onboarding_state(
     profile: TeacherProfile | None,
     assignment_count: int,
     account_status: UserAccountStatus,
+    teacher_capacity: int | None = None,
 ) -> TeacherOnboardingRead:
     """Compute onboarding gate state server-side (never store ready_to_teach)."""
+    capacity = teacher_capacity if teacher_capacity is not None else DEFAULT_TEACHER_CAPACITY
     profile_complete = profile is not None and profile.profile_completed_at is not None
     ready_to_teach = profile_complete and assignment_count >= 1
+    capacity_below_assignments = capacity < assignment_count
 
     if not profile_complete:
         state = TeacherOnboardingState.PROFILE_INCOMPLETE
@@ -51,6 +59,8 @@ def derive_onboarding_state(
         ready_to_teach=ready_to_teach,
         assignment_count=assignment_count,
         can_create_content=can_create_content,
+        teacher_capacity=capacity,
+        capacity_below_assignments=capacity_below_assignments,
         profile=profile_read,
     )
 
@@ -81,6 +91,7 @@ class TeacherOnboardingService:
             profile=profile,
             assignment_count=assignment_count,
             account_status=user.status,
+            teacher_capacity=user.teacher_capacity,
         )
 
     async def _validate_subject_ids(self, school_id: str, subject_ids: list[str]) -> None:
@@ -144,6 +155,82 @@ class TeacherOnboardingService:
             profile=profile,
             assignment_count=assignment_count,
             account_status=user.status,
+            teacher_capacity=user.teacher_capacity,
+        )
+
+    async def update_capacity(
+        self,
+        payload: TeacherCapacityUpdate,
+        claims: dict[str, object],
+    ) -> TeacherCapacityUpdateRead:
+        user = await self._require_teacher(claims)
+        if user.status == UserAccountStatus.SUSPENDED:
+            raise PermissionDeniedError("Suspended teachers cannot update capacity")
+
+        assignment_count = await self._offering_repo.count_active_assignments_for_teacher(user.id)
+        old_capacity = user.teacher_capacity or DEFAULT_TEACHER_CAPACITY
+        new_capacity = payload.teacher_capacity
+        flagged = new_capacity < assignment_count
+
+        user.teacher_capacity = new_capacity
+        await self._user_repo.update(user)
+
+        await audit(
+            session=self._session,
+            action="capacity.updated",
+            actor_id=str(claims.get("sub", "")),
+            actor_role=user.role.value,
+            target_type="user",
+            target_id=user.id,
+            school_id=user.school_id,
+            metadata={
+                "old_capacity": old_capacity,
+                "new_capacity": new_capacity,
+                "assignment_count": assignment_count,
+                "flagged": flagged,
+            },
+        )
+
+        params = {
+            "teacher_name": user.display_name,
+            "old_capacity": str(old_capacity),
+            "new_capacity": str(new_capacity),
+            "assignment_count": str(assignment_count),
+        }
+        await notify_account_event(
+            session=self._session,
+            template_key="account.capacity_changed",
+            recipient_user_id=user.id,
+            school_id=user.school_id or "",
+            params=params,
+            metadata={"flagged": flagged},
+        )
+        admins = await self._user_repo.list_by_school_and_role(
+            user.school_id or "", UserRole.SCHOOL_ADMIN
+        )
+        for admin in admins:
+            if admin.status != UserAccountStatus.ACTIVE:
+                continue
+            await notify_account_event(
+                session=self._session,
+                template_key="account.capacity_changed",
+                recipient_user_id=admin.id,
+                school_id=user.school_id or "",
+                params={**params, "actor_name": user.display_name},
+                metadata={"teacher_id": user.id, "flagged": flagged},
+            )
+
+        logger.info(
+            "teacher_capacity_updated",
+            user_id=user.id,
+            old_capacity=old_capacity,
+            new_capacity=new_capacity,
+            flagged=flagged,
+        )
+        return TeacherCapacityUpdateRead(
+            teacher_capacity=new_capacity,
+            assignment_count=assignment_count,
+            capacity_below_assignments=flagged,
         )
 
     async def list_subject_options(self, claims: dict[str, object]) -> list[Subject]:

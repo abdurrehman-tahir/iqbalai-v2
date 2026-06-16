@@ -2381,6 +2381,23 @@
         "title": "SuccessEnvelope[SyllabusTopicRead]",
         "type": "object"
       },
+      "SuccessEnvelope_TeacherCapacityUpdateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TeacherCapacityUpdateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[TeacherCapacityUpdateRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_TeacherOnboardingRead_": {
         "properties": {
           "data": {
@@ -2806,6 +2823,46 @@
         "title": "SyllabusTopicRead",
         "type": "object"
       },
+      "TeacherCapacityUpdate": {
+        "description": "Teacher self-edit capacity payload (flow-3 \u00a73.5 \u2014 range [1, 20]).",
+        "properties": {
+          "teacher_capacity": {
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Teacher Capacity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "teacher_capacity"
+        ],
+        "title": "TeacherCapacityUpdate",
+        "type": "object"
+      },
+      "TeacherCapacityUpdateRead": {
+        "description": "Result after updating teacher capacity.",
+        "properties": {
+          "assignment_count": {
+            "title": "Assignment Count",
+            "type": "integer"
+          },
+          "capacity_below_assignments": {
+            "title": "Capacity Below Assignments",
+            "type": "boolean"
+          },
+          "teacher_capacity": {
+            "title": "Teacher Capacity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "teacher_capacity",
+          "assignment_count",
+          "capacity_below_assignments"
+        ],
+        "title": "TeacherCapacityUpdateRead",
+        "type": "object"
+      },
       "TeacherOnboardingRead": {
         "description": "Onboarding gate state \u2014 ``ready_to_teach`` is derived, never stored.",
         "properties": {
@@ -2815,6 +2872,11 @@
           },
           "can_create_content": {
             "title": "Can Create Content",
+            "type": "boolean"
+          },
+          "capacity_below_assignments": {
+            "default": false,
+            "title": "Capacity Below Assignments",
             "type": "boolean"
           },
           "profile": {
@@ -2837,6 +2899,11 @@
           },
           "state": {
             "$ref": "#/components/schemas/TeacherOnboardingState"
+          },
+          "teacher_capacity": {
+            "default": 5,
+            "title": "Teacher Capacity",
+            "type": "integer"
           }
         },
         "required": [
@@ -7111,6 +7178,47 @@
         "summary": "Archive a subject (status -> archived)",
         "tags": [
           "subjects"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/capacity": {
+      "patch": {
+        "operationId": "teacher_update_capacity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherCapacityUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TeacherCapacityUpdateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update teacher self-edit capacity (1\u201320 grade-subject assignments)",
+        "tags": [
+          "teacher-onboarding"
         ]
       }
     },

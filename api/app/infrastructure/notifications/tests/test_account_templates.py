@@ -21,6 +21,7 @@ EXPECTED_KEYS = frozenset(
         "account.deactivated",
         "account.bulk_import_done",
         "account.teacher_assigned_offering",
+        "account.capacity_changed",
         "account.capacity_override",
     }
 )
@@ -47,6 +48,8 @@ def test_templates_render_in_all_locales(template_key: str, locale: str) -> None
         "grade_name": "Grade 9",
         "subject_name": "Physics",
         "teacher_name": "Teacher T",
+        "old_capacity": "5",
+        "new_capacity": "8",
         "assignment_count": "5",
         "capacity": "5",
         "actor_name": "School Admin",

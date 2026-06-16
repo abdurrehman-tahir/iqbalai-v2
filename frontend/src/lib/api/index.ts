@@ -34,6 +34,8 @@ import type {
   OfferingAssign,
   EligibleTeacherRead,
   TeacherOnboardingRead,
+  TeacherCapacityUpdate,
+  TeacherCapacityUpdateRead,
   TeacherProfileComplete,
   SchoolCreate,
   SchoolUpdate,
@@ -722,6 +724,12 @@ export const teacherOnboardingApi = {
     ),
   listSubjectOptions: (token: string) =>
     request<SubjectRead[]>("/teachers/me/subject-options", {}, token),
+  updateCapacity: (token: string, data: TeacherCapacityUpdate) =>
+    request<TeacherCapacityUpdateRead>(
+      "/teachers/me/capacity",
+      { method: "PATCH", body: JSON.stringify(data) },
+      token,
+    ),
 };
 
 // ── Academic Sessions (Coordinator) — T-042 ─────────────────────────────────────

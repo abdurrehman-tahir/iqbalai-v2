@@ -418,6 +418,19 @@
       "awaiting_assignment": "Profile complete — waiting for your Coordinator to assign at least one Grade-Subject offering ({count} assigned so far).",
       "ready_banner": "You are ready to teach. Your Coordinator has assigned you to at least one Grade-Subject offering."
     },
+    "capacity": {
+      "title": "Teaching capacity",
+      "subtitle": "Set how many Grade-Subject offerings you can hold at once.",
+      "field_label": "Capacity",
+      "field_help": "Between {min} and {max}. You currently have {count} assignment(s).",
+      "below_assignments_warning": "Capacity {capacity} is below your {count} current assignment(s). This is allowed, but new assignments are blocked until you are under cap.",
+      "currently_below_assignments": "Your saved capacity is below your {count} current assignment(s).",
+      "admin_override_help": "If you need more assignments than your capacity allows, ask your School Admin — they can override when assigning offerings.",
+      "save": "Save capacity",
+      "saving": "Saving…",
+      "saved": "Capacity saved.",
+      "error_generic": "Could not save capacity. Please try again."
+    },
     "library_upload": {
       "title": "Upload reference material",
       "subtitle": "Upload a PDF to your school content library. Files are deduplicated per school.",

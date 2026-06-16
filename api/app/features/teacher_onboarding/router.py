@@ -11,6 +11,8 @@ from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.responses import SuccessEnvelope, success
 from app.features.subjects.schemas import SubjectRead
 from app.features.teacher_onboarding.schemas import (
+    TeacherCapacityUpdate,
+    TeacherCapacityUpdateRead,
     TeacherOnboardingRead,
     TeacherProfileComplete,
 )
@@ -50,6 +52,23 @@ async def complete_profile(
     svc = TeacherOnboardingService(db)
     state = await svc.complete_profile(payload, claims)
     return success(state.model_dump())
+
+
+@router.patch(
+    "/capacity",
+    response_model=SuccessEnvelope[TeacherCapacityUpdateRead],
+    operation_id="teacher_update_capacity",
+    summary="Update teacher self-edit capacity (1–20 grade-subject assignments)",
+    dependencies=[require_role("teacher")],
+)
+async def update_capacity(
+    payload: TeacherCapacityUpdate,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = TeacherOnboardingService(db)
+    result = await svc.update_capacity(payload, claims)
+    return success(result.model_dump())
 
 
 @router.get(

@@ -383,7 +383,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.5 (capacity #11 — teacher-editable [1,20], admin override)
@@ -400,11 +400,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Teacher edits own capacity 5 → 8 within bounds → persists
-2. [ ] Capacity outside [1, 20] → rejected
-3. [ ] Lowering capacity below current assignment count → warns but allowed (no auto-unassign); flagged
-4. [ ] School Admin override above a teacher's cap still works (T-046) and is audit-logged
-5. [ ] Capacity change emits a notification + audit entry
+1. [x] Teacher edits own capacity 5 → 8 within bounds → persists
+2. [x] Capacity outside [1, 20] → rejected
+3. [x] Lowering capacity below current assignment count → warns but allowed (no auto-unassign); flagged
+4. [x] School Admin override above a teacher's cap still works (T-046) and is audit-logged
+5. [x] Capacity change emits a notification + audit entry
 
 ### Out of scope
 - Auto-rebalancing assignments when cap lowered (Phase 2)

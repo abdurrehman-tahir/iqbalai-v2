@@ -56,6 +56,13 @@ class _FakeUserRepo:
         self.users[user.authentik_id] = user
         return user
 
+    async def list_by_school_and_role(self, school_id: str, role: UserRole) -> list[User]:
+        return [
+            user
+            for user in self.users.values()
+            if user.school_id == school_id and user.role == role and user.deleted_at is None
+        ]
+
 
 class _FakeOfferingRepo:
     assignment_counts: dict[str, int] = {}
@@ -262,3 +269,87 @@ async def test_list_subject_options_for_teacher() -> None:
     items = resp.json()["data"]
     assert len(items) == 1
     assert items[0]["name"] == "Physics"
+
+
+@pytest.mark.asyncio
+async def test_update_capacity_within_bounds(monkeypatch: pytest.MonkeyPatch) -> None:
+    audit_calls: list[dict[str, object]] = []
+    notify_calls: list[str] = []
+
+    async def _fake_audit(**kwargs: object) -> None:
+        audit_calls.append(kwargs)
+
+    async def _fake_notify(**kwargs: object) -> None:
+        notify_calls.append(str(kwargs.get("template_key")))
+
+    monkeypatch.setattr("app.features.teacher_onboarding.service.audit", _fake_audit)
+    monkeypatch.setattr(
+        "app.features.teacher_onboarding.service.notify_account_event",
+        _fake_notify,
+    )
+
+    async with _build_client() as client:
+        resp = await client.patch(
+            "/api/v1/teachers/me/capacity",
+            json={"teacher_capacity": 8},
+        )
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["teacher_capacity"] == 8
+    assert data["assignment_count"] == 0
+    assert data["capacity_below_assignments"] is False
+    assert _FakeUserRepo.users["teacher-1"].teacher_capacity == 8
+    assert audit_calls[0]["action"] == "capacity.updated"
+    assert notify_calls.count("account.capacity_changed") >= 1
+
+
+@pytest.mark.asyncio
+async def test_update_capacity_rejects_out_of_range() -> None:
+    async with _build_client() as client:
+        resp = await client.patch(
+            "/api/v1/teachers/me/capacity",
+            json={"teacher_capacity": 25},
+        )
+    assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_update_capacity_below_assignments_flagged(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _FakeOfferingRepo.assignment_counts["teacher-1"] = 6
+    _FakeUserRepo.users["teacher-1"] = _teacher(teacher_capacity=8)
+
+    async def _fake_audit(**kwargs: object) -> None:
+        pass
+
+    async def _fake_notify(**kwargs: object) -> None:
+        pass
+
+    monkeypatch.setattr("app.features.teacher_onboarding.service.audit", _fake_audit)
+    monkeypatch.setattr(
+        "app.features.teacher_onboarding.service.notify_account_event",
+        _fake_notify,
+    )
+
+    async with _build_client() as client:
+        resp = await client.patch(
+            "/api/v1/teachers/me/capacity",
+            json={"teacher_capacity": 4},
+        )
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data["teacher_capacity"] == 4
+    assert data["assignment_count"] == 6
+    assert data["capacity_below_assignments"] is True
+
+
+@pytest.mark.asyncio
+async def test_onboarding_includes_capacity_fields() -> None:
+    _FakeUserRepo.users["teacher-1"] = _teacher(teacher_capacity=7)
+    _FakeOfferingRepo.assignment_counts["teacher-1"] = 3
+    async with _build_client() as client:
+        resp = await client.get("/api/v1/teachers/me/onboarding")
+    data = resp.json()["data"]
+    assert data["teacher_capacity"] == 7
+    assert data["capacity_below_assignments"] is False

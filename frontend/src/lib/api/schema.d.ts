@@ -1092,6 +1092,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/capacity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update teacher self-edit capacity (1–20 grade-subject assignments) */
+        patch: operations["teacher_update_capacity"];
+        trace?: never;
+    };
     "/api/v1/teachers/me/onboarding": {
         parameters: {
             query?: never;
@@ -2236,6 +2253,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[TeacherCapacityUpdateRead] */
+        SuccessEnvelope_TeacherCapacityUpdateRead_: {
+            data: components["schemas"]["TeacherCapacityUpdateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[TeacherOnboardingRead] */
         SuccessEnvelope_TeacherOnboardingRead_: {
             data: components["schemas"]["TeacherOnboardingRead"];
@@ -2442,6 +2468,26 @@ export interface components {
             title: string;
         };
         /**
+         * TeacherCapacityUpdate
+         * @description Teacher self-edit capacity payload (flow-3 §3.5 — range [1, 20]).
+         */
+        TeacherCapacityUpdate: {
+            /** Teacher Capacity */
+            teacher_capacity: number;
+        };
+        /**
+         * TeacherCapacityUpdateRead
+         * @description Result after updating teacher capacity.
+         */
+        TeacherCapacityUpdateRead: {
+            /** Assignment Count */
+            assignment_count: number;
+            /** Capacity Below Assignments */
+            capacity_below_assignments: boolean;
+            /** Teacher Capacity */
+            teacher_capacity: number;
+        };
+        /**
          * TeacherOnboardingRead
          * @description Onboarding gate state — ``ready_to_teach`` is derived, never stored.
          */
@@ -2450,12 +2496,22 @@ export interface components {
             assignment_count: number;
             /** Can Create Content */
             can_create_content: boolean;
+            /**
+             * Capacity Below Assignments
+             * @default false
+             */
+            capacity_below_assignments: boolean;
             profile?: components["schemas"]["TeacherProfileRead"] | null;
             /** Profile Complete */
             profile_complete: boolean;
             /** Ready To Teach */
             ready_to_teach: boolean;
             state: components["schemas"]["TeacherOnboardingState"];
+            /**
+             * Teacher Capacity
+             * @default 5
+             */
+            teacher_capacity: number;
         };
         /**
          * TeacherOnboardingState
@@ -5275,6 +5331,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_SubjectRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_update_capacity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeacherCapacityUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_TeacherCapacityUpdateRead_"];
                 };
             };
             /** @description Validation Error */

@@ -41,7 +41,23 @@ class TeacherOnboardingRead(BaseModel):
     ready_to_teach: bool
     assignment_count: int
     can_create_content: bool
+    teacher_capacity: int = 5
+    capacity_below_assignments: bool = False
     profile: TeacherProfileRead | None = None
+
+
+class TeacherCapacityUpdate(BaseModel):
+    """Teacher self-edit capacity payload (flow-3 §3.5 — range [1, 20])."""
+
+    teacher_capacity: int = Field(ge=1, le=20)
+
+
+class TeacherCapacityUpdateRead(BaseModel):
+    """Result after updating teacher capacity."""
+
+    teacher_capacity: int
+    assignment_count: int
+    capacity_below_assignments: bool
 
 
 class TeacherProfileComplete(BaseModel):
