@@ -4,7 +4,12 @@
  */
 
 import type {
+  AcceptInviteRequest,
+  AdminUserInviteCreate,
+  DisclaimerVersionCreate,
   DisclaimerVersionRead,
+  DistrictCreate,
+  DistrictUpdate,
   ExamSyllabusCreate,
   ExamSyllabusRead,
   ExamSyllabusUpdate,
@@ -35,6 +40,7 @@ import type {
   TosAcceptResponse,
   TosDeclineResponse,
   TosVersion,
+  TosVersionCreate,
   TosVersionRead,
 } from "./types";
 
@@ -135,23 +141,23 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
 
   if (!res.ok) {
-    let body: {
+    let errorJson: {
       error?: { code?: string; message?: string };
       code?: string;
       message?: string;
       details?: unknown;
     } = {};
     try {
-      body = await res.json();
+      errorJson = await res.json();
     } catch {
       // ignore parse errors
     }
-    const err = body.error ?? body;
+    const err = errorJson.error ?? errorJson;
     throw new ApiError(
       res.status,
       err.code ?? "UNKNOWN_ERROR",
       err.message ?? `Request failed with status ${res.status}`,
-      body.details
+      errorJson.details
     );
   }
 
@@ -192,12 +198,7 @@ export const authApi = {
   postLogin: (token: string) =>
     request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
 
-  acceptInvite: (data: {
-    token: string;
-    action: "accept" | "reject";
-    password?: string;
-    display_name?: string;
-  }) =>
+  acceptInvite: (data: AcceptInviteRequest) =>
     request<{ status: string; email?: string; message: string }>("/auth/accept-invite", {
       method: "POST",
       body: JSON.stringify(data),
@@ -260,9 +261,10 @@ export const tosApi = {
   list: async (token: string) =>
     (await request<TosVersionRead[]>("/admin/tos", {}, token)).map(mapTosVersion),
   publish: async (token: string, content: string) => {
+    const payload: TosVersionCreate = { content_md: content, language: "en" };
     const raw = await request<TosVersionRead>(
       "/admin/tos",
-      { method: "POST", body: JSON.stringify({ content_md: content }) },
+      { method: "POST", body: JSON.stringify(payload) },
       token
     );
     return { id: raw.id, version: raw.version_number };
@@ -270,9 +272,10 @@ export const tosApi = {
   listDisclaimer: async (token: string) =>
     (await request<DisclaimerVersionRead[]>("/admin/disclaimer", {}, token)).map(mapDisclaimer),
   publishDisclaimer: async (token: string, content: string) => {
+    const payload: DisclaimerVersionCreate = { content, language: "en" };
     const raw = await request<DisclaimerVersionRead>(
       "/admin/disclaimer",
-      { method: "POST", body: JSON.stringify({ content }) },
+      { method: "POST", body: JSON.stringify(payload) },
       token
     );
     return { id: raw.id, version: raw.version_number };
@@ -311,7 +314,7 @@ export interface District {
 
 export const districtsApi = {
   list: (token: string) => request<District[]>("/admin/districts/", {}, token),
-  create: (token: string, data: { name: string; region?: string; language_preference?: string }) =>
+  create: (token: string, data: DistrictCreate) =>
     request<District>(
       "/admin/districts/",
       {
@@ -323,11 +326,7 @@ export const districtsApi = {
       },
       token
     ),
-  update: (
-    token: string,
-    id: string,
-    data: { name?: string; region?: string; language_preference?: string }
-  ) =>
+  update: (token: string, id: string, data: DistrictUpdate) =>
     request<District>(
       `/admin/districts/${id}`,
       { method: "PUT", body: JSON.stringify(data) },
@@ -372,17 +371,7 @@ export const adminUsersApi = {
     request<AdminUser>(`/admin/users/${userId}/reactivate`, { method: "POST" }, token),
   deactivate: (token: string, userId: string) =>
     request<AdminUser>(`/admin/users/${userId}/deactivate`, { method: "POST" }, token),
-  invite: (
-    token: string,
-    data: {
-      email: string;
-      display_name: string;
-      role: string;
-      district_id?: string;
-      school_id?: string;
-      grade_scope?: string[];
-    }
-  ) =>
+  invite: (token: string, data: AdminUserInviteCreate) =>
     request<UserInvite>(
       "/admin/users",
       {
@@ -414,7 +403,7 @@ export const schoolsApi = {
       {},
       token
     ),
-  create: (token: string, data: { name: string; district_id: string }) =>
+  create: (token: string, data: SchoolCreate) =>
     request<School>(
       "/admin/schools/",
       {
@@ -424,7 +413,7 @@ export const schoolsApi = {
       },
       token
     ),
-  update: (token: string, id: string, data: { name?: string }) =>
+  update: (token: string, id: string, data: SchoolUpdate) =>
     request<School>(`/admin/schools/${id}`, { method: "PUT", body: JSON.stringify(data) }, token),
   delete: (token: string, id: string) =>
     request<void>(`/admin/schools/${id}`, { method: "DELETE" }, token),
@@ -574,13 +563,13 @@ async function uploadRequest<T>(path: string, formData: FormData, token: string)
   });
 
   if (!res.ok) {
-    let body: { error?: { code?: string; message?: string }; code?: string; message?: string } = {};
+    let errorJson: { error?: { code?: string; message?: string }; code?: string; message?: string } = {};
     try {
-      body = await res.json();
+      errorJson = await res.json();
     } catch {
       // ignore
     }
-    const err = body.error ?? body;
+    const err = errorJson.error ?? errorJson;
     throw new ApiError(
       res.status,
       err.code ?? "UNKNOWN_ERROR",

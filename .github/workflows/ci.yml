@@ -421,6 +421,46 @@ jobs:
         working-directory: frontend
         run: pnpm e2e --grep @smoke
 
+  client-request-type-lint:
+    name: Client request types use generated schema (no inline literals)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/setup-python@v5
+        if: steps.detect.outputs.fe == 'yes'
+        with: { python-version: "3.12" }
+      - name: Lint api client request types
+        if: steps.detect.outputs.fe == 'yes'
+        run: |
+          python scripts/check_client_request_types.py \
+            || (echo "::error::An api-client function types a request body with an inline object literal. Type it from the generated *Create/*Update schema (frontend-master Rule 9; AMENDMENTS A-002)." && exit 1)
+
+  contract-test:
+    name: Mock + client shapes match the generated OpenAPI schema
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - id: detect
+        run: |
+          if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
+      - uses: pnpm/action-setup@v4
+        if: steps.detect.outputs.fe == 'yes'
+        with: { version: 9 }
+      - uses: actions/setup-node@v4
+        if: steps.detect.outputs.fe == 'yes'
+        with: { node-version: "20", cache: pnpm, cache-dependency-path: frontend/pnpm-lock.yaml }
+      - name: Install (deps before tools)
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Contract test (mocks + client request types vs schema.d.ts)
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: frontend
+        run: pnpm test src/lib/api/__tests__/fe-be-contract.test.ts
+
 # ── Add to the SAME ci.yml a scheduled trigger for the full E2E suite (nightly) ──
 # on:
 #   schedule:
