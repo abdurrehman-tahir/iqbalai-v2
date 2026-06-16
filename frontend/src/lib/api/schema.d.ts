@@ -895,6 +895,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/school/library/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a school library item
+         * @description Returns library item metadata including ingestion status and topic_tree_jsonb for curricula. Respects school visibility rules.
+         */
+        get: operations["school_library_get_item"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/smoketest/llm": {
         parameters: {
             query?: never;
@@ -1794,6 +1814,10 @@ export interface components {
             subject_id: string | null;
             /** Title */
             title: string;
+            /** Topic Tree Jsonb */
+            topic_tree_jsonb?: {
+                [key: string]: unknown;
+            } | null;
             /**
              * Updated At
              * Format: date-time
@@ -2047,6 +2071,15 @@ export interface components {
         /** SuccessEnvelope[PostLoginResponse] */
         SuccessEnvelope_PostLoginResponse_: {
             data: components["schemas"]["PostLoginResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SchoolLibraryItemRead] */
+        SuccessEnvelope_SchoolLibraryItemRead_: {
+            data: components["schemas"]["SchoolLibraryItemRead"];
             /**
              * Message
              * @default ok
@@ -4707,6 +4740,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryUploadResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_get_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
                 };
             };
             /** @description Validation Error */

@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.responses import SuccessEnvelope, success
 from app.features.library.school_library_schemas import (
+    SchoolLibraryItemRead,
     SchoolLibraryUploadRequest,
     SchoolLibraryUploadResponse,
 )
@@ -61,3 +62,24 @@ async def upload_school_library_item(
     )
     logger.info("school_library_upload_endpoint", item_id=result.item.id)
     return JSONResponse(status_code=202, content=success(result.model_dump(mode="json")))
+
+
+@router.get(
+    "/{item_id}",
+    response_model=SuccessEnvelope[SchoolLibraryItemRead],
+    operation_id="school_library_get_item",
+    summary="Get a school library item",
+    description=(
+        "Returns library item metadata including ingestion status and topic_tree_jsonb "
+        "for curricula. Respects school visibility rules."
+    ),
+    dependencies=[require_role("teacher")],
+)
+async def get_school_library_item(
+    item_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SuccessEnvelope[SchoolLibraryItemRead]:
+    svc = SchoolLibraryService(db)
+    item = await svc.get_item(item_id, authentik_id=str(claims.get("sub", "")))
+    return success(SchoolLibraryItemRead.model_validate(item))

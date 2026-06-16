@@ -539,6 +539,8 @@ export const schoolLibraryApi = {
       token,
     );
   },
+  get: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(`/school/library/${itemId}`, {}, token),
 };
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────

@@ -1,8 +1,9 @@
-"""School Content Library Pydantic schemas — T-055."""
+"""School Content Library Pydantic schemas — T-055 / T-058."""
 
 from __future__ import annotations
 
 from datetime import datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -33,6 +34,7 @@ class SchoolLibraryItemRead(BaseModel):
     storage_key: str
     sha256: str
     ingestion_status: str
+    topic_tree_jsonb: dict[str, Any] | None = None
     created_by: str
     visibility: str
     created_at: datetime

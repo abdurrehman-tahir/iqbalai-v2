@@ -35,6 +35,15 @@ class SchoolLibraryRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_by_id(self, item_id: str) -> SchoolLibraryItem | None:
+        result = await self._session.execute(
+            select(SchoolLibraryItem).where(
+                SchoolLibraryItem.id == item_id,
+                not_deleted(SchoolLibraryItem),
+            )
+        )
+        return result.scalar_one_or_none()
+
     async def save_item(self, item: SchoolLibraryItem) -> SchoolLibraryItem:
         self._session.add(item)
         await self._session.commit()

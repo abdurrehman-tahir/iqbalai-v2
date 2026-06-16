@@ -177,3 +177,22 @@ class SchoolLibraryService:
             item_id=item.id,
             school_id=item.school_id,
         )
+
+    async def get_item(self, item_id: str, authentik_id: str) -> SchoolLibraryItem:
+        """Return a library item visible to the caller."""
+        user = await self._require_uploader(authentik_id)
+        assert user.school_id is not None
+        item = await self._repo.get_by_id(item_id)
+        if item is None or item.school_id != user.school_id:
+            raise NotFoundError("Library item not found")
+        if not await self._can_view_item(item, user.id):
+            raise NotFoundError("Library item not found")
+        return item
+
+    async def _can_view_item(self, item: SchoolLibraryItem, user_id: str) -> bool:
+        if item.visibility is LibraryVisibility.SCHOOL_PUBLIC:
+            return True
+        if item.created_by == user_id:
+            return True
+        selection = await self._repo.get_selection(item.id, user_id)
+        return selection is not None

@@ -1631,6 +1631,18 @@
             "title": "Title",
             "type": "string"
           },
+          "topic_tree_jsonb": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Tree Jsonb"
+          },
           "updated_at": {
             "format": "date-time",
             "title": "Updated At",
@@ -2215,6 +2227,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[PostLoginResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SchoolLibraryItemRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SchoolLibraryItemRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SchoolLibraryItemRead]",
         "type": "object"
       },
       "SuccessEnvelope_SchoolLibraryUploadResponse_": {
@@ -6350,6 +6379,49 @@
           }
         },
         "summary": "Upload a PDF to the school content library",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
+    "/api/v1/school/library/{item_id}": {
+      "get": {
+        "description": "Returns library item metadata including ingestion status and topic_tree_jsonb for curricula. Respects school visibility rules.",
+        "operationId": "school_library_get_item",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a school library item",
         "tags": [
           "school-library"
         ]

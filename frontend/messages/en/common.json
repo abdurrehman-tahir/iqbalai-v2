@@ -225,13 +225,61 @@
       }
     }
   },
+  "school_library": {
+    "curriculum": {
+      "upload": {
+        "page_title": "Upload curriculum",
+        "page_subtitle": "Add an official curriculum PDF for your school. Curricula are always shared school-wide.",
+        "public_notice": "Curricula are always visible to everyone in your school — there is no private option.",
+        "title_label": "Title",
+        "title_placeholder": "Punjab Physics Grade 9",
+        "subject_label": "Subject",
+        "subject_placeholder": "Select a subject",
+        "grade_label": "Grade",
+        "grade_placeholder": "Select a grade",
+        "language_label": "Language",
+        "language_en": "English",
+        "language_ur": "Urdu",
+        "language_sd": "Sindhi",
+        "language_ps": "Pashto",
+        "file_label": "Curriculum PDF",
+        "file_help": "PDF only, up to 100 MB.",
+        "submit": "Upload curriculum",
+        "submitting": "Uploading…",
+        "error_generic": "Upload failed. Check the file and try again."
+      },
+      "detail": {
+        "subtitle": "School curriculum — shared with all teachers in your school.",
+        "error": "Could not load this curriculum item.",
+        "visibility_label": "Visibility",
+        "visibility_public": "School public",
+        "language_label": "Language",
+        "grade_label": "Grade level",
+        "grade_unknown": "Not tagged",
+        "content_type_label": "Type",
+        "content_type_curriculum": "Curriculum",
+        "topic_tree_title": "Topic tree",
+        "topic_tree_pending": "Topic tree will appear once ingestion completes.",
+        "topic_tree_empty": "No topics were extracted for this curriculum.",
+        "topic_tree_degraded": "Structured parsing could not build a topic tree. You can still use this curriculum, but topic picking may be freeform.",
+        "upload_another": "Upload another curriculum",
+        "status": {
+          "pending": "Pending",
+          "ingesting": "Ingesting",
+          "available": "Available",
+          "failed": "Failed"
+        }
+      }
+    }
+  },
   "teacher": {
     "header_title": "Teacher dashboard",
     "logout": "Sign out",
     "nav": {
       "aria_label": "Teacher navigation",
       "dashboard": "Dashboard",
-      "library_upload": "Upload PDF"
+      "library_upload": "Upload reference PDF",
+      "curriculum_upload": "Upload curriculum"
     },
     "onboarding": {
       "header_title": "Complete your profile",
@@ -285,6 +333,7 @@
       "dashboard": "Dashboard",
       "subjects": "Subjects",
       "grades": "Grades",
+      "curriculum": "Curriculum",
       "bulk_import": "Bulk Import"
     },
     "dashboard": {

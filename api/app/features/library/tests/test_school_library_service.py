@@ -278,3 +278,42 @@ async def test_curriculum_forces_school_public_visibility() -> None:
 
     created = save_item.await_args.args[0]
     assert created.visibility is LibraryVisibility.SCHOOL_PUBLIC
+
+
+@pytest.mark.asyncio
+async def test_get_item_returns_curriculum_for_school_member() -> None:
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher = _teacher()
+    item = _item(
+        content_type=LibraryContentType.CURRICULUM,
+        visibility=LibraryVisibility.SCHOOL_PUBLIC,
+        topic_tree_jsonb={"chapters": [], "parse_degraded": False},
+    )
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
+        patch.object(svc._repo, "get_by_id", return_value=item),
+    ):
+        result = await svc.get_item("item-1", authentik_id="auth-teacher-1")
+
+    assert result.content_type is LibraryContentType.CURRICULUM
+    assert result.topic_tree_jsonb is not None
+
+
+@pytest.mark.asyncio
+async def test_get_item_hides_other_teachers_private_reference() -> None:
+    from app.core.exceptions import NotFoundError
+
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    viewer = _teacher(user_id="teacher-2")
+    private_item = _item(created_by="teacher-1", visibility=LibraryVisibility.PRIVATE)
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=viewer),
+        patch.object(svc._repo, "get_by_id", return_value=private_item),
+        patch.object(svc._repo, "get_selection", return_value=None),
+    ):
+        with pytest.raises(NotFoundError):
+            await svc.get_item("item-1", authentik_id="auth-teacher-1")
