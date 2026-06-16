@@ -389,6 +389,20 @@
         "title": "Body_create_bulk_import_dry_run",
         "type": "object"
       },
+      "Body_school_library_upload": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_school_library_upload",
+        "type": "object"
+      },
       "Body_upload_file": {
         "properties": {
           "file": {
@@ -1551,6 +1565,129 @@
         "title": "SchoolCreate",
         "type": "object"
       },
+      "SchoolLibraryItemRead": {
+        "description": "School library item returned to callers.",
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "grade_level_ordinal": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Level Ordinal"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ingestion_status": {
+            "title": "Ingestion Status",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "storage_key": {
+            "title": "Storage Key",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "visibility": {
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "title",
+          "content_type",
+          "language",
+          "subject_id",
+          "grade_level_ordinal",
+          "storage_key",
+          "sha256",
+          "ingestion_status",
+          "created_by",
+          "visibility",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SchoolLibraryItemRead",
+        "type": "object"
+      },
+      "SchoolLibraryUploadResponse": {
+        "description": "Response after POST /school/library \u2014 202 Accepted.",
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/SchoolLibraryItemRead"
+          },
+          "message": {
+            "default": "Upload accepted; ingestion will run in a later step.",
+            "title": "Message",
+            "type": "string"
+          },
+          "selection_created": {
+            "title": "Selection Created",
+            "type": "boolean"
+          },
+          "storage_deduplicated": {
+            "title": "Storage Deduplicated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "item",
+          "storage_deduplicated",
+          "selection_created"
+        ],
+        "title": "SchoolLibraryUploadResponse",
+        "type": "object"
+      },
       "SchoolUpdate": {
         "description": "Payload for updating a School (all fields optional).",
         "properties": {
@@ -2078,6 +2215,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[PostLoginResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SchoolLibraryUploadResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SchoolLibraryUploadResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SchoolLibraryUploadResponse]",
         "type": "object"
       },
       "SuccessEnvelope_SectionRead_": {
@@ -6075,6 +6229,129 @@
         "summary": "Get a school by ID (School Admin \u2014 own school only)",
         "tags": [
           "school-admin"
+        ]
+      }
+    },
+    "/api/v1/school/library/": {
+      "post": {
+        "description": "Accepts a PDF via the school_library_content profile (100 MB, per-school dedup). Returns 202 with the library item in ingestion_status=pending.",
+        "operationId": "school_library_upload",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "title",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "content_type",
+            "required": false,
+            "schema": {
+              "default": "reference",
+              "pattern": "^(curriculum|reference)$",
+              "title": "Content Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "default": "en",
+              "pattern": "^(en|ur|sd|ps)$",
+              "title": "Language",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 36,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_level_ordinal",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 16,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Level Ordinal"
+            }
+          },
+          {
+            "in": "query",
+            "name": "visibility",
+            "required": false,
+            "schema": {
+              "default": "private",
+              "pattern": "^(private|school_public)$",
+              "title": "Visibility",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_school_library_upload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryUploadResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload a PDF to the school content library",
+        "tags": [
+          "school-library"
         ]
       }
     },

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
@@ -11,7 +11,10 @@ import { useEffect, useState } from "react";
 import type { StoredUser } from "@/lib/auth";
 import { TeacherOnboardingGate } from "./TeacherOnboardingGate";
 
-const NAV = [{ key: "dashboard", href: "/teacher", icon: LayoutDashboard }] as const;
+const NAV = [
+  { key: "dashboard", href: "/teacher", icon: LayoutDashboard },
+  { key: "library_upload", href: "/teacher/library/upload", icon: Upload },
+] as const;
 
 export function TeacherShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("teacher");

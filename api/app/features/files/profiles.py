@@ -45,6 +45,16 @@ PLATFORM_REFERENCE_BOOK = UploadProfile(
     description="Platform-level reference book — uploaded by Platform Admin; global SHA-256 dedup",
 )
 
+SCHOOL_LIBRARY_CONTENT = UploadProfile(
+    name="school_library_content",
+    bucket="pdfs",
+    key_prefix="school-library",
+    allowed_mime_types=frozenset({"application/pdf"}),
+    magic_bytes=[b"%PDF"],
+    max_size_bytes=100 * 1024 * 1024,  # 100 MB per ARCH §11.19
+    description="School library PDF — per-school SHA-256 dedup (Flow 3 §3.3/§3.4)",
+)
+
 BULK_IMPORT = UploadProfile(
     name="bulk_import",
     bucket="imports",
@@ -65,6 +75,7 @@ BULK_IMPORT = UploadProfile(
 _REGISTRY: dict[str, UploadProfile] = {
     RECOVERY_BUNDLE.name: RECOVERY_BUNDLE,
     PLATFORM_REFERENCE_BOOK.name: PLATFORM_REFERENCE_BOOK,
+    SCHOOL_LIBRARY_CONTENT.name: SCHOOL_LIBRARY_CONTENT,
     BULK_IMPORT.name: BULK_IMPORT,
 }
 

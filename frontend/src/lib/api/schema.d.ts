@@ -875,6 +875,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/school/library/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Upload a PDF to the school content library
+         * @description Accepts a PDF via the school_library_content profile (100 MB, per-school dedup). Returns 202 with the library item in ingestion_status=pending.
+         */
+        post: operations["school_library_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/smoketest/llm": {
         parameters: {
             query?: never;
@@ -1289,6 +1309,11 @@ export interface components {
         };
         /** Body_create_bulk_import_dry_run */
         Body_create_bulk_import_dry_run: {
+            /** File */
+            file: string;
+        };
+        /** Body_school_library_upload */
+        Body_school_library_upload: {
             /** File */
             file: string;
         };
@@ -1738,6 +1763,62 @@ export interface components {
             name: string;
         };
         /**
+         * SchoolLibraryItemRead
+         * @description School library item returned to callers.
+         */
+        SchoolLibraryItemRead: {
+            /** Content Type */
+            content_type: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string;
+            /** Grade Level Ordinal */
+            grade_level_ordinal: number | null;
+            /** Id */
+            id: string;
+            /** Ingestion Status */
+            ingestion_status: string;
+            /** Language */
+            language: string;
+            /** School Id */
+            school_id: string;
+            /** Sha256 */
+            sha256: string;
+            /** Storage Key */
+            storage_key: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Title */
+            title: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Visibility */
+            visibility: string;
+        };
+        /**
+         * SchoolLibraryUploadResponse
+         * @description Response after POST /school/library — 202 Accepted.
+         */
+        SchoolLibraryUploadResponse: {
+            item: components["schemas"]["SchoolLibraryItemRead"];
+            /**
+             * Message
+             * @default Upload accepted; ingestion will run in a later step.
+             */
+            message: string;
+            /** Selection Created */
+            selection_created: boolean;
+            /** Storage Deduplicated */
+            storage_deduplicated: boolean;
+        };
+        /**
          * SchoolUpdate
          * @description Payload for updating a School (all fields optional).
          */
@@ -1966,6 +2047,15 @@ export interface components {
         /** SuccessEnvelope[PostLoginResponse] */
         SuccessEnvelope_PostLoginResponse_: {
             data: components["schemas"]["PostLoginResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SchoolLibraryUploadResponse] */
+        SuccessEnvelope_SchoolLibraryUploadResponse_: {
+            data: components["schemas"]["SchoolLibraryUploadResponse"];
             /**
              * Message
              * @default ok
@@ -4577,6 +4667,46 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_upload: {
+        parameters: {
+            query: {
+                title: string;
+                content_type?: string;
+                language?: string;
+                subject_id?: string | null;
+                grade_level_ordinal?: number | null;
+                visibility?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_school_library_upload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryUploadResponse_"];
                 };
             };
             /** @description Validation Error */

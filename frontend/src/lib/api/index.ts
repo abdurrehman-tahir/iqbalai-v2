@@ -506,6 +506,41 @@ export const libraryApi = {
     request<void>(`/admin/library/${id}`, { method: "DELETE" }, token),
 };
 
+// ── School library (teacher+) — T-055 ───────────────────────────────────────────
+
+export interface SchoolLibraryUploadParams {
+  file: File;
+  title: string;
+  content_type?: string;
+  language?: string;
+  subject_id?: string | null;
+  grade_level_ordinal?: number | null;
+  visibility?: string;
+}
+
+export const schoolLibraryApi = {
+  upload: (token: string, params: SchoolLibraryUploadParams) => {
+    const qs = new URLSearchParams();
+    qs.set("title", params.title);
+    if (params.content_type) qs.set("content_type", params.content_type);
+    if (params.language) qs.set("language", params.language);
+    if (params.subject_id) qs.set("subject_id", params.subject_id);
+    if (params.grade_level_ordinal != null) {
+      qs.set("grade_level_ordinal", String(params.grade_level_ordinal));
+    }
+    if (params.visibility) qs.set("visibility", params.visibility);
+
+    const formData = new FormData();
+    formData.append("file", params.file);
+
+    return requestFormData<import("./types").SchoolLibraryUploadResponse>(
+      `/school/library?${qs.toString()}`,
+      formData,
+      token,
+    );
+  },
+};
+
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 
 export interface AuditEntry {

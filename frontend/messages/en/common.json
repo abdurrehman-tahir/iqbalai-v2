@@ -230,7 +230,8 @@
     "logout": "Sign out",
     "nav": {
       "aria_label": "Teacher navigation",
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "library_upload": "Upload PDF"
     },
     "onboarding": {
       "header_title": "Complete your profile",
@@ -261,6 +262,18 @@
       "subtitle": "Your teacher dashboard. Content library and lecture tools arrive in upcoming milestones.",
       "awaiting_assignment": "Profile complete — waiting for your Coordinator to assign at least one Grade-Subject offering ({count} assigned so far).",
       "ready_banner": "You are ready to teach. Your Coordinator has assigned you to at least one Grade-Subject offering."
+    },
+    "library_upload": {
+      "title": "Upload reference material",
+      "subtitle": "Upload a PDF to your school content library. Files are deduplicated per school.",
+      "title_label": "Title",
+      "file_label": "PDF file",
+      "file_help": "PDF only, up to 100 MB.",
+      "submit": "Upload PDF",
+      "uploading": "Uploading…",
+      "success_new": "\"{title}\" uploaded and pending ingestion.",
+      "success_deduped": "\"{title}\" already exists in your school library — storage reused.",
+      "error_generic": "Upload failed. Check the file and try again."
     }
   },
   "coordinator": {
