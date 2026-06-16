@@ -31,6 +31,7 @@ class Grade(AuditMixin, SoftDeleteMixin, Base):
         ),
         Index("ix_grades_school_id", "school_id"),
         Index("ix_grades_academic_session", "academic_session"),
+        Index("ix_grades_promoted_from_grade_id", "promoted_from_grade_id"),
         {"schema": "school"},
     )
 

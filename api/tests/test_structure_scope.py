@@ -157,6 +157,12 @@ class _FakeUserRepo:
     async def get_by_id(self, user_id: str) -> User | None:
         return self.users.get(user_id)
 
+    async def get_by_authentik_id(self, authentik_id: str) -> User | None:
+        for user in self.users.values():
+            if user.authentik_id == authentik_id:
+                return user
+        return self.users.get(authentik_id)
+
     async def list_by_school_and_role(self, school_id: str, role: UserRole) -> list[User]:
         return []
 
@@ -192,8 +198,8 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         s.updated_at = now
 
     coord = User(
-        id="coord-1",
-        authentik_id="c1",
+        id="coord-internal-id",
+        authentik_id="coord-1",
         email="c@test.com",
         display_name="C",
         role=UserRole.COORDINATOR,
