@@ -81,7 +81,7 @@ export function GradesClient() {
   }
 
   if (isError) {
-    return <ErrorState message={t("error")} onRetry={() => refetch()} retryLabel={t("retry")} />;
+    return <ErrorState description={t("error")} onRetry={() => refetch()} retryLabel={t("retry")} />;
   }
 
   const grades = data ?? [];
@@ -115,12 +115,7 @@ export function GradesClient() {
           icon={GraduationCap}
           title={t("empty.title")}
           description={t("empty.description")}
-          action={
-            <Button onClick={() => setShowCreate(true)}>
-              <Plus className="size-4 me-2" aria-hidden="true" />
-              {t("empty.cta")}
-            </Button>
-          }
+          action={{ label: t("empty.cta"), onClick: () => setShowCreate(true) }}
         />
       ) : (
         <div className="overflow-x-auto rounded-lg border border-gray-200 bg-white">
@@ -201,7 +196,7 @@ export function GradesClient() {
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setArchiveTarget(null)}>{t("archive_modal.cancel")}</Button>
           <Button
-            variant="danger"
+            variant="destructive"
             onClick={() => archiveTarget && archiveMutation.mutate(archiveTarget.id)}
             disabled={archiveMutation.isPending}
           >

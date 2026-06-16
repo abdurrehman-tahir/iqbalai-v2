@@ -165,7 +165,7 @@ export function GradeDetailClient() {
 
   if (!mounted || gradeLoading) return <Skeleton className="h-64 w-full" />;
   if (gradeError || !grade) {
-    return <ErrorState message={t("error")} onRetry={() => refetchGrade()} retryLabel={t("retry")} />;
+    return <ErrorState description={t("error")} onRetry={() => refetchGrade()} retryLabel={t("retry")} />;
   }
 
   const offeredSubjectIds = new Set(offerings?.map((o) => o.subject_id) ?? []);
@@ -194,7 +194,7 @@ export function GradeDetailClient() {
         {sectionsLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : sectionsError ? (
-          <ErrorState message={t("sections.error")} onRetry={() => refetchSections()} retryLabel={t("retry")} />
+          <ErrorState description={t("sections.error")} onRetry={() => refetchSections()} retryLabel={t("retry")} />
         ) : !sections?.length ? (
           <EmptyState title={t("sections.empty.title")} description={t("sections.empty.description")} />
         ) : (
@@ -228,7 +228,7 @@ export function GradeDetailClient() {
         {offeringsLoading ? (
           <Skeleton className="h-32 w-full" />
         ) : offeringsError ? (
-          <ErrorState message={t("offerings.error")} onRetry={() => refetchOfferings()} retryLabel={t("retry")} />
+          <ErrorState description={t("offerings.error")} onRetry={() => refetchOfferings()} retryLabel={t("retry")} />
         ) : !offerings?.length ? (
           <EmptyState title={t("offerings.empty.title")} description={t("offerings.empty.description")} />
         ) : (
@@ -291,7 +291,7 @@ export function GradeDetailClient() {
         <p className="text-sm text-gray-600 mb-4">{t("sections.archive_modal.description", { name: archiveSectionTarget?.name ?? "" })}</p>
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setArchiveSectionTarget(null)}>{t("sections.archive_modal.cancel")}</Button>
-          <Button variant="danger" onClick={() => archiveSectionTarget && archiveSectionMutation.mutate(archiveSectionTarget.id)} disabled={archiveSectionMutation.isPending}>
+          <Button variant="destructive" onClick={() => archiveSectionTarget && archiveSectionMutation.mutate(archiveSectionTarget.id)} disabled={archiveSectionMutation.isPending}>
             {t("sections.archive_modal.confirm")}
           </Button>
         </div>
@@ -327,7 +327,7 @@ export function GradeDetailClient() {
         <p className="text-sm text-gray-600 mb-4">{t("offerings.archive_modal.description")}</p>
         <div className="flex justify-end gap-2">
           <Button variant="ghost" onClick={() => setArchiveOfferingTarget(null)}>{t("offerings.archive_modal.cancel")}</Button>
-          <Button variant="danger" onClick={() => archiveOfferingTarget && archiveOfferingMutation.mutate(archiveOfferingTarget.id)} disabled={archiveOfferingMutation.isPending}>
+          <Button variant="destructive" onClick={() => archiveOfferingTarget && archiveOfferingMutation.mutate(archiveOfferingTarget.id)} disabled={archiveOfferingMutation.isPending}>
             {t("offerings.archive_modal.confirm")}
           </Button>
         </div>
@@ -342,7 +342,7 @@ export function GradeDetailClient() {
             </div>
           )}
           {eligibleTeachersError && (
-            <ErrorState message={t("offerings.assign.load_error")} onRetry={() => refetchEligibleTeachers()} />
+            <ErrorState description={t("offerings.assign.load_error")} onRetry={() => refetchEligibleTeachers()} />
           )}
           {!eligibleTeachersLoading && !eligibleTeachersError && (eligibleTeachers ?? []).length === 0 && (
             <EmptyState title={t("offerings.assign.empty_title")} description={t("offerings.assign.empty_description")} />
