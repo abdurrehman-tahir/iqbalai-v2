@@ -312,3 +312,26 @@ class SchoolLibraryService:
             user_id=user.id,
         )
         return item
+
+    async def retry_ingestion(self, item_id: str, authentik_id: str) -> SchoolLibraryItem:
+        """Re-queue ingestion for a failed or pending library item."""
+        user = await self._require_uploader(authentik_id)
+        assert user.school_id is not None
+        item = await self._get_school_item(item_id, user.school_id)
+        if not await self._can_view_item(item, user.id):
+            raise NotFoundError("Library item not found")
+        if item.ingestion_status is LibraryIngestionStatus.AVAILABLE:
+            raise ValidationError("This item is already available")
+        if item.ingestion_status is LibraryIngestionStatus.INGESTING:
+            raise ValidationError("Ingestion is already in progress")
+        item.ingestion_status = LibraryIngestionStatus.PENDING
+        item.ingestion_error = None
+        await self._repo.update_item(item)
+        self._enqueue_ingestion(item)
+        logger.info(
+            "school_library_ingestion_retry_queued",
+            item_id=item.id,
+            school_id=user.school_id,
+            actor_id=user.id,
+        )
+        return item

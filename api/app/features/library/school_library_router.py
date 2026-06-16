@@ -189,3 +189,25 @@ async def remove_school_library_selection(
     item = await svc.remove_selection(item_id, authentik_id=str(claims.get("sub", "")))
     logger.info("school_library_remove_selection_endpoint", item_id=item.id)
     return success(SchoolLibraryItemRead.model_validate(item))
+
+
+@router.post(
+    "/{item_id}/retry-ingestion",
+    response_model=SuccessEnvelope[SchoolLibraryItemRead],
+    operation_id="school_library_retry_ingestion",
+    summary="Retry ingestion for a library item",
+    description=(
+        "Re-queues ingestion for items in pending or failed status. "
+        "Clears the stored failure reason before retrying."
+    ),
+    dependencies=[require_role("teacher")],
+)
+async def retry_school_library_ingestion(
+    item_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SuccessEnvelope[SchoolLibraryItemRead]:
+    svc = SchoolLibraryService(db)
+    item = await svc.retry_ingestion(item_id, authentik_id=str(claims.get("sub", "")))
+    logger.info("school_library_retry_ingestion_endpoint", item_id=item.id)
+    return success(SchoolLibraryItemRead.model_validate(item))

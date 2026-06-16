@@ -227,6 +227,9 @@ export function SchoolLibraryBrowse() {
                       <Badge variant={STATUS_VARIANT[statusKey] ?? "secondary"} role="status">
                         {t(`status.${item.ingestion_status}`)}
                       </Badge>
+                      {item.ingestion_status === "failed" && item.ingestion_error && (
+                        <p className="mt-1 max-w-xs text-xs text-red-700">{item.ingestion_error}</p>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-gray-700">{item.language.toUpperCase()}</td>
                   </tr>

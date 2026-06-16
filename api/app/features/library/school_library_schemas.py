@@ -34,6 +34,7 @@ class SchoolLibraryItemRead(BaseModel):
     storage_key: str
     sha256: str
     ingestion_status: str
+    ingestion_error: str | None = None
     topic_tree_jsonb: dict[str, Any] | None = None
     created_by: str
     visibility: str

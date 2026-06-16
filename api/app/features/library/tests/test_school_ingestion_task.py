@@ -139,3 +139,26 @@ def test_ingest_reference_skips_topic_extract() -> None:
 
     mock_extract.assert_not_called()
     assert result["topic_tree_parse_degraded"] is None
+
+
+def test_ingest_marks_failed_with_error_and_dlq_on_terminal_failure() -> None:
+    item = _item()
+    task = ingest_school_library_item
+    task.request.retries = 3
+    task.max_retries = 3
+
+    with (
+        patch("app.features.library.school_tasks.run_db") as mock_run_db,
+        patch("app.features.library.school_tasks.download_bytes", side_effect=RuntimeError("MinIO down")),
+        patch("app.infrastructure.celery.dlq.push_task_dlq") as mock_dlq,
+        patch.object(task, "retry", side_effect=RuntimeError("stop retry")),
+    ):
+        mock_run_db.side_effect = [item, True, None]
+        with pytest.raises(RuntimeError, match="stop retry"):
+            task.run("item-1", "school-1")
+
+    mock_dlq.assert_called_once_with(
+        "library.ingest_school_item",
+        {"library_item_id": "item-1", "school_id": "school-1"},
+        "MinIO down",
+    )

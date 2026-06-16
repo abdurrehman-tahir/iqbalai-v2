@@ -12,6 +12,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LibraryIngestionPanel } from "./LibraryIngestionPanel";
 
 const STATUS_VARIANT: Record<
   string,
@@ -125,6 +126,8 @@ export function ReferenceItemDetail({ itemId, uploadHref }: ReferenceItemDetailP
           <dd className="text-gray-900">{t("detail.content_type_reference")}</dd>
         </div>
       </dl>
+
+      <LibraryIngestionPanel itemId={itemId} item={data} />
 
       {isPublic ? (
         <p className="rounded-md bg-gray-50 px-3 py-2 text-sm text-gray-700" role="note">

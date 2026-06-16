@@ -365,6 +365,17 @@
         "available": "Available",
         "failed": "Failed"
       }
+    },
+    "ingestion": {
+      "failed_title": "Ingestion failed",
+      "failed_unknown": "Ingestion failed for an unknown reason.",
+      "retry_button": "Retry ingestion",
+      "retrying": "Retrying…",
+      "retry_error": "Could not retry ingestion.",
+      "status_help": {
+        "pending": "This item is waiting to be ingested.",
+        "ingesting": "Ingestion is in progress — this page updates automatically."
+      }
     }
   },
   "teacher": {

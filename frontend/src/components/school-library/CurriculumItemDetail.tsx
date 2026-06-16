@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { parseTopicTree, TopicTreeView } from "./TopicTreeView";
+import { LibraryIngestionPanel } from "./LibraryIngestionPanel";
 
 const STATUS_VARIANT: Record<
   string,
@@ -87,6 +88,8 @@ export function CurriculumItemDetail({ itemId, uploadHref }: CurriculumItemDetai
           <dd className="text-gray-900">{t("detail.content_type_curriculum")}</dd>
         </div>
       </dl>
+
+      <LibraryIngestionPanel itemId={itemId} item={data} />
 
       <section className="rounded-lg border border-gray-200 bg-white p-4">
         <h3 className="text-lg font-semibold text-gray-900">{t("detail.topic_tree_title")}</h3>

@@ -1596,6 +1596,17 @@
             "title": "Id",
             "type": "string"
           },
+          "ingestion_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ingestion Error"
+          },
           "ingestion_status": {
             "title": "Ingestion Status",
             "type": "string"
@@ -6645,6 +6656,49 @@
           }
         },
         "summary": "Publish a private reference book to the school library",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
+    "/api/v1/school/library/{item_id}/retry-ingestion": {
+      "post": {
+        "description": "Re-queues ingestion for items in pending or failed status. Clears the stored failure reason before retrying.",
+        "operationId": "school_library_retry_ingestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retry ingestion for a library item",
         "tags": [
           "school-library"
         ]

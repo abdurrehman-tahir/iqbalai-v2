@@ -350,7 +350,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3, §3.4 (INGESTING → AVAILABLE; failure paths)

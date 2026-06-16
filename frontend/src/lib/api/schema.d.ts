@@ -939,6 +939,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/school/library/{item_id}/retry-ingestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry ingestion for a library item
+         * @description Re-queues ingestion for items in pending or failed status. Clears the stored failure reason before retrying.
+         */
+        post: operations["school_library_retry_ingestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/school/library/{item_id}/selection": {
         parameters: {
             query?: never;
@@ -1864,6 +1884,8 @@ export interface components {
             grade_level_ordinal: number | null;
             /** Id */
             id: string;
+            /** Ingestion Error */
+            ingestion_error?: string | null;
             /** Ingestion Status */
             ingestion_status: string;
             /** Language */
@@ -4905,6 +4927,37 @@ export interface operations {
         };
     };
     school_library_publish_reference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_retry_ingestion: {
         parameters: {
             query?: never;
             header?: never;

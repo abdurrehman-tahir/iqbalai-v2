@@ -581,6 +581,12 @@ export const schoolLibraryApi = {
       { method: "DELETE" },
       token,
     ),
+  retryIngestion: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(
+      `/school/library/${itemId}/retry-ingestion`,
+      { method: "POST" },
+      token,
+    ),
 };
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────

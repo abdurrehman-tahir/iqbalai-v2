@@ -131,18 +131,26 @@ async def _mark_status(
     library_item_id: str,
     school_id: str,
     status: LibraryIngestionStatus,
+    *,
+    ingestion_error: str | None = None,
 ) -> None:
     await apply_school_rls(session, school_id=school_id)
+    values: dict[str, object] = {
+        "ingestion_status": status,
+        "updated_at": datetime.now(timezone.utc),
+        "ingestion_error": ingestion_error,
+    }
+    if status is LibraryIngestionStatus.AVAILABLE:
+        values["ingestion_error"] = None
+    elif status is LibraryIngestionStatus.INGESTING:
+        values["ingestion_error"] = None
     await session.execute(
         update(SchoolLibraryItem)
         .where(
             SchoolLibraryItem.id == library_item_id,
             SchoolLibraryItem.school_id == school_id,
         )
-        .values(
-            ingestion_status=status,
-            updated_at=datetime.now(timezone.utc),
-        )
+        .values(**values)
     )
     await session.commit()
 
@@ -347,10 +355,11 @@ def ingest_school_library_item(
         }
 
     except Exception as exc:
+        error_message = str(exc)
         logger.error(
             "school_ingestion_failed",
             library_item_id=library_item_id,
-            error=str(exc),
+            error=error_message,
         )
         retries = getattr(self.request, "retries", 0)
         max_retries = getattr(self, "max_retries", 3)
@@ -361,6 +370,14 @@ def ingest_school_library_item(
                     library_item_id,
                     school_id,
                     LibraryIngestionStatus.FAILED,
+                    ingestion_error=error_message,
                 )
+            )
+            from app.infrastructure.celery.dlq import push_task_dlq
+
+            push_task_dlq(
+                "library.ingest_school_item",
+                {"library_item_id": library_item_id, "school_id": school_id},
+                error_message,
             )
         raise self.retry(exc=exc)

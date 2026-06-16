@@ -453,6 +453,32 @@ async def test_coordinator_reference_upload_forces_public() -> None:
 
 
 @pytest.mark.asyncio
+async def test_retry_ingestion_resets_failed_item_to_pending() -> None:
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher = _teacher()
+    failed_item = _item(
+        ingestion_status=LibraryIngestionStatus.FAILED,
+        ingestion_error="MinIO down",
+    )
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
+        patch.object(svc._repo, "get_by_id", return_value=failed_item),
+        patch.object(svc._repo, "update_item", return_value=failed_item) as update_item,
+        patch(
+            "app.features.library.school_tasks.ingest_school_library_item.apply_async"
+        ) as mock_ingest,
+    ):
+        result = await svc.retry_ingestion("item-1", authentik_id="auth-teacher-1")
+
+    assert result.ingestion_status is LibraryIngestionStatus.PENDING
+    assert result.ingestion_error is None
+    update_item.assert_awaited_once()
+    mock_ingest.assert_called_once_with(args=["item-1", "school-1"], queue="ingestion")
+
+
+@pytest.mark.asyncio
 async def test_list_items_delegates_to_repository() -> None:
     session = AsyncMock()
     svc = SchoolLibraryService(session)

@@ -93,6 +93,7 @@ class SchoolLibraryItem(AuditMixin, SoftDeleteMixin, Base):
         nullable=False,
         default=LibraryVisibility.PRIVATE,
     )
+    ingestion_error: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class SchoolLibraryItemSelection(AuditMixin, SoftDeleteMixin, Base):
