@@ -242,7 +242,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done (`81ce9c1`)
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3 (curriculum lifecycle; always public to tier)
