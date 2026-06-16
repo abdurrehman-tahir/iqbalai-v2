@@ -30,6 +30,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.config import get_settings
 from app.db.celery_async import run_db
 from app.db.tenant_context import apply_school_rls
+from app.features.library.curriculum_topic_extract import extract_curriculum_topic_tree_sync
 from app.features.library.school_models import (
     LibraryContentType,
     LibraryIngestionStatus,
@@ -161,6 +162,31 @@ async def _clear_existing_chunks(
     await session.commit()
 
 
+async def _persist_topic_tree(
+    session: AsyncSession,
+    library_item_id: str,
+    school_id: str,
+    topic_tree: dict[str, object],
+) -> None:
+    await apply_school_rls(session, school_id=school_id)
+    await session.execute(
+        update(SchoolLibraryItem)
+        .where(
+            SchoolLibraryItem.id == library_item_id,
+            SchoolLibraryItem.school_id == school_id,
+        )
+        .values(
+            topic_tree_jsonb=topic_tree,
+            updated_at=datetime.now(timezone.utc),
+        )
+    )
+    await session.commit()
+
+
+def _document_text(pages: list[dict[str, object]]) -> str:
+    return "\n\n".join(str(page["text"]) for page in pages if page.get("text"))
+
+
 async def _persist_chunks(
     session: AsyncSession,
     *,
@@ -215,6 +241,22 @@ def ingest_school_library_item(
     try:
         pdf_bytes = download_bytes(_PDF_BUCKET, item.storage_key)
         pages = extract_text_from_pdf(pdf_bytes)
+        topic_tree_result: dict[str, object] | None = None
+
+        if content_type == LibraryContentType.CURRICULUM.value:
+            topic_tree_result = extract_curriculum_topic_tree_sync(
+                document_text=_document_text(pages),
+                title=item.title,
+                language=item.language,
+            )
+            run_db(
+                lambda session: _persist_topic_tree(
+                    session,
+                    library_item_id,
+                    school_id,
+                    topic_tree_result,
+                )
+            )
 
         all_chunks: list[tuple[str, int]] = []
         for page_info in pages:
@@ -297,6 +339,11 @@ def ingest_school_library_item(
             "chunk_count": chunk_count,
             "status": "available",
             "collection": collection,
+            "topic_tree_parse_degraded": (
+                bool(topic_tree_result.get("parse_degraded"))
+                if topic_tree_result is not None
+                else None
+            ),
         }
 
     except Exception as exc:

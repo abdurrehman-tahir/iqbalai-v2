@@ -74,3 +74,68 @@ def test_ingest_pipeline_marks_available() -> None:
     assert result["status"] == "available"
     assert result["chunk_count"] == 2
     fake_qdrant.upsert.assert_called_once()
+
+
+def test_ingest_curriculum_runs_topic_extract_and_chunk_embed() -> None:
+    item = _item(content_type=LibraryContentType.CURRICULUM)
+    fake_qdrant = MagicMock()
+    fake_qdrant.get_collections.return_value.collections = []
+    topic_tree = {
+        "chapters": [{"title": "Ch1", "sections": [{"title": "S1", "sub_topics": ["T1"]}]}],
+        "parse_degraded": False,
+    }
+
+    with (
+        patch("app.features.library.school_tasks.run_db") as mock_run_db,
+        patch("app.features.library.school_tasks.download_bytes", return_value=b"%PDF"),
+        patch(
+            "app.features.library.school_tasks.extract_text_from_pdf",
+            return_value=[{"page": 1, "text": "Chapter 1: Mechanics"}],
+        ),
+        patch(
+            "app.features.library.school_tasks.extract_curriculum_topic_tree_sync",
+            return_value=topic_tree,
+        ) as mock_extract,
+        patch("app.features.library.school_tasks.chunk_text", return_value=["chunk-a"]),
+        patch("app.features.library.school_tasks.embed_sync", return_value=[[0.1]]),
+        patch("app.features.library.school_tasks.QdrantClient", return_value=fake_qdrant),
+    ):
+        mock_run_db.side_effect = [
+            item,
+            True,
+            None,  # persist topic tree
+            None,  # clear chunks
+            None,  # persist chunks
+            None,  # mark available
+        ]
+        result = ingest_school_library_item.run("item-1", "school-1")
+
+    mock_extract.assert_called_once()
+    assert result["topic_tree_parse_degraded"] is False
+    assert result["chunk_count"] == 1
+
+
+def test_ingest_reference_skips_topic_extract() -> None:
+    item = _item(content_type=LibraryContentType.REFERENCE)
+    fake_qdrant = MagicMock()
+    fake_qdrant.get_collections.return_value.collections = []
+
+    with (
+        patch("app.features.library.school_tasks.run_db") as mock_run_db,
+        patch("app.features.library.school_tasks.download_bytes", return_value=b"%PDF"),
+        patch(
+            "app.features.library.school_tasks.extract_text_from_pdf",
+            return_value=[{"page": 1, "text": "Reference notes"}],
+        ),
+        patch(
+            "app.features.library.school_tasks.extract_curriculum_topic_tree_sync",
+        ) as mock_extract,
+        patch("app.features.library.school_tasks.chunk_text", return_value=["chunk-a"]),
+        patch("app.features.library.school_tasks.embed_sync", return_value=[[0.1]]),
+        patch("app.features.library.school_tasks.QdrantClient", return_value=fake_qdrant),
+    ):
+        mock_run_db.side_effect = [item, True, None, None, None]
+        result = ingest_school_library_item.run("item-1", "school-1")
+
+    mock_extract.assert_not_called()
+    assert result["topic_tree_parse_degraded"] is None
