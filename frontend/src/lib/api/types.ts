@@ -37,6 +37,7 @@ export type TeacherProfileComplete = Schemas["TeacherProfileComplete"];
 export type TeacherProfileRead = Schemas["TeacherProfileRead"];
 export type TeacherOnboardingState = Schemas["TeacherOnboardingState"];
 export type SchoolLibraryItemRead = Schemas["SchoolLibraryItemRead"];
+export type SchoolLibraryListResponse = Schemas["SchoolLibraryListResponse"];
 export type SchoolLibraryUploadResponse = Schemas["SchoolLibraryUploadResponse"];
 export type TosVersionCreate = Schemas["TosVersionCreate"];
 export type TosAcceptRequest = Schemas["TosAcceptRequest"];

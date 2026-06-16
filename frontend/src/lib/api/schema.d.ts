@@ -882,7 +882,11 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /**
+         * List school library items visible to the caller
+         * @description Returns school-public items plus the caller's own private items and selections. Supports combinable filters by subject, grade, language, content type, and title search.
+         */
+        get: operations["school_library_list_items"];
         put?: never;
         /**
          * Upload a PDF to the school content library
@@ -1887,6 +1891,16 @@ export interface components {
             visibility: string;
         };
         /**
+         * SchoolLibraryListResponse
+         * @description Paginated list of school library items visible to the caller.
+         */
+        SchoolLibraryListResponse: {
+            /** Items */
+            items: components["schemas"]["SchoolLibraryItemRead"][];
+            /** Total */
+            total: number;
+        };
+        /**
          * SchoolLibraryUploadResponse
          * @description Response after POST /school/library — 202 Accepted.
          */
@@ -2140,6 +2154,15 @@ export interface components {
         /** SuccessEnvelope[SchoolLibraryItemRead] */
         SuccessEnvelope_SchoolLibraryItemRead_: {
             data: components["schemas"]["SchoolLibraryItemRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SchoolLibraryListResponse] */
+        SuccessEnvelope_SchoolLibraryListResponse_: {
+            data: components["schemas"]["SchoolLibraryListResponse"];
             /**
              * Message
              * @default ok
@@ -4760,6 +4783,43 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_list_items: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                grade_level_ordinal?: number | null;
+                language?: string | null;
+                content_type?: string | null;
+                title?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryListResponse_"];
                 };
             };
             /** @description Validation Error */

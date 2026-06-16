@@ -11,6 +11,7 @@ from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.responses import SuccessEnvelope, success
 from app.features.library.school_library_schemas import (
     SchoolLibraryItemRead,
+    SchoolLibraryListResponse,
     SchoolLibraryUploadRequest,
     SchoolLibraryUploadResponse,
 )
@@ -62,6 +63,42 @@ async def upload_school_library_item(
     )
     logger.info("school_library_upload_endpoint", item_id=result.item.id)
     return JSONResponse(status_code=202, content=success(result.model_dump(mode="json")))
+
+
+@router.get(
+    "/",
+    response_model=SuccessEnvelope[SchoolLibraryListResponse],
+    operation_id="school_library_list_items",
+    summary="List school library items visible to the caller",
+    description=(
+        "Returns school-public items plus the caller's own private items and selections. "
+        "Supports combinable filters by subject, grade, language, content type, and title search."
+    ),
+    dependencies=[require_role("teacher")],
+)
+async def list_school_library_items(
+    subject_id: str | None = Query(default=None, max_length=36),
+    grade_level_ordinal: int | None = Query(default=None, ge=1, le=16),
+    language: str | None = Query(default=None, pattern="^(en|ur|sd|ps)$"),
+    content_type: str | None = Query(default=None, pattern="^(curriculum|reference)$"),
+    title: str | None = Query(default=None, max_length=500),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SuccessEnvelope[SchoolLibraryListResponse]:
+    svc = SchoolLibraryService(db)
+    result = await svc.list_items(
+        authentik_id=str(claims.get("sub", "")),
+        subject_id=subject_id,
+        grade_level_ordinal=grade_level_ordinal,
+        language=language,
+        content_type=content_type,
+        title=title,
+        limit=limit,
+        offset=offset,
+    )
+    return success(result.model_dump(mode="json"))
 
 
 @router.get(

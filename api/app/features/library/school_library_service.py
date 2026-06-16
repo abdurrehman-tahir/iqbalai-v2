@@ -18,6 +18,7 @@ from app.features.files.schemas import UploadStatus
 from app.features.library.school_library_repository import SchoolLibraryRepository
 from app.features.library.school_library_schemas import (
     SchoolLibraryItemRead,
+    SchoolLibraryListResponse,
     SchoolLibraryUploadRequest,
     SchoolLibraryUploadResponse,
 )
@@ -207,6 +208,37 @@ class SchoolLibraryService:
         if not await self._can_view_item(item, user.id):
             raise NotFoundError("Library item not found")
         return item
+
+    async def list_items(
+        self,
+        authentik_id: str,
+        *,
+        subject_id: str | None = None,
+        grade_level_ordinal: int | None = None,
+        language: str | None = None,
+        content_type: str | None = None,
+        title: str | None = None,
+        limit: int = 50,
+        offset: int = 0,
+    ) -> SchoolLibraryListResponse:
+        """List library items visible to the caller with optional tag/search filters."""
+        user = await self._require_uploader(authentik_id)
+        assert user.school_id is not None
+        items, total = await self._repo.list_for_user(
+            school_id=user.school_id,
+            user_id=user.id,
+            subject_id=subject_id,
+            grade_level_ordinal=grade_level_ordinal,
+            language=language,
+            content_type=content_type,
+            title=title,
+            limit=limit,
+            offset=offset,
+        )
+        return SchoolLibraryListResponse(
+            items=[SchoolLibraryItemRead.model_validate(item) for item in items],
+            total=total,
+        )
 
     async def _can_view_item(self, item: SchoolLibraryItem, user_id: str) -> bool:
         if item.visibility is LibraryVisibility.SCHOOL_PUBLIC:

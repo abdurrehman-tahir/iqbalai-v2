@@ -48,3 +48,10 @@ class SchoolLibraryUploadResponse(BaseModel):
     storage_deduplicated: bool
     selection_created: bool
     message: str = "Upload accepted; ingestion will run in a later step."
+
+
+class SchoolLibraryListResponse(BaseModel):
+    """Paginated list of school library items visible to the caller."""
+
+    items: list[SchoolLibraryItemRead]
+    total: int

@@ -327,6 +327,44 @@
           "failed": "Failed"
         }
       }
+    },
+    "browse": {
+      "page_title": "Content Library",
+      "page_subtitle": "Browse curricula and reference books shared with your school, plus your private uploads.",
+      "search_label": "Search by title",
+      "search_placeholder": "Physics notes",
+      "subject_label": "Subject",
+      "grade_label": "Grade",
+      "language_label": "Language",
+      "content_type_label": "Content type",
+      "all_subjects": "All subjects",
+      "all_grades": "All grades",
+      "all_languages": "All languages",
+      "all_content_types": "All types",
+      "clear_filters": "Clear filters",
+      "column_title": "Title",
+      "column_type": "Type",
+      "column_visibility": "Visibility",
+      "column_status": "Status",
+      "column_language": "Language",
+      "grade_tag": "Grade {grade}",
+      "visibility_public": "School public",
+      "visibility_private": "Private",
+      "content_type_curriculum": "Curriculum",
+      "content_type_reference": "Reference",
+      "language_en": "English",
+      "language_ur": "Urdu",
+      "language_sd": "Sindhi",
+      "language_ps": "Pashto",
+      "empty_title": "No library items yet",
+      "empty_description": "Upload a curriculum or reference book, or adjust your filters.",
+      "error": "Could not load the content library.",
+      "status": {
+        "pending": "Pending",
+        "ingesting": "Ingesting",
+        "available": "Available",
+        "failed": "Failed"
+      }
     }
   },
   "teacher": {
@@ -335,6 +373,7 @@
     "nav": {
       "aria_label": "Teacher navigation",
       "dashboard": "Dashboard",
+      "library": "Content Library",
       "library_upload": "Upload reference book",
       "curriculum_upload": "Upload curriculum"
     },

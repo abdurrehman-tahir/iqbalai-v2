@@ -450,3 +450,39 @@ async def test_coordinator_reference_upload_forces_public() -> None:
 
     created = save_item.await_args.args[0]
     assert created.visibility is LibraryVisibility.SCHOOL_PUBLIC
+
+
+@pytest.mark.asyncio
+async def test_list_items_delegates_to_repository() -> None:
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher = _teacher()
+    public_item = _item(visibility=LibraryVisibility.SCHOOL_PUBLIC)
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
+        patch.object(
+            svc._repo,
+            "list_for_user",
+            return_value=([public_item], 1),
+        ) as list_for_user,
+    ):
+        result = await svc.list_items(
+            authentik_id="auth-teacher-1",
+            subject_id="subj-1",
+            title="Physics",
+        )
+
+    assert result.total == 1
+    assert result.items[0].visibility == "school_public"
+    list_for_user.assert_awaited_once_with(
+        school_id="school-1",
+        user_id="teacher-1",
+        subject_id="subj-1",
+        grade_level_ordinal=None,
+        language=None,
+        content_type=None,
+        title="Physics",
+        limit=50,
+        offset=0,
+    )

@@ -518,7 +518,35 @@ export interface SchoolLibraryUploadParams {
   visibility?: string;
 }
 
+export interface SchoolLibraryListParams {
+  subject_id?: string;
+  grade_level_ordinal?: number;
+  language?: string;
+  content_type?: string;
+  title?: string;
+  limit?: number;
+  offset?: number;
+}
+
 export const schoolLibraryApi = {
+  list: (token: string, params: SchoolLibraryListParams = {}) => {
+    const qs = new URLSearchParams();
+    if (params.subject_id) qs.set("subject_id", params.subject_id);
+    if (params.grade_level_ordinal != null) {
+      qs.set("grade_level_ordinal", String(params.grade_level_ordinal));
+    }
+    if (params.language) qs.set("language", params.language);
+    if (params.content_type) qs.set("content_type", params.content_type);
+    if (params.title) qs.set("title", params.title);
+    if (params.limit != null) qs.set("limit", String(params.limit));
+    if (params.offset != null) qs.set("offset", String(params.offset));
+    const query = qs.toString();
+    return request<import("./types").SchoolLibraryListResponse>(
+      `/school/library${query ? `?${query}` : ""}`,
+      {},
+      token,
+    );
+  },
   upload: (token: string, params: SchoolLibraryUploadParams) => {
     const qs = new URLSearchParams();
     qs.set("title", params.title);

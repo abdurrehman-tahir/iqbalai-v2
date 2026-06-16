@@ -1672,6 +1672,28 @@
         "title": "SchoolLibraryItemRead",
         "type": "object"
       },
+      "SchoolLibraryListResponse": {
+        "description": "Paginated list of school library items visible to the caller.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SchoolLibraryItemRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "SchoolLibraryListResponse",
+        "type": "object"
+      },
       "SchoolLibraryUploadResponse": {
         "description": "Response after POST /school/library \u2014 202 Accepted.",
         "properties": {
@@ -2244,6 +2266,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[SchoolLibraryItemRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SchoolLibraryListResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SchoolLibraryListResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SchoolLibraryListResponse]",
         "type": "object"
       },
       "SuccessEnvelope_SchoolLibraryUploadResponse_": {
@@ -6262,6 +6301,147 @@
       }
     },
     "/api/v1/school/library/": {
+      "get": {
+        "description": "Returns school-public items plus the caller's own private items and selections. Supports combinable filters by subject, grade, language, content type, and title search.",
+        "operationId": "school_library_list_items",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 36,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_level_ordinal",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 16,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Level Ordinal"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(en|ur|sd|ps)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Language"
+            }
+          },
+          {
+            "in": "query",
+            "name": "content_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(curriculum|reference)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Content Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "title",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Title"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryListResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List school library items visible to the caller",
+        "tags": [
+          "school-library"
+        ]
+      },
       "post": {
         "description": "Accepts a PDF via the school_library_content profile (100 MB, per-school dedup). Returns 202 with the library item in ingestion_status=pending.",
         "operationId": "school_library_upload",
