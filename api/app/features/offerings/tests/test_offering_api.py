@@ -221,7 +221,7 @@ def _seed() -> None:
     teacher.updated_at = now
 
     coordinator = User(
-        id="coord-1",
+        id="coord-internal-id",
         authentik_id="coord-1",
         email="c@test.com",
         display_name="Coordinator",

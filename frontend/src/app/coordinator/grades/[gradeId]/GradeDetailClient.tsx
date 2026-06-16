@@ -81,7 +81,12 @@ export function GradeDetailClient() {
     enabled: mounted && !!token,
   });
 
-  const { data: eligibleTeachers } = useQuery({
+  const {
+    data: eligibleTeachers,
+    isLoading: eligibleTeachersLoading,
+    isError: eligibleTeachersError,
+    refetch: refetchEligibleTeachers,
+  } = useQuery({
     queryKey: ["eligible-teachers", gradeId],
     queryFn: () => offeringsApi.eligibleTeachers(token!, gradeId),
     enabled: mounted && !!token && !!assignTarget,
@@ -330,6 +335,19 @@ export function GradeDetailClient() {
 
       <Modal open={!!assignTarget} onClose={() => setAssignTarget(null)} title={t("offerings.assign.title")}>
         <div className="space-y-4">
+          {eligibleTeachersLoading && (
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-full" />
+              <Skeleton className="h-10 w-full" />
+            </div>
+          )}
+          {eligibleTeachersError && (
+            <ErrorState message={t("offerings.assign.load_error")} onRetry={() => refetchEligibleTeachers()} />
+          )}
+          {!eligibleTeachersLoading && !eligibleTeachersError && (eligibleTeachers ?? []).length === 0 && (
+            <EmptyState title={t("offerings.assign.empty_title")} description={t("offerings.assign.empty_description")} />
+          )}
+          {!eligibleTeachersLoading && !eligibleTeachersError && (eligibleTeachers ?? []).length > 0 && (
           <ul className="max-h-48 overflow-y-auto divide-y divide-gray-100 rounded border border-gray-200">
             {(eligibleTeachers ?? []).map((teacher: EligibleTeacherRead) => {
               const disabled = teacher.at_capacity && !(canOverride && overrideCapacity);
@@ -358,6 +376,7 @@ export function GradeDetailClient() {
               );
             })}
           </ul>
+          )}
           {canOverride && selectedTeacherId && eligibleTeachers?.find((t) => t.id === selectedTeacherId)?.at_capacity && (
             <label className="flex items-center gap-2 text-sm text-gray-700">
               <input type="checkbox" checked={overrideCapacity} onChange={(e) => setOverrideCapacity(e.target.checked)} />

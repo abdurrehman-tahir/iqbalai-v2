@@ -203,7 +203,7 @@ class OfferingService:
         ):
             raise NotFoundError(f"Teacher '{teacher_id}' not found")
 
-        actor = await self._user_repo.get_by_id(actor_id)
+        actor = await self._user_repo.get_by_authentik_id(actor_id)
         if actor is None:
             raise PermissionDeniedError("User not found")
 
