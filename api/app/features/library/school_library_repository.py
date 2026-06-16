@@ -104,7 +104,13 @@ class SchoolLibraryRepository:
         if subject_id:
             stmt = stmt.where(SchoolLibraryItem.subject_id == subject_id)
         if grade_level_ordinal is not None:
-            stmt = stmt.where(SchoolLibraryItem.grade_level_ordinal == grade_level_ordinal)
+            # T-063 / T-047: grade context shows this grade and lower; untagged items always visible
+            stmt = stmt.where(
+                or_(
+                    SchoolLibraryItem.grade_level_ordinal.is_(None),
+                    SchoolLibraryItem.grade_level_ordinal <= grade_level_ordinal,
+                )
+            )
         if language:
             stmt = stmt.where(SchoolLibraryItem.language == language)
         if content_type:

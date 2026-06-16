@@ -6380,7 +6380,7 @@
     },
     "/api/v1/school/library/": {
       "get": {
-        "description": "Returns school-public items plus the caller's own private items and selections. Supports combinable filters by subject, grade, language, content type, and title search.",
+        "description": "Returns school-public items plus the caller's own private items and selections. Supports combinable filters by subject, grade context (shows this grade and lower), language, content type, and title search.",
         "operationId": "school_library_list_items",
         "parameters": [
           {
@@ -6654,6 +6654,24 @@
             "schema": {
               "title": "Item Id",
               "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_level_ordinal",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 16,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Level Ordinal"
             }
           }
         ],

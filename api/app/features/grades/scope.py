@@ -6,13 +6,19 @@ import re
 
 from app.core.dependencies import ROLE_HIERARCHY
 from app.core.exceptions import PermissionDeniedError, ValidationError
-from app.features.grades.cross_grade import assert_cross_grade_access
+from app.features.grades.cross_grade import (
+    assert_cross_grade_access,
+    assert_cross_grade_access_by_ordinal,
+    library_item_visible_for_grade_context,
+)
 from app.features.users.models import User
 
 __all__ = [
     "assert_cross_grade_access",
+    "assert_cross_grade_access_by_ordinal",
     "assert_grade_in_scope",
     "derive_level_ordinal",
+    "library_item_visible_for_grade_context",
     "parse_grade_scope",
 ]
 

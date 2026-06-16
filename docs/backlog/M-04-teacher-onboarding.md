@@ -419,7 +419,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3 (multiple curricula incl. cross-grade lower)
@@ -438,11 +438,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Grade 9 context shows Grade 9 + Grade 8 curricula; NOT Grade 10
-2. [ ] Grade 10 context shows Grade 10 + Grade 9 + lower
-3. [ ] Untagged (grade-agnostic) reference books are visible regardless
-4. [ ] Guard enforced server-side (not just UI hiding)
-5. [ ] Reuses the exact T-047 guard (no duplicate logic)
+1. [x] Grade 9 context shows Grade 9 + Grade 8 curricula; NOT Grade 10
+2. [x] Grade 10 context shows Grade 10 + Grade 9 + lower
+3. [x] Untagged (grade-agnostic) reference books are visible regardless
+4. [x] Guard enforced server-side (not just UI hiding)
+5. [x] Reuses the exact T-047 guard (no duplicate logic)
 
 ### Out of scope
 - RAG retrieval weighting at lecture-gen time (§7.21 — M-09+)

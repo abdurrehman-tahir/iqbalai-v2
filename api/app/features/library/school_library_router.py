@@ -72,7 +72,8 @@ async def upload_school_library_item(
     summary="List school library items visible to the caller",
     description=(
         "Returns school-public items plus the caller's own private items and selections. "
-        "Supports combinable filters by subject, grade, language, content type, and title search."
+        "Supports combinable filters by subject, grade context (shows this grade and lower), "
+        "language, content type, and title search."
     ),
     dependencies=[require_role("teacher")],
 )
@@ -114,11 +115,16 @@ async def list_school_library_items(
 )
 async def get_school_library_item(
     item_id: str,
+    grade_level_ordinal: int | None = Query(default=None, ge=1, le=16),
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> SuccessEnvelope[SchoolLibraryItemRead]:
     svc = SchoolLibraryService(db)
-    item = await svc.get_item(item_id, authentik_id=str(claims.get("sub", "")))
+    item = await svc.get_item(
+        item_id,
+        authentik_id=str(claims.get("sub", "")),
+        grade_level_ordinal=grade_level_ordinal,
+    )
     return success(SchoolLibraryItemRead.model_validate(item))
 
 

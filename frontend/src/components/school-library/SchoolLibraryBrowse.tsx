@@ -130,6 +130,7 @@ export function SchoolLibraryBrowse() {
               </option>
             ))}
           </select>
+          <p className="mt-1 text-xs text-gray-500">{t("grade_help")}</p>
         </div>
         <div>
           <Label htmlFor="library-language">{t("language_label")}</Label>

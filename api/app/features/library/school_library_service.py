@@ -15,6 +15,7 @@ from app.features.files.models import UploadRecord
 from app.features.files.pipeline import run_upload_pipeline
 from app.features.files.profiles import get_profile
 from app.features.files.schemas import UploadStatus
+from app.features.grades.cross_grade import assert_cross_grade_access_by_ordinal
 from app.features.library.school_library_repository import SchoolLibraryRepository
 from app.features.library.school_library_schemas import (
     SchoolLibraryItemRead,
@@ -198,7 +199,13 @@ class SchoolLibraryService:
             school_id=item.school_id,
         )
 
-    async def get_item(self, item_id: str, authentik_id: str) -> SchoolLibraryItem:
+    async def get_item(
+        self,
+        item_id: str,
+        authentik_id: str,
+        *,
+        grade_level_ordinal: int | None = None,
+    ) -> SchoolLibraryItem:
         """Return a library item visible to the caller."""
         user = await self._require_uploader(authentik_id)
         assert user.school_id is not None
@@ -207,6 +214,8 @@ class SchoolLibraryService:
             raise NotFoundError("Library item not found")
         if not await self._can_view_item(item, user.id):
             raise NotFoundError("Library item not found")
+        if grade_level_ordinal is not None and item.grade_level_ordinal is not None:
+            assert_cross_grade_access_by_ordinal(grade_level_ordinal, item.grade_level_ordinal)
         return item
 
     async def list_items(

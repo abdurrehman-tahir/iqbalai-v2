@@ -884,7 +884,7 @@ export interface paths {
         };
         /**
          * List school library items visible to the caller
-         * @description Returns school-public items plus the caller's own private items and selections. Supports combinable filters by subject, grade, language, content type, and title search.
+         * @description Returns school-public items plus the caller's own private items and selections. Supports combinable filters by subject, grade context (shows this grade and lower), language, content type, and title search.
          */
         get: operations["school_library_list_items"];
         put?: never;
@@ -4953,7 +4953,9 @@ export interface operations {
     };
     school_library_get_item: {
         parameters: {
-            query?: never;
+            query?: {
+                grade_level_ordinal?: number | null;
+            };
             header?: never;
             path: {
                 item_id: string;
