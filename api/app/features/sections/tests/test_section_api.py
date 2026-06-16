@@ -125,6 +125,11 @@ class _FakeUserRepo:
     async def get_by_id(self, user_id: str) -> User | None:
         return self.users.get(user_id)
 
+    async def get_by_authentik_id(self, authentik_id: str) -> User | None:
+        # In these unit tests, we store users keyed by the same value
+        # used by `claims.sub`.
+        return self.users.get(authentik_id)
+
 
 @pytest.fixture(autouse=True)
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
@@ -144,7 +149,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeUserRepo.users = {
         "user-1": User(
             id="user-1",
-            authentik_id="a1",
+            authentik_id="user-1",
             email="c@test.com",
             display_name="C",
             role=UserRole.COORDINATOR,

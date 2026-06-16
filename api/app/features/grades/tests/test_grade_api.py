@@ -87,14 +87,14 @@ class _FakeUserRepo:
     def __init__(self, session: Any) -> None:
         pass
 
-    async def get_by_id(self, user_id: str) -> User | None:
-        return self.users.get(user_id)
+    async def get_by_authentik_id(self, authentik_id: str) -> User | None:
+        return self.users.get(authentik_id)
 
 
 def _coordinator(scope: str = "Grade 9,Grade 10") -> User:
     return User(
         id="user-1",
-        authentik_id="auth-1",
+        authentik_id="user-1",
         email="coord@test.com",
         display_name="Coord",
         role=UserRole.COORDINATOR,

@@ -168,6 +168,11 @@ class _FakeUserRepo:
     async def get_by_id(self, user_id: str) -> User | None:
         return self.users.get(user_id)
 
+    async def get_by_authentik_id(self, authentik_id: str) -> User | None:
+        # In these unit tests we key the fake users by the same value
+        # that comes in `claims.sub`.
+        return self.users.get(authentik_id)
+
     async def list_by_school_and_role(self, school_id: str, role: UserRole) -> list[User]:
         return [u for u in self.users.values() if u.school_id == school_id and u.role == role]
 
@@ -204,7 +209,7 @@ def _seed() -> None:
 
     teacher = User(
         id="teacher-1",
-        authentik_id="t1",
+        authentik_id="teacher-1",
         email="t@test.com",
         display_name="Teacher T",
         role=UserRole.TEACHER,
@@ -217,7 +222,7 @@ def _seed() -> None:
 
     coordinator = User(
         id="coord-1",
-        authentik_id="c1",
+        authentik_id="coord-1",
         email="c@test.com",
         display_name="Coordinator",
         role=UserRole.COORDINATOR,
@@ -230,7 +235,7 @@ def _seed() -> None:
 
     admin = User(
         id="admin-1",
-        authentik_id="a1",
+        authentik_id="admin-1",
         email="admin@test.com",
         display_name="School Admin",
         role=UserRole.SCHOOL_ADMIN,

@@ -36,8 +36,10 @@ class GradeService:
         self._offering_repo = OfferingRepository(session)
 
     async def _load_actor(self, claims: dict[str, object]):
-        actor_id = str(claims.get("sub", ""))
-        actor = await self._user_repo.get_by_id(actor_id)
+        # Auth claims use the Authentik user identifier as `sub` (used by /users/me).
+        # The internal `users.id` is a different UUID, so we must fetch by authentik_id.
+        authentik_id = str(claims.get("sub", ""))
+        actor = await self._user_repo.get_by_authentik_id(authentik_id)
         if actor is None:
             raise PermissionDeniedError("User not found")
         return actor
