@@ -68,6 +68,7 @@ def test_ingest_pipeline_marks_available() -> None:
             None,  # _clear_existing_chunks
             None,  # _persist_chunks
             None,  # _mark_status available
+            None,  # _notify_ingestion_available
         ]
         result = ingest_school_library_item.run("item-1", "school-1")
 
@@ -107,6 +108,7 @@ def test_ingest_curriculum_runs_topic_extract_and_chunk_embed() -> None:
             None,  # clear chunks
             None,  # persist chunks
             None,  # mark available
+            None,  # notify available
         ]
         result = ingest_school_library_item.run("item-1", "school-1")
 
@@ -134,7 +136,7 @@ def test_ingest_reference_skips_topic_extract() -> None:
         patch("app.features.library.school_tasks.embed_sync", return_value=[[0.1]]),
         patch("app.features.library.school_tasks.QdrantClient", return_value=fake_qdrant),
     ):
-        mock_run_db.side_effect = [item, True, None, None, None]
+        mock_run_db.side_effect = [item, True, None, None, None, None]
         result = ingest_school_library_item.run("item-1", "school-1")
 
     mock_extract.assert_not_called()
@@ -153,7 +155,7 @@ def test_ingest_marks_failed_with_error_and_dlq_on_terminal_failure() -> None:
         patch("app.infrastructure.celery.dlq.push_task_dlq") as mock_dlq,
         patch.object(task, "retry", side_effect=RuntimeError("stop retry")),
     ):
-        mock_run_db.side_effect = [item, True, None]
+        mock_run_db.side_effect = [item, True, None, None, None]
         with pytest.raises(RuntimeError, match="stop retry"):
             task.run("item-1", "school-1")
 

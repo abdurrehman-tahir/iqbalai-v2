@@ -207,6 +207,33 @@ async def _persist_chunks(
     await session.commit()
 
 
+async def _notify_ingestion_available(
+    session: AsyncSession,
+    library_item_id: str,
+    school_id: str,
+) -> None:
+    item = await _load_item(session, library_item_id, school_id)
+    if item is None:
+        return
+    from app.features.library.school_library_notifications import notify_library_item_available
+
+    await notify_library_item_available(session, item)
+
+
+async def _notify_ingestion_failed(
+    session: AsyncSession,
+    library_item_id: str,
+    school_id: str,
+    error: str,
+) -> None:
+    item = await _load_item(session, library_item_id, school_id)
+    if item is None:
+        return
+    from app.features.library.school_library_notifications import notify_library_item_failed
+
+    await notify_library_item_failed(session, item, error=error)
+
+
 @tenant_task(
     queue="ingestion",
     name="library.ingest_school_item",
@@ -335,6 +362,10 @@ def ingest_school_library_item(
             )
         )
 
+        run_db(
+            lambda session: _notify_ingestion_available(session, library_item_id, school_id)
+        )
+
         chunk_count = len(points)
         logger.info(
             "school_ingestion_complete",
@@ -364,6 +395,14 @@ def ingest_school_library_item(
         retries = getattr(self.request, "retries", 0)
         max_retries = getattr(self, "max_retries", 3)
         if retries >= max_retries:
+            run_db(
+                lambda session: _notify_ingestion_failed(
+                    session,
+                    library_item_id,
+                    school_id,
+                    error_message,
+                )
+            )
             run_db(
                 lambda session: _mark_status(
                     session,

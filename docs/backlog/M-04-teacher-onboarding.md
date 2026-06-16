@@ -487,7 +487,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §7 (`content_library` namespace)
@@ -504,11 +504,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Ingestion complete → uploader gets `content_library.item_available`
-2. [ ] Ingestion failed → uploader gets `content_library.item_failed`
-3. [ ] Reference book published to school → relevant teachers notified per tags
-4. [ ] NATS events published for library mutations
-5. [ ] Templates present in en/ur/sd/ps (no `__TODO__`)
+1. [x] Ingestion complete → uploader gets `content_library.item_available`
+2. [x] Ingestion failed → uploader gets `content_library.item_failed`
+3. [x] Reference book published to school → relevant teachers notified per tags
+4. [x] NATS events published for library mutations
+5. [x] Templates present in en/ur/sd/ps (no `__TODO__`)
 
 ### Out of scope
 - Student-facing library notifications (no students in M-04)

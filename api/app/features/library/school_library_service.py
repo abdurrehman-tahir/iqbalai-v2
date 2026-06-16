@@ -171,6 +171,10 @@ class SchoolLibraryService:
         saved = await self._repo.save_item(item)
         _, selection_created = await self._ensure_selection(saved.id, user.id)
 
+        from app.features.library.school_library_notifications import publish_library_item_uploaded
+
+        await publish_library_item_uploaded(self._session, saved, actor_id=user.id)
+
         self._enqueue_ingestion(saved)
 
         logger.info(
@@ -289,6 +293,9 @@ class SchoolLibraryService:
             return item
         item.visibility = LibraryVisibility.SCHOOL_PUBLIC
         await self._repo.update_item(item)
+        from app.features.library.school_library_notifications import notify_library_item_published
+
+        await notify_library_item_published(self._session, item, actor=user)
         logger.info(
             "school_library_reference_published",
             item_id=item.id,
@@ -354,6 +361,10 @@ class SchoolLibraryService:
                 "visibility": item.visibility.value,
             },
         )
+
+        from app.features.library.school_library_notifications import publish_library_item_deleted
+
+        await publish_library_item_deleted(self._session, item, actor_id=user.id)
 
         logger.info(
             "school_library_item_soft_deleted",
