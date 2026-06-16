@@ -27,7 +27,6 @@ import type {
   ActiveSessionRead,
   GradeCreate,
   GradeRead,
-  GradeUpdate,
   SectionCreate,
   SectionRead,
   OfferingCreate,
