@@ -232,9 +232,35 @@
       "aria_label": "Teacher navigation",
       "dashboard": "Dashboard"
     },
+    "onboarding": {
+      "header_title": "Complete your profile",
+      "title": "Welcome — complete your teacher profile",
+      "subtitle": "Tell us about yourself before you can use the teacher dashboard. This step is required on first login.",
+      "name_label": "Full name",
+      "name_required": "Name is required",
+      "province_label": "Province / region",
+      "district_label": "District (optional)",
+      "language_label": "Preferred language",
+      "language_en": "English",
+      "language_ur": "Urdu",
+      "language_sd": "Sindhi",
+      "language_ps": "Pashto",
+      "subjects_label": "Subjects you teach",
+      "subjects_help": "Select all subjects that apply. Your Coordinator will assign Grade-Subject offerings separately.",
+      "subjects_required": "Select at least one subject",
+      "subjects_empty": "No subjects are configured for your school yet. Ask your Coordinator to add subjects first.",
+      "bio_label": "Brief bio (optional)",
+      "submit": "Save profile and continue",
+      "saving": "Saving…",
+      "load_error": "Could not load subject options",
+      "retry": "Retry",
+      "error_generic": "Could not save your profile. Please try again."
+    },
     "dashboard": {
       "title": "Welcome, Teacher",
-      "subtitle": "Your teacher dashboard is ready. Onboarding and lecture tools arrive in upcoming milestones."
+      "subtitle": "Your teacher dashboard. Content library and lecture tools arrive in upcoming milestones.",
+      "awaiting_assignment": "Profile complete — waiting for your Coordinator to assign at least one Grade-Subject offering ({count} assigned so far).",
+      "ready_banner": "You are ready to teach. Your Coordinator has assigned you to at least one Grade-Subject offering."
     }
   },
   "coordinator": {

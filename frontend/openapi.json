@@ -2148,6 +2148,23 @@
         "title": "SuccessEnvelope[SyllabusTopicRead]",
         "type": "object"
       },
+      "SuccessEnvelope_TeacherOnboardingRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TeacherOnboardingRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[TeacherOnboardingRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_TosAcceptResponse_": {
         "properties": {
           "data": {
@@ -2554,6 +2571,196 @@
           "created_at"
         ],
         "title": "SyllabusTopicRead",
+        "type": "object"
+      },
+      "TeacherOnboardingRead": {
+        "description": "Onboarding gate state \u2014 ``ready_to_teach`` is derived, never stored.",
+        "properties": {
+          "assignment_count": {
+            "title": "Assignment Count",
+            "type": "integer"
+          },
+          "can_create_content": {
+            "title": "Can Create Content",
+            "type": "boolean"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TeacherProfileRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "profile_complete": {
+            "title": "Profile Complete",
+            "type": "boolean"
+          },
+          "ready_to_teach": {
+            "title": "Ready To Teach",
+            "type": "boolean"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TeacherOnboardingState"
+          }
+        },
+        "required": [
+          "state",
+          "profile_complete",
+          "ready_to_teach",
+          "assignment_count",
+          "can_create_content"
+        ],
+        "title": "TeacherOnboardingRead",
+        "type": "object"
+      },
+      "TeacherOnboardingState": {
+        "description": "Server-derived lifecycle state for school teachers (flow-3 \u00a73.1).",
+        "enum": [
+          "profile_incomplete",
+          "profile_complete",
+          "ready_to_teach"
+        ],
+        "title": "TeacherOnboardingState",
+        "type": "string"
+      },
+      "TeacherProfileComplete": {
+        "description": "Mandatory first-login profile payload (flow-3 \u00a76).",
+        "properties": {
+          "bio": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "language_preference": {
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Language Preference",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "region_district": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region District"
+          },
+          "region_province": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Region Province",
+            "type": "string"
+          },
+          "subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Subject Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "region_province",
+          "language_preference",
+          "subject_ids"
+        ],
+        "title": "TeacherProfileComplete",
+        "type": "object"
+      },
+      "TeacherProfileRead": {
+        "description": "Teacher profile fields exposed to the caller.",
+        "properties": {
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "language_preference": {
+            "title": "Language Preference",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "profile_completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Completed At"
+          },
+          "region_district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region District"
+          },
+          "region_province": {
+            "title": "Region Province",
+            "type": "string"
+          },
+          "subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Subject Ids",
+            "type": "array"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "region_province",
+          "region_district",
+          "bio",
+          "language_preference",
+          "subject_ids",
+          "profile_completed_at"
+        ],
+        "title": "TeacherProfileRead",
         "type": "object"
       },
       "TosAcceptRequest": {
@@ -6182,6 +6389,89 @@
         "summary": "Archive a subject (status -> archived)",
         "tags": [
           "subjects"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/onboarding": {
+      "get": {
+        "operationId": "teacher_get_onboarding",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TeacherOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get school teacher onboarding state",
+        "tags": [
+          "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/profile": {
+      "put": {
+        "operationId": "teacher_complete_profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherProfileComplete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TeacherOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete mandatory teacher profile on first login",
+        "tags": [
+          "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/subject-options": {
+      "get": {
+        "operationId": "teacher_list_subject_options",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_SubjectRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List active school subjects for profile completion",
+        "tags": [
+          "teacher-onboarding"
         ]
       }
     },

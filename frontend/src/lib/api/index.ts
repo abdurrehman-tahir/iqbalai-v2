@@ -33,6 +33,8 @@ import type {
   OfferingRead,
   OfferingAssign,
   EligibleTeacherRead,
+  TeacherOnboardingRead,
+  TeacherProfileComplete,
   SchoolCreate,
   SchoolUpdate,
   SubscriptionTierCreate,
@@ -622,6 +624,21 @@ export const subjectsApi = {
     request<SubjectRead>(`/subjects/${id}`, { method: "PUT", body: JSON.stringify(data) }, token),
   archive: (token: string, id: string) =>
     request<SubjectRead>(`/subjects/${id}/archive`, { method: "POST" }, token),
+};
+
+// ── Teacher onboarding — T-053 ────────────────────────────────────────────────
+
+export const teacherOnboardingApi = {
+  getOnboarding: (token: string) =>
+    request<TeacherOnboardingRead>("/teachers/me/onboarding", {}, token),
+  completeProfile: (token: string, data: TeacherProfileComplete) =>
+    request<TeacherOnboardingRead>(
+      "/teachers/me/profile",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+  listSubjectOptions: (token: string) =>
+    request<SubjectRead[]>("/teachers/me/subject-options", {}, token),
 };
 
 // ── Academic Sessions (Coordinator) — T-042 ─────────────────────────────────────

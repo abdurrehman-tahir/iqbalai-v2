@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import type { StoredUser } from "@/lib/auth";
+import { TeacherOnboardingGate } from "./TeacherOnboardingGate";
 
 const NAV = [{ key: "dashboard", href: "/teacher", icon: LayoutDashboard }] as const;
 
@@ -16,6 +17,7 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("teacher");
   const pathname = usePathname();
   const [user, setUser] = useState<StoredUser | null>(null);
+  const onOnboardingPage = pathname.startsWith("/teacher/onboarding");
 
   useEffect(() => {
     setUser(getUser());
@@ -28,43 +30,49 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-gray-50">
-      <aside className="hidden md:flex md:w-64 md:flex-col border-e border-gray-200 bg-white">
-        <div className="flex h-16 items-center px-6 border-b border-gray-100">
-          <span className="text-xl font-bold text-brand-700">IqbalAI</span>
-        </div>
-        <nav className="px-3 py-4" aria-label={t("nav.aria_label")}>
-          <ul className="space-y-1">
-            {NAV.map(({ key, href, icon: Icon }) => (
-              <li key={key}>
-                <Link
-                  href={href}
-                  className={cn(
-                    "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium",
-                    pathname === href
-                      ? "bg-brand-50 text-brand-700"
-                      : "text-gray-600 hover:bg-gray-100",
-                  )}
-                >
-                  <Icon className="size-5" aria-hidden="true" />
-                  {t(`nav.${key}`)}
-                </Link>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <div className="mt-auto px-3 py-4 border-t border-gray-100">
-          <Button variant="ghost" size="md" className="w-full justify-start gap-3" onClick={handleLogout}>
-            <LogOut className="size-5" aria-hidden="true" />
-            {t("logout")}
-          </Button>
-        </div>
-      </aside>
+      {!onOnboardingPage && (
+        <aside className="hidden md:flex md:w-64 md:flex-col border-e border-gray-200 bg-white">
+          <div className="flex h-16 items-center px-6 border-b border-gray-100">
+            <span className="text-xl font-bold text-brand-700">IqbalAI</span>
+          </div>
+          <nav className="px-3 py-4" aria-label={t("nav.aria_label")}>
+            <ul className="space-y-1">
+              {NAV.map(({ key, href, icon: Icon }) => (
+                <li key={key}>
+                  <Link
+                    href={href}
+                    className={cn(
+                      "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium",
+                      pathname === href
+                        ? "bg-brand-50 text-brand-700"
+                        : "text-gray-600 hover:bg-gray-100",
+                    )}
+                  >
+                    <Icon className="size-5" aria-hidden="true" />
+                    {t(`nav.${key}`)}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <div className="mt-auto px-3 py-4 border-t border-gray-100">
+            <Button variant="ghost" size="md" className="w-full justify-start gap-3" onClick={handleLogout}>
+              <LogOut className="size-5" aria-hidden="true" />
+              {t("logout")}
+            </Button>
+          </div>
+        </aside>
+      )}
       <div className="flex flex-1 flex-col">
         <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between">
-          <h1 className="text-lg font-semibold text-gray-900">{t("header_title")}</h1>
+          <h1 className="text-lg font-semibold text-gray-900">
+            {onOnboardingPage ? t("onboarding.header_title") : t("header_title")}
+          </h1>
           <span className="text-sm text-gray-500">{user?.email}</span>
         </header>
-        <main className="flex-1 p-6 md:p-8">{children}</main>
+        <main className="flex-1 p-6 md:p-8 overflow-y-auto">
+          <TeacherOnboardingGate>{children}</TeacherOnboardingGate>
+        </main>
       </div>
     </div>
   );

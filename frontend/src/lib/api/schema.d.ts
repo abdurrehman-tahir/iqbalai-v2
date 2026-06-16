@@ -968,6 +968,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get school teacher onboarding state */
+        get: operations["teacher_get_onboarding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Complete mandatory teacher profile on first login */
+        put: operations["teacher_complete_profile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/subject-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active school subjects for profile completion */
+        get: operations["teacher_list_subject_options"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/tos/current": {
         parameters: {
             query?: never;
@@ -1957,6 +2008,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[TeacherOnboardingRead] */
+        SuccessEnvelope_TeacherOnboardingRead_: {
+            data: components["schemas"]["TeacherOnboardingRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[TosAcceptResponse] */
         SuccessEnvelope_TosAcceptResponse_: {
             data: components["schemas"]["TosAcceptResponse"];
@@ -2152,6 +2212,68 @@ export interface components {
             syllabus_id: string;
             /** Title */
             title: string;
+        };
+        /**
+         * TeacherOnboardingRead
+         * @description Onboarding gate state — ``ready_to_teach`` is derived, never stored.
+         */
+        TeacherOnboardingRead: {
+            /** Assignment Count */
+            assignment_count: number;
+            /** Can Create Content */
+            can_create_content: boolean;
+            profile?: components["schemas"]["TeacherProfileRead"] | null;
+            /** Profile Complete */
+            profile_complete: boolean;
+            /** Ready To Teach */
+            ready_to_teach: boolean;
+            state: components["schemas"]["TeacherOnboardingState"];
+        };
+        /**
+         * TeacherOnboardingState
+         * @description Server-derived lifecycle state for school teachers (flow-3 §3.1).
+         * @enum {string}
+         */
+        TeacherOnboardingState: "profile_incomplete" | "profile_complete" | "ready_to_teach";
+        /**
+         * TeacherProfileComplete
+         * @description Mandatory first-login profile payload (flow-3 §6).
+         */
+        TeacherProfileComplete: {
+            /** Bio */
+            bio?: string | null;
+            /** Language Preference */
+            language_preference: string;
+            /** Name */
+            name: string;
+            /** Region District */
+            region_district?: string | null;
+            /** Region Province */
+            region_province: string;
+            /** Subject Ids */
+            subject_ids: string[];
+        };
+        /**
+         * TeacherProfileRead
+         * @description Teacher profile fields exposed to the caller.
+         */
+        TeacherProfileRead: {
+            /** Bio */
+            bio: string | null;
+            /** Language Preference */
+            language_preference: string;
+            /** Name */
+            name: string;
+            /** Profile Completed At */
+            profile_completed_at: string | null;
+            /** Region District */
+            region_district: string | null;
+            /** Region Province */
+            region_province: string;
+            /** Subject Ids */
+            subject_ids: string[];
+            /** User Id */
+            user_id: string;
         };
         /**
          * TosAcceptRequest
@@ -4700,6 +4822,79 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_onboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_TeacherOnboardingRead_"];
+                };
+            };
+        };
+    };
+    teacher_complete_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeacherProfileComplete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_TeacherOnboardingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_subject_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_SubjectRead__"];
                 };
             };
         };
