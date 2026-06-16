@@ -1,5 +1,5 @@
-import { TeacherLibraryUploadClient } from "./TeacherLibraryUploadClient";
+import { redirect } from "next/navigation";
 
-export default function TeacherLibraryUploadPage() {
-  return <TeacherLibraryUploadClient />;
+export default function Page() {
+  redirect("/teacher/library/reference/upload");
 }

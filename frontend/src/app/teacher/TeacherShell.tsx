@@ -14,7 +14,7 @@ import { TeacherOnboardingGate } from "./TeacherOnboardingGate";
 const NAV = [
   { key: "dashboard", href: "/teacher", icon: LayoutDashboard },
   { key: "curriculum_upload", href: "/teacher/library/curriculum/upload", icon: Library },
-  { key: "library_upload", href: "/teacher/library/upload", icon: Upload },
+  { key: "library_upload", href: "/teacher/library/reference/upload", icon: Upload },
 ] as const;
 
 export function TeacherShell({ children }: { children: React.ReactNode }) {
@@ -49,7 +49,9 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
                       "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium",
                     pathname === href ||
                       (key === "curriculum_upload" &&
-                        pathname.startsWith("/teacher/library/curriculum"))
+                        pathname.startsWith("/teacher/library/curriculum")) ||
+                      (key === "library_upload" &&
+                        pathname.startsWith("/teacher/library/reference"))
                       ? "bg-brand-50 text-brand-700"
                       : "text-gray-600 hover:bg-gray-100",
                     )}

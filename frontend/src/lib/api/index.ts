@@ -541,6 +541,18 @@ export const schoolLibraryApi = {
   },
   get: (token: string, itemId: string) =>
     request<import("./types").SchoolLibraryItemRead>(`/school/library/${itemId}`, {}, token),
+  publish: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(
+      `/school/library/${itemId}/publish`,
+      { method: "POST" },
+      token,
+    ),
+  removeSelection: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(
+      `/school/library/${itemId}/selection`,
+      { method: "DELETE" },
+      token,
+    ),
 };
 
 // ── Audit Log ─────────────────────────────────────────────────────────────────

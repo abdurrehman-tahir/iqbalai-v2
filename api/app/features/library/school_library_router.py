@@ -83,3 +83,72 @@ async def get_school_library_item(
     svc = SchoolLibraryService(db)
     item = await svc.get_item(item_id, authentik_id=str(claims.get("sub", "")))
     return success(SchoolLibraryItemRead.model_validate(item))
+
+
+@router.post(
+    "/{item_id}/publish",
+    response_model=SuccessEnvelope[SchoolLibraryItemRead],
+    operation_id="school_library_publish_reference",
+    summary="Publish a private reference book to the school library",
+    description=(
+        "One-way private → school_public for reference books. "
+        "Curricula are always public; public items cannot be made private."
+    ),
+    dependencies=[require_role("teacher")],
+)
+async def publish_school_library_reference(
+    item_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SuccessEnvelope[SchoolLibraryItemRead]:
+    svc = SchoolLibraryService(db)
+    item = await svc.publish_reference(item_id, authentik_id=str(claims.get("sub", "")))
+    logger.info("school_library_publish_endpoint", item_id=item.id)
+    return success(SchoolLibraryItemRead.model_validate(item))
+
+
+@router.patch(
+    "/{item_id}/visibility",
+    response_model=SuccessEnvelope[SchoolLibraryItemRead],
+    operation_id="school_library_set_reference_visibility",
+    summary="Update reference book visibility",
+    description=(
+        "Allows private → school_public. Blocks school_public → private with 412 "
+        "PRECONDITION_FAILED."
+    ),
+    dependencies=[require_role("teacher")],
+)
+async def set_school_library_reference_visibility(
+    item_id: str,
+    visibility: str = Query(..., pattern="^(private|school_public)$"),
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SuccessEnvelope[SchoolLibraryItemRead]:
+    svc = SchoolLibraryService(db)
+    item = await svc.set_reference_visibility(
+        item_id,
+        visibility=visibility,
+        authentik_id=str(claims.get("sub", "")),
+    )
+    return success(SchoolLibraryItemRead.model_validate(item))
+
+
+@router.delete(
+    "/{item_id}/selection",
+    response_model=SuccessEnvelope[SchoolLibraryItemRead],
+    operation_id="school_library_remove_selection",
+    summary="Remove your selection of a library item",
+    description=(
+        "Removes the caller's selection record. Public items remain available to others."
+    ),
+    dependencies=[require_role("teacher")],
+)
+async def remove_school_library_selection(
+    item_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SuccessEnvelope[SchoolLibraryItemRead]:
+    svc = SchoolLibraryService(db)
+    item = await svc.remove_selection(item_id, authentik_id=str(claims.get("sub", "")))
+    logger.info("school_library_remove_selection_endpoint", item_id=item.id)
+    return success(SchoolLibraryItemRead.model_validate(item))

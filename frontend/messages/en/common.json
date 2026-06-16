@@ -270,6 +270,63 @@
           "failed": "Failed"
         }
       }
+    },
+    "reference": {
+      "upload": {
+        "page_title": "Upload reference book",
+        "page_subtitle": "Add supplementary material to your library. Reference books are private by default — share with the school only when you choose.",
+        "privacy_toggle_label": "Make available to the school in the Content Library",
+        "privacy_toggle_help": "When unchecked, only you can see this reference book.",
+        "admin_public_notice": "Reference books uploaded by administrators are always shared with the whole school.",
+        "title_label": "Title",
+        "title_placeholder": "Physics past papers 2024",
+        "subject_label": "Subject (optional)",
+        "subject_placeholder": "Select a subject",
+        "grade_label": "Grade (optional)",
+        "grade_placeholder": "Select a grade",
+        "language_label": "Language",
+        "language_en": "English",
+        "language_ur": "Urdu",
+        "language_sd": "Sindhi",
+        "language_ps": "Pashto",
+        "file_label": "Reference PDF",
+        "file_help": "PDF only, up to 100 MB.",
+        "submit": "Upload reference book",
+        "submitting": "Uploading…",
+        "error_generic": "Upload failed. Check the file and try again.",
+        "dedup_public_notice": "This material is already in the school library — using the existing public version."
+      },
+      "detail": {
+        "subtitle": "Reference book in your school content library.",
+        "error": "Could not load this reference book.",
+        "visibility_label": "Visibility",
+        "visibility_public": "School public",
+        "visibility_private": "Private — only you",
+        "language_label": "Language",
+        "grade_label": "Grade level",
+        "grade_unknown": "Not tagged",
+        "content_type_label": "Type",
+        "content_type_reference": "Reference book",
+        "unpublish_blocked": "Once shared with the school, content cannot be made private. You can remove your selection but the content stays available to others.",
+        "publish_section_title": "Share with your school",
+        "publish_section_help": "Publishing makes this reference book visible to other teachers in your school. This cannot be undone.",
+        "publish_button": "Make available to school",
+        "publishing": "Publishing…",
+        "publish_success": "This reference book is now available to your school.",
+        "publish_error": "Could not publish this reference book.",
+        "remove_selection_section_title": "Remove from your library",
+        "remove_selection_help": "Removes this item from your selections. The reference book stays available to others in the school.",
+        "remove_selection_button": "Remove my selection",
+        "removing_selection": "Removing…",
+        "remove_selection_error": "Could not remove your selection.",
+        "upload_another": "Upload another reference book",
+        "status": {
+          "pending": "Pending",
+          "ingesting": "Ingesting",
+          "available": "Available",
+          "failed": "Failed"
+        }
+      }
     }
   },
   "teacher": {
@@ -278,7 +335,7 @@
     "nav": {
       "aria_label": "Teacher navigation",
       "dashboard": "Dashboard",
-      "library_upload": "Upload reference PDF",
+      "library_upload": "Upload reference book",
       "curriculum_upload": "Upload curriculum"
     },
     "onboarding": {

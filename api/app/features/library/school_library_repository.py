@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -57,3 +59,12 @@ class SchoolLibraryRepository:
         await self._session.commit()
         await self._session.refresh(selection)
         return selection
+
+    async def update_item(self, item: SchoolLibraryItem) -> SchoolLibraryItem:
+        await self._session.commit()
+        await self._session.refresh(item)
+        return item
+
+    async def soft_delete_selection(self, selection: SchoolLibraryItemSelection) -> None:
+        selection.deleted_at = datetime.now(timezone.utc)
+        await self._session.commit()

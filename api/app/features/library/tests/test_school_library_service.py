@@ -317,3 +317,136 @@ async def test_get_item_hides_other_teachers_private_reference() -> None:
     ):
         with pytest.raises(NotFoundError):
             await svc.get_item("item-1", authentik_id="auth-teacher-1")
+
+
+@pytest.mark.asyncio
+async def test_publish_reference_makes_private_item_public() -> None:
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher = _teacher()
+    private_item = _item(visibility=LibraryVisibility.PRIVATE)
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
+        patch.object(svc._repo, "get_by_id", return_value=private_item),
+        patch.object(svc._repo, "update_item", return_value=private_item) as update_item,
+    ):
+        result = await svc.publish_reference("item-1", authentik_id="auth-teacher-1")
+
+    assert result.visibility is LibraryVisibility.SCHOOL_PUBLIC
+    update_item.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_publish_reference_idempotent_when_already_public() -> None:
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher = _teacher()
+    public_item = _item(visibility=LibraryVisibility.SCHOOL_PUBLIC)
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
+        patch.object(svc._repo, "get_by_id", return_value=public_item),
+        patch.object(svc._repo, "update_item") as update_item,
+    ):
+        result = await svc.publish_reference("item-1", authentik_id="auth-teacher-1")
+
+    assert result.visibility is LibraryVisibility.SCHOOL_PUBLIC
+    update_item.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_set_reference_visibility_blocks_unpublish() -> None:
+    from app.core.exceptions import PreconditionFailedError
+
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher = _teacher()
+    public_item = _item(visibility=LibraryVisibility.SCHOOL_PUBLIC)
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
+        patch.object(svc._repo, "get_by_id", return_value=public_item),
+    ):
+        with pytest.raises(PreconditionFailedError, match="cannot be made private"):
+            await svc.set_reference_visibility(
+                "item-1", visibility="private", authentik_id="auth-teacher-1"
+            )
+
+
+@pytest.mark.asyncio
+async def test_remove_selection_soft_deletes_selection() -> None:
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    teacher = _teacher()
+    public_item = _item(visibility=LibraryVisibility.SCHOOL_PUBLIC)
+    selection = SchoolLibraryItemSelection(
+        id="sel-1", library_item_id="item-1", user_id="teacher-1"
+    )
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
+        patch.object(svc._repo, "get_by_id", return_value=public_item),
+        patch.object(svc._repo, "get_selection", return_value=selection),
+        patch.object(svc._repo, "soft_delete_selection") as soft_delete,
+    ):
+        result = await svc.remove_selection("item-1", authentik_id="auth-teacher-1")
+
+    assert result.id == "item-1"
+    soft_delete.assert_awaited_once_with(selection)
+
+
+@pytest.mark.asyncio
+async def test_coordinator_reference_upload_forces_public() -> None:
+    session = AsyncMock()
+    svc = SchoolLibraryService(session)
+    coordinator = _teacher(user_id="coord-1")
+    coordinator.role = UserRole.COORDINATOR
+    meta = SchoolLibraryUploadRequest(title="Shared Notes", visibility="private")
+    upload_result = UploadInitiated(
+        upload_id="upload-1",
+        status=UploadStatus.READY,
+        status_url="/api/v1/uploads/upload-1",
+    )
+    upload_record = UploadRecord(
+        id="upload-1",
+        profile="school_library_content",
+        filename="notes.pdf",
+        size_bytes=100,
+        sha256="e" * 64,
+        minio_key="school-library/school-1/notes.pdf",
+        bucket="pdfs",
+        school_id="school-1",
+        uploaded_by="coord-1",
+        status=UploadStatus.READY,
+    )
+    saved_item = _item(id="item-coord", sha256="e" * 64, visibility=LibraryVisibility.SCHOOL_PUBLIC)
+
+    with (
+        patch.object(svc._users, "get_by_authentik_id", return_value=coordinator),
+        patch.object(svc._repo, "get_by_school_sha256", return_value=None),
+        patch(
+            "app.features.library.school_library_service.run_upload_pipeline",
+            return_value=upload_result,
+        ),
+        patch.object(session, "get", return_value=upload_record),
+        patch.object(svc._repo, "save_item", return_value=saved_item) as save_item,
+        patch.object(svc._repo, "get_selection", return_value=None),
+        patch.object(
+            svc._repo,
+            "save_selection",
+            return_value=SchoolLibraryItemSelection(
+                id="sel-1", library_item_id="item-coord", user_id="coord-1"
+            ),
+        ),
+        patch("app.features.library.school_library_service.sha256_of_bytes", return_value="e" * 64),
+    ):
+        await svc.upload(
+            data=b"%PDF-reference",
+            filename="notes.pdf",
+            meta=meta,
+            authentik_id="auth-teacher-1",
+        )
+
+    created = save_item.await_args.args[0]
+    assert created.visibility is LibraryVisibility.SCHOOL_PUBLIC

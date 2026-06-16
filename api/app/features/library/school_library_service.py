@@ -5,7 +5,12 @@ from __future__ import annotations
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
+from app.core.exceptions import (
+    NotFoundError,
+    PermissionDeniedError,
+    PreconditionFailedError,
+    ValidationError,
+)
 from app.features.files.models import UploadRecord
 from app.features.files.pipeline import run_upload_pipeline
 from app.features.files.profiles import get_profile
@@ -37,6 +42,16 @@ _UPLOAD_ROLES = {
     UserRole.DISTRICT_ADMIN,
     UserRole.PLATFORM_ADMIN,
 }
+_ADMIN_UPLOAD_ROLES = {
+    UserRole.COORDINATOR,
+    UserRole.SCHOOL_ADMIN,
+    UserRole.DISTRICT_ADMIN,
+    UserRole.PLATFORM_ADMIN,
+}
+_UNPUBLISH_BLOCKED_MESSAGE = (
+    "Once shared with the school, content cannot be made private. "
+    "You can remove your selection but the content stays available to others."
+)
 
 
 class SchoolLibraryService:
@@ -55,8 +70,12 @@ class SchoolLibraryService:
             raise PermissionDeniedError("Uploader must belong to a school")
         return user
 
-    def _resolve_visibility(self, meta: SchoolLibraryUploadRequest) -> LibraryVisibility:
+    def _resolve_visibility(
+        self, meta: SchoolLibraryUploadRequest, user: User
+    ) -> LibraryVisibility:
         if meta.content_type == LibraryContentType.CURRICULUM.value:
+            return LibraryVisibility.SCHOOL_PUBLIC
+        if user.role in _ADMIN_UPLOAD_ROLES:
             return LibraryVisibility.SCHOOL_PUBLIC
         return LibraryVisibility(meta.visibility)
 
@@ -92,7 +111,7 @@ class SchoolLibraryService:
         assert user.school_id is not None
         profile = get_profile(_PROFILE_NAME)
         file_sha256 = sha256_of_bytes(data)
-        visibility = self._resolve_visibility(meta)
+        visibility = self._resolve_visibility(meta, user)
 
         existing_item = await self._repo.get_by_school_sha256(user.school_id, file_sha256)
         if existing_item is not None:
@@ -196,3 +215,68 @@ class SchoolLibraryService:
             return True
         selection = await self._repo.get_selection(item.id, user_id)
         return selection is not None
+
+    async def _get_school_item(self, item_id: str, school_id: str) -> SchoolLibraryItem:
+        item = await self._repo.get_by_id(item_id)
+        if item is None or item.school_id != school_id:
+            raise NotFoundError("Library item not found")
+        return item
+
+    def _can_publish_reference(self, item: SchoolLibraryItem, user: User) -> bool:
+        if item.content_type is not LibraryContentType.REFERENCE:
+            return False
+        if item.created_by == user.id:
+            return True
+        return user.role in _ADMIN_UPLOAD_ROLES
+
+    async def publish_reference(self, item_id: str, authentik_id: str) -> SchoolLibraryItem:
+        """Publish a private reference book to the school library (one-way)."""
+        user = await self._require_uploader(authentik_id)
+        assert user.school_id is not None
+        item = await self._get_school_item(item_id, user.school_id)
+        if item.content_type is not LibraryContentType.REFERENCE:
+            raise ValidationError("Only reference books can be published")
+        if not self._can_publish_reference(item, user):
+            raise PermissionDeniedError("You can only publish your own reference books")
+        if item.visibility is LibraryVisibility.SCHOOL_PUBLIC:
+            return item
+        item.visibility = LibraryVisibility.SCHOOL_PUBLIC
+        await self._repo.update_item(item)
+        logger.info(
+            "school_library_reference_published",
+            item_id=item.id,
+            school_id=user.school_id,
+            actor_id=user.id,
+        )
+        return item
+
+    async def set_reference_visibility(
+        self, item_id: str, visibility: str, authentik_id: str
+    ) -> SchoolLibraryItem:
+        """Set reference visibility; blocks public → private (flow-3 §3.4)."""
+        target = LibraryVisibility(visibility)
+        if target is LibraryVisibility.PRIVATE:
+            user = await self._require_uploader(authentik_id)
+            assert user.school_id is not None
+            item = await self._get_school_item(item_id, user.school_id)
+            if item.visibility is LibraryVisibility.SCHOOL_PUBLIC:
+                raise PreconditionFailedError(_UNPUBLISH_BLOCKED_MESSAGE)
+            raise ValidationError("Reference books are private by default at upload")
+        return await self.publish_reference(item_id, authentik_id)
+
+    async def remove_selection(self, item_id: str, authentik_id: str) -> SchoolLibraryItem:
+        """Remove the caller's selection; public items stay available to others."""
+        user = await self._require_uploader(authentik_id)
+        assert user.school_id is not None
+        item = await self._get_school_item(item_id, user.school_id)
+        selection = await self._repo.get_selection(item_id, user.id)
+        if selection is None:
+            raise NotFoundError("Library selection not found")
+        await self._repo.soft_delete_selection(selection)
+        logger.info(
+            "school_library_selection_removed",
+            item_id=item.id,
+            school_id=user.school_id,
+            user_id=user.id,
+        )
+        return item

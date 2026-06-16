@@ -6427,6 +6427,145 @@
         ]
       }
     },
+    "/api/v1/school/library/{item_id}/publish": {
+      "post": {
+        "description": "One-way private \u2192 school_public for reference books. Curricula are always public; public items cannot be made private.",
+        "operationId": "school_library_publish_reference",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish a private reference book to the school library",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
+    "/api/v1/school/library/{item_id}/selection": {
+      "delete": {
+        "description": "Removes the caller's selection record. Public items remain available to others.",
+        "operationId": "school_library_remove_selection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove your selection of a library item",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
+    "/api/v1/school/library/{item_id}/visibility": {
+      "patch": {
+        "description": "Allows private \u2192 school_public. Blocks school_public \u2192 private with 412 PRECONDITION_FAILED.",
+        "operationId": "school_library_set_reference_visibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "visibility",
+            "required": true,
+            "schema": {
+              "pattern": "^(private|school_public)$",
+              "title": "Visibility",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update reference book visibility",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
     "/api/v1/smoketest/llm": {
       "post": {
         "description": "Run a sample LLM call.",
