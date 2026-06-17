@@ -80,6 +80,8 @@ class School(AuditMixin, SoftDeleteMixin, Base):
         nullable=False,
     )
     name: Mapped[str] = mapped_column(String(200), nullable=False)
+    # Denormalized mirror of the active academic_sessions.label (T-042).
+    active_academic_session: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:

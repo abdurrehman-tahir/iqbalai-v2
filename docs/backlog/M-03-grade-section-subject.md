@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2 weeks
 **Tickets:** T-041 through T-052
 **Spec source:** `flow-2-admin-coordinator-setup.md` v3 (§3.2 Subject catalog, §3.3 Grade/Section/Offering)
@@ -36,7 +36,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2
 **Milestone:** M-03
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 4fd0698
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.2 (Subject catalog lifecycle #4)
@@ -81,7 +82,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2
 **Milestone:** M-03
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 00692aa
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.3 (Grade entity carries `academic_session`)
@@ -122,7 +124,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2
 **Milestone:** M-03
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 1fd282e
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.3 (Grade lifecycle #5 — Grade entity)
@@ -166,7 +169,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2
 **Milestone:** M-03
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 27873a7
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.3 (Section lifecycle #5 — optional sections, default-internal per Q11)
@@ -207,7 +211,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2
 **Milestone:** M-03
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 940be18
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.3 (GradeSubjectOffering lifecycle #5)
@@ -249,7 +254,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2
 **Milestone:** M-03
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 58b0b91
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.3 (teacher assignment at offering level)
@@ -294,7 +300,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2
 **Milestone:** M-03
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 98905fb
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.3 (cross-grade subject linking replaced by unidirectional rule)
@@ -334,7 +341,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2
 **Milestone:** M-03
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** d33dbf6
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3 (Coordinator scope; permission inheritance)
@@ -373,7 +381,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2
 **Milestone:** M-03
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 458d96a
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3 (structure events)
@@ -413,7 +422,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 2 / 6 (cross-cutting)
 **Milestone:** M-03
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** cebf011
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3 (audit-logged actions)
@@ -452,7 +462,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 6 (cross-cutting)
 **Milestone:** M-03
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 12ab846
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.2-§3.3 (full structure flow)
@@ -489,7 +500,8 @@ Build the academic structure model that replaces the old "Class" concept. A Coor
 **Layer:** 6 (cross-cutting)
 **Milestone:** M-03
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** dd91948 (PR branch)
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` v3 (whole flow)
@@ -527,3 +539,4 @@ The single milestone PR per `WORKFLOW.md` Step 2: open the M-03 branch PR, fill 
 - **Cross-grade rule is enforced but not yet exercised by content** — T-047 ships the reusable guard; M-04+ content/lecture flows consume it.
 - **Teacher capacity** is the one rule most likely to confuse: it counts Grade-Subject *assignments*, not students. Default cap 5, range [1,20], School-Admin-and-above override (audit-logged).
 - **Source flow:** Flow 2 v3 §3.2 + §3.3. No blockers — the flow spec is finalized.
+- **Post-T-051 fixes (before merge):** `e4c9bb8` grades actor lookup by `authentik_id`; follow-up commit converts `users.role` text→enum (`school_0027`) so eligible-teacher queries work, fixes offerings assign actor lookup, and adds assign-modal loading/error/empty UI + i18n keys.

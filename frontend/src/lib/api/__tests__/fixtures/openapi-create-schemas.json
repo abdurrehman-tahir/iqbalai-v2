@@ -51,10 +51,7 @@
         "title": "Region"
       }
     },
-    "required": [
-      "name",
-      "exam_board"
-    ],
+    "required": ["name", "exam_board"],
     "title": "ExamSyllabusCreate",
     "type": "object"
   },
@@ -62,10 +59,7 @@
     "description": "Payload for creating a new SubscriptionTier.",
     "properties": {
       "applies_to": {
-        "enum": [
-          "district",
-          "school"
-        ],
+        "enum": ["district", "school"],
         "title": "Applies To",
         "type": "string"
       },
@@ -108,12 +102,28 @@
         "type": "string"
       }
     },
-    "required": [
-      "name",
-      "slug",
-      "applies_to"
-    ],
+    "required": ["name", "slug", "applies_to"],
     "title": "SubscriptionTierCreate",
+    "type": "object"
+  },
+  "SubjectCreate": {
+    "description": "Payload for creating a new Subject in the caller's school catalogue.",
+    "properties": {
+      "language": {
+        "maxLength": 20,
+        "minLength": 1,
+        "title": "Language",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 200,
+        "minLength": 1,
+        "title": "Name",
+        "type": "string"
+      }
+    },
+    "required": ["name", "language"],
+    "title": "SubjectCreate",
     "type": "object"
   }
 }

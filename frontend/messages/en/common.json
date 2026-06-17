@@ -244,11 +244,200 @@
     "nav": {
       "aria_label": "Coordinator navigation",
       "dashboard": "Dashboard",
+      "subjects": "Subjects",
+      "grades": "Grades",
       "bulk_import": "Bulk Import"
     },
     "dashboard": {
       "title": "Welcome, Coordinator",
       "subtitle": "Your grade-scoped dashboard is ready. Subject and grade management arrives in upcoming milestones."
+    },
+    "subjects": {
+      "title": "Subjects",
+      "subtitle": "Manage your school's subject catalogue — add, rename, change language, or archive.",
+      "add_button": "Add subject",
+      "show_archived": "Show archived",
+      "error": "Failed to load subjects",
+      "retry": "Retry",
+      "table_label": "Subjects table",
+      "empty": {
+        "title": "No subjects yet",
+        "description": "Add your first subject to start building the catalogue for your school.",
+        "cta": "Add subject"
+      },
+      "col": {
+        "name": "Name",
+        "language": "Language",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "archived": "Archived"
+      },
+      "languages": {
+        "en": "English",
+        "ur": "Urdu",
+        "sd": "Sindhi",
+        "ps": "Pashto"
+      },
+      "actions": {
+        "edit": "Edit {name}",
+        "archive": "Archive {name}"
+      },
+      "modal": {
+        "create_title": "Add subject",
+        "edit_title": "Edit subject",
+        "close": "Close",
+        "cancel": "Cancel",
+        "create": "Create",
+        "save": "Save changes",
+        "name_label": "Subject name",
+        "name_placeholder": "e.g. Physics",
+        "name_required": "Subject name is required",
+        "language_label": "Language",
+        "duplicate_error": "A subject with this name already exists in your school.",
+        "generic_error": "Something went wrong. Please try again."
+      },
+      "archive_modal": {
+        "title": "Archive subject?",
+        "description": "Archive \"{name}\"? It will be hidden from the default list but kept for records.",
+        "cancel": "Cancel",
+        "confirm": "Archive"
+      }
+    },
+    "grades": {
+      "title": "Grades",
+      "subtitle": "Manage grades for the active academic session — add or archive.",
+      "add_button": "Add grade",
+      "show_archived": "Show archived",
+      "error": "Failed to load grades",
+      "retry": "Retry",
+      "table_label": "Grades table",
+      "empty": {
+        "title": "No grades yet",
+        "description": "Add your first grade for the active session.",
+        "cta": "Add grade"
+      },
+      "col": {
+        "name": "Name",
+        "session": "Session",
+        "status": "Status",
+        "created": "Created",
+        "actions": "Actions"
+      },
+      "status": {
+        "active": "Active",
+        "archived": "Archived"
+      },
+      "actions": {
+        "archive": "Archive {name}"
+      },
+      "modal": {
+        "create_title": "Add grade",
+        "cancel": "Cancel",
+        "create": "Create",
+        "name_label": "Grade name",
+        "name_placeholder": "e.g. Grade 9",
+        "duplicate_error": "A grade with this name already exists for this session.",
+        "scope_error": "This grade is outside your assigned scope.",
+        "generic_error": "Something went wrong. Please try again."
+      },
+      "archive_modal": {
+        "title": "Archive grade?",
+        "description": "Archive \"{name}\"? It will be hidden from the default list but kept for records.",
+        "cancel": "Cancel",
+        "confirm": "Archive"
+      }
+    },
+    "grade_detail": {
+      "back": "Back to grades",
+      "error": "Failed to load grade",
+      "retry": "Retry",
+      "session_label": "Session: {session}",
+      "sections": {
+        "title": "Sections",
+        "add_button": "Add section",
+        "error": "Failed to load sections",
+        "empty": {
+          "title": "No sections yet",
+          "description": "Add sections like A, B, or C for this grade."
+        },
+        "archive": "Archive {name}",
+        "duplicate_error": "A section with this name already exists.",
+        "generic_error": "Something went wrong.",
+        "modal": {
+          "title": "Add section",
+          "name_label": "Section name",
+          "name_placeholder": "e.g. A",
+          "cancel": "Cancel",
+          "create": "Create"
+        },
+        "archive_modal": {
+          "title": "Archive section?",
+          "description": "Archive section \"{name}\"?",
+          "cancel": "Cancel",
+          "confirm": "Archive"
+        }
+      },
+      "offerings": {
+        "title": "Subject offerings",
+        "add_button": "Offer a subject",
+        "error": "Failed to load offerings",
+        "empty": {
+          "title": "No offerings yet",
+          "description": "Offer subjects from your catalogue to this grade."
+        },
+        "unassigned": "No teacher assigned",
+        "archive": "Archive offering",
+        "duplicate_error": "This subject is already offered to this grade.",
+        "generic_error": "Something went wrong.",
+        "modal": {
+          "title": "Offer a subject",
+          "subject_label": "Subject",
+          "subject_placeholder": "Select a subject",
+          "cancel": "Cancel",
+          "create": "Offer"
+        },
+        "archive_modal": {
+          "title": "Archive offering?",
+          "description": "Archive this subject offering?",
+          "cancel": "Cancel",
+          "confirm": "Archive"
+        },
+        "assign": {
+          "button": "Assign teacher",
+          "unassign": "Unassign",
+          "title": "Assign teacher",
+          "load_error": "Failed to load teachers",
+          "empty_title": "No teachers available",
+          "empty_description": "Invite or add teachers to this school before assigning them to subjects.",
+          "at_capacity": "At capacity ({count}/{cap})",
+          "override_label": "Override capacity limit (logged)",
+          "override_confirm": "This override is audit-logged. Assign anyway?",
+          "cancel": "Cancel",
+          "confirm": "Assign",
+          "capacity_error": "Teacher is at capacity.",
+          "generic_error": "Assignment failed."
+        }
+      }
+    },
+    "sessions": {
+      "active_label": "Session: {label}",
+      "no_active": "No active session",
+      "manage_button": "Manage sessions",
+      "manage_title": "Academic sessions",
+      "list_label": "School sessions",
+      "active_badge": "active",
+      "set_active": "Set active",
+      "label_field": "Session label",
+      "label_placeholder": "e.g. 2025-2026",
+      "label_required": "Session label is required",
+      "create_and_activate": "Create & activate",
+      "cancel": "Cancel",
+      "duplicate_error": "A session with this label already exists.",
+      "generic_error": "Something went wrong. Please try again."
     },
     "bulk_import": {
       "title": "Bulk Import",

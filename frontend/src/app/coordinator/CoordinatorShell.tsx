@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut, Upload } from "lucide-react";
+import { BookOpen, GraduationCap, LayoutDashboard, LogOut, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
@@ -12,9 +12,12 @@ import type { StoredUser } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
+import { AcademicSessionHeader } from "./AcademicSessionHeader";
 
 const NAV = [
   { key: "dashboard", href: "/coordinator", icon: LayoutDashboard },
+  { key: "subjects", href: "/coordinator/subjects", icon: BookOpen },
+  { key: "grades", href: "/coordinator/grades", icon: GraduationCap },
   { key: "bulk_import", href: "/coordinator/bulk-import", icon: Upload },
 ] as const;
 
@@ -57,7 +60,7 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium",
                     pathname === href
                       ? "bg-brand-50 text-brand-700"
-                      : "text-gray-600 hover:bg-gray-100",
+                      : "text-gray-600 hover:bg-gray-100"
                   )}
                 >
                   <Icon className="size-5" aria-hidden="true" />
@@ -68,7 +71,12 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
           </ul>
         </nav>
         <div className="mt-auto px-3 py-4 border-t border-gray-100">
-          <Button variant="ghost" size="md" className="w-full justify-start gap-3" onClick={handleLogout}>
+          <Button
+            variant="ghost"
+            size="md"
+            className="w-full justify-start gap-3"
+            onClick={handleLogout}
+          >
             <LogOut className="size-5" aria-hidden="true" />
             {t("logout")}
           </Button>
@@ -76,13 +84,16 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
       </aside>
       <div className="flex flex-1 flex-col">
         <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between gap-4">
-          <div>
+          <div className="flex flex-col gap-0.5">
             <h1 className="text-lg font-semibold text-gray-900">{t("header_title")}</h1>
-            {scopeLabel && (
-              <p className="text-xs text-gray-500">{t("scope_label", { scope: scopeLabel })}</p>
-            )}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+              {scopeLabel && (
+                <p className="text-xs text-gray-500">{t("scope_label", { scope: scopeLabel })}</p>
+              )}
+              <AcademicSessionHeader />
+            </div>
           </div>
-          <span className="text-sm text-gray-500">{user?.email}</span>
+          <span className="text-sm text-gray-500 shrink-0">{user?.email}</span>
         </header>
         <main className="flex-1 p-6 md:p-8">{children}</main>
       </div>

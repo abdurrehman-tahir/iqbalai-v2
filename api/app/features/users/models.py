@@ -5,7 +5,7 @@ from __future__ import annotations
 import enum
 
 from sqlalchemy import Enum as SAEnum
-from sqlalchemy import Index, String, Text
+from sqlalchemy import Index, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7
@@ -81,6 +81,10 @@ class User(AuditMixin, SoftDeleteMixin, Base):
     district_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
     # Scoped IDs: comma-separated list of IDs the user is scoped to (e.g., class IDs for teacher)
     scoped_ids: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Grade-Subject assignment cap for teachers (flow-3 §3.5, default 5, range [1, 20])
+    teacher_capacity: Mapped[int] = mapped_column(
+        Integer, nullable=False, default=5, server_default="5"
+    )
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:

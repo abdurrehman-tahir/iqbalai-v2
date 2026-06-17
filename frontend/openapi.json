@@ -1,6 +1,113 @@
 {
   "components": {
     "schemas": {
+      "AcademicSessionCreate": {
+        "description": "Payload for creating a new Academic Session.",
+        "properties": {
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "label": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Label",
+            "type": "string"
+          },
+          "set_active": {
+            "default": false,
+            "description": "If true, mark this session active (deactivates any prior active session)",
+            "title": "Set Active",
+            "type": "boolean"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          }
+        },
+        "required": [
+          "label"
+        ],
+        "title": "AcademicSessionCreate",
+        "type": "object"
+      },
+      "AcademicSessionRead": {
+        "description": "Response schema for a single Academic Session.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "end_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "End Date"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_active": {
+            "title": "Is Active",
+            "type": "boolean"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "start_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Start Date"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "label",
+          "is_active",
+          "start_date",
+          "end_date",
+          "created_at"
+        ],
+        "title": "AcademicSessionRead",
+        "type": "object"
+      },
       "AcceptInviteRequest": {
         "properties": {
           "action": {
@@ -48,6 +155,38 @@
           "action"
         ],
         "title": "AcceptInviteRequest",
+        "type": "object"
+      },
+      "ActiveSessionRead": {
+        "description": "The school's currently active academic session label (may be null).",
+        "properties": {
+          "label": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Label"
+          },
+          "session": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AcademicSessionRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "label",
+          "session"
+        ],
+        "title": "ActiveSessionRead",
         "type": "object"
       },
       "AdminUserInviteCreate": {
@@ -431,6 +570,44 @@
         "title": "DistrictUpdate",
         "type": "object"
       },
+      "EligibleTeacherRead": {
+        "properties": {
+          "assignment_count": {
+            "title": "Assignment Count",
+            "type": "integer"
+          },
+          "at_capacity": {
+            "title": "At Capacity",
+            "type": "boolean"
+          },
+          "capacity": {
+            "title": "Capacity",
+            "type": "integer"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "email",
+          "assignment_count",
+          "capacity",
+          "at_capacity"
+        ],
+        "title": "EligibleTeacherRead",
+        "type": "object"
+      },
       "ExamSyllabusCreate": {
         "description": "Payload for creating a new ExamSyllabus.",
         "properties": {
@@ -642,6 +819,103 @@
           }
         },
         "title": "ExamSyllabusUpdate",
+        "type": "object"
+      },
+      "GradeCreate": {
+        "properties": {
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "GradeCreate",
+        "type": "object"
+      },
+      "GradeRead": {
+        "properties": {
+          "academic_session": {
+            "title": "Academic Session",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "level_ordinal": {
+            "title": "Level Ordinal",
+            "type": "integer"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "promoted_from_grade_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Promoted From Grade Id"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GradeStatus"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "name",
+          "academic_session",
+          "level_ordinal",
+          "promoted_from_grade_id",
+          "status",
+          "created_at"
+        ],
+        "title": "GradeRead",
+        "type": "object"
+      },
+      "GradeStatus": {
+        "enum": [
+          "active",
+          "archived"
+        ],
+        "title": "GradeStatus",
+        "type": "string"
+      },
+      "GradeUpdate": {
+        "properties": {
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "GradeUpdate",
         "type": "object"
       },
       "HTTPValidationError": {
@@ -932,6 +1206,110 @@
         "title": "NotificationRead",
         "type": "object"
       },
+      "OfferingAssign": {
+        "properties": {
+          "override": {
+            "default": false,
+            "title": "Override",
+            "type": "boolean"
+          },
+          "teacher_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Teacher Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "teacher_id"
+        ],
+        "title": "OfferingAssign",
+        "type": "object"
+      },
+      "OfferingCreate": {
+        "properties": {
+          "subject_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Subject Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "subject_id"
+        ],
+        "title": "OfferingCreate",
+        "type": "object"
+      },
+      "OfferingRead": {
+        "properties": {
+          "academic_session": {
+            "title": "Academic Session",
+            "type": "string"
+          },
+          "assigned_teacher_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Assigned Teacher Id"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "grade_id": {
+            "title": "Grade Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/OfferingStatus"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "grade_id",
+          "subject_id",
+          "assigned_teacher_id",
+          "academic_session",
+          "status",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "OfferingRead",
+        "type": "object"
+      },
+      "OfferingStatus": {
+        "enum": [
+          "active",
+          "archived"
+        ],
+        "title": "OfferingStatus",
+        "type": "string"
+      },
       "PaginatedEnvelope_AuditLogEntryRead_": {
         "properties": {
           "items": {
@@ -1193,6 +1571,171 @@
         "title": "SchoolUpdate",
         "type": "object"
       },
+      "SectionCreate": {
+        "properties": {
+          "name": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name"
+        ],
+        "title": "SectionCreate",
+        "type": "object"
+      },
+      "SectionRead": {
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "grade_id": {
+            "title": "Grade Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_default_internal": {
+            "title": "Is Default Internal",
+            "type": "boolean"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SectionStatus"
+          }
+        },
+        "required": [
+          "id",
+          "grade_id",
+          "name",
+          "is_default_internal",
+          "status",
+          "created_at"
+        ],
+        "title": "SectionRead",
+        "type": "object"
+      },
+      "SectionStatus": {
+        "enum": [
+          "active",
+          "archived"
+        ],
+        "title": "SectionStatus",
+        "type": "string"
+      },
+      "SubjectCreate": {
+        "description": "Payload for creating a new Subject in the caller's school catalogue.",
+        "properties": {
+          "language": {
+            "maxLength": 20,
+            "minLength": 1,
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "name",
+          "language"
+        ],
+        "title": "SubjectCreate",
+        "type": "object"
+      },
+      "SubjectRead": {
+        "description": "Response schema for a single Subject.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SubjectStatus"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "name",
+          "language",
+          "status",
+          "created_at"
+        ],
+        "title": "SubjectRead",
+        "type": "object"
+      },
+      "SubjectStatus": {
+        "description": "Lifecycle state of a subject catalogue entry (flow-2 \u00a73.2).",
+        "enum": [
+          "active",
+          "archived"
+        ],
+        "title": "SubjectStatus",
+        "type": "string"
+      },
+      "SubjectUpdate": {
+        "description": "Payload for editing a Subject (all fields optional \u2014 PATCH-style merge).",
+        "properties": {
+          "language": {
+            "anyOf": [
+              {
+                "maxLength": 20,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          }
+        },
+        "title": "SubjectUpdate",
+        "type": "object"
+      },
       "SubscriptionTierCreate": {
         "description": "Payload for creating a new SubscriptionTier.",
         "properties": {
@@ -1384,6 +1927,40 @@
         "title": "SubscriptionTierUpdate",
         "type": "object"
       },
+      "SuccessEnvelope_AcademicSessionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AcademicSessionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[AcademicSessionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_ActiveSessionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ActiveSessionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ActiveSessionRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DeletedResponse_": {
         "properties": {
           "data": {
@@ -1435,6 +2012,40 @@
         "title": "SuccessEnvelope[ExamSyllabusRead]",
         "type": "object"
       },
+      "SuccessEnvelope_GradeRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GradeRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[GradeRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_OfferingRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/OfferingRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[OfferingRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_PersonaRead_": {
         "properties": {
           "data": {
@@ -1467,6 +2078,40 @@
           "data"
         ],
         "title": "SuccessEnvelope[PostLoginResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SectionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SectionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SectionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SubjectRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SubjectRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SubjectRead]",
         "type": "object"
       },
       "SuccessEnvelope_SubscriptionTierRead_": {
@@ -1571,6 +2216,27 @@
         "title": "SuccessEnvelope[UserRead]",
         "type": "object"
       },
+      "SuccessEnvelope_list_AcademicSessionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AcademicSessionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[AcademicSessionRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_DisclaimerVersionRead__": {
         "properties": {
           "data": {
@@ -1590,6 +2256,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[DisclaimerVersionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_EligibleTeacherRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/EligibleTeacherRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[EligibleTeacherRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_ExamSyllabusRead__": {
@@ -1613,6 +2300,48 @@
         "title": "SuccessEnvelope[list[ExamSyllabusRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_GradeRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/GradeRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[GradeRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_OfferingRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/OfferingRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[OfferingRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_PersonaRead__": {
         "properties": {
           "data": {
@@ -1632,6 +2361,48 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[PersonaRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_SectionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SectionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[SectionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_SubjectRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/SubjectRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[SubjectRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_SubscriptionTierRead__": {
@@ -2137,6 +2908,129 @@
   },
   "openapi": "3.1.0",
   "paths": {
+    "/api/v1/academic-sessions/": {
+      "get": {
+        "operationId": "academic_sessions_list",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_AcademicSessionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List academic sessions in the caller's school",
+        "tags": [
+          "academic-sessions"
+        ]
+      },
+      "post": {
+        "operationId": "academic_sessions_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AcademicSessionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_AcademicSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a new academic session",
+        "tags": [
+          "academic-sessions"
+        ]
+      }
+    },
+    "/api/v1/academic-sessions/active": {
+      "get": {
+        "operationId": "academic_sessions_get_active",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ActiveSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get the school's active academic session",
+        "tags": [
+          "academic-sessions"
+        ]
+      }
+    },
+    "/api/v1/academic-sessions/{session_id}/activate": {
+      "post": {
+        "operationId": "academic_sessions_activate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_AcademicSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark an academic session as active (deactivates prior)",
+        "tags": [
+          "academic-sessions"
+        ]
+      }
+    },
     "/api/v1/admin/audit-log/": {
       "get": {
         "description": "Returns audit entries newest-first. Filter by school_id to scope results to a specific school. Leave school_id unset to see platform-wide entries.",
@@ -4048,6 +4942,694 @@
         ]
       }
     },
+    "/api/v1/grades/": {
+      "get": {
+        "operationId": "grades_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "include_archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Archived",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_GradeRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List grades for the active academic session",
+        "tags": [
+          "grades"
+        ]
+      },
+      "post": {
+        "operationId": "grades_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a grade pinned to the active academic session",
+        "tags": [
+          "grades"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}": {
+      "get": {
+        "operationId": "grades_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single grade",
+        "tags": [
+          "grades"
+        ]
+      },
+      "put": {
+        "operationId": "grades_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradeUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit a grade name",
+        "tags": [
+          "grades"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/archive": {
+      "post": {
+        "operationId": "grades_archive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive a grade",
+        "tags": [
+          "grades"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/": {
+      "get": {
+        "operationId": "offerings_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_OfferingRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List subject offerings for a grade",
+        "tags": [
+          "offerings"
+        ]
+      },
+      "post": {
+        "operationId": "offerings_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferingCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_OfferingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Offer a subject to a grade",
+        "tags": [
+          "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/eligible-teachers": {
+      "get": {
+        "operationId": "offerings_eligible_teachers",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_EligibleTeacherRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List teachers eligible for assignment with capacity info",
+        "tags": [
+          "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/{offering_id}/archive": {
+      "post": {
+        "operationId": "offerings_archive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "offering_id",
+            "required": true,
+            "schema": {
+              "title": "Offering Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_OfferingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive a grade subject offering",
+        "tags": [
+          "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/{offering_id}/assign": {
+      "post": {
+        "operationId": "offerings_assign_teacher",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "offering_id",
+            "required": true,
+            "schema": {
+              "title": "Offering Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OfferingAssign"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_OfferingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Assign a teacher to an offering",
+        "tags": [
+          "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/offerings/{offering_id}/unassign": {
+      "post": {
+        "operationId": "offerings_unassign_teacher",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "offering_id",
+            "required": true,
+            "schema": {
+              "title": "Offering Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "header",
+            "name": "If-Match",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "If-Match"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_OfferingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Unassign the teacher from an offering",
+        "tags": [
+          "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/sections/": {
+      "get": {
+        "operationId": "sections_list",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_SectionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List visible sections for a grade",
+        "tags": [
+          "sections"
+        ]
+      },
+      "post": {
+        "operationId": "sections_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SectionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SectionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Add a section to a grade",
+        "tags": [
+          "sections"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/sections/{section_id}/archive": {
+      "post": {
+        "operationId": "sections_archive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "section_id",
+            "required": true,
+            "schema": {
+              "title": "Section Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SectionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive a section",
+        "tags": [
+          "sections"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "description": "Liveness probe \u2014 always returns 200 if the app is running.",
@@ -4382,6 +5964,224 @@
         "summary": "Smoketest Rag",
         "tags": [
           "smoketest"
+        ]
+      }
+    },
+    "/api/v1/subjects/": {
+      "get": {
+        "operationId": "subjects_list",
+        "parameters": [
+          {
+            "description": "Include archived subjects in the result",
+            "in": "query",
+            "name": "include_archived",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Include archived subjects in the result",
+              "title": "Include Archived",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_SubjectRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List subjects in the caller's school",
+        "tags": [
+          "subjects"
+        ]
+      },
+      "post": {
+        "operationId": "subjects_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubjectCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubjectRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a new subject in the caller's school",
+        "tags": [
+          "subjects"
+        ]
+      }
+    },
+    "/api/v1/subjects/{subject_id}": {
+      "get": {
+        "operationId": "subjects_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "title": "Subject Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubjectRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single subject",
+        "tags": [
+          "subjects"
+        ]
+      },
+      "put": {
+        "operationId": "subjects_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "title": "Subject Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SubjectUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubjectRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit a subject's name or language",
+        "tags": [
+          "subjects"
+        ]
+      }
+    },
+    "/api/v1/subjects/{subject_id}/archive": {
+      "post": {
+        "operationId": "subjects_archive",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "subject_id",
+            "required": true,
+            "schema": {
+              "title": "Subject Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SubjectRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Archive a subject (status -> archived)",
+        "tags": [
+          "subjects"
         ]
       }
     },

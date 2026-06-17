@@ -19,6 +19,20 @@ import type {
   PersonaRead,
   PersonaUpdate,
   PostLoginResponse,
+  SubjectCreate,
+  SubjectRead,
+  SubjectUpdate,
+  AcademicSessionCreate,
+  AcademicSessionRead,
+  ActiveSessionRead,
+  GradeCreate,
+  GradeRead,
+  SectionCreate,
+  SectionRead,
+  OfferingCreate,
+  OfferingRead,
+  OfferingAssign,
+  EligibleTeacherRead,
   SchoolCreate,
   SchoolUpdate,
   SubscriptionTierCreate,
@@ -38,6 +52,18 @@ export type {
   PersonaRead as Persona,
   ExamSyllabusRead as Syllabus,
   SubscriptionTierRead as SubscriptionTier,
+  SubjectRead as Subject,
+  SubjectCreate,
+  SubjectUpdate,
+  SubjectStatus,
+  SchoolCreate,
+  SchoolUpdate,
+  GradeRead as Grade,
+  GradeCreate,
+  GradeStatus,
+  SectionRead as Section,
+  OfferingRead,
+  EligibleTeacherRead,
   LibraryBookRead as LibraryBook,
   TosVersion,
 } from "./types";
@@ -569,4 +595,119 @@ export const bulkImportApi = {
   },
   get: (token: string, importId: string) =>
     request<BulkImportJob>(`/coordinator/bulk-imports/${importId}`, {}, token),
+};
+
+// ── Subjects (Coordinator) — T-041 ──────────────────────────────────────────────
+
+export const subjectsApi = {
+  list: (token: string, includeArchived = false) =>
+    request<SubjectRead[]>(
+      includeArchived ? "/subjects/?include_archived=true" : "/subjects/",
+      {},
+      token
+    ),
+  create: (token: string, data: SubjectCreate) =>
+    request<SubjectRead>(
+      "/subjects/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        // Idempotency-Key (ARCH §5.9): a retried POST (double-click, network retry)
+        // returns the cached subject instead of creating a duplicate.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  update: (token: string, id: string, data: SubjectUpdate) =>
+    request<SubjectRead>(`/subjects/${id}`, { method: "PUT", body: JSON.stringify(data) }, token),
+  archive: (token: string, id: string) =>
+    request<SubjectRead>(`/subjects/${id}/archive`, { method: "POST" }, token),
+};
+
+// ── Academic Sessions (Coordinator) — T-042 ─────────────────────────────────────
+
+export const academicSessionsApi = {
+  list: (token: string) => request<AcademicSessionRead[]>("/academic-sessions/", {}, token),
+  getActive: (token: string) =>
+    request<ActiveSessionRead>("/academic-sessions/active", {}, token),
+  create: (token: string, data: AcademicSessionCreate) =>
+    request<AcademicSessionRead>(
+      "/academic-sessions/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  activate: (token: string, id: string) =>
+    request<AcademicSessionRead>(`/academic-sessions/${id}/activate`, { method: "POST" }, token),
+};
+
+// ── Grades (Coordinator) — T-043 ────────────────────────────────────────────────
+
+export const gradesApi = {
+  list: (token: string, includeArchived = false) =>
+    request<GradeRead[]>(
+      includeArchived ? "/grades/?include_archived=true" : "/grades/",
+      {},
+      token
+    ),
+  create: (token: string, data: GradeCreate) =>
+    request<GradeRead>(
+      "/grades/",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  get: (token: string, id: string) => request<GradeRead>(`/grades/${id}`, {}, token),
+  archive: (token: string, id: string) =>
+    request<GradeRead>(`/grades/${id}/archive`, { method: "POST" }, token),
+};
+
+// ── Sections (Coordinator) — T-044 ──────────────────────────────────────────────
+
+export const sectionsApi = {
+  list: (token: string, gradeId: string) =>
+    request<SectionRead[]>(`/grades/${gradeId}/sections/`, {}, token),
+  create: (token: string, gradeId: string, data: SectionCreate) =>
+    request<SectionRead>(
+      `/grades/${gradeId}/sections/`,
+      { method: "POST", body: JSON.stringify(data), headers: { "Idempotency-Key": crypto.randomUUID() } },
+      token
+    ),
+  archive: (token: string, gradeId: string, sectionId: string) =>
+    request<SectionRead>(`/grades/${gradeId}/sections/${sectionId}/archive`, { method: "POST" }, token),
+};
+
+// ── Offerings (Coordinator) — T-045/T-046 ───────────────────────────────────────
+
+export const offeringsApi = {
+  list: (token: string, gradeId: string) =>
+    request<OfferingRead[]>(`/grades/${gradeId}/offerings/`, {}, token),
+  create: (token: string, gradeId: string, data: OfferingCreate) =>
+    request<OfferingRead>(
+      `/grades/${gradeId}/offerings/`,
+      { method: "POST", body: JSON.stringify(data), headers: { "Idempotency-Key": crypto.randomUUID() } },
+      token
+    ),
+  archive: (token: string, gradeId: string, offeringId: string) =>
+    request<OfferingRead>(`/grades/${gradeId}/offerings/${offeringId}/archive`, { method: "POST" }, token),
+  eligibleTeachers: (token: string, gradeId: string) =>
+    request<EligibleTeacherRead[]>(`/grades/${gradeId}/offerings/eligible-teachers`, {}, token),
+  assign: (token: string, gradeId: string, offeringId: string, data: OfferingAssign, ifMatch: string) =>
+    request<OfferingRead>(
+      `/grades/${gradeId}/offerings/${offeringId}/assign`,
+      { method: "POST", body: JSON.stringify(data), headers: { "If-Match": ifMatch } },
+      token
+    ),
+  unassign: (token: string, gradeId: string, offeringId: string, ifMatch: string) =>
+    request<OfferingRead>(
+      `/grades/${gradeId}/offerings/${offeringId}/unassign`,
+      { method: "POST", headers: { "If-Match": ifMatch } },
+      token
+    ),
 };

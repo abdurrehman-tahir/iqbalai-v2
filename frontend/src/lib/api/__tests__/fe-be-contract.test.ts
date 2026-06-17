@@ -9,18 +9,16 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   EXAM_SYLLABUS_CREATE_FROM_UI,
+  SUBJECT_CREATE_FROM_UI,
   SUBSCRIPTION_TIER_CREATE_FROM_UI,
 } from "./fixtures/frontend-payloads";
-import {
-  checkOpenApiCreateContract,
-  formatContractViolation,
-} from "./helpers/openapi-contract";
+import { checkOpenApiCreateContract, formatContractViolation } from "./helpers/openapi-contract";
 
 describe("Phase 1 — FE↔BE create payload contract", () => {
   it("exam syllabus UI payload satisfies ExamSyllabusCreate", () => {
     const violation = checkOpenApiCreateContract(
       "ExamSyllabusCreate",
-      EXAM_SYLLABUS_CREATE_FROM_UI,
+      EXAM_SYLLABUS_CREATE_FROM_UI
     );
     expect(violation, violation ? formatContractViolation(violation) : undefined).toBeNull();
   });
@@ -28,8 +26,13 @@ describe("Phase 1 — FE↔BE create payload contract", () => {
   it("subscription tier UI payload satisfies SubscriptionTierCreate", () => {
     const violation = checkOpenApiCreateContract(
       "SubscriptionTierCreate",
-      SUBSCRIPTION_TIER_CREATE_FROM_UI,
+      SUBSCRIPTION_TIER_CREATE_FROM_UI
     );
+    expect(violation, violation ? formatContractViolation(violation) : undefined).toBeNull();
+  });
+
+  it("subject UI payload satisfies SubjectCreate", () => {
+    const violation = checkOpenApiCreateContract("SubjectCreate", SUBJECT_CREATE_FROM_UI);
     expect(violation, violation ? formatContractViolation(violation) : undefined).toBeNull();
   });
 });

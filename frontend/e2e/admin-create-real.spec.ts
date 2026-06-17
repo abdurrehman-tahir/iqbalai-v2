@@ -7,11 +7,15 @@
 import { test, expect } from "@playwright/test";
 import {
   EXAM_SYLLABUS_CREATE_FROM_UI,
+  SUBJECT_CREATE_FROM_UI,
   SUBSCRIPTION_TIER_CREATE_FROM_UI,
 } from "../src/lib/api/__tests__/fixtures/frontend-payloads";
 
 const API_BASE = process.env.REAL_BACKEND_URL ?? "http://localhost:8000/api/v1";
 const ADMIN_TOKEN = process.env.TEST_PLATFORM_ADMIN_TOKEN ?? "";
+// Subjects are school-scoped (Coordinator-and-above); a coordinator token carries
+// the school_id claim the endpoint requires, so it gets its own gate.
+const COORDINATOR_TOKEN = process.env.TEST_COORDINATOR_TOKEN ?? "";
 
 async function apiReachable(): Promise<boolean> {
   try {
@@ -60,5 +64,30 @@ test.describe("Admin create — real backend contract @smoke @real", () => {
     expect(body.data).toBeTruthy();
     expect(body.data.slug).toBe(slug);
     expect(body.data.applies_to).toBe(SUBSCRIPTION_TIER_CREATE_FROM_UI.applies_to);
+  });
+});
+
+test.describe("Coordinator create — real backend contract @smoke @real", () => {
+  test.beforeEach(async () => {
+    test.skip(!(await apiReachable()), `API not reachable at ${API_BASE}`);
+    test.skip(!COORDINATOR_TOKEN, "TEST_COORDINATOR_TOKEN is required for @real subject create");
+  });
+
+  test("POST /subjects accepts UI payload", async ({ request }) => {
+    const name = `${SUBJECT_CREATE_FROM_UI.name}-${Date.now()}`;
+
+    const response = await request.post(`${API_BASE}/subjects/`, {
+      headers: {
+        Authorization: `Bearer ${COORDINATOR_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      data: { ...SUBJECT_CREATE_FROM_UI, name },
+    });
+
+    expect(response.status(), await response.text()).toBe(201);
+    const body = await response.json();
+    expect(body.data).toBeTruthy();
+    expect(body.data.name).toBe(name);
+    expect(body.data.status).toBe("active");
   });
 });

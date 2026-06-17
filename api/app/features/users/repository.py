@@ -62,6 +62,18 @@ class UserRepository:
         await self._session.refresh(user)
         return user
 
+    async def list_by_school_and_role(self, school_id: str, role: UserRole) -> list[User]:
+        result = await self._session.execute(
+            select(User)
+            .where(
+                User.school_id == school_id,
+                User.role == role,
+                not_deleted(User),
+            )
+            .order_by(User.display_name.asc())
+        )
+        return list(result.scalars().all())
+
     async def list_scoped(
         self,
         *,

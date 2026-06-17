@@ -201,6 +201,46 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "account.teacher_assigned_offering": {
+        "default": {
+            "en": {
+                "title": "New grade-subject assignment",
+                "body": "You have been assigned to teach {subject_name} for {grade_name}.",
+            },
+            "ur": {
+                "title": "نیا گریڈ-مضمون تفویض",
+                "body": "آپ کو {grade_name} کے لیے {subject_name} پڑھانے کے لیے مقرر کیا گیا ہے۔",
+            },
+            "sd": {
+                "title": "نئون گريڊ-مضمون تفويض",
+                "body": "توهان کي {grade_name} لاءِ {subject_name} پڙهائڻ لاءِ مقرر ڪيو ويو آهي۔",
+            },
+            "ps": {
+                "title": "نوی درجه-مضمون ګمارل",
+                "body": "تاسو د {grade_name} لپاره د {subject_name} تدریس لپاره ګمارل شوي یاست۔",
+            },
+        }
+    },
+    "account.capacity_override": {
+        "default": {
+            "en": {
+                "title": "Teacher capacity override",
+                "body": "{actor_name} overrode the capacity limit for {teacher_name} ({assignment_count}/{capacity}).",
+            },
+            "ur": {
+                "title": "استاد کی گنجائش سے تجاوز",
+                "body": "{actor_name} نے {teacher_name} کی گنجائش ({assignment_count}/{capacity}) سے تجاوز کیا۔",
+            },
+            "sd": {
+                "title": "استاد جي گنجائش کان تجاوز",
+                "body": "{actor_name} {teacher_name} جي گنجائش ({assignment_count}/{capacity}) کان تجاوز ڪيو۔",
+            },
+            "ps": {
+                "title": "د ښوونکي ظرفیت له پوره تیری",
+                "body": "{actor_name} د {teacher_name} ظرفیت ({assignment_count}/{capacity}) له پوره تیری وکړه۔",
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
@@ -211,6 +251,8 @@ TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
     "account.reactivated": frozenset({"email", "in_app"}),
     "account.deactivated": frozenset({"email", "in_app"}),
     "account.bulk_import_done": frozenset({"in_app"}),
+    "account.teacher_assigned_offering": frozenset({"in_app"}),
+    "account.capacity_override": frozenset({"in_app"}),
 }
 
 

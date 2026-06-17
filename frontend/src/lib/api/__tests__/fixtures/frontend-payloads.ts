@@ -18,3 +18,9 @@ export const SUBSCRIPTION_TIER_CREATE_FROM_UI = {
   pricing_monthly_pkr: 5000,
   caps: {},
 } as const;
+
+/** SubjectsClient createMutation → subjectsApi.create (T-041) */
+export const SUBJECT_CREATE_FROM_UI = {
+  name: "Physics",
+  language: "en",
+} as const;
