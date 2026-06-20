@@ -45,13 +45,13 @@ def upgrade() -> None:
         sa.Column(
             "created_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now() AT TIME ZONE 'UTC'"),
+            server_default=sa.text("(now() AT TIME ZONE 'UTC')"),
             nullable=False,
         ),
         sa.Column(
             "updated_at",
             sa.DateTime(timezone=True),
-            server_default=sa.text("now() AT TIME ZONE 'UTC'"),
+            server_default=sa.text("(now() AT TIME ZONE 'UTC')"),
             nullable=False,
         ),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),

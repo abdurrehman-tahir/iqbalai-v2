@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
+import { prepareUploadFile, UPLOAD_FILE_READ_ERROR, UPLOAD_NOT_A_PDF_ERROR } from "@/lib/upload-file";
 
 const LANGUAGES = ["en", "ur", "sd", "ps"] as const;
 const AUTO_PUBLIC_ROLES = new Set(["coordinator", "school_admin", "district_admin", "platform_admin"]);
@@ -51,20 +52,44 @@ export function ReferenceUploadForm({ detailBasePath }: ReferenceUploadFormProps
   });
 
   const uploadMutation = useMutation({
-    mutationFn: () =>
-      schoolLibraryApi.upload(token ?? "", {
-        file: file!,
+    mutationFn: async () => {
+      const selected = file!;
+      let uploadFile: File | Blob;
+      try {
+        uploadFile = await prepareUploadFile(selected);
+      } catch (err) {
+        if (err instanceof Error && err.message === UPLOAD_NOT_A_PDF_ERROR) {
+          throw err;
+        }
+        throw new Error(UPLOAD_FILE_READ_ERROR);
+      }
+      return schoolLibraryApi.upload(token ?? "", {
+        file: uploadFile,
+        fileName: selected.name,
         title,
         content_type: "reference",
         language,
         subject_id: subjectId || null,
         grade_level_ordinal: gradeOrdinal ? Number(gradeOrdinal) : null,
         visibility: autoPublic || makePublic ? "school_public" : undefined,
-      }),
+      });
+    },
     onSuccess: (result) => {
       router.push(`${detailBasePath}/${result.item.id}`);
     },
     onError: (err: unknown) => {
+      if (err instanceof Error && err.message === UPLOAD_NOT_A_PDF_ERROR) {
+        setError(t("upload.invalid_pdf"));
+        return;
+      }
+      if (err instanceof Error && err.message === UPLOAD_FILE_READ_ERROR) {
+        setError(t("upload.file_read_error"));
+        return;
+      }
+      if (err instanceof ApiError && err.message.includes("school_library_content")) {
+        setError(t("upload.invalid_pdf"));
+        return;
+      }
       setError(err instanceof ApiError ? err.message : t("upload.error_generic"));
     },
   });
@@ -188,8 +213,16 @@ export function ReferenceUploadForm({ detailBasePath }: ReferenceUploadFormProps
           id="reference-file"
           type="file"
           accept="application/pdf,.pdf"
-          onChange={(event) => setFile(event.target.files?.[0] ?? null)}
+          onChange={(event) => {
+            setFile(event.target.files?.[0] ?? null);
+            setError(null);
+          }}
         />
+        {file && (
+          <p className="mt-1 text-xs text-gray-600">
+            {t("upload.file_selected", { name: file.name })}
+          </p>
+        )}
         <p className="mt-1 text-xs text-gray-500">{t("upload.file_help")}</p>
       </div>
 

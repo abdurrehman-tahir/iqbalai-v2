@@ -511,7 +511,8 @@ export const libraryApi = {
 // ── School library (teacher+) — T-055 ───────────────────────────────────────────
 
 export interface SchoolLibraryUploadParams {
-  file: File;
+  file: File | Blob;
+  fileName?: string;
   title: string;
   content_type?: string;
   language?: string;
@@ -561,7 +562,9 @@ export const schoolLibraryApi = {
     if (params.visibility) qs.set("visibility", params.visibility);
 
     const formData = new FormData();
-    formData.append("file", params.file);
+    const uploadName =
+      params.fileName ?? (params.file instanceof File ? params.file.name : "upload.pdf");
+    formData.append("file", params.file, uploadName);
 
     return requestFormData<import("./types").SchoolLibraryUploadResponse>(
       `/school/library?${qs.toString()}`,

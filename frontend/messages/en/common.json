@@ -254,9 +254,12 @@
         "language_ps": "Pashto",
         "file_label": "Curriculum PDF",
         "file_help": "PDF only, up to 100 MB.",
+        "file_selected": "Selected: {name}",
         "submit": "Upload curriculum",
         "submitting": "Uploading…",
-        "error_generic": "Upload failed. Check the file and try again."
+        "error_generic": "Upload failed. Check the file and try again.",
+        "file_read_error": "Could not read the PDF. Copy it to your Desktop, close any editor, then try again.",
+        "invalid_pdf": "This file is not a valid PDF. In Word or Google Docs use File → Save as PDF / Export as PDF — renaming .docx to .pdf does not work."
       },
       "detail": {
         "subtitle": "School curriculum — shared with all teachers in your school.",
@@ -301,9 +304,12 @@
         "language_ps": "Pashto",
         "file_label": "Reference PDF",
         "file_help": "PDF only, up to 100 MB.",
+        "file_selected": "Selected: {name}",
         "submit": "Upload reference book",
         "submitting": "Uploading…",
         "error_generic": "Upload failed. Check the file and try again.",
+        "file_read_error": "Could not read the PDF. Copy it to your Desktop, close any editor, then try again.",
+        "invalid_pdf": "This file is not a valid PDF. In Word or Google Docs use File → Save as PDF / Export as PDF — renaming .docx to .pdf does not work.",
         "dedup_public_notice": "This material is already in the school library — using the existing public version."
       },
       "detail": {

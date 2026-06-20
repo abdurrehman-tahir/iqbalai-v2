@@ -12,7 +12,7 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 # updated_at so rows inserted outside the ORM (raw SQL, seeds, data migrations)
 # still get correct values. The Python-side default/onupdate below is kept only
 # so in-memory ORM instances are populated before flush (unit tests, returns).
-_UTC_NOW = text("now() AT TIME ZONE 'UTC'")
+_UTC_NOW = text("(now() AT TIME ZONE 'UTC')")
 
 
 def _uuid7() -> str:
