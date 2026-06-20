@@ -59,7 +59,7 @@ export function CurriculumItemDetail({ itemId, uploadHref, libraryHref }: Curric
   }
 
   if (isError || !data) {
-    return <ErrorState message={t("detail.error")} onRetry={() => refetch()} />;
+    return <ErrorState description={t("detail.error")} onRetry={() => refetch()} />;
   }
 
   const tree = parseTopicTree(data);

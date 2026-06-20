@@ -88,7 +88,7 @@ export function ReferenceItemDetail({ itemId, uploadHref, libraryHref }: Referen
   }
 
   if (isError || !data) {
-    return <ErrorState message={t("detail.error")} onRetry={() => refetch()} />;
+    return <ErrorState description={t("detail.error")} onRetry={() => refetch()} />;
   }
 
   const statusKey = data.ingestion_status as keyof typeof STATUS_VARIANT;

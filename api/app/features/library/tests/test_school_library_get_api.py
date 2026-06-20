@@ -25,7 +25,14 @@ class _FakeSchoolLibraryService:
     def __init__(self, session: Any) -> None:
         pass
 
-    async def get_item(self, item_id: str, authentik_id: str) -> SchoolLibraryItem:
+    async def get_item(
+        self,
+        item_id: str,
+        authentik_id: str,
+        *,
+        grade_level_ordinal: int | None = None,
+    ) -> SchoolLibraryItem:
+        del grade_level_ordinal
         if item_id == "missing":
             raise NotFoundError("Library item not found")
         return SchoolLibraryItem(

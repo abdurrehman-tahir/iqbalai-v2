@@ -88,7 +88,7 @@ def test_every_foreign_key_has_ondelete_and_index() -> None:
             label = f"{table.name}.{fk.parent.name} -> {fk.target_fullname}"
             if fk.ondelete is None:
                 no_ondelete.append(label)
-            if fk.parent.name not in indexed:
+            if fk.parent.name not in indexed and fk.parent.name not in table.primary_key.columns:
                 not_indexed.append(label)
     assert no_ondelete == [], f"Foreign keys missing explicit ondelete: {no_ondelete}"
     assert not_indexed == [], f"Foreign key columns missing an index: {not_indexed}"

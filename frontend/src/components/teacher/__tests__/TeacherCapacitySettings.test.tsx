@@ -50,7 +50,7 @@ function renderPanel(onboarding = baseOnboarding) {
 }
 
 const baseOnboarding = {
-  state: "ready_to_teach",
+  state: "ready_to_teach" as const,
   profile_complete: true,
   ready_to_teach: true,
   assignment_count: 3,

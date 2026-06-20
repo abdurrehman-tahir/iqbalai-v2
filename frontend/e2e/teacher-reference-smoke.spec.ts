@@ -23,7 +23,7 @@ async function installTeacherReferenceMocks(page: Page) {
       if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
       const method = request.method();
 
-      if (method === "GET" && path === "/subjects/") {
+      if (method === "GET" && path === "/subjects") {
         await route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -32,7 +32,7 @@ async function installTeacherReferenceMocks(page: Page) {
         return;
       }
 
-      if (method === "GET" && path === "/grades/") {
+      if (method === "GET" && path === "/grades") {
         await route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -41,7 +41,7 @@ async function installTeacherReferenceMocks(page: Page) {
         return;
       }
 
-      if (method === "POST" && path === "/school/library/") {
+      if (method === "POST" && path === "/school/library") {
         const visibilityParam = url.searchParams.get("visibility");
         visibility = visibilityParam === "school_public" ? "school_public" : "private";
         await route.fulfill({

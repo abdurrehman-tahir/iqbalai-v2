@@ -268,6 +268,9 @@ async def test_curriculum_forces_school_public_visibility() -> None:
             ),
         ),
         patch("app.features.library.school_library_service.sha256_of_bytes", return_value="d" * 64),
+        patch(
+            "app.features.library.school_tasks.ingest_school_library_item.apply_async"
+        ),
     ):
         await svc.upload(
             data=b"%PDF-curriculum",
@@ -330,6 +333,10 @@ async def test_publish_reference_makes_private_item_public() -> None:
         patch.object(svc._users, "get_by_authentik_id", return_value=teacher),
         patch.object(svc._repo, "get_by_id", return_value=private_item),
         patch.object(svc._repo, "update_item", return_value=private_item) as update_item,
+        patch(
+            "app.features.library.school_library_notifications.notify_library_item_published",
+            new_callable=AsyncMock,
+        ),
     ):
         result = await svc.publish_reference("item-1", authentik_id="auth-teacher-1")
 
@@ -489,6 +496,9 @@ async def test_coordinator_reference_upload_forces_public() -> None:
             ),
         ),
         patch("app.features.library.school_library_service.sha256_of_bytes", return_value="e" * 64),
+        patch(
+            "app.features.library.school_tasks.ingest_school_library_item.apply_async"
+        ),
     ):
         await svc.upload(
             data=b"%PDF-reference",

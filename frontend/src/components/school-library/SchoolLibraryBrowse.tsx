@@ -183,7 +183,7 @@ export function SchoolLibraryBrowse() {
       </div>
 
       {isError ? (
-        <ErrorState message={t("error")} onRetry={() => refetch()} />
+        <ErrorState description={t("error")} onRetry={() => refetch()} />
       ) : isLoading ? (
         <Skeleton className="h-48 w-full" />
       ) : items.length === 0 ? (

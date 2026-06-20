@@ -103,7 +103,7 @@ export function TeacherOnboardingClient() {
   }
 
   if (isError) {
-    return <ErrorState message={t("load_error")} onRetry={() => refetch()} retryLabel={t("retry")} />;
+    return <ErrorState description={t("load_error")} onRetry={() => refetch()} retryLabel={t("retry")} />;
   }
 
   return (

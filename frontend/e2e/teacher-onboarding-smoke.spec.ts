@@ -114,7 +114,7 @@ async function installTeacherMocks(page: Page) {
         current_tos_version_id: null,
       }),
     );
-    sessionStorage.setItem("iqbalai_token", "e2e-teacher-token");
+    sessionStorage.setItem("iqbalai_access_token", "e2e-teacher-token");
   });
 }
 

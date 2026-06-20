@@ -1,4 +1,13 @@
-"""Update library_items RLS to honour selection holders — T-055."""
+"""Update library_items RLS to honour selection holders — T-055.
+
+Revision ID: school_0031
+Revises: school_0030
+Create Date: 2026-06-16
+
+Purpose: Extend library_items RLS so selection holders can read private items they uploaded.
+Risk: low
+Reversible: yes
+"""
 
 from __future__ import annotations
 

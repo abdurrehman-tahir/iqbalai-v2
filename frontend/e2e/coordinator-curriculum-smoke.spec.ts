@@ -22,7 +22,7 @@ async function installCoordinatorMocks(page: Page) {
       if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
       const method = request.method();
 
-      if (method === "GET" && path === "/subjects/") {
+      if (method === "GET" && path === "/subjects") {
         await route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -31,7 +31,7 @@ async function installCoordinatorMocks(page: Page) {
         return;
       }
 
-      if (method === "GET" && path === "/grades/") {
+      if (method === "GET" && path === "/grades") {
         await route.fulfill({
           status: 200,
           contentType: "application/json",
@@ -40,7 +40,7 @@ async function installCoordinatorMocks(page: Page) {
         return;
       }
 
-      if (method === "POST" && path === "/school/library/") {
+      if (method === "POST" && path === "/school/library") {
         await route.fulfill({
           status: 202,
           contentType: "application/json",
@@ -137,6 +137,7 @@ test.describe("Coordinator curriculum upload @smoke", () => {
     await expect(page.getByText(/always visible to everyone/i)).toBeVisible();
 
     await page.getByLabel(/^Title/i).fill("Punjab Physics Grade 9");
+    await expect(page.getByLabel(/Subject/i).locator('option[value="subj-1"]')).toHaveCount(1);
     await page.getByLabel(/Subject/i).selectOption("subj-1");
     await page.getByLabel(/Grade/i).selectOption("9");
     await page.getByLabel(/Curriculum PDF/i).setInputFiles({
@@ -148,7 +149,7 @@ test.describe("Coordinator curriculum upload @smoke", () => {
     await page.getByRole("button", { name: /Upload curriculum/i }).click();
 
     await expect(page).toHaveURL(/\/coordinator\/library\/curriculum\/curriculum-item-1$/);
-    await expect(page.getByRole("status")).toHaveTextContent(/Available|Ingesting/i, {
+    await expect(page.getByRole("status")).toHaveText(/Available|Ingesting/i, {
       timeout: 15_000,
     });
     await expect(page.getByText("Mechanics")).toBeVisible({ timeout: 15_000 });
