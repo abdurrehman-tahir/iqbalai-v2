@@ -135,7 +135,7 @@ class DataRightsService:
             target_type="data_rights_request",
             target_id=request.id,
             school_id=user.school_id,
-            metadata={"request_type": "export"},
+            metadata={"request_type": "export", "flagged": True},
         )
 
         from app.features.data_rights.tasks import process_data_export
@@ -205,6 +205,7 @@ class DataRightsService:
             metadata={
                 "deletion_scheduled_at": scheduled.isoformat(),
                 "queued_for_review": True,
+                "flagged": True,
             },
         )
 
@@ -254,6 +255,7 @@ class DataRightsService:
             target_type="data_rights_request",
             target_id=request.id,
             school_id=user.school_id,
+            metadata={"flagged": True},
         )
 
         return self._to_read(request)
