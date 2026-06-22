@@ -357,6 +357,90 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "account.student_invited": {
+        "default": {
+            "en": {
+                "subject": "You are invited to IqbalAI",
+                "title": "School enrollment invite",
+                "body": "Hi {name}, you have been enrolled at {school_name}. Accept your invite within 7 days: {invite_url}",
+            },
+            "ur": {
+                "subject": "آپ کو IqbalAI میں مدعو کیا گیا",
+                "title": "اسکول میں داخلہ دعوت",
+                "body": "سلام {name}، آپ {school_name} میں داخل ہوئے۔ 7 دنوں میں دعوت قبول کریں: {invite_url}",
+            },
+            "sd": {
+                "subject": "توهان کي IqbalAI ۾ دعوت",
+                "title": "اسڪول داخلہ دعوت",
+                "body": "سلام {name}، توهان {school_name} ۾ داخل ٿيا۔ 7 ڏينهن ۾ دعوت قبول ڪريو: {invite_url}",
+            },
+            "ps": {
+                "subject": "تاسو IqbalAI ته بل شوي",
+                "title": "د ښوونځي ننوتل",
+                "body": "سلام {name}، تاسو {school_name} کې شامل شوي۔ په 7 ورځو کې بل ومنئ: {invite_url}",
+            },
+        }
+    },
+    "account.graduated": {
+        "default": {
+            "en": {
+                "subject": "Congratulations — you've graduated!",
+                "title": "Graduation confirmed",
+                "body": "Hi {name}, you've graduated! For 6 months you can still use Self-Study in your school account. After that, your account moves to Independent mode with the same login.",
+            },
+            "ur": {
+                "subject": "مبارک ہو — آپ گریجویشن کر چکے ہیں!",
+                "title": "گریجویشن کی تصدیق",
+                "body": "سلام {name}، آپ گریجویٹ ہو گئے! 6 ماہ تک Self-Study اسکول اکاؤنٹ میں استعمال کر سکتے ہیں۔ اس کے بعد Independent موڈ میں منتقل ہوں گے — وہی لاگ ان۔",
+            },
+            "sd": {
+                "subject": "مبارڪون — توهان گريجوئيشن ڪري چuka!",
+                "title": "گريجوئيشن جي تصديق",
+                "body": "سلام {name}، توهان گريجوئيٽ ٿي ويا! 6 مهina Self-Study اسڪول اڪائونٽ ۾ استعمال ڪري سگهو ٿا۔ پوءِ Independent موڊ ۾ منتقل — ساڳيو لاگ ان۔",
+            },
+            "ps": {
+                "subject": "مبارک شه — تاسو فارغ شوي!",
+                "title": "د فارغتیا تایید",
+                "body": "سلام {name}، تاسو فارغ شوي! د 6 میاشتو لپاره Self-Study په ښوونځي حساب کې کارولی شئ۔ وروسته Independent حالت ته — ورته ننوتل۔",
+            },
+        }
+    },
+    "account.migration_reminder_30": {
+        "default": {
+            "en": {
+                "subject": "IqbalAI account migration in 30 days",
+                "title": "Migration reminder (30 days)",
+                "body": "Hi {name}, your school account moves to Independent mode on {migration_date} ({days_remaining} days). Export your data from Data & Privacy if needed.",
+            },
+            "ur": {"subject": "30 دن میں اکاؤنٹ منتقلی", "title": "منتقلی یاد دہانی", "body": "سلام {name}، {migration_date} کو Independent موڈ ({days_remaining} دن)۔ ضرورت ہو تو ڈیٹا ایکسپورٹ کریں۔"},
+            "sd": {"subject": "30 ڏينهن ۾ منتقلي", "title": "منتقلي ياد", "body": "سلام {name}، {migration_date} تي Independent ({days_remaining} ڏينهن)۔ ضرورت هجي ته ڊيٽا برآمد ڪريو۔"},
+            "ps": {"subject": "په 30 ورځو کې انتقال", "title": "د انتقال یادونه", "body": "سلام {name}، {migration_date} Independent ({days_remaining} ورځې)۔ اړتیا وي ډیټا صادر کړئ۔"},
+        }
+    },
+    "account.migration_reminder_7": {
+        "default": {
+            "en": {
+                "subject": "IqbalAI account migration in 7 days",
+                "title": "Migration reminder (7 days)",
+                "body": "Hi {name}, your account moves to Independent mode on {migration_date}. Parent links will be removed. Export data now if you need a copy.",
+            },
+            "ur": {"subject": "7 دن میں منتقلی", "title": "منتقلی یاد دہانی", "body": "سلام {name}، {migration_date} کو Independent۔ والدین لنک ختم۔ ابھی ڈیٹا ایکسپورٹ کریں۔"},
+            "sd": {"subject": "7 ڏينهن ۾ منتقلي", "title": "منتقلي ياد", "body": "سلام {name}، {migration_date} Independent۔ والدين لنڪ ختم۔ هاڻي ڊيٽا برآمد ڪريو۔"},
+            "ps": {"subject": "په 7 ورځو کې انتقال", "title": "د انتقال یادونه", "body": "سلام {name}، {migration_date} Independent۔ د والدین اړیکې لرې۔ اوس ډیټا صادر کړئ۔"},
+        }
+    },
+    "account.migration_complete": {
+        "default": {
+            "en": {
+                "subject": "Your IqbalAI account has moved to Independent mode",
+                "title": "Migration complete",
+                "body": "Hi {name}, your account has moved to Independent mode. Sign in with the same email and password — Self-Study continues; school Lecture mode is no longer available.",
+            },
+            "ur": {"subject": "آپ کا اکاؤنٹ Independent موڈ میں", "title": "منتقلی مکمل", "body": "سلام {name}، Independent موڈ — وہی ای میل/پاس ورڈ۔ Self-Study جاری؛ Lecture نہیں۔"},
+            "sd": {"subject": "توهان جو اڪائونٽ Independent", "title": "منتقلي مڪمل", "body": "سلام {name}، Independent — ساڳي اي ميل/پاسورڊ۔ Self-Study جاري؛ Lecture نه۔"},
+            "ps": {"subject": "ستاسو حساب Independent شو", "title": "انتقال بشپړ", "body": "سلام {name}، Independent — ورته بریښنالیک/پټنوم۔ Self-Study دوام لري؛ Lecture نشته۔"},
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
@@ -374,6 +458,11 @@ TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
     "account.parent_auto_suspended": frozenset({"email"}),
     "account.export_ready": frozenset({"email", "in_app"}),
     "account.deletion_grace_started": frozenset({"email", "in_app"}),
+    "account.student_invited": frozenset({"email", "in_app"}),
+    "account.graduated": frozenset({"email", "in_app"}),
+    "account.migration_reminder_30": frozenset({"email", "in_app"}),
+    "account.migration_reminder_7": frozenset({"email", "in_app"}),
+    "account.migration_complete": frozenset({"email", "in_app"}),
 }
 
 
