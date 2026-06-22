@@ -55,6 +55,16 @@ SCHOOL_LIBRARY_CONTENT = UploadProfile(
     description="School library PDF — per-school SHA-256 dedup (Flow 3 §3.3/§3.4)",
 )
 
+INDEPENDENT_PERSONAL_CONTENT = UploadProfile(
+    name="independent_personal_content",
+    bucket="pdfs",
+    key_prefix="independent-personal",
+    allowed_mime_types=frozenset({"application/pdf"}),
+    magic_bytes=[b"%PDF"],
+    max_size_bytes=100 * 1024 * 1024,  # 100 MB per ARCH §11.19
+    description="Independent user private reference PDF — per-user SHA-256 dedup",
+)
+
 BULK_IMPORT = UploadProfile(
     name="bulk_import",
     bucket="imports",
@@ -76,6 +86,7 @@ _REGISTRY: dict[str, UploadProfile] = {
     RECOVERY_BUNDLE.name: RECOVERY_BUNDLE,
     PLATFORM_REFERENCE_BOOK.name: PLATFORM_REFERENCE_BOOK,
     SCHOOL_LIBRARY_CONTENT.name: SCHOOL_LIBRARY_CONTENT,
+    INDEPENDENT_PERSONAL_CONTENT.name: INDEPENDENT_PERSONAL_CONTENT,
     BULK_IMPORT.name: BULK_IMPORT,
 }
 

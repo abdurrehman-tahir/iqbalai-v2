@@ -73,6 +73,12 @@ def school_library_collection(content_type: str) -> str:
     return reference_book_chunks_collection()
 
 
+def independent_personal_collection(user_id: str) -> str:
+    """Per-user Qdrant namespace for independent private pool (ARCH §3.16)."""
+    prefix = "independent_personal_local" if embedding_provider() == "local" else "independent_personal"
+    return f"{prefix}_{user_id}"
+
+
 def _infinity_embed_sync(texts: list[str]) -> list[list[float]]:
     settings = get_settings()
     model = embedding_model_name()
