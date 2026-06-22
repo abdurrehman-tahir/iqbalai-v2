@@ -636,6 +636,33 @@
         "title": "EligibleTeacherRead",
         "type": "object"
       },
+      "EnrolledStudentRead": {
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/UserAccountStatus"
+          }
+        },
+        "required": [
+          "id",
+          "email",
+          "display_name",
+          "status"
+        ],
+        "title": "EnrolledStudentRead",
+        "type": "object"
+      },
       "ExamFrameworkOption": {
         "description": "Public exam framework option \u2014 backed by exam syllabi until M-07.",
         "properties": {
@@ -2368,6 +2395,104 @@
         "title": "SectionStatus",
         "type": "string"
       },
+      "StudentEnrollmentCreate": {
+        "description": "Coordinator enrolls a student into a grade (optional section).",
+        "properties": {
+          "display_name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "section_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "description": "Target section; omit to use the grade default-internal section",
+            "title": "Section Id"
+          }
+        },
+        "required": [
+          "display_name",
+          "email"
+        ],
+        "title": "StudentEnrollmentCreate",
+        "type": "object"
+      },
+      "StudentEnrollmentRead": {
+        "properties": {
+          "academic_session": {
+            "title": "Academic Session",
+            "type": "string"
+          },
+          "enrolled_at": {
+            "format": "date-time",
+            "title": "Enrolled At",
+            "type": "string"
+          },
+          "grade_id": {
+            "title": "Grade Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "section_id": {
+            "title": "Section Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StudentEnrollmentStatus"
+          },
+          "student": {
+            "$ref": "#/components/schemas/EnrolledStudentRead"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "student_user_id",
+          "grade_id",
+          "section_id",
+          "academic_session",
+          "status",
+          "enrolled_at",
+          "student"
+        ],
+        "title": "StudentEnrollmentRead",
+        "type": "object"
+      },
+      "StudentEnrollmentStatus": {
+        "description": "Lifecycle status for a student's grade-section enrollment.",
+        "enum": [
+          "active",
+          "withdrawn",
+          "graduated"
+        ],
+        "title": "StudentEnrollmentStatus",
+        "type": "string"
+      },
       "SubjectCreate": {
         "description": "Payload for creating a new Subject in the caller's school catalogue.",
         "properties": {
@@ -3035,6 +3160,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[SectionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentEnrollmentRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentEnrollmentRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentEnrollmentRead]",
         "type": "object"
       },
       "SuccessEnvelope_SubjectRead_": {
@@ -3993,9 +4135,10 @@
         "type": "object"
       },
       "UserAccountStatus": {
-        "description": "User lifecycle status per flow-2 \u00a73.5.",
+        "description": "User lifecycle status per flow-2 \u00a73.5 + flow-4 \u00a73.1 (INVITED for school students).",
         "enum": [
           "active",
+          "invited",
           "suspended",
           "deactivated"
         ],
@@ -6390,6 +6533,58 @@
         "summary": "Archive a grade",
         "tags": [
           "grades"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/enrollments/": {
+      "post": {
+        "operationId": "student_enrollments_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentEnrollmentCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentEnrollmentRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Enroll a student into a grade and section",
+        "tags": [
+          "student-enrollments"
         ]
       }
     },

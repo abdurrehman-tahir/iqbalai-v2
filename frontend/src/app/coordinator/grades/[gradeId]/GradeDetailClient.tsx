@@ -12,6 +12,7 @@ import Link from "next/link";
 import {
   gradesApi,
   sectionsApi,
+  studentEnrollmentsApi,
   subjectsApi,
   offeringsApi,
   usersApi,
@@ -32,6 +33,12 @@ import { EmptyState } from "@/components/empty-state";
 const sectionSchema = z.object({ name: z.string().min(1).max(100) });
 type SectionFormValues = z.infer<typeof sectionSchema>;
 
+const enrollSchema = z.object({
+  display_name: z.string().min(1).max(255),
+  email: z.string().email(),
+});
+type EnrollFormValues = z.infer<typeof enrollSchema>;
+
 const offeringSchema = z.object({ subject_id: z.string().min(1) });
 type OfferingFormValues = z.infer<typeof offeringSchema>;
 
@@ -42,6 +49,7 @@ export function GradeDetailClient() {
   const qc = useQueryClient();
   const { mounted, token } = useClientAuth();
   const [showCreateSection, setShowCreateSection] = useState(false);
+  const [enrollTarget, setEnrollTarget] = useState<{ sectionId: string | null; label: string } | null>(null);
   const [archiveSectionTarget, setArchiveSectionTarget] = useState<Section | null>(null);
   const [showCreateOffering, setShowCreateOffering] = useState(false);
   const [archiveOfferingTarget, setArchiveOfferingTarget] = useState<OfferingRead | null>(null);
@@ -93,6 +101,10 @@ export function GradeDetailClient() {
   });
 
   const sectionForm = useForm<SectionFormValues>({ resolver: zodResolver(sectionSchema), defaultValues: { name: "" } });
+  const enrollForm = useForm<EnrollFormValues>({
+    resolver: zodResolver(enrollSchema),
+    defaultValues: { display_name: "", email: "" },
+  });
   const offeringForm = useForm<OfferingFormValues>({ resolver: zodResolver(offeringSchema), defaultValues: { subject_id: "" } });
 
   const subjectNameById = new Map(subjects?.map((s) => [s.id, s.name]) ?? []);
@@ -116,6 +128,23 @@ export function GradeDetailClient() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["sections", gradeId] });
       setArchiveSectionTarget(null);
+    },
+  });
+
+  const enrollMutation = useMutation({
+    mutationFn: (values: EnrollFormValues & { sectionId: string | null }) =>
+      studentEnrollmentsApi.enroll(token ?? "", gradeId, {
+        display_name: values.display_name,
+        email: values.email,
+        section_id: values.sectionId,
+      }),
+    onSuccess: () => {
+      setEnrollTarget(null);
+      enrollForm.reset();
+      setFormError(null);
+    },
+    onError: () => {
+      setFormError(t("sections.enroll_modal.generic_error"));
     },
   });
 
@@ -196,20 +225,46 @@ export function GradeDetailClient() {
         ) : sectionsError ? (
           <ErrorState description={t("sections.error")} onRetry={() => refetchSections()} retryLabel={t("retry")} />
         ) : !sections?.length ? (
-          <EmptyState title={t("sections.empty.title")} description={t("sections.empty.description")} />
+          <EmptyState
+            title={t("sections.empty.title")}
+            description={t("sections.empty.description")}
+            action={{
+              label: t("sections.enroll_button"),
+              onClick: () => {
+                setEnrollTarget({ sectionId: null, label: grade.name });
+                setFormError(null);
+                enrollForm.reset();
+              },
+            }}
+            icon={UserPlus}
+          />
         ) : (
           <ul className="divide-y divide-gray-100 rounded-lg border border-gray-200 bg-white">
             {sections.map((section) => (
               <li key={section.id} className="flex items-center justify-between px-4 py-3">
                 <span className="text-sm font-medium text-gray-900">{section.name}</span>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => setArchiveSectionTarget(section)}
-                  aria-label={t("sections.archive", { name: section.name })}
-                >
-                  <Archive className="size-4" aria-hidden="true" />
-                </Button>
+                <div className="flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setEnrollTarget({ sectionId: section.id, label: section.name });
+                      setFormError(null);
+                      enrollForm.reset();
+                    }}
+                    aria-label={t("sections.enroll_button")}
+                  >
+                    <UserPlus className="size-4" aria-hidden="true" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setArchiveSectionTarget(section)}
+                    aria-label={t("sections.archive", { name: section.name })}
+                  >
+                    <Archive className="size-4" aria-hidden="true" />
+                  </Button>
+                </div>
               </li>
             ))}
           </ul>
@@ -283,6 +338,48 @@ export function GradeDetailClient() {
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" onClick={() => setShowCreateSection(false)}>{t("sections.modal.cancel")}</Button>
             <Button type="submit" disabled={createSectionMutation.isPending}>{t("sections.modal.create")}</Button>
+          </div>
+        </form>
+      </Modal>
+
+      <Modal
+        open={!!enrollTarget}
+        onClose={() => setEnrollTarget(null)}
+        title={t("sections.enroll_modal.title", { section: enrollTarget?.label ?? "" })}
+      >
+        <form
+          onSubmit={enrollForm.handleSubmit((values) => {
+            if (!enrollTarget) return;
+            setFormError(null);
+            enrollMutation.mutate({ ...values, sectionId: enrollTarget.sectionId });
+          })}
+          className="space-y-4"
+        >
+          <div>
+            <Label htmlFor="enroll-name">{t("sections.enroll_modal.name_label")}</Label>
+            <Input
+              id="enroll-name"
+              {...enrollForm.register("display_name")}
+              placeholder={t("sections.enroll_modal.name_placeholder")}
+            />
+          </div>
+          <div>
+            <Label htmlFor="enroll-email">{t("sections.enroll_modal.email_label")}</Label>
+            <Input
+              id="enroll-email"
+              type="email"
+              {...enrollForm.register("email")}
+              placeholder={t("sections.enroll_modal.email_placeholder")}
+            />
+          </div>
+          {formError && <p className="text-sm text-red-600">{formError}</p>}
+          <div className="flex justify-end gap-2">
+            <Button type="button" variant="ghost" onClick={() => setEnrollTarget(null)}>
+              {t("sections.enroll_modal.cancel")}
+            </Button>
+            <Button type="submit" disabled={enrollMutation.isPending}>
+              {t("sections.enroll_modal.submit")}
+            </Button>
           </div>
         </form>
       </Modal>

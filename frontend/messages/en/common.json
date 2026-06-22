@@ -611,6 +611,18 @@
           "description": "Archive section \"{name}\"?",
           "cancel": "Cancel",
           "confirm": "Archive"
+        },
+        "enroll_button": "Enroll student",
+        "enroll_modal": {
+          "title": "Enroll student in {section}",
+          "name_label": "Student name",
+          "name_placeholder": "Full name",
+          "email_label": "Email",
+          "email_placeholder": "student@school.edu",
+          "cancel": "Cancel",
+          "submit": "Send invite",
+          "success": "Student invited",
+          "generic_error": "Enrollment failed."
         }
       },
       "offerings": {

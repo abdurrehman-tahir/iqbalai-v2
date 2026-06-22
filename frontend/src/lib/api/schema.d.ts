@@ -620,6 +620,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/grades/{grade_id}/enrollments/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Enroll a student into a grade and section */
+        post: operations["student_enrollments_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/grades/{grade_id}/offerings/": {
         parameters: {
             query?: never;
@@ -1717,6 +1734,30 @@ export interface components {
             /** Id */
             id: string;
         };
+        /** EnrolledStudentRead */
+        EnrolledStudentRead: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /** Id */
+            id: string;
+            status: components["schemas"]["UserAccountStatus"];
+        };
+        /**
+         * ExamFrameworkOption
+         * @description Public exam framework option — backed by exam syllabi until M-07.
+         */
+        ExamFrameworkOption: {
+            /** Exam Board */
+            exam_board: string;
+            /** Id */
+            id: string;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+        };
         /**
          * ExamFrameworkOption
          * @description Public exam framework option — backed by exam syllabi until M-07.
@@ -2399,6 +2440,49 @@ export interface components {
          */
         SectionStatus: "active" | "archived";
         /**
+         * StudentEnrollmentCreate
+         * @description Coordinator enrolls a student into a grade (optional section).
+         */
+        StudentEnrollmentCreate: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /**
+             * Section Id
+             * @description Target section; omit to use the grade default-internal section
+             */
+            section_id?: string | null;
+        };
+        /** StudentEnrollmentRead */
+        StudentEnrollmentRead: {
+            /** Academic Session */
+            academic_session: string;
+            /**
+             * Enrolled At
+             * Format: date-time
+             */
+            enrolled_at: string;
+            /** Grade Id */
+            grade_id: string;
+            /** Id */
+            id: string;
+            /** School Id */
+            school_id: string;
+            /** Section Id */
+            section_id: string;
+            status: components["schemas"]["StudentEnrollmentStatus"];
+            student: components["schemas"]["EnrolledStudentRead"];
+            /** Student User Id */
+            student_user_id: string;
+        };
+        /**
+         * StudentEnrollmentStatus
+         * @description Lifecycle status for a student's grade-section enrollment.
+         * @enum {string}
+         */
+        StudentEnrollmentStatus: "active" | "withdrawn" | "graduated";
+        /**
          * SubjectCreate
          * @description Payload for creating a new Subject in the caller's school catalogue.
          */
@@ -2709,6 +2793,15 @@ export interface components {
         /** SuccessEnvelope[SectionRead] */
         SuccessEnvelope_SectionRead_: {
             data: components["schemas"]["SectionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentEnrollmentRead] */
+        SuccessEnvelope_StudentEnrollmentRead_: {
+            data: components["schemas"]["StudentEnrollmentRead"];
             /**
              * Message
              * @default ok
@@ -3178,10 +3271,10 @@ export interface components {
         };
         /**
          * UserAccountStatus
-         * @description User lifecycle status per flow-2 §3.5.
+         * @description User lifecycle status per flow-2 §3.5 + flow-4 §3.1 (INVITED for school students).
          * @enum {string}
          */
-        UserAccountStatus: "active" | "suspended" | "deactivated";
+        UserAccountStatus: "active" | "invited" | "suspended" | "deactivated";
         /**
          * UserRead
          * @description User response schema.
@@ -4879,6 +4972,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_GradeRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_enrollments_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentEnrollmentCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentEnrollmentRead_"];
                 };
             };
             /** @description Validation Error */
