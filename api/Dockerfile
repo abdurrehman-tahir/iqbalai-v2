@@ -9,7 +9,8 @@ RUN pip install uv
 COPY pyproject.toml uv.lock ./
 
 # Install into system Python so the volume mount doesn't overwrite site-packages
-RUN uv pip install --system .
+RUN uv pip install --system . \
+    && uv pip install --system "numpy>=1.26.0,<2" "fastapi>=0.111.0,<0.137" --force-reinstall
 
 # Non-root user for API, Celery worker, and beat (avoids Celery superuser warning)
 RUN groupadd --gid 1000 app \
