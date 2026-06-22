@@ -9,7 +9,7 @@ import structlog
 from fastapi import Depends, Request, params
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import AuthenticationError, PermissionDeniedError
+from app.core.exceptions import AuthenticationError, NotFoundError, PermissionDeniedError
 from app.db.session import async_session_factory
 
 logger = structlog.get_logger(__name__)
@@ -92,6 +92,39 @@ def require_scope(required_role: str, scope_field: str) -> params.Depends:
             )
         # Scope check: the requested resource's scope_field must match the caller's JWT claim
         # Full enforcement happens in the repository layer via RLS + service checks
+        return claims
+
+    return cast(params.Depends, Depends(_check))
+
+
+def require_parent_of(student_id_param: str = "student_user_id") -> params.Depends:
+    """Dependency factory: parent must have an approved link to the target student."""
+
+    async def _check(
+        request: Request,
+        claims: dict[str, object] = Depends(get_current_user),
+    ) -> dict[str, object]:
+        if str(claims.get("role", "")) != "parent":
+            raise PermissionDeniedError("Parent role required")
+
+        student_user_id = request.path_params.get(student_id_param)
+        if not student_user_id:
+            raise NotFoundError("Student not found")
+
+        parent_user_id = str(claims.get("user_id", ""))
+        if not parent_user_id:
+            raise AuthenticationError()
+
+        from app.features.parent_child_links.repository import ParentChildLinkRepository
+
+        async with async_session_factory() as session:
+            repo = ParentChildLinkRepository(session)
+            linked = await repo.has_approved_link(
+                parent_user_id=parent_user_id,
+                student_user_id=str(student_user_id),
+            )
+        if not linked:
+            raise NotFoundError("Student not found")
         return claims
 
     return cast(params.Depends, Depends(_check))

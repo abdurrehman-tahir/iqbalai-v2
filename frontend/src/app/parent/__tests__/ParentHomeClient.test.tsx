@@ -25,6 +25,7 @@ vi.mock("@/lib/api", () => ({
   parentChildLinksApi: {
     getConnections: (...args: unknown[]) => getConnectionsMock(...args),
     createLinkRequest: (...args: unknown[]) => createLinkMock(...args),
+    revokeLink: vi.fn().mockResolvedValue({ id: "link-1", status: "revoked" }),
   },
 }));
 

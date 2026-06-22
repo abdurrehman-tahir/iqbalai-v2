@@ -48,11 +48,53 @@ CONNECTIONS_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "connections.parent_link_revoked_by_parent": {
+        "default": {
+            "en": {
+                "title": "Parent link revoked",
+                "body": "{parent_name} revoked their link to your account. Their read-only access has been removed.",
+            },
+            "ur": {
+                "title": "والدین لنک منسوخ",
+                "body": "{parent_name} نے آپ کے اکاؤنٹ سے اپنا لنک منسوخ کر دیا ہے۔ ان کی صرف پڑھنے کی رسائی ہٹا دی گئی ہے۔",
+            },
+            "sd": {
+                "title": "والدين لنڪ منسوخ",
+                "body": "{parent_name} توهان جي اڪائونٽ سان پنهنجو لنڪ منسوخ ڪيو آهي۔ ان جي صرف پڙهڻ جي رسائي هٽائي وئي آهي۔",
+            },
+            "ps": {
+                "title": "د والدین نښلول لغوه شو",
+                "body": "{parent_name} ستاسو حساب سره خپل نښلول لغوه کړل۔ د دوی یوازې لوستلو لاسرسی لرې شو۔",
+            },
+        }
+    },
+    "connections.parent_link_revoked_by_student": {
+        "default": {
+            "en": {
+                "title": "Parent link revoked",
+                "body": "{student_name} revoked your link. Your read-only access to their account has been removed.",
+            },
+            "ur": {
+                "title": "والدین لنک منسوخ",
+                "body": "{student_name} نے آپ کا لنک منسوخ کر دیا ہے۔ ان کے اکاؤنٹ تک آپ کی صرف پڑھنے کی رسائی ہٹا دی گئی ہے۔",
+            },
+            "sd": {
+                "title": "والدين لنڪ منسوخ",
+                "body": "{student_name} توهان جو لنڪ منسوخ ڪيو آهي۔ ان جي اڪائونٽ تائين توهان جي صرف پڙهڻ جي رسائي هٽائي وئي آهي۔",
+            },
+            "ps": {
+                "title": "د والدین نښلول لغوه شو",
+                "body": "{student_name} ستاسو نښلول لغوه کړ۔ د دوی حساب ته ستاسو یوازې لوستلو لاسرسی لرې شو۔",
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
     "connections.parent_link_pending": frozenset({"in_app"}),
     "connections.parent_link_approved": frozenset({"in_app"}),
+    "connections.parent_link_revoked_by_parent": frozenset({"in_app"}),
+    "connections.parent_link_revoked_by_student": frozenset({"in_app"}),
 }
 
 

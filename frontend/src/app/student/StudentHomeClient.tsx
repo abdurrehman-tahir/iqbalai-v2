@@ -23,6 +23,12 @@ export function StudentHomeClient() {
     enabled: mounted && !!token,
   });
 
+  const { data: connections } = useQuery({
+    queryKey: ["student", "connections"],
+    queryFn: () => parentChildLinksApi.getStudentConnections(token!),
+    enabled: mounted && !!token,
+  });
+
   const dismissMutation = useMutation({
     mutationFn: () => studentOnboardingApi.dismissBanner(token ?? ""),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["student"] }),
@@ -30,6 +36,11 @@ export function StudentHomeClient() {
 
   const approveMutation = useMutation({
     mutationFn: (linkId: string) => parentChildLinksApi.approveLinkRequest(token ?? "", linkId),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ["student"] }),
+  });
+
+  const revokeMutation = useMutation({
+    mutationFn: (linkId: string) => parentChildLinksApi.revokeParentLink(token ?? "", linkId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["student"] }),
   });
 
@@ -81,6 +92,45 @@ export function StudentHomeClient() {
           </ul>
         )}
         {approveMutation.isError && (
+          <p className="text-sm text-red-600">{t("link_request_error")}</p>
+        )}
+      </section>
+
+      <section className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h3 className="text-lg font-medium text-gray-900">{t("linked_parents_title")}</h3>
+          {connections && (
+            <p className="text-xs text-gray-500">
+              {t("access_state_label")}:{" "}
+              {connections.access_state === "LINKED"
+                ? t("access_state_LINKED")
+                : t("access_state_UNLINKED")}
+            </p>
+          )}
+        </div>
+        {!connections?.linked_parents.length ? (
+          <p className="text-sm text-gray-500">{t("linked_parents_empty")}</p>
+        ) : (
+          <ul className="space-y-3">
+            {connections.linked_parents.map((link) => (
+              <li
+                key={link.id}
+                className="flex flex-wrap items-center justify-between gap-3 border border-gray-100 rounded-md p-3"
+              >
+                <p className="text-sm text-gray-800">{link.parent_name ?? "A parent"}</p>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  loading={revokeMutation.isPending}
+                  onClick={() => revokeMutation.mutate(link.id)}
+                >
+                  {t("revoke_parent")}
+                </Button>
+              </li>
+            ))}
+          </ul>
+        )}
+        {revokeMutation.isError && (
           <p className="text-sm text-red-600">{t("link_request_error")}</p>
         )}
       </section>
