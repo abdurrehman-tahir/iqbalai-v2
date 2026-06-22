@@ -69,6 +69,36 @@ class ParentChildLinkRepository:
         )
         return list(result.scalars().all())
 
+    async def list_approved_for_student(self, student_user_id: str) -> list[ParentChildLink]:
+        result = await self._session.execute(
+            select(ParentChildLink)
+            .where(
+                ParentChildLink.student_user_id == student_user_id,
+                ParentChildLink.status == ParentChildLinkStatus.APPROVED,
+                not_deleted(ParentChildLink),
+            )
+            .order_by(ParentChildLink.approved_at.desc())
+        )
+        return list(result.scalars().all())
+
+    async def list_for_student(self, student_user_id: str) -> list[ParentChildLink]:
+        result = await self._session.execute(
+            select(ParentChildLink)
+            .where(
+                ParentChildLink.student_user_id == student_user_id,
+                not_deleted(ParentChildLink),
+            )
+            .order_by(ParentChildLink.created_at.desc())
+        )
+        return list(result.scalars().all())
+
+    async def has_approved_link(self, *, parent_user_id: str, student_user_id: str) -> bool:
+        link = await self.get_by_parent_and_student(
+            parent_user_id=parent_user_id,
+            student_user_id=student_user_id,
+        )
+        return link is not None and link.status == ParentChildLinkStatus.APPROVED
+
     async def create(self, link: ParentChildLink) -> ParentChildLink:
         self._session.add(link)
         await self._session.commit()

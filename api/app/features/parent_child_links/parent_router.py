@@ -13,6 +13,7 @@ from app.features.parent_child_links.schemas import (
     ParentChildLinkRead,
     ParentConnectionsRead,
     ParentLinkRequestCreate,
+    ParentStudentAccessStateRead,
 )
 from app.features.parent_child_links.service import ParentChildLinkService
 
@@ -50,4 +51,38 @@ async def create_link_request(
 ) -> dict[str, Any]:
     svc = ParentChildLinkService(db)
     result = await svc.create_link_request(payload, claims)
+    return success(result.model_dump())
+
+
+@router.get(
+    "/students/{student_user_id}/access-state",
+    response_model=SuccessEnvelope[ParentStudentAccessStateRead],
+    operation_id="parent_get_student_access_state",
+    summary="Read-only access gate for a linked student (Flow 10)",
+    dependencies=[require_role("parent")],
+)
+async def get_student_access_state(
+    student_user_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ParentChildLinkService(db)
+    result = await svc.get_parent_student_access_state(student_user_id, claims)
+    return success(result.model_dump())
+
+
+@router.post(
+    "/links/{link_id}/revoke",
+    response_model=SuccessEnvelope[ParentChildLinkRead],
+    operation_id="parent_revoke_link",
+    summary="Revoke an approved parent-child link",
+    dependencies=[require_role("parent")],
+)
+async def revoke_link(
+    link_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ParentChildLinkService(db)
+    result = await svc.revoke_link_as_parent(link_id, claims)
     return success(result.model_dump())

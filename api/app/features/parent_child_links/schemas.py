@@ -22,6 +22,8 @@ class ParentChildLinkRead(BaseModel):
     student_name: str | None = None
     student_email: str | None = None
     approved_at: datetime | None = None
+    revoked_at: datetime | None = None
+    read_only_access: bool = False
     created_at: datetime
 
 
@@ -32,3 +34,15 @@ class ParentConnectionsRead(BaseModel):
 
 class StudentLinkRequestList(BaseModel):
     pending: list[ParentChildLinkRead]
+
+
+class StudentConnectionsRead(BaseModel):
+    access_state: str
+    linked_parents: list[ParentChildLinkRead]
+    link_history: list[ParentChildLinkRead]
+
+
+class ParentStudentAccessStateRead(BaseModel):
+    student_user_id: str
+    access_state: str
+    read_only_access: bool

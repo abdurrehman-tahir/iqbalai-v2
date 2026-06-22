@@ -19,7 +19,13 @@ vi.mock("@/lib/api", () => ({
     listStudentPending: vi.fn().mockResolvedValue({
       pending: [{ id: "link-1", parent_name: "Parent One", status: "pending" }],
     }),
+    getStudentConnections: vi.fn().mockResolvedValue({
+      access_state: "LINKED",
+      linked_parents: [{ id: "link-2", parent_name: "Parent Two", status: "approved" }],
+      link_history: [],
+    }),
     approveLinkRequest: vi.fn().mockResolvedValue({ id: "link-1", status: "approved" }),
+    revokeParentLink: vi.fn().mockResolvedValue({ id: "link-2", status: "revoked" }),
   },
 }));
 

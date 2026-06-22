@@ -81,6 +81,21 @@ class _FakeLinkRepo:
             and link.status == ParentChildLinkStatus.APPROVED
         ]
 
+    async def list_approved_for_student(self, student_user_id: str) -> list[ParentChildLink]:
+        return [
+            link
+            for link in self.store.values()
+            if link.student_user_id == student_user_id
+            and link.status == ParentChildLinkStatus.APPROVED
+        ]
+
+    async def list_for_student(self, student_user_id: str) -> list[ParentChildLink]:
+        return [link for link in self.store.values() if link.student_user_id == student_user_id]
+
+    async def has_approved_link(self, *, parent_user_id: str, student_user_id: str) -> bool:
+        link = self.by_pair.get((parent_user_id, student_user_id))
+        return link is not None and link.status == ParentChildLinkStatus.APPROVED
+
     async def create(self, link: ParentChildLink) -> ParentChildLink:
         now = datetime.now(timezone.utc)
         link.created_at = now

@@ -51,6 +51,18 @@ export function ParentHomeClient() {
     },
   });
 
+  const revokeMutation = useMutation({
+    mutationFn: (linkId: string) => parentChildLinksApi.revokeLink(token ?? "", linkId),
+    onSuccess: () => {
+      setSuccess(null);
+      setError(null);
+      void qc.invalidateQueries({ queryKey: ["parent"] });
+    },
+    onError: (err) => {
+      setError(err instanceof Error ? err.message : t("error_generic"));
+    },
+  });
+
   function stateLabel(state: string | undefined) {
     if (state === "LINK_PENDING") return t("state_LINK_PENDING");
     if (state === "LINKED") return t("state_LINKED");
@@ -108,9 +120,26 @@ export function ParentHomeClient() {
         ) : (
           <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
             {connections.links.map((link) => (
-              <li key={link.id} className="px-4 py-3 text-sm flex justify-between gap-4">
-                <span>{link.student_name ?? link.student_email ?? link.student_user_id}</span>
-                <span className="text-gray-500 shrink-0">{linkStatusLabel(link.status)}</span>
+              <li key={link.id} className="px-4 py-3 text-sm flex justify-between gap-4 items-center">
+                <div>
+                  <span>{link.student_name ?? link.student_email ?? link.student_user_id}</span>
+                  {link.read_only_access && (
+                    <span className="ms-2 text-xs text-brand-700">{t("read_only_badge")}</span>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="text-gray-500">{linkStatusLabel(link.status)}</span>
+                  {link.status === "approved" && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      loading={revokeMutation.isPending}
+                      onClick={() => revokeMutation.mutate(link.id)}
+                    >
+                      {t("revoke_link")}
+                    </Button>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

@@ -287,6 +287,8 @@ export interface ParentChildLinkRead {
   student_name?: string | null;
   student_email?: string | null;
   approved_at?: string | null;
+  revoked_at?: string | null;
+  read_only_access: boolean;
   created_at: string;
 }
 
@@ -299,6 +301,18 @@ export interface StudentLinkRequestList {
   pending: ParentChildLinkRead[];
 }
 
+export interface StudentConnectionsRead {
+  access_state: string;
+  linked_parents: ParentChildLinkRead[];
+  link_history: ParentChildLinkRead[];
+}
+
+export interface ParentStudentAccessStateRead {
+  student_user_id: string;
+  access_state: string;
+  read_only_access: boolean;
+}
+
 export const parentChildLinksApi = {
   getConnections: (token: string) =>
     request<ParentConnectionsRead>("/parents/me/connections", {}, token),
@@ -308,11 +322,31 @@ export const parentChildLinksApi = {
       { method: "POST", body: JSON.stringify({ student_email }) },
       token,
     ),
+  revokeLink: (token: string, linkId: string) =>
+    request<ParentChildLinkRead>(
+      `/parents/me/links/${linkId}/revoke`,
+      { method: "POST" },
+      token,
+    ),
+  getStudentAccessState: (token: string, studentUserId: string) =>
+    request<ParentStudentAccessStateRead>(
+      `/parents/me/students/${studentUserId}/access-state`,
+      {},
+      token,
+    ),
   listStudentPending: (token: string) =>
     request<StudentLinkRequestList>("/students/me/link-requests", {}, token),
+  getStudentConnections: (token: string) =>
+    request<StudentConnectionsRead>("/students/me/connections", {}, token),
   approveLinkRequest: (token: string, linkId: string) =>
     request<ParentChildLinkRead>(
       `/students/me/link-requests/${linkId}/approve`,
+      { method: "POST" },
+      token,
+    ),
+  revokeParentLink: (token: string, linkId: string) =>
+    request<ParentChildLinkRead>(
+      `/students/me/links/${linkId}/revoke`,
       { method: "POST" },
       token,
     ),

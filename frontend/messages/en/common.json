@@ -433,7 +433,13 @@
       "link_requests_empty": "No pending parent link requests.",
       "link_request_from": "{name} wants to link to your account",
       "link_request_approve": "Approve",
-      "link_request_error": "Could not update link request. Please try again."
+      "link_request_error": "Could not update link request. Please try again.",
+      "linked_parents_title": "Linked parents",
+      "linked_parents_empty": "No linked parents.",
+      "revoke_parent": "Revoke",
+      "access_state_label": "Parent access",
+      "access_state_LINKED": "At least one parent has read-only access",
+      "access_state_UNLINKED": "No parent read-only access"
     }
   },
   "teacher": {
@@ -1276,8 +1282,10 @@
       "links_title": "Your link requests",
       "links_empty": "No link requests yet.",
       "link_status_pending": "Pending approval",
-      "link_status_approved": "Linked",
+      "link_status_approved": "Linked (read-only access)",
       "link_status_revoked": "Revoked",
+      "revoke_link": "Revoke link",
+      "read_only_badge": "Read-only access active",
       "success_request": "Link request sent. Waiting for your child to approve.",
       "error_generic": "Could not send link request. Check the email and try again."
     }
