@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 
-from sqlalchemy import Boolean, DateTime, ForeignKey, String
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, SoftDeleteMixin
@@ -37,6 +37,10 @@ class StudentProfile(AuditMixin, SoftDeleteMixin, Base):
     )
     deferrable_banner_dismissed: Mapped[bool] = mapped_column(
         Boolean, nullable=False, default=False, server_default="false"
+    )
+    exam_date: Mapped[date | None] = mapped_column(Date, nullable=True, default=None)
+    exam_countdown_sent_days: Mapped[str | None] = mapped_column(
+        String(32), nullable=True, default=None
     )
 
     def __init__(self, **kwargs: object) -> None:

@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import date, datetime
 from enum import Enum
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 
 class SchoolStudentOnboardingState(str, Enum):
@@ -26,6 +26,7 @@ class StudentProfileRead(BaseModel):
     lecture_mode_enabled: bool
     self_study_mode_enabled: bool
     deferrable_banner_dismissed: bool
+    exam_date: date | None = None
 
 
 class SchoolStudentOnboardingRead(BaseModel):
@@ -34,8 +35,21 @@ class SchoolStudentOnboardingRead(BaseModel):
     mode_selected: bool
     ready_to_study: bool
     show_complete_profile_banner: bool
+    exam_date_set: bool = False
     enrollment_grade_id: str | None = None
     profile: StudentProfileRead | None = None
+    future_date_warning: str | None = None
+
+
+class StudentExamDateUpdate(BaseModel):
+    exam_date: date = Field(description="Target exam date")
+
+    @field_validator("exam_date")
+    @classmethod
+    def validate_not_past(cls, value: date) -> date:
+        if value < date.today():
+            raise ValueError("Exam date must be today or in the future")
+        return value
 
 
 class StudentProfileBasicComplete(BaseModel):

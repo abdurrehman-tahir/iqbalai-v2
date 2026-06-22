@@ -12,6 +12,7 @@ from app.core.responses import SuccessEnvelope, success
 from app.features.student_onboarding.schemas import (
     SchoolStudentOnboardingRead,
     StudentBannerDismiss,
+    StudentExamDateUpdate,
     StudentModeSelect,
     StudentProfileBasicComplete,
 )
@@ -99,4 +100,21 @@ async def dismiss_banner(
 ) -> dict[str, Any]:
     svc = StudentOnboardingService(db)
     state = await svc.dismiss_profile_banner(claims, actor_id=str(claims.get("sub", "")))
+    return success(state.model_dump())
+
+
+@router.put(
+    "/onboarding/exam-date",
+    response_model=SuccessEnvelope[SchoolStudentOnboardingRead],
+    operation_id="student_set_exam_date",
+    summary="Set or update deferrable exam date",
+    dependencies=[require_role("student")],
+)
+async def set_exam_date(
+    payload: StudentExamDateUpdate,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = StudentOnboardingService(db)
+    state = await svc.set_exam_date(payload, claims, actor_id=str(claims.get("sub", "")))
     return success(state.model_dump())

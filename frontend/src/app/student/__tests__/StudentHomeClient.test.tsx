@@ -12,8 +12,17 @@ vi.mock("@/hooks/use-client-auth", () => ({
 
 vi.mock("@/lib/api", () => ({
   studentOnboardingApi: {
-    getOnboarding: vi.fn().mockResolvedValue({ show_complete_profile_banner: false }),
+    getOnboarding: vi.fn().mockResolvedValue({
+      show_complete_profile_banner: true,
+      exam_date_set: false,
+      profile: null,
+    }),
     dismissBanner: vi.fn(),
+    setExamDate: vi.fn().mockResolvedValue({
+      exam_date_set: true,
+      show_complete_profile_banner: false,
+      profile: { exam_date: "2026-12-01" },
+    }),
   },
   parentChildLinksApi: {
     listStudentPending: vi.fn().mockResolvedValue({
@@ -50,6 +59,8 @@ describe("StudentHomeClient link requests (T-081)", () => {
     const { parentChildLinksApi } = await import("@/lib/api");
     renderHome();
 
+    expect(await screen.findByText(/Add your target exam date/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/Target exam date/i)).toBeInTheDocument();
     expect(await screen.findByText(/Parent One wants to link/i)).toBeInTheDocument();
     await user.click(screen.getByRole("button", { name: /Approve/i }));
 

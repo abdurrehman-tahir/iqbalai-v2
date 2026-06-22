@@ -32,3 +32,12 @@ class StudentProfileRepository:
         await self._session.commit()
         await self._session.refresh(profile)
         return profile
+
+    async def list_with_exam_dates(self) -> list[StudentProfile]:
+        result = await self._session.execute(
+            select(StudentProfile).where(
+                StudentProfile.exam_date.is_not(None),
+                not_deleted(StudentProfile),
+            )
+        )
+        return list(result.scalars().all())

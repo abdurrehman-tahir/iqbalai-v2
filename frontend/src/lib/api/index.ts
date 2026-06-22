@@ -993,6 +993,12 @@ export const studentOnboardingApi = {
       { method: "POST", body: JSON.stringify({ dismissed: true }) },
       token,
     ),
+  setExamDate: (token: string, exam_date: string) =>
+    request<SchoolStudentOnboardingRead>(
+      "/students/me/onboarding/exam-date",
+      { method: "PUT", body: JSON.stringify({ exam_date }) },
+      token,
+    ),
 };
 
 // ── Academic Sessions (Coordinator) — T-042 ─────────────────────────────────────
