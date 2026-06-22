@@ -78,6 +78,20 @@ export function StudentHomeClient() {
         </p>
       </div>
 
+      {onboarding?.school_read_only && onboarding.graduation_message && (
+        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-blue-900">{t("graduation_banner_title")}</h3>
+          <p className="text-sm text-blue-800">{onboarding.graduation_message}</p>
+          {onboarding.migration_scheduled_at && (
+            <p className="text-sm text-blue-700">
+              {t("graduation_migration_date", {
+                date: onboarding.migration_scheduled_at.slice(0, 10),
+              })}
+            </p>
+          )}
+        </div>
+      )}
+
       {onboarding?.show_complete_profile_banner && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-4">
           <p className="text-sm text-amber-900">{t("profile_banner")}</p>

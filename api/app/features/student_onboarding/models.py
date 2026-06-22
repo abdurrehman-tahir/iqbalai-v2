@@ -42,6 +42,21 @@ class StudentProfile(AuditMixin, SoftDeleteMixin, Base):
     exam_countdown_sent_days: Mapped[str | None] = mapped_column(
         String(32), nullable=True, default=None
     )
+    is_graduated: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    graduated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
+    migrated_out: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
+    migrated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
+    migration_reminder_sent_days: Mapped[str | None] = mapped_column(
+        String(32), nullable=True, default=None
+    )
 
     def __init__(self, **kwargs: object) -> None:
         if "lecture_mode_enabled" not in kwargs:
@@ -50,4 +65,8 @@ class StudentProfile(AuditMixin, SoftDeleteMixin, Base):
             kwargs["self_study_mode_enabled"] = False
         if "deferrable_banner_dismissed" not in kwargs:
             kwargs["deferrable_banner_dismissed"] = False
+        if "is_graduated" not in kwargs:
+            kwargs["is_graduated"] = False
+        if "migrated_out" not in kwargs:
+            kwargs["migrated_out"] = False
         super().__init__(**kwargs)
