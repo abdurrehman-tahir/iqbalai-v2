@@ -16,6 +16,8 @@ from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import setup_exception_handlers
 from app.features.bulk_imports.models import BulkImport, BulkImportStatus
 from app.features.files.schemas import UploadInitiated, UploadStatus
+from app.features.grades.models import Grade, GradeStatus
+from app.features.sections.models import Section, SectionStatus
 from app.features.users.models import User, UserRole
 
 
@@ -72,6 +74,70 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.bulk_imports.service.BulkImportRepository", _FakeBulkImportRepo)
     monkeypatch.setattr("app.features.bulk_imports.service.audit", AsyncMock())
     monkeypatch.setattr("app.features.bulk_imports.service.notify_account_event", AsyncMock())
+
+    class _FakeSessionRepo:
+        def __init__(self, session: Any) -> None:
+            pass
+
+        async def get_school_active_label(self, school_id: str) -> str:
+            return "2025-2026"
+
+        async def get_active(self, school_id: str) -> None:
+            return None
+
+    class _FakeGradeRepo:
+        def __init__(self, session: Any) -> None:
+            pass
+
+        async def get_by_name_session(self, school_id: str, name: str, academic_session: str) -> Grade | None:
+            if name == "Grade 9":
+                return Grade(
+                    id="grade-9",
+                    school_id=school_id,
+                    name=name,
+                    academic_session=academic_session,
+                    level_ordinal=9,
+                    status=GradeStatus.ACTIVE,
+                )
+            return None
+
+    class _FakeSectionRepo:
+        def __init__(self, session: Any) -> None:
+            pass
+
+        async def get_by_name(self, grade_id: str, name: str) -> Section | None:
+            return None
+
+        async def list_by_grade(self, grade_id: str, include_archived: bool = False) -> list[Section]:
+            return [
+                Section(
+                    id="default-9",
+                    grade_id=grade_id,
+                    name="__default__",
+                    is_default_internal=True,
+                    status=SectionStatus.ACTIVE,
+                )
+            ]
+
+    class _FakeInviteRepo:
+        def __init__(self, session: Any) -> None:
+            pass
+
+        async def get_pending_by_email(self, email: str) -> None:
+            return None
+
+    class _FakeIndependentRepo:
+        def __init__(self, session: Any) -> None:
+            pass
+
+        async def get_by_email(self, email: str) -> None:
+            return None
+
+    monkeypatch.setattr("app.features.bulk_imports.service.AcademicSessionRepository", _FakeSessionRepo)
+    monkeypatch.setattr("app.features.bulk_imports.service.GradeRepository", _FakeGradeRepo)
+    monkeypatch.setattr("app.features.bulk_imports.service.SectionRepository", _FakeSectionRepo)
+    monkeypatch.setattr("app.features.bulk_imports.service.UserInviteRepository", _FakeInviteRepo)
+    monkeypatch.setattr("app.features.bulk_imports.service.IndependentUserRepository", _FakeIndependentRepo)
     monkeypatch.setattr(
         "app.features.bulk_imports.service.run_upload_pipeline",
         AsyncMock(
@@ -133,3 +199,51 @@ async def test_teacher_cannot_upload_bulk_import() -> None:
         )
 
     assert res.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_coordinator_can_commit_bulk_import(monkeypatch: pytest.MonkeyPatch) -> None:
+    job = BulkImport(
+        id="job-1",
+        school_id="school-1",
+        imported_by_user_id="coord-1",
+        upload_id="upload-1",
+        total_rows=1,
+        success_rows=1,
+        failed_rows=0,
+        error_report_jsonb={
+            "rows": [
+                {
+                    "row_number": 2,
+                    "status": "enrolled",
+                    "errors": [],
+                    "data": {
+                        "name": "Alice",
+                        "email": "alice@test.com",
+                        "grade": "Grade 9",
+                        "grade_id": "grade-9",
+                        "section_id": "default-9",
+                    },
+                }
+            ]
+        },
+        status=BulkImportStatus.COMMITTED,
+        created_at=datetime.now(timezone.utc),
+        completed_at=datetime.now(timezone.utc),
+    )
+
+    async def _fake_commit(*args: object, **kwargs: object) -> object:
+        from app.features.bulk_imports.service import _to_read
+
+        return _to_read(job)
+
+    monkeypatch.setattr(
+        "app.features.bulk_imports.router.BulkImportService.commit",
+        _fake_commit,
+    )
+
+    async with _build_client() as client:
+        res = await client.post("/api/v1/coordinator/bulk-imports/job-1/commit")
+
+    assert res.status_code == 200
+    assert res.json()["data"]["status"] == "committed"

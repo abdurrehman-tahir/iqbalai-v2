@@ -714,15 +714,17 @@
     },
     "bulk_import": {
       "title": "Bulk Import",
-      "subtitle": "Upload a CSV or XLSX roster to validate student rows before enrollment (M-06).",
+      "subtitle": "Upload a CSV or XLSX roster to validate student rows, then enroll valid rows.",
       "file_label": "Student roster file",
       "choose_file": "Choose file",
       "file_hint": "Required columns: name, email, grade. Optional: section, language. Max 5 MB, 5,000 rows.",
       "run_dry_run": "Run dry-run validation",
       "validating": "Validating…",
-      "results_title": "Dry-run results",
-      "commit_disabled": "Coming in M-06",
-      "commit_disabled_hint": "Student creation is enabled in milestone M-06",
+      "results_title": "Import results",
+      "commit_button": "Enroll valid rows",
+      "committing": "Enrolling…",
+      "commit_success": "All valid rows were enrolled and invite emails sent.",
+      "commit_partial": "Import finished with some rows skipped or failed — review the table below.",
       "summary": {
         "total": "{count} rows",
         "valid": "{count} valid",
@@ -738,7 +740,9 @@
       },
       "status": {
         "valid": "Valid",
-        "invalid": "Invalid"
+        "invalid": "Invalid",
+        "enrolled": "Enrolled",
+        "failed": "Failed"
       },
       "errors": {
         "invalid_type": "Only CSV and XLSX files are supported.",
@@ -752,6 +756,11 @@
         "email_in_other_school": "Email belongs to another school",
         "missing_grade": "Grade is required",
         "grade_out_of_scope": "Grade outside your scope",
+        "grade_not_found": "Grade not found in active session",
+        "section_not_found": "Section not found for grade",
+        "email_already_exists": "Email already registered or invited",
+        "enrollment_failed": "Enrollment failed",
+        "enrollment_conflict": "Enrollment conflict",
         "invalid_language": "Unsupported language"
       }
     }

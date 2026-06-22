@@ -1,4 +1,4 @@
-"""Bulk import service — CSV/XLSX parse + dry-run validation (T-037)."""
+"""Bulk import service — CSV/XLSX parse, dry-run validation, commit enrollment (T-037/T-079)."""
 
 from __future__ import annotations
 
@@ -11,12 +11,25 @@ import structlog
 from openpyxl import load_workbook
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
+from app.core.exceptions import (
+    ConflictError,
+    NotFoundError,
+    PermissionDeniedError,
+    PreconditionFailedError,
+    ValidationError,
+)
+from app.features.academic_sessions.repository import AcademicSessionRepository
 from app.features.bulk_imports.models import BulkImport, BulkImportStatus
 from app.features.bulk_imports.repository import BulkImportRepository
 from app.features.bulk_imports.schemas import BulkImportRead, BulkImportRowResult
 from app.features.files.pipeline import run_upload_pipeline
 from app.features.files.profiles import get_profile
+from app.features.grades.repository import GradeRepository
+from app.features.independent_users.repository import IndependentUserRepository
+from app.features.invites.repository import UserInviteRepository
+from app.features.sections.repository import SectionRepository
+from app.features.student_enrollments.schemas import StudentEnrollmentCreate
+from app.features.student_enrollments.service import StudentEnrollmentService
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
@@ -33,12 +46,35 @@ _EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 
 
 class BulkImportService:
-    """Parse upload files and run coordinator-scoped dry-run validation."""
+    """Parse upload files, validate rows, and commit student enrollments."""
 
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
         self._repo = BulkImportRepository(session)
         self._users = UserRepository(session)
+        self._invites = UserInviteRepository(session)
+        self._independent_users = IndependentUserRepository(session)
+        self._grades = GradeRepository(session)
+        self._sections = SectionRepository(session)
+        self._sessions = AcademicSessionRepository(session)
+
+    async def _require_coordinator(self, actor_authentik_id: str) -> User:
+        actor = await self._users.get_by_authentik_id(actor_authentik_id)
+        if actor is None or actor.role != UserRole.COORDINATOR:
+            raise PermissionDeniedError("Only coordinators can run bulk imports")
+        if not actor.school_id:
+            raise ValidationError("Coordinator must belong to a school")
+        grade_scope = _parse_grade_scope(actor.scoped_ids)
+        if not grade_scope:
+            raise ValidationError("Coordinator has no grade scope configured")
+        return actor
+
+    async def _active_session_label(self, school_id: str) -> str | None:
+        label = await self._sessions.get_school_active_label(school_id)
+        if not label:
+            active = await self._sessions.get_active(school_id)
+            label = active.label if active else None
+        return label
 
     async def dry_run(
         self,
@@ -47,15 +83,8 @@ class BulkImportService:
         actor_authentik_id: str,
     ) -> BulkImportRead:
         """Validate rows and persist a dry-run job (no user creation)."""
-        actor = await self._users.get_by_authentik_id(actor_authentik_id)
-        if actor is None or actor.role != UserRole.COORDINATOR:
-            raise PermissionDeniedError("Only coordinators can run bulk imports")
-        if not actor.school_id:
-            raise ValidationError("Coordinator must belong to a school")
-
+        actor = await self._require_coordinator(actor_authentik_id)
         grade_scope = _parse_grade_scope(actor.scoped_ids)
-        if not grade_scope:
-            raise ValidationError("Coordinator has no grade scope configured")
 
         rows_raw = _parse_file(data, filename)
         if not rows_raw:
@@ -63,7 +92,10 @@ class BulkImportService:
         if len(rows_raw) > MAX_ROWS:
             raise ValidationError(f"File exceeds maximum of {MAX_ROWS} rows")
 
-        row_results = await self._validate_rows(rows_raw, grade_scope, actor.school_id)
+        session_label = await self._active_session_label(actor.school_id)
+        row_results = await self._validate_rows(
+            rows_raw, grade_scope, actor.school_id, session_label
+        )
         success_rows = sum(1 for r in row_results if r.status == "valid")
         failed_rows = len(row_results) - success_rows
 
@@ -105,6 +137,87 @@ class BulkImportService:
                 "failed_rows": job.failed_rows,
             },
         )
+
+        logger.info(
+            "bulk_import_dry_run_complete",
+            import_id=job.id,
+            school_id=actor.school_id,
+            total=job.total_rows,
+            valid=job.success_rows,
+        )
+        return _to_read(job)
+
+    async def commit(
+        self,
+        import_id: str,
+        actor_authentik_id: str,
+        claims: dict[str, object],
+    ) -> BulkImportRead:
+        """Enroll all dry-run-valid rows; partial success allowed."""
+        actor = await self._require_coordinator(actor_authentik_id)
+        job = await self._repo.get_by_id_for_school(import_id, actor.school_id)
+        if job is None:
+            raise NotFoundError("Bulk import not found")
+        if job.status != BulkImportStatus.DRY_RUN_COMPLETE:
+            raise PreconditionFailedError("Bulk import is not ready to commit")
+
+        report = job.error_report_jsonb or {}
+        row_results = [BulkImportRowResult.model_validate(r) for r in report.get("rows", [])]
+        enrollment_svc = StudentEnrollmentService(self._session)
+        actor_id = str(claims.get("sub", ""))
+
+        for row in row_results:
+            if row.status != "valid" or not row.data:
+                continue
+            grade_id = row.data.get("grade_id", "").strip()
+            if not grade_id:
+                row.status = "failed"
+                row.errors = [*row.errors, "grade_not_found"]
+                continue
+
+            payload = StudentEnrollmentCreate(
+                display_name=row.data["name"],
+                email=row.data["email"],
+                section_id=row.data.get("section_id") or None,
+            )
+            try:
+                await enrollment_svc.enroll_student(grade_id, payload, claims, actor_id)
+                row.status = "enrolled"
+            except ConflictError:
+                row.status = "failed"
+                row.errors = [*row.errors, "email_already_exists"]
+            except PermissionDeniedError:
+                row.status = "failed"
+                row.errors = [*row.errors, "grade_out_of_scope"]
+            except (ValidationError, NotFoundError):
+                row.status = "failed"
+                row.errors = [*row.errors, "enrollment_failed"]
+
+        enrolled = sum(1 for r in row_results if r.status == "enrolled")
+        job.error_report_jsonb = {"rows": [r.model_dump() for r in row_results]}
+        job.success_rows = enrolled
+        job.failed_rows = job.total_rows - enrolled
+        job.status = (
+            BulkImportStatus.COMMITTED
+            if job.failed_rows == 0
+            else BulkImportStatus.COMMITTED_WITH_ERRORS
+        )
+        job.completed_at = datetime.now(timezone.utc)
+        job = await self._repo.update(job)
+
+        await audit(
+            session=self._session,
+            action="bulk_import.committed",
+            actor_id=actor.id,
+            target_type="bulk_import",
+            target_id=job.id,
+            school_id=actor.school_id,
+            metadata={
+                "total_rows": job.total_rows,
+                "enrolled_rows": enrolled,
+                "failed_rows": job.failed_rows,
+            },
+        )
         await notify_account_event(
             session=self._session,
             template_key="account.bulk_import_done",
@@ -117,22 +230,17 @@ class BulkImportService:
             },
             metadata={"bulk_import_id": job.id},
         )
-
         logger.info(
-            "bulk_import_dry_run_complete",
+            "bulk_import_committed",
             import_id=job.id,
-            school_id=actor.school_id,
-            total=job.total_rows,
-            valid=job.success_rows,
+            enrolled=enrolled,
+            failed=job.failed_rows,
         )
         return _to_read(job)
 
     async def get_job(self, import_id: str, actor_authentik_id: str) -> BulkImportRead:
-        """Return a dry-run job scoped to the coordinator's school."""
-        actor = await self._users.get_by_authentik_id(actor_authentik_id)
-        if actor is None or actor.role != UserRole.COORDINATOR or not actor.school_id:
-            raise PermissionDeniedError("Only coordinators can view bulk imports")
-
+        """Return a bulk import job scoped to the coordinator's school."""
+        actor = await self._require_coordinator(actor_authentik_id)
         job = await self._repo.get_by_id_for_school(import_id, actor.school_id)
         if job is None:
             raise NotFoundError("Bulk import not found")
@@ -143,6 +251,7 @@ class BulkImportService:
         rows_raw: list[dict[str, str]],
         grade_scope: set[str],
         school_id: str,
+        session_label: str | None,
     ) -> list[BulkImportRowResult]:
         seen_emails: set[str] = set()
         results: list[BulkImportRowResult] = []
@@ -154,6 +263,8 @@ class BulkImportService:
             grade = raw.get("grade", "").strip()
             section = raw.get("section", "").strip()
             language = raw.get("language", "").strip().lower() or "en"
+            grade_id = ""
+            section_id = ""
 
             if not name:
                 errors.append("missing_name")
@@ -166,13 +277,43 @@ class BulkImportService:
             else:
                 seen_emails.add(email)
                 existing = await self._users.get_by_email(email)
-                if existing is not None and existing.school_id != school_id:
-                    errors.append("email_in_other_school")
+                if existing is not None:
+                    if existing.school_id != school_id:
+                        errors.append("email_in_other_school")
+                    else:
+                        errors.append("email_already_exists")
+                elif await self._invites.get_pending_by_email(email) is not None:
+                    errors.append("email_already_exists")
+                elif await self._independent_users.get_by_email(email) is not None:
+                    errors.append("email_already_exists")
 
             if not grade:
                 errors.append("missing_grade")
             elif grade not in grade_scope:
                 errors.append("grade_out_of_scope")
+            elif not session_label:
+                errors.append("grade_not_found")
+            else:
+                grade_row = await self._grades.get_by_name_session(
+                    school_id, grade, session_label
+                )
+                if grade_row is None:
+                    errors.append("grade_not_found")
+                else:
+                    grade_id = grade_row.id
+                    if section:
+                        sec = await self._sections.get_by_name(grade_row.id, section)
+                        if sec is None:
+                            errors.append("section_not_found")
+                        else:
+                            section_id = sec.id
+                    else:
+                        sections = await self._sections.list_by_grade(grade_row.id)
+                        default = next((s for s in sections if s.is_default_internal), None)
+                        if default is None:
+                            errors.append("section_not_found")
+                        else:
+                            section_id = default.id
 
             if language and language not in ALLOWED_LANGUAGES:
                 errors.append("invalid_language")
@@ -183,6 +324,8 @@ class BulkImportService:
                 "grade": grade,
                 "section": section,
                 "language": language,
+                "grade_id": grade_id,
+                "section_id": section_id,
             }
             results.append(
                 BulkImportRowResult(
@@ -206,7 +349,6 @@ def _is_csv(filename: str, data: bytes) -> bool:
     lower = filename.lower()
     if lower.endswith(".csv"):
         return True
-    # Heuristic: XLSX starts with PK zip header
     return not data.startswith(b"PK\x03\x04")
 
 

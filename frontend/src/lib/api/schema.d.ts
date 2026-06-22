@@ -524,7 +524,7 @@ export interface paths {
         put?: never;
         /**
          * Upload CSV/XLSX for dry-run validation
-         * @description Coordinator uploads a student roster file. Rows are validated against grade scope; no accounts are created until M-06.
+         * @description Coordinator uploads a student roster file. Rows are validated against grade scope and school structure; use commit to create invited enrollments.
          */
         post: operations["create_bulk_import_dry_run"];
         delete?: never;
@@ -540,10 +540,27 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        /** Get bulk import dry-run results */
+        /** Get bulk import dry-run or commit results */
         get: operations["get_bulk_import"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/coordinator/bulk-imports/{import_id}/commit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Commit a validated bulk import — enroll valid rows */
+        post: operations["commit_bulk_import"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1721,6 +1738,56 @@ export interface components {
             file: string;
         };
         /**
+         * BulkImportRead
+         * @description Bulk import job returned to the client.
+         */
+        BulkImportRead: {
+            /** Completed At */
+            completed_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Failed Rows */
+            failed_rows: number;
+            /** Id */
+            id: string;
+            /** Imported By User Id */
+            imported_by_user_id: string;
+            /** Rows */
+            rows: components["schemas"]["BulkImportRowResult"][];
+            /** School Id */
+            school_id: string;
+            /** Status */
+            status: string;
+            /** Success Rows */
+            success_rows: number;
+            /** Total Rows */
+            total_rows: number;
+            /** Upload Id */
+            upload_id: string;
+        };
+        /**
+         * BulkImportRowResult
+         * @description Per-row dry-run validation outcome.
+         */
+        BulkImportRowResult: {
+            /** Data */
+            data?: {
+                [key: string]: string;
+            } | null;
+            /** Errors */
+            errors?: string[];
+            /** Row Number */
+            row_number: number;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "valid" | "invalid" | "enrolled" | "failed";
+        };
+        /**
          * DeletedResponse
          * @description Payload for soft-delete endpoints — `data` of a `SuccessEnvelope`.
          */
@@ -2736,6 +2803,15 @@ export interface components {
         /** SuccessEnvelope[ActiveSessionRead] */
         SuccessEnvelope_ActiveSessionRead_: {
             data: components["schemas"]["ActiveSessionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[BulkImportRead] */
+        SuccessEnvelope_BulkImportRead_: {
+            data: components["schemas"]["BulkImportRead"];
             /**
              * Message
              * @default ok
@@ -4887,9 +4963,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_BulkImportRead_"];
                 };
             };
             /** @description Validation Error */
@@ -4920,9 +4994,38 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": {
-                        [key: string]: unknown;
-                    };
+                    "application/json": components["schemas"]["SuccessEnvelope_BulkImportRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    commit_bulk_import: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                import_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_BulkImportRead_"];
                 };
             };
             /** @description Validation Error */
