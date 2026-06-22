@@ -12,6 +12,7 @@ Reversible: yes
 from __future__ import annotations
 
 import sqlalchemy as sa
+from sqlalchemy import inspect
 
 from alembic import op
 
@@ -21,17 +22,34 @@ branch_labels: tuple[()] = ()
 depends_on: str | None = None
 
 
+def _ensure_enum(schema: str, name: str, values: str) -> None:
+    """Create a Postgres enum if missing (safe after a failed partial migration)."""
+    op.execute(
+        f"""
+        DO $$ BEGIN
+            CREATE TYPE {schema}.{name} AS ENUM ({values});
+        EXCEPTION
+            WHEN duplicate_object THEN NULL;
+        END $$;
+        """
+    )
+
+
 def upgrade() -> None:
-    op.execute(
-        "CREATE TYPE independent.independentuserrole AS ENUM ("
-        "'independent_teacher', 'independent_student'"
-        ")"
+    _ensure_enum(
+        "independent",
+        "independentuserrole",
+        "'independent_teacher', 'independent_student'",
     )
-    op.execute(
-        "CREATE TYPE independent.independentuseraccountstatus AS ENUM ("
-        "'active', 'suspended', 'deactivated'"
-        ")"
+    _ensure_enum(
+        "independent",
+        "independentuseraccountstatus",
+        "'active', 'suspended', 'deactivated'",
     )
+
+    bind = op.get_bind()
+    if inspect(bind).has_table("users", schema="independent"):
+        return
 
     op.create_table(
         "users",
