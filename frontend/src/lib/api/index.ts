@@ -39,6 +39,9 @@ import type {
   TeacherCapacityUpdate,
   TeacherCapacityUpdateRead,
   TeacherProfileComplete,
+  SchoolStudentOnboardingRead,
+  StudentProfileBasicComplete,
+  StudentModeSelect,
   SchoolCreate,
   SchoolUpdate,
   SubscriptionTierCreate,
@@ -807,6 +810,31 @@ export const teacherOnboardingApi = {
     request<TeacherCapacityUpdateRead>(
       "/teachers/me/capacity",
       { method: "PATCH", body: JSON.stringify(data) },
+      token,
+    ),
+};
+
+// ── School student onboarding — T-078 ───────────────────────────────────────────
+
+export const studentOnboardingApi = {
+  getOnboarding: (token: string) =>
+    request<SchoolStudentOnboardingRead>("/students/me/onboarding", {}, token),
+  completeProfileBasic: (token: string, data: StudentProfileBasicComplete) =>
+    request<SchoolStudentOnboardingRead>(
+      "/students/me/onboarding/profile-basic",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+  selectModes: (token: string, data: StudentModeSelect) =>
+    request<SchoolStudentOnboardingRead>(
+      "/students/me/onboarding/modes",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+  dismissBanner: (token: string) =>
+    request<SchoolStudentOnboardingRead>(
+      "/students/me/onboarding/dismiss-banner",
+      { method: "POST", body: JSON.stringify({ dismissed: true }) },
       token,
     ),
 };

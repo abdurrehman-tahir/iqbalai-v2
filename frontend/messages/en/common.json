@@ -402,6 +402,35 @@
       "delete_error": "Could not delete this item."
     }
   },
+  "student": {
+    "header_title": "Student dashboard",
+    "logout": "Sign out",
+    "onboarding": {
+      "header_title": "Complete your profile",
+      "title": "Welcome — confirm your details",
+      "subtitle": "Confirm your name, choose your language, and accept the Terms of Service to continue.",
+      "modes_title": "Choose how you study",
+      "modes_subtitle": "Pick at least one mode. You can use both Lecture and Self-Study.",
+      "name_label": "Full name",
+      "language_label": "Preferred language",
+      "language_en": "English",
+      "language_ur": "Urdu",
+      "language_sd": "Sindhi",
+      "language_ps": "Pashto",
+      "tos_label": "I accept the Terms of Service",
+      "profile_submit": "Continue",
+      "lecture_mode": "Lecture mode (class-based)",
+      "self_study_mode": "Self-study mode",
+      "modes_submit": "Start studying",
+      "error_generic": "Something went wrong. Please try again."
+    },
+    "dashboard": {
+      "title": "Welcome, Student",
+      "subtitle": "Your student dashboard. Lectures and study tools arrive in upcoming milestones.",
+      "profile_banner": "Complete optional profile details (exam date, diagnostic, and more) whenever you are ready.",
+      "profile_banner_dismiss": "Dismiss"
+    }
+  },
   "teacher": {
     "header_title": "Teacher dashboard",
     "logout": "Sign out",

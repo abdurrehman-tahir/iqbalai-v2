@@ -1238,6 +1238,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get school student onboarding state */
+        get: operations["student_get_onboarding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/onboarding/dismiss-banner": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Dismiss the optional complete-your-profile banner */
+        post: operations["student_dismiss_profile_banner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/onboarding/modes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Select at least one study mode to reach READY_TO_STUDY */
+        put: operations["student_select_modes"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/onboarding/profile-basic": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Complete mandatory profile basics (name, language, ToS) */
+        put: operations["student_complete_profile_basic"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/subjects/": {
         parameters: {
             query?: never;
@@ -2404,6 +2472,26 @@ export interface components {
             /** Storage Deduplicated */
             storage_deduplicated: boolean;
         };
+        /** SchoolStudentOnboardingRead */
+        SchoolStudentOnboardingRead: {
+            /** Enrollment Grade Id */
+            enrollment_grade_id?: string | null;
+            /** Mode Selected */
+            mode_selected: boolean;
+            profile?: components["schemas"]["StudentProfileRead"] | null;
+            /** Profile Basic Complete */
+            profile_basic_complete: boolean;
+            /** Ready To Study */
+            ready_to_study: boolean;
+            /** Show Complete Profile Banner */
+            show_complete_profile_banner: boolean;
+            state: components["schemas"]["SchoolStudentOnboardingState"];
+        };
+        /**
+         * SchoolStudentOnboardingState
+         * @enum {string}
+         */
+        SchoolStudentOnboardingState: "invited" | "profile_basic" | "mode_selection" | "ready_to_study";
         /**
          * SchoolUpdate
          * @description Payload for updating a School (all fields optional).
@@ -2439,6 +2527,14 @@ export interface components {
          * @enum {string}
          */
         SectionStatus: "active" | "archived";
+        /** StudentBannerDismiss */
+        StudentBannerDismiss: {
+            /**
+             * Dismissed
+             * @default true
+             */
+            dismissed: boolean;
+        };
         /**
          * StudentEnrollmentCreate
          * @description Coordinator enrolls a student into a grade (optional section).
@@ -2482,6 +2578,47 @@ export interface components {
          * @enum {string}
          */
         StudentEnrollmentStatus: "active" | "withdrawn" | "graduated";
+        /** StudentModeSelect */
+        StudentModeSelect: {
+            /**
+             * Lecture Mode
+             * @default false
+             */
+            lecture_mode: boolean;
+            /**
+             * Self Study Mode
+             * @default false
+             */
+            self_study_mode: boolean;
+        };
+        /** StudentProfileBasicComplete */
+        StudentProfileBasicComplete: {
+            /** Display Name */
+            display_name: string;
+            /** Language Preference */
+            language_preference: string;
+            /** Tos Version Id */
+            tos_version_id: string;
+        };
+        /** StudentProfileRead */
+        StudentProfileRead: {
+            /** Deferrable Banner Dismissed */
+            deferrable_banner_dismissed: boolean;
+            /** Display Name */
+            display_name: string;
+            /** Language Preference */
+            language_preference: string;
+            /** Lecture Mode Enabled */
+            lecture_mode_enabled: boolean;
+            /** Profile Basic Completed At */
+            profile_basic_completed_at: string | null;
+            /** Self Study Mode Enabled */
+            self_study_mode_enabled: boolean;
+            /** Tos Accepted At */
+            tos_accepted_at: string | null;
+            /** User Id */
+            user_id: string;
+        };
         /**
          * SubjectCreate
          * @description Payload for creating a new Subject in the caller's school catalogue.
@@ -2784,6 +2921,15 @@ export interface components {
         /** SuccessEnvelope[SchoolLibraryUploadResponse] */
         SuccessEnvelope_SchoolLibraryUploadResponse_: {
             data: components["schemas"]["SchoolLibraryUploadResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SchoolStudentOnboardingRead] */
+        SuccessEnvelope_SchoolStudentOnboardingRead_: {
+            data: components["schemas"]["SchoolStudentOnboardingRead"];
             /**
              * Message
              * @default ok
@@ -6177,6 +6323,125 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_onboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolStudentOnboardingRead_"];
+                };
+            };
+        };
+    };
+    student_dismiss_profile_banner: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentBannerDismiss"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolStudentOnboardingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_select_modes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentModeSelect"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolStudentOnboardingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_complete_profile_basic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentProfileBasicComplete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolStudentOnboardingRead_"];
                 };
             };
             /** @description Validation Error */

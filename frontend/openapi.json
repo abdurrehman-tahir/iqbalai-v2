@@ -2314,6 +2314,69 @@
         "title": "SchoolLibraryUploadResponse",
         "type": "object"
       },
+      "SchoolStudentOnboardingRead": {
+        "properties": {
+          "enrollment_grade_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Enrollment Grade Id"
+          },
+          "mode_selected": {
+            "title": "Mode Selected",
+            "type": "boolean"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StudentProfileRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "profile_basic_complete": {
+            "title": "Profile Basic Complete",
+            "type": "boolean"
+          },
+          "ready_to_study": {
+            "title": "Ready To Study",
+            "type": "boolean"
+          },
+          "show_complete_profile_banner": {
+            "title": "Show Complete Profile Banner",
+            "type": "boolean"
+          },
+          "state": {
+            "$ref": "#/components/schemas/SchoolStudentOnboardingState"
+          }
+        },
+        "required": [
+          "state",
+          "profile_basic_complete",
+          "mode_selected",
+          "ready_to_study",
+          "show_complete_profile_banner"
+        ],
+        "title": "SchoolStudentOnboardingRead",
+        "type": "object"
+      },
+      "SchoolStudentOnboardingState": {
+        "enum": [
+          "invited",
+          "profile_basic",
+          "mode_selection",
+          "ready_to_study"
+        ],
+        "title": "SchoolStudentOnboardingState",
+        "type": "string"
+      },
       "SchoolUpdate": {
         "description": "Payload for updating a School (all fields optional).",
         "properties": {
@@ -2394,6 +2457,17 @@
         ],
         "title": "SectionStatus",
         "type": "string"
+      },
+      "StudentBannerDismiss": {
+        "properties": {
+          "dismissed": {
+            "default": true,
+            "title": "Dismissed",
+            "type": "boolean"
+          }
+        },
+        "title": "StudentBannerDismiss",
+        "type": "object"
       },
       "StudentEnrollmentCreate": {
         "description": "Coordinator enrolls a student into a grade (optional section).",
@@ -2492,6 +2566,115 @@
         ],
         "title": "StudentEnrollmentStatus",
         "type": "string"
+      },
+      "StudentModeSelect": {
+        "properties": {
+          "lecture_mode": {
+            "default": false,
+            "title": "Lecture Mode",
+            "type": "boolean"
+          },
+          "self_study_mode": {
+            "default": false,
+            "title": "Self Study Mode",
+            "type": "boolean"
+          }
+        },
+        "title": "StudentModeSelect",
+        "type": "object"
+      },
+      "StudentProfileBasicComplete": {
+        "properties": {
+          "display_name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "language_preference": {
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Language Preference",
+            "type": "string"
+          },
+          "tos_version_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Tos Version Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "display_name",
+          "language_preference",
+          "tos_version_id"
+        ],
+        "title": "StudentProfileBasicComplete",
+        "type": "object"
+      },
+      "StudentProfileRead": {
+        "properties": {
+          "deferrable_banner_dismissed": {
+            "title": "Deferrable Banner Dismissed",
+            "type": "boolean"
+          },
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "language_preference": {
+            "title": "Language Preference",
+            "type": "string"
+          },
+          "lecture_mode_enabled": {
+            "title": "Lecture Mode Enabled",
+            "type": "boolean"
+          },
+          "profile_basic_completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Basic Completed At"
+          },
+          "self_study_mode_enabled": {
+            "title": "Self Study Mode Enabled",
+            "type": "boolean"
+          },
+          "tos_accepted_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Tos Accepted At"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "display_name",
+          "language_preference",
+          "tos_accepted_at",
+          "profile_basic_completed_at",
+          "lecture_mode_enabled",
+          "self_study_mode_enabled",
+          "deferrable_banner_dismissed"
+        ],
+        "title": "StudentProfileRead",
+        "type": "object"
       },
       "SubjectCreate": {
         "description": "Payload for creating a new Subject in the caller's school catalogue.",
@@ -3143,6 +3326,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[SchoolLibraryUploadResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SchoolStudentOnboardingRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SchoolStudentOnboardingRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SchoolStudentOnboardingRead]",
         "type": "object"
       },
       "SuccessEnvelope_SectionRead_": {
@@ -8521,6 +8721,150 @@
         "summary": "Smoketest Rag",
         "tags": [
           "smoketest"
+        ]
+      }
+    },
+    "/api/v1/students/me/onboarding": {
+      "get": {
+        "operationId": "student_get_onboarding",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolStudentOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get school student onboarding state",
+        "tags": [
+          "student-onboarding"
+        ]
+      }
+    },
+    "/api/v1/students/me/onboarding/dismiss-banner": {
+      "post": {
+        "operationId": "student_dismiss_profile_banner",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentBannerDismiss"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolStudentOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dismiss the optional complete-your-profile banner",
+        "tags": [
+          "student-onboarding"
+        ]
+      }
+    },
+    "/api/v1/students/me/onboarding/modes": {
+      "put": {
+        "operationId": "student_select_modes",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentModeSelect"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolStudentOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select at least one study mode to reach READY_TO_STUDY",
+        "tags": [
+          "student-onboarding"
+        ]
+      }
+    },
+    "/api/v1/students/me/onboarding/profile-basic": {
+      "put": {
+        "operationId": "student_complete_profile_basic",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentProfileBasicComplete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolStudentOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete mandatory profile basics (name, language, ToS)",
+        "tags": [
+          "student-onboarding"
         ]
       }
     },
