@@ -247,6 +247,41 @@ export const independentSignupApi = {
     }),
 };
 
+// ── Independent teacher onboarding ────────────────────────────────────────────
+
+export interface IndependentTeacherOnboardingRead {
+  state: "profile_incomplete" | "ready_to_use";
+  profile_complete: boolean;
+  ready_to_use: boolean;
+  can_create_content: boolean;
+  profile: {
+    user_id: string;
+    name: string;
+    language_preference: string;
+    profile_completed_at: string | null;
+  } | null;
+}
+
+export interface IndependentTeacherProfileComplete {
+  name: string;
+  language_preference: "en" | "ur" | "sd" | "ps";
+}
+
+export const independentTeacherOnboardingApi = {
+  getOnboarding: (token: string) =>
+    request<IndependentTeacherOnboardingRead>(
+      "/independent/teachers/me/onboarding",
+      {},
+      token,
+    ),
+  completeProfile: (token: string, data: IndependentTeacherProfileComplete) =>
+    request<IndependentTeacherOnboardingRead>(
+      "/independent/teachers/me/profile",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+};
+
 // ── Users ─────────────────────────────────────────────────────────────────────
 
 export interface UserProfile {

@@ -1135,6 +1135,31 @@
       "success": "Your account is ready. Sign in to continue.",
       "go_login": "Sign in",
       "error_generic": "Could not create account. Please try again."
+    },
+    "teacher": {
+      "header_title": "Independent Teacher",
+      "logout": "Sign out",
+      "nav": {
+        "aria_label": "Independent teacher navigation",
+        "dashboard": "Dashboard"
+      },
+      "onboarding": {
+        "header_title": "Complete your profile",
+        "title": "Welcome — complete your profile",
+        "subtitle": "Tell us your name and preferred language to get started.",
+        "name_label": "Full name",
+        "language_label": "Preferred language",
+        "language_en": "English",
+        "language_ur": "Urdu",
+        "language_sd": "Sindhi",
+        "language_ps": "Pashto",
+        "submit": "Save profile and continue",
+        "error_generic": "Could not save profile. Please try again."
+      },
+      "home": {
+        "ready_banner": "You are ready to use IqbalAI.",
+        "welcome": "Welcome, {name}. Your independent workspace is ready."
+      }
     }
   }
 }

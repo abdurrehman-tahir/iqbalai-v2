@@ -15,6 +15,9 @@ from app.features.grades.router import router as grades_router
 from app.features.health.router import router as health_router
 from app.features.invites.router import router as invites_router
 from app.features.independent_signup.router import router as independent_signup_router
+from app.features.independent_teacher_onboarding.router import (
+    router as independent_teacher_onboarding_router,
+)
 from app.features.library.router import router as library_router
 from app.features.library.school_library_router import router as school_library_router
 from app.features.notifications.router import router as notifications_router
@@ -47,6 +50,7 @@ router.include_router(schools_router)
 router.include_router(school_admin_router)
 router.include_router(invites_router)
 router.include_router(independent_signup_router)
+router.include_router(independent_teacher_onboarding_router)
 router.include_router(bulk_imports_router)
 router.include_router(personas_router)
 router.include_router(academic_sessions_router)
