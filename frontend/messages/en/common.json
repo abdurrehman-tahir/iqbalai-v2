@@ -444,7 +444,29 @@
       "revoke_parent": "Revoke",
       "access_state_label": "Parent access",
       "access_state_LINKED": "At least one parent has read-only access",
-      "access_state_UNLINKED": "No parent read-only access"
+      "access_state_UNLINKED": "No parent read-only access",
+      "data_rights_link": "Data & privacy"
+    },
+    "data_rights": {
+      "title": "Data & privacy",
+      "subtitle": "Under Pakistan's PDPB 2025 you can export your personal data or request account deletion.",
+      "back_to_dashboard": "Back to dashboard",
+      "export_title": "Download your data",
+      "export_policy": "Request a ZIP bundle of your personal data. Exports are ready within 24 hours and downloadable for 7 days.",
+      "export_request": "Request export",
+      "export_download": "Download export",
+      "export_requested": "Export requested — we will notify you when it is ready.",
+      "export_status": "Latest export status: {status}",
+      "deletion_title": "Delete your account",
+      "deletion_policy": "Deletion requests enter a 30-day grace period and are queued for review. We do not hard-delete immediately because audit records must be retained.",
+      "deletion_confirm_label": "I understand my request enters a 30-day grace period and is queued for review — not an instant deletion.",
+      "deletion_request": "Submit deletion request",
+      "deletion_requested": "Deletion request received. You may cancel during the grace period.",
+      "deletion_grace_active": "Deletion scheduled for review after {date}. You may cancel until then.",
+      "deletion_cancel": "Cancel deletion request",
+      "deletion_cancelled": "Deletion request cancelled.",
+      "download_started": "Download started.",
+      "error_generic": "Something went wrong. Please try again."
     }
   },
   "teacher": {
@@ -1292,7 +1314,29 @@
       "revoke_link": "Revoke link",
       "read_only_badge": "Read-only access active",
       "success_request": "Link request sent. Waiting for your child to approve.",
-      "error_generic": "Could not send link request. Check the email and try again."
+      "error_generic": "Could not send link request. Check the email and try again.",
+      "data_rights_link": "Data & privacy"
+    },
+    "data_rights": {
+      "title": "Data & privacy",
+      "subtitle": "Under Pakistan's PDPB 2025 you can export your personal data or request account deletion.",
+      "back_to_dashboard": "Back to dashboard",
+      "export_title": "Download your data",
+      "export_policy": "Request a ZIP bundle of your personal data. Exports are ready within 24 hours and downloadable for 7 days.",
+      "export_request": "Request export",
+      "export_download": "Download export",
+      "export_requested": "Export requested — we will notify you when it is ready.",
+      "export_status": "Latest export status: {status}",
+      "deletion_title": "Delete your account",
+      "deletion_policy": "Deletion requests enter a 30-day grace period and are queued for review. We do not hard-delete immediately because audit records must be retained.",
+      "deletion_confirm_label": "I understand my request enters a 30-day grace period and is queued for review — not an instant deletion.",
+      "deletion_request": "Submit deletion request",
+      "deletion_requested": "Deletion request received. You may cancel during the grace period.",
+      "deletion_grace_active": "Deletion scheduled for review after {date}. You may cancel until then.",
+      "deletion_cancel": "Cancel deletion request",
+      "deletion_cancelled": "Deletion request cancelled.",
+      "download_started": "Download started.",
+      "error_generic": "Something went wrong. Please try again."
     }
   }
 }

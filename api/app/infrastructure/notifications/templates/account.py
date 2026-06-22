@@ -309,6 +309,54 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "account.export_ready": {
+        "default": {
+            "en": {
+                "subject": "Your IqbalAI data export is ready",
+                "title": "Data export ready",
+                "body": "Hi {name}, your personal data export is ready to download. It will remain available for 7 days from your Data & Privacy page.",
+            },
+            "ur": {
+                "subject": "آپ کا IqbalAI ڈیٹا ایکسپورٹ تیار ہے",
+                "title": "ڈیٹا ایکسپورٹ تیار",
+                "body": "سلام {name}، آپ کا ذاتی ڈیٹا ایکسپورٹ ڈاؤن لوڈ کے لیے تیار ہے۔ یہ 7 دنوں تک آپ کے ڈیٹا اور پرائیویسی صفحے سے دستیاب رہے گا۔",
+            },
+            "sd": {
+                "subject": "توهان جو IqbalAI ڊيٽا برآمد تيار آهي",
+                "title": "ڊيٽا برآمد تيار",
+                "body": "سلام {name}، توهان جو ذاتي ڊيٽا برآمد ڊائون لوڊ لاءِ تيار آهي۔ اهو 7 ڏينهن تائين توهان جي ڊيٽا ۽ پرائیویسي صفحي تان دستياب رهندو۔",
+            },
+            "ps": {
+                "subject": "ستاسو IqbalAI ډیټا صادرات چمتو دی",
+                "title": "ډیټا صادرات چمتو",
+                "body": "سلام {name}، ستاسو شخصي ډیټا صادرات د ډاونلوډ لپاره چمتو دی۔ دا به د 7 ورځو لپاره ستاسو د ډیټا او محرمیت پاڼې څخه شتون ولري۔",
+            },
+        }
+    },
+    "account.deletion_grace_started": {
+        "default": {
+            "en": {
+                "subject": "IqbalAI account deletion request received",
+                "title": "Deletion request queued",
+                "body": "Hi {name}, we received your account deletion request. It enters a 30-day grace period (scheduled review on {scheduled_date}). You may cancel anytime before then. We do not hard-delete immediately due to legal audit retention.",
+            },
+            "ur": {
+                "subject": "IqbalAI اکاؤنٹ حذف کی درخواست موصول",
+                "title": "حذف کی درخواست قطار میں",
+                "body": "سلام {name}، ہمیں آپ کی اکاؤنٹ حذف کی درخواست موصول ہوئی۔ 30 دن کی مہلت شروع ہو گئی (جائزہ {scheduled_date} کو)۔ آپ اس سے پہلے کسی بھی وقت منسوخ کر سکتے ہیں۔ قانونی آڈٹ برقراری کی وجہ سے فوری hard-delete نہیں ہوتا۔",
+            },
+            "sd": {
+                "subject": "IqbalAI اڪائونٽ حذف جي درخواست موصول",
+                "title": "حذف جي درخواست قطار ۾",
+                "body": "سلام {name}، اسان کي توهان جي اڪائونٽ حذف جي درخواست موصول ٿي۔ 30 ڏينهن جي مهلت شروع ٿي ({scheduled_date} تي جائزو)۔ توهان ان کان اڳ ڪنهن به وقت منسوخ ڪري سگهو ٿا۔ قانوني آڊٽ برقرار رکڻ سبب فوري hard-delete نه ٿيندو۔",
+            },
+            "ps": {
+                "subject": "د IqbalAI حساب د حذف غوښتنه ترلاسه شوه",
+                "title": "د حذف غوښتنه په قطار کې",
+                "body": "سلام {name}، موږ ستاسو د حساب د حذف غوښتنه ترلاسه کړه۔ 30 ورځې مهلت پیل شو (کتنه {scheduled_date})۔ تاسو کولی شئ مخکې له دې هر وخت لغوه کړئ۔ د قانوني آډیټ ساتنې له امله سمدستي hard-delete نه کیږي۔",
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
@@ -324,6 +372,8 @@ TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
     "account.capacity_override": frozenset({"in_app"}),
     "account.parent_welcome": frozenset({"email"}),
     "account.parent_auto_suspended": frozenset({"email"}),
+    "account.export_ready": frozenset({"email", "in_app"}),
+    "account.deletion_grace_started": frozenset({"email", "in_app"}),
 }
 
 

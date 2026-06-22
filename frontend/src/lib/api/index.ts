@@ -970,8 +970,6 @@ export const teacherOnboardingApi = {
     ),
 };
 
-// ── School student onboarding — T-078 ───────────────────────────────────────────
-
 export const studentOnboardingApi = {
   getOnboarding: (token: string) =>
     request<SchoolStudentOnboardingRead>("/students/me/onboarding", {}, token),
@@ -997,6 +995,90 @@ export const studentOnboardingApi = {
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/exam-date",
       { method: "PUT", body: JSON.stringify({ exam_date }) },
+      token,
+    ),
+};
+
+export interface DataRightsRequestRead {
+  id: string;
+  request_type: "export" | "deletion";
+  status: string;
+  requested_at: string;
+  ready_at?: string | null;
+  expires_at?: string | null;
+  deletion_scheduled_at?: string | null;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
+  download_available: boolean;
+}
+
+export interface DataRightsStatusRead {
+  export_request?: DataRightsRequestRead | null;
+  deletion_request?: DataRightsRequestRead | null;
+  export_policy_message: string;
+  deletion_policy_message: string;
+}
+
+async function downloadRequest(path: string, token: string): Promise<Blob> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    let message = `Request failed with status ${res.status}`;
+    try {
+      const body = (await res.json()) as { error?: { message?: string } };
+      if (body.error?.message) message = body.error.message;
+    } catch {
+      // ignore parse errors
+    }
+    throw new Error(message);
+  }
+  return res.blob();
+}
+
+export const dataRightsApi = {
+  getStudentStatus: (token: string) =>
+    request<DataRightsStatusRead>("/students/me/data-rights", {}, token),
+  requestStudentExport: (token: string) =>
+    request<DataRightsRequestRead>(
+      "/students/me/data-rights/export",
+      { method: "POST" },
+      token,
+    ),
+  downloadStudentExport: (token: string, requestId: string) =>
+    downloadRequest(`/students/me/data-rights/export/${requestId}/download`, token),
+  requestStudentDeletion: (token: string, confirm: boolean) =>
+    request<DataRightsRequestRead>(
+      "/students/me/data-rights/deletion",
+      { method: "POST", body: JSON.stringify({ confirm }) },
+      token,
+    ),
+  cancelStudentDeletion: (token: string, requestId: string) =>
+    request<DataRightsRequestRead>(
+      `/students/me/data-rights/deletion/${requestId}/cancel`,
+      { method: "POST" },
+      token,
+    ),
+  getParentStatus: (token: string) =>
+    request<DataRightsStatusRead>("/parents/me/data-rights", {}, token),
+  requestParentExport: (token: string) =>
+    request<DataRightsRequestRead>(
+      "/parents/me/data-rights/export",
+      { method: "POST" },
+      token,
+    ),
+  downloadParentExport: (token: string, requestId: string) =>
+    downloadRequest(`/parents/me/data-rights/export/${requestId}/download`, token),
+  requestParentDeletion: (token: string, confirm: boolean) =>
+    request<DataRightsRequestRead>(
+      "/parents/me/data-rights/deletion",
+      { method: "POST", body: JSON.stringify({ confirm }) },
+      token,
+    ),
+  cancelParentDeletion: (token: string, requestId: string) =>
+    request<DataRightsRequestRead>(
+      `/parents/me/data-rights/deletion/${requestId}/cancel`,
+      { method: "POST" },
       token,
     ),
 };
