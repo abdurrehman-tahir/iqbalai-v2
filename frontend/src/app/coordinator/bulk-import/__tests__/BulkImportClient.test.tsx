@@ -16,9 +16,11 @@ vi.mock("@/hooks/use-client-auth", () => ({
 }));
 
 const dryRunMock = vi.fn();
+const commitMock = vi.fn();
 vi.mock("@/lib/api", () => ({
   bulkImportApi: {
     dryRun: (...a: unknown[]) => dryRunMock(...a),
+    commit: (...a: unknown[]) => commitMock(...a),
   },
 }));
 
@@ -34,7 +36,7 @@ beforeEach(() => {
 });
 
 describe("BulkImportClient", () => {
-  it("runs dry-run and shows row results with disabled commit", async () => {
+  it("runs dry-run then commits valid rows", async () => {
     const user = userEvent.setup();
     dryRunMock.mockResolvedValue({
       id: "job-1",
@@ -57,6 +59,17 @@ describe("BulkImportClient", () => {
         },
       ],
     });
+    commitMock.mockResolvedValue({
+      id: "job-1",
+      total_rows: 2,
+      success_rows: 1,
+      failed_rows: 1,
+      status: "committed_with_errors",
+      rows: [
+        { row_number: 2, status: "enrolled", errors: [], data: { name: "Alice" } },
+        { row_number: 3, status: "invalid", errors: ["grade_out_of_scope"], data: {} },
+      ],
+    });
 
     renderWithClient(<BulkImportClient />);
 
@@ -67,6 +80,9 @@ describe("BulkImportClient", () => {
 
     await waitFor(() => expect(dryRunMock).toHaveBeenCalledWith("test-token", file));
     await waitFor(() => expect(screen.getByText("results_title")).toBeInTheDocument());
-    expect(screen.getByRole("button", { name: "commit_disabled" })).toBeDisabled();
+
+    await user.click(screen.getByRole("button", { name: "commit_button" }));
+    await waitFor(() => expect(commitMock).toHaveBeenCalledWith("test-token", "job-1"));
+    await waitFor(() => expect(screen.getByText("commit_partial")).toBeInTheDocument());
   });
 });

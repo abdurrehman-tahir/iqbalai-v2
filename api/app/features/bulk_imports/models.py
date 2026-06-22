@@ -14,9 +14,11 @@ from app.db.base import AuditMixin, Base, _uuid7
 
 
 class BulkImportStatus(str, enum.Enum):
-    """Dry-run complete until M-06 adds commit states."""
+    """Coordinator bulk import lifecycle — dry-run then commit (T-037 / T-079)."""
 
     DRY_RUN_COMPLETE = "dry_run_complete"
+    COMMITTED = "committed"
+    COMMITTED_WITH_ERRORS = "committed_with_errors"
 
 
 class BulkImport(AuditMixin, Base):

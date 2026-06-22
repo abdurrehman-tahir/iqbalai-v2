@@ -445,6 +445,127 @@
         "title": "Body_upload_library_book",
         "type": "object"
       },
+      "BulkImportRead": {
+        "description": "Bulk import job returned to the client.",
+        "properties": {
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "failed_rows": {
+            "title": "Failed Rows",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "imported_by_user_id": {
+            "title": "Imported By User Id",
+            "type": "string"
+          },
+          "rows": {
+            "items": {
+              "$ref": "#/components/schemas/BulkImportRowResult"
+            },
+            "title": "Rows",
+            "type": "array"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "success_rows": {
+            "title": "Success Rows",
+            "type": "integer"
+          },
+          "total_rows": {
+            "title": "Total Rows",
+            "type": "integer"
+          },
+          "upload_id": {
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "imported_by_user_id",
+          "upload_id",
+          "total_rows",
+          "success_rows",
+          "failed_rows",
+          "status",
+          "rows",
+          "created_at"
+        ],
+        "title": "BulkImportRead",
+        "type": "object"
+      },
+      "BulkImportRowResult": {
+        "description": "Per-row dry-run validation outcome.",
+        "properties": {
+          "data": {
+            "anyOf": [
+              {
+                "additionalProperties": {
+                  "type": "string"
+                },
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Data"
+          },
+          "errors": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Errors",
+            "type": "array"
+          },
+          "row_number": {
+            "title": "Row Number",
+            "type": "integer"
+          },
+          "status": {
+            "enum": [
+              "valid",
+              "invalid",
+              "enrolled",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "row_number",
+          "status"
+        ],
+        "title": "BulkImportRowResult",
+        "type": "object"
+      },
       "DeletedResponse": {
         "description": "Payload for soft-delete endpoints \u2014 `data` of a `SuccessEnvelope`.",
         "properties": {
@@ -3003,6 +3124,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[ActiveSessionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_BulkImportRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/BulkImportRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[BulkImportRead]",
         "type": "object"
       },
       "SuccessEnvelope_DeletedResponse_": {
@@ -6413,7 +6551,7 @@
     },
     "/api/v1/coordinator/bulk-imports/": {
       "post": {
-        "description": "Coordinator uploads a student roster file. Rows are validated against grade scope; no accounts are created until M-06.",
+        "description": "Coordinator uploads a student roster file. Rows are validated against grade scope and school structure; use commit to create invited enrollments.",
         "operationId": "create_bulk_import_dry_run",
         "requestBody": {
           "content": {
@@ -6430,9 +6568,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Create Bulk Import Dry Run",
-                  "type": "object"
+                  "$ref": "#/components/schemas/SuccessEnvelope_BulkImportRead_"
                 }
               }
             },
@@ -6474,9 +6610,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "additionalProperties": true,
-                  "title": "Response Get Bulk Import",
-                  "type": "object"
+                  "$ref": "#/components/schemas/SuccessEnvelope_BulkImportRead_"
                 }
               }
             },
@@ -6493,7 +6627,49 @@
             "description": "Validation Error"
           }
         },
-        "summary": "Get bulk import dry-run results",
+        "summary": "Get bulk import dry-run or commit results",
+        "tags": [
+          "bulk-imports"
+        ]
+      }
+    },
+    "/api/v1/coordinator/bulk-imports/{import_id}/commit": {
+      "post": {
+        "operationId": "commit_bulk_import",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "import_id",
+            "required": true,
+            "schema": {
+              "title": "Import Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_BulkImportRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Commit a validated bulk import \u2014 enroll valid rows",
         "tags": [
           "bulk-imports"
         ]

@@ -12,7 +12,7 @@ class BulkImportRowResult(BaseModel):
     """Per-row dry-run validation outcome."""
 
     row_number: int
-    status: Literal["valid", "invalid"]
+    status: Literal["valid", "invalid", "enrolled", "failed"]
     errors: list[str] = Field(default_factory=list)
     data: dict[str, str] | None = None
 

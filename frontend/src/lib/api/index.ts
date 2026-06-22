@@ -711,7 +711,7 @@ export const notificationsApi = {
 
 export interface BulkImportRowResult {
   row_number: number;
-  status: "valid" | "invalid";
+  status: "valid" | "invalid" | "enrolled" | "failed";
   errors: string[];
   data: Record<string, string> | null;
 }
@@ -764,6 +764,12 @@ export const bulkImportApi = {
   },
   get: (token: string, importId: string) =>
     request<BulkImportJob>(`/coordinator/bulk-imports/${importId}`, {}, token),
+  commit: (token: string, importId: string) =>
+    request<BulkImportJob>(
+      `/coordinator/bulk-imports/${importId}/commit`,
+      { method: "POST" },
+      token
+    ),
 };
 
 // ── Subjects (Coordinator) — T-041 ──────────────────────────────────────────────
