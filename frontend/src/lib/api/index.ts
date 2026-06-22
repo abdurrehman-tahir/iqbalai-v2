@@ -29,6 +29,8 @@ import type {
   GradeRead,
   SectionCreate,
   SectionRead,
+  StudentEnrollmentCreate,
+  StudentEnrollmentRead,
   OfferingCreate,
   OfferingRead,
   OfferingAssign,
@@ -936,6 +938,21 @@ export const offeringsApi = {
     request<OfferingRead>(
       `/grades/${gradeId}/offerings/${offeringId}/unassign`,
       { method: "POST", headers: { "If-Match": ifMatch } },
+      token
+    ),
+};
+
+// ── Student enrollments (Coordinator) — T-077 ─────────────────────────────────
+
+export const studentEnrollmentsApi = {
+  enroll: (token: string, gradeId: string, data: StudentEnrollmentCreate) =>
+    request<StudentEnrollmentRead>(
+      `/grades/${gradeId}/enrollments/`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
       token
     ),
 };
