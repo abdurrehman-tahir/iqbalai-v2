@@ -276,6 +276,48 @@ export const parentSignupApi = {
     }),
 };
 
+// ── Parent-child links ────────────────────────────────────────────────────────
+
+export interface ParentChildLinkRead {
+  id: string;
+  parent_user_id: string;
+  student_user_id: string;
+  status: "pending" | "approved" | "revoked";
+  parent_name?: string | null;
+  student_name?: string | null;
+  student_email?: string | null;
+  approved_at?: string | null;
+  created_at: string;
+}
+
+export interface ParentConnectionsRead {
+  parent_state: string;
+  links: ParentChildLinkRead[];
+}
+
+export interface StudentLinkRequestList {
+  pending: ParentChildLinkRead[];
+}
+
+export const parentChildLinksApi = {
+  getConnections: (token: string) =>
+    request<ParentConnectionsRead>("/parents/me/connections", {}, token),
+  createLinkRequest: (token: string, student_email: string) =>
+    request<ParentChildLinkRead>(
+      "/parents/me/link-requests",
+      { method: "POST", body: JSON.stringify({ student_email }) },
+      token,
+    ),
+  listStudentPending: (token: string) =>
+    request<StudentLinkRequestList>("/students/me/link-requests", {}, token),
+  approveLinkRequest: (token: string, linkId: string) =>
+    request<ParentChildLinkRead>(
+      `/students/me/link-requests/${linkId}/approve`,
+      { method: "POST" },
+      token,
+    ),
+};
+
 // ── Independent teacher onboarding ────────────────────────────────────────────
 
 export type { IndependentTeacherOnboardingRead, IndependentTeacherProfileComplete } from "./types";
