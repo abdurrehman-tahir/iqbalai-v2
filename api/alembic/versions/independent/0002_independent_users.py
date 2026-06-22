@@ -11,8 +11,7 @@ Reversible: yes
 
 from __future__ import annotations
 
-import sqlalchemy as sa
-from sqlalchemy import inspect
+from sqlalchemy import inspect, text
 
 from alembic import op
 
@@ -51,41 +50,24 @@ def upgrade() -> None:
     if inspect(bind).has_table("users", schema="independent"):
         return
 
-    op.create_table(
-        "users",
-        sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column("authentik_id", sa.String(255), nullable=False, unique=True),
-        sa.Column("email", sa.String(255), nullable=False),
-        sa.Column("display_name", sa.String(255), nullable=False),
-        sa.Column(
-            "role",
-            sa.Enum(
-                "independent_teacher",
-                "independent_student",
-                name="independentuserrole",
-                schema="independent",
-                create_type=False,
-            ),
-            nullable=False,
-        ),
-        sa.Column(
-            "status",
-            sa.Enum(
-                "active",
-                "suspended",
-                "deactivated",
-                name="independentuseraccountstatus",
-                schema="independent",
-                create_type=False,
-            ),
-            nullable=False,
-            server_default="active",
-        ),
-        sa.Column("language_preference", sa.String(10), nullable=False, server_default="en"),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        schema="independent",
+    # Raw SQL avoids SQLAlchemy re-issuing CREATE TYPE on sa.Enum columns.
+    op.execute(
+        text(
+            """
+            CREATE TABLE independent.users (
+                id VARCHAR(36) PRIMARY KEY,
+                authentik_id VARCHAR(255) NOT NULL UNIQUE,
+                email VARCHAR(255) NOT NULL,
+                display_name VARCHAR(255) NOT NULL,
+                role independent.independentuserrole NOT NULL,
+                status independent.independentuseraccountstatus NOT NULL DEFAULT 'active',
+                language_preference VARCHAR(10) NOT NULL DEFAULT 'en',
+                created_at TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+                updated_at TIMESTAMPTZ NOT NULL DEFAULT (now() AT TIME ZONE 'UTC'),
+                deleted_at TIMESTAMPTZ
+            )
+            """
+        )
     )
     op.create_index(
         "ix_independent_users_authentik_id",
