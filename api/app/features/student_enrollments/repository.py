@@ -35,6 +35,15 @@ class StudentEnrollmentRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_for_student(self, student_user_id: str) -> list[StudentEnrollment]:
+        result = await self._session.execute(
+            select(StudentEnrollment).where(
+                StudentEnrollment.student_user_id == student_user_id,
+                not_deleted(StudentEnrollment),
+            )
+        )
+        return list(result.scalars().all())
+
     async def create(self, enrollment: StudentEnrollment) -> StudentEnrollment:
         self._session.add(enrollment)
         await self._session.commit()

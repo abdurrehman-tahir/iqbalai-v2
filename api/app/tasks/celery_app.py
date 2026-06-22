@@ -29,4 +29,9 @@ try:
 except ImportError:
     pass
 
+try:
+    import app.features.data_rights.tasks  # noqa: F401
+except ImportError:
+    pass
+
 __all__ = ["celery_app"]

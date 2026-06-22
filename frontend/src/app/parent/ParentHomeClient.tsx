@@ -80,6 +80,11 @@ export function ParentHomeClient() {
       <div>
         <h2 className="text-2xl font-semibold text-gray-900">{t("title")}</h2>
         <p className="mt-2 text-sm text-gray-600">{t("subtitle")}</p>
+        <p className="mt-3">
+          <a href="/parent/data-rights" className="text-sm text-blue-600 hover:underline">
+            {t("data_rights_link")}
+          </a>
+        </p>
         {connections && (
           <p className="mt-3 text-sm font-medium text-brand-700">
             {t("state_label")}: {stateLabel(connections.parent_state)}
