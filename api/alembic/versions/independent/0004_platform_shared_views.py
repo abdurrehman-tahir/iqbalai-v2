@@ -16,7 +16,7 @@ from alembic import op
 revision: str = "independent_0004"
 down_revision: str = "independent_0003"
 branch_labels: tuple[()] = ()
-depends_on: str | None = None
+depends_on: tuple[str, ...] | None = ("school_0010",)
 
 
 def upgrade() -> None:

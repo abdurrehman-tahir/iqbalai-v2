@@ -11,8 +11,7 @@ Reversible: yes
 
 from __future__ import annotations
 
-import sqlalchemy as sa
-from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy import inspect, text
 
 from alembic import op
 
@@ -22,77 +21,56 @@ branch_labels: tuple[()] = ()
 depends_on: str | None = None
 
 
-def upgrade() -> None:
+def _ensure_enum(schema: str, name: str, values: str) -> None:
     op.execute(
-        "CREATE TYPE independent.personalcontenttype AS ENUM ('curriculum', 'reference')"
-    )
-    op.execute(
-        "CREATE TYPE independent.personalcontentstatus AS ENUM "
-        "('pending', 'ingesting', 'available', 'failed')"
-    )
-    op.execute(
-        "CREATE TYPE independent.personalstructuredparsingstatus AS ENUM "
-        "('pending', 'complete', 'failed', 'not_applicable')"
+        f"""
+        DO $$ BEGIN
+            CREATE TYPE {schema}.{name} AS ENUM ({values});
+        EXCEPTION
+            WHEN duplicate_object THEN NULL;
+        END $$;
+        """
     )
 
-    op.create_table(
-        "independent_personal_content",
-        sa.Column("id", sa.String(36), primary_key=True),
-        sa.Column(
-            "user_id",
-            sa.String(36),
-            sa.ForeignKey("independent.users.id", ondelete="RESTRICT"),
-            nullable=False,
-        ),
-        sa.Column(
-            "content_type",
-            sa.Enum(
-                "curriculum",
-                "reference",
-                name="personalcontenttype",
-                schema="independent",
-                create_type=False,
-            ),
-            nullable=False,
-            server_default="reference",
-        ),
-        sa.Column("title", sa.String(500), nullable=False),
-        sa.Column("file_key", sa.String(500), nullable=False),
-        sa.Column("file_sha256", sa.String(64), nullable=False),
-        sa.Column(
-            "status",
-            sa.Enum(
-                "pending",
-                "ingesting",
-                "available",
-                "failed",
-                name="personalcontentstatus",
-                schema="independent",
-                create_type=False,
-            ),
-            nullable=False,
-            server_default="pending",
-        ),
-        sa.Column(
-            "structured_parsing_status",
-            sa.Enum(
-                "pending",
-                "complete",
-                "failed",
-                "not_applicable",
-                name="personalstructuredparsingstatus",
-                schema="independent",
-                create_type=False,
-            ),
-            nullable=True,
-        ),
-        sa.Column("topic_tree_jsonb", JSONB, nullable=True),
-        sa.Column("vector_collection", sa.String(150), nullable=False),
-        sa.Column("ingestion_error", sa.Text, nullable=True),
-        sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
-        sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        schema="independent",
+
+def upgrade() -> None:
+    _ensure_enum("independent", "personalcontenttype", "'curriculum', 'reference'")
+    _ensure_enum(
+        "independent",
+        "personalcontentstatus",
+        "'pending', 'ingesting', 'available', 'failed'",
+    )
+    _ensure_enum(
+        "independent",
+        "personalstructuredparsingstatus",
+        "'pending', 'complete', 'failed', 'not_applicable'",
+    )
+
+    bind = op.get_bind()
+    if inspect(bind).has_table("independent_personal_content", schema="independent"):
+        return
+
+    op.execute(
+        text(
+            """
+            CREATE TABLE independent.independent_personal_content (
+                id VARCHAR(36) PRIMARY KEY,
+                user_id VARCHAR(36) NOT NULL REFERENCES independent.users (id) ON DELETE RESTRICT,
+                content_type independent.personalcontenttype NOT NULL DEFAULT 'reference',
+                title VARCHAR(500) NOT NULL,
+                file_key VARCHAR(500) NOT NULL,
+                file_sha256 VARCHAR(64) NOT NULL,
+                status independent.personalcontentstatus NOT NULL DEFAULT 'pending',
+                structured_parsing_status independent.personalstructuredparsingstatus,
+                topic_tree_jsonb JSONB,
+                vector_collection VARCHAR(150) NOT NULL,
+                ingestion_error TEXT,
+                created_at TIMESTAMPTZ NOT NULL,
+                updated_at TIMESTAMPTZ NOT NULL,
+                deleted_at TIMESTAMPTZ
+            )
+            """
+        )
     )
     op.create_index(
         "ix_independent_personal_content_user_id",
@@ -112,22 +90,17 @@ def upgrade() -> None:
         ["deleted_at"],
         schema="independent",
     )
-    op.create_index(
-        "independent_personal_content_user_sha256_uq",
-        "independent_personal_content",
-        ["user_id", "file_sha256"],
-        unique=True,
-        schema="independent",
-        postgresql_where=sa.text("deleted_at IS NULL"),
+    op.execute(
+        """
+        CREATE UNIQUE INDEX independent_personal_content_user_sha256_uq
+        ON independent.independent_personal_content (user_id, file_sha256)
+        WHERE deleted_at IS NULL
+        """
     )
 
 
 def downgrade() -> None:
-    op.drop_index(
-        "independent_personal_content_user_sha256_uq",
-        table_name="independent_personal_content",
-        schema="independent",
-    )
+    op.execute("DROP INDEX IF EXISTS independent.independent_personal_content_user_sha256_uq")
     op.drop_index(
         "ix_independent_personal_content_deleted_at",
         table_name="independent_personal_content",
