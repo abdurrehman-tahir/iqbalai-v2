@@ -25,6 +25,7 @@ from app.db.base import AuditMixin, Base, SoftDeleteMixin
 from app.features.audit import models as audit_models  # noqa: F401
 from app.features.exam_syllabi import models as exam_models  # noqa: F401
 from app.features.files import models as files_models  # noqa: F401
+from app.features.independent_users import models as independent_user_models  # noqa: F401
 from app.features.library import models as library_models  # noqa: F401
 from app.features.notifications import models as notif_models  # noqa: F401
 from app.features.personas import models as persona_models  # noqa: F401

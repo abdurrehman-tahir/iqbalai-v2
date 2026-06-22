@@ -88,6 +88,10 @@ export function getPostLoginPath(role: string): string {
       return "/coordinator";
     case "teacher":
       return "/teacher";
+    case "independent_teacher":
+      return "/independent/teacher";
+    case "independent_student":
+      return "/independent/student";
     default:
       return "/admin";
   }

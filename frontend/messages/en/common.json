@@ -1112,5 +1112,29 @@
         "clear": "Clear"
       }
     }
+  },
+  "independent": {
+    "signup": {
+      "title": "Create your independent account",
+      "subtitle": "Sign up as an independent teacher or student — no school required.",
+      "role_label": "I am a",
+      "role_teacher": "Independent Teacher",
+      "role_student": "Independent Student",
+      "name_label": "Full name",
+      "email_label": "Email",
+      "language_label": "Preferred language",
+      "language_en": "English",
+      "language_ur": "Urdu",
+      "language_sd": "Sindhi",
+      "language_ps": "Pashto",
+      "password_label": "Password",
+      "confirm_password_label": "Confirm password",
+      "passwords_must_match": "Passwords must match",
+      "submit": "Create account",
+      "have_account": "Already have an account? Sign in",
+      "success": "Your account is ready. Sign in to continue.",
+      "go_login": "Sign in",
+      "error_generic": "Could not create account. Please try again."
+    }
   }
 }

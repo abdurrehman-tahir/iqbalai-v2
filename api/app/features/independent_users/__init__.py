@@ -1,0 +1,1 @@
+"""Independent users feature package."""

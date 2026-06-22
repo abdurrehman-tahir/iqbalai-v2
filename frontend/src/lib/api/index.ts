@@ -215,6 +215,38 @@ export const authApi = {
     }),
 };
 
+// ── Independent signup ────────────────────────────────────────────────────────
+
+export interface IndependentSignupInfo {
+  roles: string[];
+  languages: string[];
+}
+
+export interface IndependentSignupCreate {
+  email: string;
+  password: string;
+  display_name: string;
+  role: "independent_teacher" | "independent_student";
+  language_preference: "en" | "ur" | "sd" | "ps";
+}
+
+export interface IndependentSignupResponse {
+  user_id: string;
+  email: string;
+  role: string;
+  tenant_type: string;
+  message: string;
+}
+
+export const independentSignupApi = {
+  getInfo: () => request<IndependentSignupInfo>("/independent/signup"),
+  signup: (data: IndependentSignupCreate) =>
+    request<IndependentSignupResponse>("/independent/signup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
 // ── Users ─────────────────────────────────────────────────────────────────────
 
 export interface UserProfile {
