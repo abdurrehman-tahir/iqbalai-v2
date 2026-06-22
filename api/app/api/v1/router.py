@@ -28,6 +28,8 @@ from app.features.library.independent_personal_router import (
 )
 from app.features.library.school_library_router import router as school_library_router
 from app.features.notifications.router import router as notifications_router
+from app.features.parent_child_links.parent_router import router as parent_links_router
+from app.features.parent_child_links.student_router import router as student_parent_links_router
 from app.features.parent_signup.router import router as parent_signup_router
 from app.features.offerings.router import router as offerings_router
 from app.features.personas.router import router as personas_router
@@ -61,6 +63,8 @@ router.include_router(school_admin_router)
 router.include_router(invites_router)
 router.include_router(independent_signup_router)
 router.include_router(parent_signup_router)
+router.include_router(parent_links_router)
+router.include_router(student_parent_links_router)
 router.include_router(independent_teacher_onboarding_router)
 router.include_router(independent_student_onboarding_router)
 router.include_router(bulk_imports_router)

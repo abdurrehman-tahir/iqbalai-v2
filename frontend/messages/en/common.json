@@ -428,7 +428,12 @@
       "title": "Welcome, Student",
       "subtitle": "Your student dashboard. Lectures and study tools arrive in upcoming milestones.",
       "profile_banner": "Complete optional profile details (exam date, diagnostic, and more) whenever you are ready.",
-      "profile_banner_dismiss": "Dismiss"
+      "profile_banner_dismiss": "Dismiss",
+      "link_requests_title": "Parent link requests",
+      "link_requests_empty": "No pending parent link requests.",
+      "link_request_from": "{name} wants to link to your account",
+      "link_request_approve": "Approve",
+      "link_request_error": "Could not update link request. Please try again."
     }
   },
   "teacher": {
@@ -1256,6 +1261,25 @@
       "success": "Your account is ready. Verify your email and sign in to link to your child.",
       "go_login": "Sign in",
       "error_generic": "Could not create account. Please try again."
+    },
+    "home": {
+      "header_title": "Parent dashboard",
+      "logout": "Sign out",
+      "title": "Link to your child",
+      "subtitle": "Enter your school student's email to send a link request. They must approve before you get read-only access.",
+      "state_label": "Status",
+      "state_LINK_PENDING": "Link pending student approval",
+      "state_LINKED": "Linked to at least one student",
+      "state_PARENT_ACTIVE_UNLINKED": "No children linked yet",
+      "student_email_label": "Student email",
+      "submit_link": "Send link request",
+      "links_title": "Your link requests",
+      "links_empty": "No link requests yet.",
+      "link_status_pending": "Pending approval",
+      "link_status_approved": "Linked",
+      "link_status_revoked": "Revoked",
+      "success_request": "Link request sent. Waiting for your child to approve.",
+      "error_generic": "Could not send link request. Check the email and try again."
     }
   }
 }
