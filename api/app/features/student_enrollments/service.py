@@ -24,6 +24,7 @@ from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
 from app.infrastructure.authentik.client import AuthentikClientProtocol, get_authentik_client
+from app.infrastructure.notifications.account import notify_account_event
 from app.infrastructure.notifications.email import send_invite_email
 
 logger = structlog.get_logger(__name__)
@@ -153,6 +154,19 @@ class StudentEnrollmentService:
             to=email,
             invite_url=invite_url,
             inviter_name=payload.display_name,
+        )
+        await notify_account_event(
+            session=self._session,
+            template_key="account.student_invited",
+            locale="en",
+            recipient_user_id=authentik_id,
+            recipient_email=email,
+            school_id=grade.school_id,
+            params={
+                "name": payload.display_name,
+                "school_name": grade.school_id,
+                "invite_url": invite_url,
+            },
         )
 
         await audit(
