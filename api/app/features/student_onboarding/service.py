@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -16,6 +16,7 @@ from app.features.student_onboarding.schemas import (
     SchoolStudentOnboardingState,
     StudentModeSelect,
     StudentProfileBasicComplete,
+    StudentExamDateUpdate,
     StudentProfileRead,
 )
 from app.features.tos.service import TosService
@@ -26,6 +27,34 @@ from app.infrastructure.audit.log import audit
 logger = structlog.get_logger(__name__)
 
 SUPPORTED_LANGUAGES = frozenset({"en", "ur", "sd", "ps"})
+EXAM_DATE_MAX_YEARS = 5
+EXAM_COUNTDOWN_DAYS = (30, 14, 7, 1)
+FUTURE_DATE_WARNING = (
+    "Exam date is more than 5 years away — you can update it anytime before your exam"
+)
+
+
+def _future_date_warning(exam_date: date) -> str | None:
+    if exam_date > date.today() + timedelta(days=365 * EXAM_DATE_MAX_YEARS):
+        return FUTURE_DATE_WARNING
+    return None
+
+
+def _parse_countdown_sent(raw: str | None) -> set[int]:
+    if not raw:
+        return set()
+    sent: set[int] = set()
+    for part in raw.split(","):
+        part = part.strip()
+        if part.isdigit():
+            sent.add(int(part))
+    return sent
+
+
+def _format_countdown_sent(sent: set[int]) -> str | None:
+    if not sent:
+        return None
+    return ",".join(str(day) for day in sorted(sent))
 
 
 def derive_school_student_state(
@@ -63,8 +92,9 @@ def derive_school_student_state(
         state = SchoolStudentOnboardingState.READY_TO_STUDY
 
     profile_read = StudentProfileRead.model_validate(profile) if profile else None
-    show_banner = ready_to_study and (
-        profile is None or not profile.deferrable_banner_dismissed
+    exam_date_set = profile is not None and profile.exam_date is not None
+    show_banner = ready_to_study and profile is not None and (
+        not profile.deferrable_banner_dismissed and not exam_date_set
     )
 
     return SchoolStudentOnboardingRead(
@@ -73,6 +103,7 @@ def derive_school_student_state(
         mode_selected=mode_selected,
         ready_to_study=ready_to_study,
         show_complete_profile_banner=show_banner,
+        exam_date_set=exam_date_set,
         enrollment_grade_id=enrollment_grade_id,
         profile=profile_read,
     )
@@ -224,3 +255,86 @@ class StudentOnboardingService:
         profile = await self._profile_repo.update(profile)
         grade_id = await self._active_enrollment_grade_id(user.id)
         return derive_school_student_state(user=user, profile=profile, enrollment_grade_id=grade_id)
+
+    async def set_exam_date(
+        self,
+        payload: StudentExamDateUpdate,
+        claims: dict[str, object],
+        actor_id: str,
+    ) -> SchoolStudentOnboardingRead:
+        user = await self._require_student(claims)
+        profile = await self._profile_repo.get_by_user_id(user.id)
+        if profile is None or not (
+            profile.lecture_mode_enabled or profile.self_study_mode_enabled
+        ):
+            raise PreconditionFailedError("Complete onboarding before setting an exam date")
+
+        warning = _future_date_warning(payload.exam_date)
+        profile.exam_date = payload.exam_date
+        profile.exam_countdown_sent_days = None
+        profile = await self._profile_repo.update(profile)
+
+        await audit(
+            session=self._session,
+            action="student.exam_date_set",
+            actor_id=actor_id,
+            target_type="student_profile",
+            target_id=user.id,
+            school_id=user.school_id,
+            metadata={"exam_date": payload.exam_date.isoformat()},
+        )
+        logger.info("school_student_exam_date_set", user_id=user.id, exam_date=payload.exam_date)
+
+        state = derive_school_student_state(
+            user=user,
+            profile=profile,
+            enrollment_grade_id=await self._active_enrollment_grade_id(user.id),
+        )
+        if warning:
+            return state.model_copy(update={"future_date_warning": warning})
+        return state
+
+    async def send_exam_countdown_notifications(self) -> int:
+        """Fire 30/14/7/1-day countdown notifications for school students."""
+        from app.infrastructure.notifications.self_study import notify_self_study_event
+
+        today = date.today()
+        count = 0
+        profiles = await self._profile_repo.list_with_exam_dates()
+        for profile in profiles:
+            if profile.exam_date is None:
+                continue
+            days_until = (profile.exam_date - today).days
+            if days_until not in EXAM_COUNTDOWN_DAYS:
+                continue
+
+            sent = _parse_countdown_sent(profile.exam_countdown_sent_days)
+            if days_until in sent:
+                continue
+
+            user = await self._user_repo.get_by_id(profile.user_id)
+            if user is None or user.deleted_at is not None:
+                continue
+
+            await notify_self_study_event(
+                session=self._session,
+                template_key="self_study.exam_countdown",
+                recipient_user_id=user.authentik_id,
+                school_id=user.school_id,
+                locale=profile.language_preference,
+                params={
+                    "days_remaining": str(days_until),
+                    "exam_date": profile.exam_date.isoformat(),
+                },
+                metadata={"days_remaining": days_until, "exam_date": profile.exam_date.isoformat()},
+            )
+            sent.add(days_until)
+            profile.exam_countdown_sent_days = _format_countdown_sent(sent)
+            await self._profile_repo.update(profile)
+            count += 1
+            logger.info(
+                "exam_countdown_notification_sent",
+                user_id=user.id,
+                days_remaining=days_until,
+            )
+        return count

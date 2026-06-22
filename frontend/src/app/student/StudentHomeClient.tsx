@@ -2,14 +2,21 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
+import { useState } from "react";
 import { studentOnboardingApi, parentChildLinksApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 export function StudentHomeClient() {
   const t = useTranslations("student.dashboard");
   const qc = useQueryClient();
   const { mounted, token } = useClientAuth();
+  const [examDate, setExamDate] = useState("");
+  const [examDateError, setExamDateError] = useState<string | null>(null);
+  const [examDateSuccess, setExamDateSuccess] = useState<string | null>(null);
+  const [futureWarning, setFutureWarning] = useState<string | null>(null);
 
   const { data: onboarding } = useQuery({
     queryKey: ["student", "onboarding"],
@@ -34,6 +41,21 @@ export function StudentHomeClient() {
     onSuccess: () => qc.invalidateQueries({ queryKey: ["student"] }),
   });
 
+  const examDateMutation = useMutation({
+    mutationFn: (value: string) => studentOnboardingApi.setExamDate(token ?? "", value),
+    onSuccess: (data) => {
+      setExamDateError(null);
+      setExamDateSuccess(t("exam_date_saved"));
+      setFutureWarning(data.future_date_warning ?? null);
+      void qc.invalidateQueries({ queryKey: ["student"] });
+    },
+    onError: (err) => {
+      setExamDateSuccess(null);
+      setFutureWarning(null);
+      setExamDateError(err instanceof Error ? err.message : t("exam_date_error"));
+    },
+  });
+
   const approveMutation = useMutation({
     mutationFn: (linkId: string) => parentChildLinksApi.approveLinkRequest(token ?? "", linkId),
     onSuccess: () => qc.invalidateQueries({ queryKey: ["student"] }),
@@ -52,17 +74,46 @@ export function StudentHomeClient() {
       </div>
 
       {onboarding?.show_complete_profile_banner && (
-        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 flex items-start justify-between gap-4">
+        <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-4">
           <p className="text-sm text-amber-900">{t("profile_banner")}</p>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => dismissMutation.mutate()}
-            disabled={dismissMutation.isPending}
-          >
-            {t("profile_banner_dismiss")}
-          </Button>
+          <div className="space-y-2">
+            <Label htmlFor="exam-date">{t("exam_date_label")}</Label>
+            <Input
+              id="exam-date"
+              type="date"
+              value={examDate}
+              onChange={(event) => setExamDate(event.target.value)}
+            />
+          </div>
+          {examDateError && <p className="text-sm text-red-600">{examDateError}</p>}
+          {examDateSuccess && <p className="text-sm text-green-800">{examDateSuccess}</p>}
+          {futureWarning && <p className="text-sm text-amber-800">{t("exam_date_future_warning")}</p>}
+          <div className="flex flex-wrap gap-3">
+            <Button
+              variant="primary"
+              size="sm"
+              loading={examDateMutation.isPending}
+              disabled={!examDate}
+              onClick={() => examDateMutation.mutate(examDate)}
+            >
+              {t("exam_date_save")}
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => dismissMutation.mutate()}
+              disabled={dismissMutation.isPending}
+            >
+              {t("profile_banner_dismiss")}
+            </Button>
+          </div>
         </div>
+      )}
+
+      {onboarding?.exam_date_set && onboarding.profile?.exam_date && (
+        <p className="text-sm text-gray-600">
+          {t("exam_date_label")}: {onboarding.profile.exam_date}
+        </p>
       )}
 
       <section className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">

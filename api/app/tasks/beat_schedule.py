@@ -19,4 +19,8 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "unlinked_parent.auto_suspend_sweep",
         "schedule": crontab(hour=3, minute=0),  # daily sweep
     },
+    "self-study-exam-countdown-sweep": {
+        "task": "self_study.exam_countdown_sweep",
+        "schedule": crontab(hour=8, minute=0),  # daily sweep
+    },
 }
