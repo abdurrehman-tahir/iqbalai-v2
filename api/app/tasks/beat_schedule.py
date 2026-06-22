@@ -23,4 +23,12 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "self_study.exam_countdown_sweep",
         "schedule": crontab(hour=8, minute=0),  # daily sweep
     },
+    "graduation-migrate-eligible-students": {
+        "task": "graduation.migrate_eligible_students",
+        "schedule": crontab(hour=4, minute=0),  # daily sweep
+    },
+    "graduation-migration-reminder-sweep": {
+        "task": "graduation.migration_reminder_sweep",
+        "schedule": crontab(hour=9, minute=0),  # daily sweep
+    },
 }
