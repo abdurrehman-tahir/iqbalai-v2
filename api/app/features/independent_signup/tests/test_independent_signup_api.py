@@ -142,8 +142,24 @@ async def test_post_independent_signup_rejects_duplicate_email() -> None:
                 "email": "dup@example.com",
                 "password": "securepass1",
                 "display_name": "Another",
-                "role": "independent_student",
+                "role": "independent_teacher",
                 "language_preference": "ur",
             },
         )
     assert resp.status_code == 409
+
+
+@pytest.mark.asyncio
+async def test_post_independent_student_signup_requires_exam_framework() -> None:
+    async with _build_client() as client:
+        resp = await client.post(
+            "/api/v1/independent/signup",
+            json={
+                "email": "student@example.com",
+                "password": "securepass1",
+                "display_name": "Student",
+                "role": "independent_student",
+                "language_preference": "en",
+            },
+        )
+    assert resp.status_code == 422

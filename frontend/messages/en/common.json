@@ -1160,6 +1160,28 @@
         "ready_banner": "You are ready to use IqbalAI.",
         "welcome": "Welcome, {name}. Your independent workspace is ready."
       }
+    },
+    "student": {
+      "header_title": "Independent Student",
+      "logout": "Sign out",
+      "nav": {
+        "aria_label": "Independent student navigation",
+        "dashboard": "Self-Study"
+      },
+      "onboarding": {
+        "header_title": "Complete your profile",
+        "title": "Set your exam date",
+        "subtitle": "Confirm when you plan to take your exam.",
+        "exam_date_label": "Exam date",
+        "diagnostic_deferred": "Diagnostic assessment will be available in a future update (M-08).",
+        "submit": "Save and continue",
+        "error_generic": "Could not save profile. Please try again."
+      },
+      "home": {
+        "ready_banner": "You are ready to study.",
+        "self_study_only": "Self-Study Mode is your only mode — no lecture mode switcher.",
+        "diagnostic_deferred": "Diagnostic: coming soon (M-08 hook present)."
+      }
     }
   }
 }

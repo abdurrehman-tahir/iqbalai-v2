@@ -34,6 +34,7 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/api/v1/auth/login",
         "/api/v1/auth/accept-invite",
         "/api/v1/independent/signup",
+        "/api/v1/independent/students/me/exam-frameworks",
         "/metrics",
     }
 )

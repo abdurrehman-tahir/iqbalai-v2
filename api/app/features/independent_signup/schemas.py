@@ -18,6 +18,8 @@ class IndependentSignupCreate(BaseModel):
     display_name: str = Field(min_length=1, max_length=255)
     role: IndependentUserRole
     language_preference: str = Field(default="en", pattern="^(en|ur|sd|ps)$")
+    grade_level: int | None = Field(default=None, ge=1, le=16)
+    exam_syllabus_id: str | None = Field(default=None, min_length=1, max_length=36)
 
 
 class IndependentSignupResponse(BaseModel):

@@ -228,6 +228,8 @@ export interface IndependentSignupCreate {
   display_name: string;
   role: "independent_teacher" | "independent_student";
   language_preference: "en" | "ur" | "sd" | "ps";
+  grade_level?: number;
+  exam_syllabus_id?: string;
 }
 
 export interface IndependentSignupResponse {
@@ -277,6 +279,47 @@ export const independentTeacherOnboardingApi = {
   completeProfile: (token: string, data: IndependentTeacherProfileComplete) =>
     request<IndependentTeacherOnboardingRead>(
       "/independent/teachers/me/profile",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+};
+
+export interface ExamFrameworkOption {
+  id: string;
+  name: string;
+  exam_board: string;
+  language: string;
+}
+
+export interface IndependentStudentOnboardingRead {
+  state: "profile_incomplete" | "ready_to_study";
+  profile_complete: boolean;
+  ready_to_study: boolean;
+  self_study_only: boolean;
+  profile: {
+    user_id: string;
+    name: string;
+    language_preference: string;
+    grade_level: number;
+    exam_syllabus_id: string;
+    exam_date: string | null;
+    diagnostic_available: boolean;
+    diagnostic_deferred: boolean;
+  } | null;
+}
+
+export const independentStudentOnboardingApi = {
+  listExamFrameworks: () =>
+    request<ExamFrameworkOption[]>("/independent/students/me/exam-frameworks"),
+  getOnboarding: (token: string) =>
+    request<IndependentStudentOnboardingRead>(
+      "/independent/students/me/onboarding",
+      {},
+      token,
+    ),
+  completeProfile: (token: string, data: { exam_date: string }) =>
+    request<IndependentStudentOnboardingRead>(
+      "/independent/students/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
       token,
     ),

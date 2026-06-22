@@ -6,11 +6,14 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ConflictError, ValidationError
+from app.features.exam_syllabi.repository import ExamSyllabiRepository
 from app.features.independent_signup.schemas import (
     IndependentSignupCreate,
     IndependentSignupInfo,
     IndependentSignupResponse,
 )
+from app.features.independent_student_onboarding.models import IndependentStudentProfile
+from app.features.independent_student_onboarding.repository import IndependentStudentProfileRepository
 from app.features.independent_users.models import (
     IndependentUser,
     IndependentUserAccountStatus,
@@ -36,6 +39,8 @@ class IndependentSignupService:
     ) -> None:
         self._session = session
         self._independent_users = IndependentUserRepository(session)
+        self._student_profiles = IndependentStudentProfileRepository(session)
+        self._syllabi = ExamSyllabiRepository(session)
         self._school_users = UserRepository(session)
         self._authentik = authentik or get_authentik_client()
 
@@ -75,6 +80,15 @@ class IndependentSignupService:
         if payload.language_preference not in SUPPORTED_LANGUAGES:
             raise ValidationError(f"Unsupported language: {payload.language_preference}")
 
+        if payload.role == IndependentUserRole.INDEPENDENT_STUDENT:
+            if payload.grade_level is None:
+                raise ValidationError("grade_level is required for independent student signup")
+            if not payload.exam_syllabus_id:
+                raise ValidationError("exam_syllabus_id is required for independent student signup")
+            syllabus = await self._syllabi.get_by_id(payload.exam_syllabus_id)
+            if syllabus is None or syllabus.deleted_at is not None or not syllabus.is_active:
+                raise ValidationError("Invalid or inactive exam framework selection")
+
         email = payload.email.lower().strip()
         display_name = payload.display_name.strip()
         await self._ensure_email_available(email)
@@ -98,6 +112,18 @@ class IndependentSignupService:
             language_preference=payload.language_preference,
         )
         created = await self._independent_users.create(user)
+
+        if payload.role == IndependentUserRole.INDEPENDENT_STUDENT:
+            assert payload.grade_level is not None
+            assert payload.exam_syllabus_id is not None
+            student_profile = IndependentStudentProfile(
+                user_id=created.id,
+                name=display_name,
+                language_preference=payload.language_preference,
+                grade_level=payload.grade_level,
+                exam_syllabus_id=payload.exam_syllabus_id,
+            )
+            await self._student_profiles.create(student_profile)
 
         await send_account_email(
             to=email,
