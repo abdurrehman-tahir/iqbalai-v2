@@ -1134,7 +1134,10 @@
       "have_account": "Already have an account? Sign in",
       "success": "Your account is ready. Sign in to continue.",
       "go_login": "Sign in",
-      "error_generic": "Could not create account. Please try again."
+      "error_generic": "Could not create account. Please try again.",
+      "grade_label": "Grade level",
+      "exam_framework_label": "Exam framework",
+      "exam_framework_placeholder": "Select your exam target"
     },
     "teacher": {
       "header_title": "Independent Teacher",

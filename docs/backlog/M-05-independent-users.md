@@ -8,9 +8,10 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2 weeks
 **Tickets:** T-069 through T-076
+**Commits:** ab6eccb (T-069), 8e89b9c (T-070), 0e9f6b5 (T-071), 8f16a11 (T-072–T-075)
 **Spec source:** `flow-3-teacher-onboarding.md` v3 §3.2 (independent teacher), `flow-4-student-onboarding.md` v3 §3.2 (independent student), `flow-1-platform-setup.md` (Platform Library tier)
 
 ## Goal
@@ -34,10 +35,8 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 **Layer:** 3
 **Milestone:** M-05
 **Estimate:** 2 days
-**Status:** todo
-
-### Spec source
-- `flow-3-teacher-onboarding.md` §3.2, `flow-4-student-onboarding.md` §3.2 (public signup)
+**Status:** done
+**Commit:** ab6eccb
 
 ### ARCH source
 - `ARCHITECTURE.md` §6.20 (independent user signup path), §3.16 (separate-schema tenant model — same Authentik IDP issues both JWT kinds)
@@ -73,10 +72,8 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 **Layer:** 3
 **Milestone:** M-05
 **Estimate:** 1 day
-**Status:** todo
-
-### Spec source
-- `flow-3-teacher-onboarding.md` §3.2 (independent teacher lifecycle #16)
+**Status:** done
+**Commit:** 8e89b9c
 
 ### ARCH source
 - `ARCHITECTURE.md` §3.16 (no school context), §6.20
@@ -107,10 +104,8 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 **Layer:** 3
 **Milestone:** M-05
 **Estimate:** 2 days
-**Status:** todo
-
-### Spec source
-- `flow-4-student-onboarding.md` §3.2 (independent student lifecycle)
+**Status:** done
+**Commit:** 0e9f6b5
 
 ### ARCH source
 - `ARCHITECTURE.md` §3.16, §3.19 (Exam Framework — selected at signup)
@@ -147,10 +142,7 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 **Layer:** 3
 **Milestone:** M-05
 **Estimate:** 2 days
-**Status:** todo
-
-### Spec source
-- `flow-1-platform-setup.md` (Platform Library tier; #7 platform upload)
+**Status:** done (pre-existing M-01 T-024; verified + tests in 8f16a11)
 
 ### ARCH source
 - `ARCHITECTURE.md` §11.19 (`platform_reference_book` profile — global SHA-256 dedup)
@@ -185,10 +177,8 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 **Layer:** 3
 **Milestone:** M-05
 **Estimate:** 2 days
-**Status:** todo
-
-### Spec source
-- `flow-1-platform-setup.md` (Platform Library visible to all schools + independents, read-only)
+**Status:** done
+**Commit:** 8f16a11
 
 ### ARCH source
 - `ARCHITECTURE.md` §3.16 (platform-shared tables via cross-schema read-only views)
@@ -224,10 +214,8 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 **Layer:** 3
 **Milestone:** M-05
 **Estimate:** 1 day
-**Status:** todo
-
-### Spec source
-- `flow-3-teacher-onboarding.md` §3.2/§3.4 (independent: private pool only, no privacy toggle)
+**Status:** done
+**Commit:** 8f16a11
 - `flow-4-student-onboarding.md` §3.2 (independent student materials private)
 
 ### ARCH source
@@ -259,13 +247,8 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 **Layer:** 6
 **Milestone:** M-05
 **Estimate:** 1 day
-**Status:** todo
-
-### Spec source
-- `flow-3-teacher-onboarding.md` §3.2, `flow-4-student-onboarding.md` §3.2
-
-### ARCH source
-- `ARCHITECTURE.md` §0 (E2E convention)
+**Status:** done
+**Commit:** 8f16a11
 
 ### Depends on
 - T-069 through T-074
@@ -295,10 +278,7 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 **Layer:** 6
 **Milestone:** M-05
 **Estimate:** 0.5 day
-**Status:** todo
-
-### Spec source
-- `flow-3-teacher-onboarding.md` v3 + `flow-4-student-onboarding.md` v3 (independent portions)
+**Status:** in-progress (PR pending)
 
 ### ARCH source
 - `ARCHITECTURE.md` §0 (section-tracking), per `WORKFLOW.md` §1.4 + §2.x

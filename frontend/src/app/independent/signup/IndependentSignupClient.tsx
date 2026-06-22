@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { independentSignupApi } from "@/lib/api";
+import { independentSignupApi, independentStudentOnboardingApi } from "@/lib/api";
 import { clearToken, getLoginUrl } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -20,10 +20,22 @@ const signupSchema = z
     confirm_password: z.string().min(8).max(128),
     role: z.enum(["independent_teacher", "independent_student"]),
     language_preference: z.enum(["en", "ur", "sd", "ps"]),
+    grade_level: z.coerce.number().int().min(1).max(16).optional(),
+    exam_syllabus_id: z.string().optional(),
   })
   .refine((data) => data.password === data.confirm_password, {
     message: "passwords_must_match",
     path: ["confirm_password"],
+  })
+  .superRefine((data, ctx) => {
+    if (data.role === "independent_student") {
+      if (!data.grade_level) {
+        ctx.addIssue({ code: "custom", message: "grade_required", path: ["grade_level"] });
+      }
+      if (!data.exam_syllabus_id) {
+        ctx.addIssue({ code: "custom", message: "exam_required", path: ["exam_syllabus_id"] });
+      }
+    }
   });
 
 type SignupFormValues = z.infer<typeof signupSchema>;
@@ -35,6 +47,9 @@ export function IndependentSignupClient() {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [languages, setLanguages] = useState<string[]>(["en", "ur", "sd", "ps"]);
+  const [examFrameworks, setExamFrameworks] = useState<
+    { id: string; name: string; exam_board: string }[]
+  >([]);
 
   const form = useForm<SignupFormValues>({
     resolver: zodResolver(signupSchema),
@@ -45,15 +60,18 @@ export function IndependentSignupClient() {
       confirm_password: "",
       role: "independent_teacher",
       language_preference: "en",
+      grade_level: undefined,
+      exam_syllabus_id: "",
     },
   });
 
+  const role = form.watch("role");
+
   useEffect(() => {
     void independentSignupApi.getInfo().then((info) => {
-      if (info.languages.length > 0) {
-        setLanguages(info.languages);
-      }
+      if (info.languages.length > 0) setLanguages(info.languages);
     });
+    void independentStudentOnboardingApi.listExamFrameworks().then(setExamFrameworks);
   }, []);
 
   async function onSubmit(values: SignupFormValues) {
@@ -66,6 +84,9 @@ export function IndependentSignupClient() {
         display_name: values.display_name,
         role: values.role,
         language_preference: values.language_preference,
+        grade_level: values.role === "independent_student" ? values.grade_level : undefined,
+        exam_syllabus_id:
+          values.role === "independent_student" ? values.exam_syllabus_id : undefined,
       });
       clearToken();
       setSignedUpEmail(result.email);
@@ -105,19 +126,14 @@ export function IndependentSignupClient() {
       </div>
 
       {error && (
-        <p
-          className="text-sm text-red-600 rounded-md bg-red-50 border border-red-200 p-3"
-          role="alert"
-        >
+        <p className="text-sm text-red-600 rounded-md bg-red-50 border border-red-200 p-3" role="alert">
           {error}
         </p>
       )}
 
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
         <div>
-          <Label htmlFor="role" required>
-            {t("role_label")}
-          </Label>
+          <Label htmlFor="role" required>{t("role_label")}</Label>
           <select
             id="role"
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
@@ -129,23 +145,17 @@ export function IndependentSignupClient() {
         </div>
 
         <div>
-          <Label htmlFor="display-name" required>
-            {t("name_label")}
-          </Label>
+          <Label htmlFor="display-name" required>{t("name_label")}</Label>
           <Input id="display-name" {...form.register("display_name")} />
         </div>
 
         <div>
-          <Label htmlFor="email" required>
-            {t("email_label")}
-          </Label>
+          <Label htmlFor="email" required>{t("email_label")}</Label>
           <Input id="email" type="email" autoComplete="email" {...form.register("email")} />
         </div>
 
         <div>
-          <Label htmlFor="language" required>
-            {t("language_label")}
-          </Label>
+          <Label htmlFor="language" required>{t("language_label")}</Label>
           <select
             id="language"
             className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
@@ -159,17 +169,43 @@ export function IndependentSignupClient() {
           </select>
         </div>
 
+        {role === "independent_student" && (
+          <>
+            <div>
+              <Label htmlFor="grade-level" required>{t("grade_label")}</Label>
+              <Input
+                id="grade-level"
+                type="number"
+                min={1}
+                max={16}
+                {...form.register("grade_level")}
+              />
+            </div>
+            <div>
+              <Label htmlFor="exam-framework" required>{t("exam_framework_label")}</Label>
+              <select
+                id="exam-framework"
+                className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 text-sm"
+                {...form.register("exam_syllabus_id")}
+              >
+                <option value="">{t("exam_framework_placeholder")}</option>
+                {examFrameworks.map((fw) => (
+                  <option key={fw.id} value={fw.id}>
+                    {fw.name} ({fw.exam_board})
+                  </option>
+                ))}
+              </select>
+            </div>
+          </>
+        )}
+
         <div>
-          <Label htmlFor="password" required>
-            {t("password_label")}
-          </Label>
+          <Label htmlFor="password" required>{t("password_label")}</Label>
           <Input id="password" type="password" autoComplete="new-password" {...form.register("password")} />
         </div>
 
         <div>
-          <Label htmlFor="confirm-password" required>
-            {t("confirm_password_label")}
-          </Label>
+          <Label htmlFor="confirm-password" required>{t("confirm_password_label")}</Label>
           <Input
             id="confirm-password"
             type="password"
