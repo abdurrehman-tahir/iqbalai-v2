@@ -62,6 +62,7 @@ def derive_school_student_state(
     user: User,
     profile: StudentProfile | None,
     enrollment_grade_id: str | None,
+    migration_scheduled_at: datetime | None = None,
 ) -> SchoolStudentOnboardingRead:
     if user.status == UserAccountStatus.INVITED:
         return SchoolStudentOnboardingRead(
@@ -72,6 +73,27 @@ def derive_school_student_state(
             show_complete_profile_banner=False,
             enrollment_grade_id=enrollment_grade_id,
             profile=None,
+        )
+
+    if profile is not None and profile.is_graduated and not profile.migrated_out:
+        self_study = profile.self_study_mode_enabled
+        return SchoolStudentOnboardingRead(
+            state=SchoolStudentOnboardingState.SCHOOL_READ_ONLY,
+            profile_basic_complete=True,
+            mode_selected=True,
+            ready_to_study=False,
+            show_complete_profile_banner=False,
+            exam_date_set=profile.exam_date is not None,
+            enrollment_grade_id=enrollment_grade_id,
+            profile=StudentProfileRead.model_validate(profile),
+            school_read_only=True,
+            lecture_read_only=True,
+            self_study_enabled=self_study,
+            graduation_message=(
+                "You've graduated! For 6 months you can still use Self-Study mode in your "
+                "school account. After that, your account will move to Independent mode."
+            ),
+            migration_scheduled_at=migration_scheduled_at,
         )
 
     profile_basic_complete = (
@@ -150,8 +172,18 @@ class StudentOnboardingService:
         user = await self._require_student(claims)
         profile = await self._profile_repo.get_by_user_id(user.id)
         grade_id = await self._active_enrollment_grade_id(user.id)
+        migration_scheduled_at = None
+        if profile is not None and profile.is_graduated:
+            from app.features.graduation.repository import GraduationMigrationLogRepository
+
+            log = await GraduationMigrationLogRepository(self._session).get_by_student(user.id)
+            if log is not None:
+                migration_scheduled_at = log.migration_scheduled_at
         return derive_school_student_state(
-            user=user, profile=profile, enrollment_grade_id=grade_id
+            user=user,
+            profile=profile,
+            enrollment_grade_id=grade_id,
+            migration_scheduled_at=migration_scheduled_at,
         )
 
     async def complete_profile_basic(

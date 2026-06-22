@@ -44,6 +44,10 @@ class StudentEnrollmentRepository:
         )
         return list(result.scalars().all())
 
+    async def update(self, enrollment: StudentEnrollment) -> StudentEnrollment:
+        await self._session.flush()
+        return enrollment
+
     async def create(self, enrollment: StudentEnrollment) -> StudentEnrollment:
         self._session.add(enrollment)
         await self._session.commit()

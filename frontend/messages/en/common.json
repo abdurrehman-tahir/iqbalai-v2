@@ -231,7 +231,26 @@
         "school_library_item_ingested": "Library item ingested",
         "school_library_item_selection_removed": "Library selection removed",
         "capacity_updated": "Teacher capacity updated",
-        "capacity_override": "Capacity override (elevated)"
+        "capacity_override": "Capacity override (elevated)",
+        "student_enrolled": "Student enrolled",
+        "bulk_import_dry_run_complete": "Bulk import validated",
+        "bulk_import_committed": "Bulk import committed",
+        "user_parent_signup": "Parent self-signup",
+        "student_profile_basic_completed": "Student profile basics completed",
+        "student_modes_selected": "Student study modes selected",
+        "student_exam_date_set": "Student exam date set",
+        "parent_link_requested": "Parent link requested",
+        "parent_link_approved": "Parent link approved",
+        "parent_link_revoked_by_parent": "Parent link revoked (parent)",
+        "parent_link_revoked_by_student": "Parent link revoked (student)",
+        "parent_link_re_requested": "Parent link re-requested",
+        "data_rights_export_requested": "Data export requested (elevated)",
+        "data_rights_deletion_requested": "Deletion requested (elevated)",
+        "data_rights_deletion_cancelled": "Deletion cancelled (elevated)",
+        "graduation_requested": "Graduation requested",
+        "graduation_approved": "Graduation approved",
+        "graduation_migrated": "Student migrated to independent (elevated)",
+        "graduation_migration_failed": "Migration failed (elevated)"
       }
     }
   },
@@ -445,7 +464,10 @@
       "access_state_label": "Parent access",
       "access_state_LINKED": "At least one parent has read-only access",
       "access_state_UNLINKED": "No parent read-only access",
-      "data_rights_link": "Data & privacy"
+      "data_rights_link": "Data & privacy",
+      "graduation_banner_title": "You've graduated",
+      "graduation_banner_body": "Lecture mode is read-only. Self-Study stays fully available until your account moves to Independent mode.",
+      "graduation_migration_date": "Independent migration scheduled: {date}"
     },
     "data_rights": {
       "title": "Data & privacy",

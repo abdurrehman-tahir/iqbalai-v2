@@ -13,6 +13,7 @@ class SchoolStudentOnboardingState(str, Enum):
     PROFILE_BASIC = "profile_basic"
     MODE_SELECTION = "mode_selection"
     READY_TO_STUDY = "ready_to_study"
+    SCHOOL_READ_ONLY = "school_read_only"
 
 
 class StudentProfileRead(BaseModel):
@@ -39,6 +40,11 @@ class SchoolStudentOnboardingRead(BaseModel):
     enrollment_grade_id: str | None = None
     profile: StudentProfileRead | None = None
     future_date_warning: str | None = None
+    school_read_only: bool = False
+    lecture_read_only: bool = False
+    self_study_enabled: bool = True
+    graduation_message: str | None = None
+    migration_scheduled_at: datetime | None = None
 
 
 class StudentExamDateUpdate(BaseModel):
