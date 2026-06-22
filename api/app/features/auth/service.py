@@ -10,7 +10,11 @@ from app.core.tenant import get_tenant_type
 from app.features.independent_users.models import IndependentUserAccountStatus
 from app.features.independent_users.service import IndependentUserService
 from app.features.tos.repository import TosRepository
-from app.features.users.models import UserAccountStatus
+from app.features.parent_signup.service import (
+    PARENT_STATE_ACTIVE_UNLINKED,
+    ParentSignupService,
+)
+from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.service import UserService
 
 logger = structlog.get_logger(__name__)
@@ -23,6 +27,7 @@ class AuthService:
         self._session = session
         self._user_svc = UserService(session)
         self._independent_user_svc = IndependentUserService(session)
+        self._parent_signup_svc = ParentSignupService(session)
         self._tos_repo = TosRepository(session)
 
     async def post_login(self, claims: dict[str, object]) -> dict[str, object]:
@@ -95,7 +100,12 @@ class AuthService:
             if is_deactivated:
                 raise AccountDeactivatedError()
             if existing_any.status == UserAccountStatus.SUSPENDED:
-                raise AccountSuspendedError()
+                if existing_any.role == UserRole.PARENT:
+                    resumed = await self._parent_signup_svc.try_resume_unlinked_parent(existing_any)
+                    if resumed is None:
+                        raise AccountSuspendedError()
+                else:
+                    raise AccountSuspendedError()
 
         user, is_first_login = await self._user_svc.get_or_create_from_jwt(claims)
 
@@ -124,15 +134,22 @@ class AuthService:
         if current_tos is not None:
             tos_accepted = await self._tos_repo.has_accepted_tos(user.id, current_tos.id)
 
+        parent_state: str | None = None
+        if user.role == UserRole.PARENT:
+            profile = await self._parent_signup_svc.activate_on_login(user)
+            if profile is not None and profile.is_email_verified:
+                parent_state = PARENT_STATE_ACTIVE_UNLINKED
+
         logger.info(
             "post_login",
             user_id=user.id,
             role=user.role.value,
             is_first_login=is_first_login,
             tos_accepted=tos_accepted,
+            parent_state=parent_state,
         )
 
-        return {
+        response: dict[str, object] = {
             "user_id": user.id,
             "email": user.email,
             "role": user.role.value,
@@ -144,3 +161,6 @@ class AuthService:
             "current_tos_version_id": current_tos.id if current_tos else None,
             "account_status": user.status.value,
         }
+        if parent_state is not None:
+            response["parent_state"] = parent_state
+        return response

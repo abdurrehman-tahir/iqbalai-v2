@@ -245,6 +245,37 @@ export const independentSignupApi = {
     }),
 };
 
+// ── Parent signup ─────────────────────────────────────────────────────────────
+
+export interface ParentSignupInfo {
+  languages: string[];
+}
+
+export interface ParentSignupCreate {
+  email: string;
+  password: string;
+  display_name: string;
+  language_preference: "en" | "ur" | "sd" | "ps";
+}
+
+export interface ParentSignupResponse {
+  user_id: string;
+  email: string;
+  role: string;
+  tenant_type: string;
+  parent_state: string;
+  message: string;
+}
+
+export const parentSignupApi = {
+  getInfo: () => request<ParentSignupInfo>("/parents/signup"),
+  signup: (data: ParentSignupCreate) =>
+    request<ParentSignupResponse>("/parents/signup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
 // ── Independent teacher onboarding ────────────────────────────────────────────
 
 export type { IndependentTeacherOnboardingRead, IndependentTeacherProfileComplete } from "./types";

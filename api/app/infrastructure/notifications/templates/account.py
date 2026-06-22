@@ -261,6 +261,54 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "account.parent_welcome": {
+        "default": {
+            "en": {
+                "subject": "Welcome to IqbalAI — parent account created",
+                "title": "Parent account created",
+                "body": "Hi {name}, your IqbalAI parent account is ready. Verify your email and sign in to link to your child's account.",
+            },
+            "ur": {
+                "subject": "IqbalAI میں خوش آمدید — والدین کا اکاؤنٹ بن گیا",
+                "title": "والدین کا اکاؤنٹ بن گیا",
+                "body": "سلام {name}، آپ کا IqbalAI والدین اکاؤنٹ تیار ہے۔ اپنا ای میل تصدیق کریں اور اپنے بچے کے اکاؤنٹ سے لنک کرنے کے لیے سائن ان کریں۔",
+            },
+            "sd": {
+                "subject": "IqbalAI ۾ ڀليڪار — والدين جو اڪائونٽ ٺهي ويو",
+                "title": "والدين جو اڪائونٽ ٺهي ويو",
+                "body": "سلام {name}، توهان جو IqbalAI والدين اڪائونٽ تيار آهي۔ پنهنجي اي ميل جي تصديق ڪريو ۽ پنهنجي ٻار جي اڪائونٽ سان لنڪ ڪرڻ لاءِ سائن ان ٿيو۔",
+            },
+            "ps": {
+                "subject": "IqbalAI ته ښه راغلاست — د والدین حساب جوړ شو",
+                "title": "د والدین حساب جوړ شو",
+                "body": "سلام {name}، ستاسو IqbalAI والدین حساب چمتو دی۔ خپل بریښنالیک تایید کړئ او د خپل ماشوم حساب سره د نښلولو لپاره ننوځئ۔",
+            },
+        }
+    },
+    "account.parent_auto_suspended": {
+        "default": {
+            "en": {
+                "subject": "IqbalAI parent account suspended",
+                "title": "Parent account suspended",
+                "body": "Hi {name}, your parent account was suspended after 90 days without linking to a student. Sign in again to resume and link to your child.",
+            },
+            "ur": {
+                "subject": "IqbalAI والدین اکاؤنٹ معطل",
+                "title": "والدین اکاؤنٹ معطل",
+                "body": "سلام {name}، آپ کا والدین اکاؤنٹ 90 دن تک بچے سے لنک نہ ہونے کی وجہ سے معطل کر دیا گیا۔ دوبارہ سائن ان کریں تاکہ دوبارہ فعال ہو اور اپنے بچے سے لنک کریں۔",
+            },
+            "sd": {
+                "subject": "IqbalAI والدين اڪائونٽ معطل",
+                "title": "والدين اڪائونٽ معطل",
+                "body": "سلام {name}، توهان جو والدين اڪائونٽ 90 ڏينهن تائين ٻار سان لنڪ نہ ٿيڻ سبب معطل ڪيو ويو۔ ٻيهر سائن ان ٿي واپس فعال ڪريو ۽ پنهنجي ٻار سان لنڪ ڪريو۔",
+            },
+            "ps": {
+                "subject": "IqbalAI والدین حساب ځنډول شو",
+                "title": "والدین حساب ځنډول شو",
+                "body": "سلام {name}، ستاسو والدین حساب د 90 ورځو لپاره د زده کونکي سره د نښلولو پرته ځنډول شو۔ بیا ننوځئ ترڅو بیا فعال شي او خپل ماشوم سره ونښلوئ۔",
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
@@ -274,6 +322,8 @@ TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
     "account.teacher_assigned_offering": frozenset({"in_app"}),
     "account.capacity_changed": frozenset({"in_app"}),
     "account.capacity_override": frozenset({"in_app"}),
+    "account.parent_welcome": frozenset({"email"}),
+    "account.parent_auto_suspended": frozenset({"email"}),
 }
 
 
