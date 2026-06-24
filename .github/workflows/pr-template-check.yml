@@ -18,7 +18,15 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const body = context.payload.pull_request.body || "";
+            // Fetch live PR body — synchronize webhooks can omit or alter body vs REST.
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
+            const body = (pr.body || "")
+              // GitHub linkifies @mentions: [@user](url) → @user for header matching.
+              .replace(/\[(@[\w-]+)\]\([^)]+\)/g, "$1");
 
             // Required headers with non-empty content under them.
             // "Milestone & feature reference" replaced legacy "Phase & feature reference"
@@ -33,7 +41,11 @@ jobs:
               },
               { name: "Stack compliance", header: "## Stack compliance" },
               { name: "Testing", header: "## Testing" },
-              { name: "Open questions for @abdurrehman", header: "## Open questions for @abdurrehman" },
+              {
+                name: "Open questions for @abdurrehman",
+                header: "## Open questions for @abdurrehman",
+                altHeader: "## Open questions for @abdurrehman-tahir",
+              },
             ];
 
             const missing = [];
@@ -76,8 +88,13 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
+            const { data: pr } = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.payload.pull_request.number,
+            });
             // Strip HTML comments so example/commented checkboxes never count.
-            const body = (context.payload.pull_request.body || "")
+            const body = (pr.body || "")
               .replace(/<!--[\s\S]*?-->/g, "");
 
             // Only inspect the "## Type" section, so ticked checkboxes in other
