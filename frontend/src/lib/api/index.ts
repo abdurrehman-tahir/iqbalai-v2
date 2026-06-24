@@ -33,6 +33,10 @@ import type {
   OfferingRead,
   OfferingAssign,
   EligibleTeacherRead,
+  TeacherOnboardingRead,
+  TeacherCapacityUpdate,
+  TeacherCapacityUpdateRead,
+  TeacherProfileComplete,
   SchoolCreate,
   SchoolUpdate,
   SubscriptionTierCreate,
@@ -504,6 +508,98 @@ export const libraryApi = {
     request<void>(`/admin/library/${id}`, { method: "DELETE" }, token),
 };
 
+// ── School library (teacher+) — T-055 ───────────────────────────────────────────
+
+export interface SchoolLibraryUploadParams {
+  file: File | Blob;
+  fileName?: string;
+  title: string;
+  content_type?: string;
+  language?: string;
+  subject_id?: string | null;
+  grade_level_ordinal?: number | null;
+  visibility?: string;
+}
+
+export interface SchoolLibraryListParams {
+  subject_id?: string;
+  grade_level_ordinal?: number;
+  language?: string;
+  content_type?: string;
+  title?: string;
+  limit?: number;
+  offset?: number;
+}
+
+export const schoolLibraryApi = {
+  list: (token: string, params: SchoolLibraryListParams = {}) => {
+    const qs = new URLSearchParams();
+    if (params.subject_id) qs.set("subject_id", params.subject_id);
+    if (params.grade_level_ordinal != null) {
+      qs.set("grade_level_ordinal", String(params.grade_level_ordinal));
+    }
+    if (params.language) qs.set("language", params.language);
+    if (params.content_type) qs.set("content_type", params.content_type);
+    if (params.title) qs.set("title", params.title);
+    if (params.limit != null) qs.set("limit", String(params.limit));
+    if (params.offset != null) qs.set("offset", String(params.offset));
+    const query = qs.toString();
+    return request<import("./types").SchoolLibraryListResponse>(
+      `/school/library${query ? `?${query}` : ""}`,
+      {},
+      token,
+    );
+  },
+  upload: (token: string, params: SchoolLibraryUploadParams) => {
+    const qs = new URLSearchParams();
+    qs.set("title", params.title);
+    if (params.content_type) qs.set("content_type", params.content_type);
+    if (params.language) qs.set("language", params.language);
+    if (params.subject_id) qs.set("subject_id", params.subject_id);
+    if (params.grade_level_ordinal != null) {
+      qs.set("grade_level_ordinal", String(params.grade_level_ordinal));
+    }
+    if (params.visibility) qs.set("visibility", params.visibility);
+
+    const formData = new FormData();
+    const uploadName =
+      params.fileName ?? (params.file instanceof File ? params.file.name : "upload.pdf");
+    formData.append("file", params.file, uploadName);
+
+    return requestFormData<import("./types").SchoolLibraryUploadResponse>(
+      `/school/library?${qs.toString()}`,
+      formData,
+      token,
+    );
+  },
+  get: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(`/school/library/${itemId}`, {}, token),
+  publish: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(
+      `/school/library/${itemId}/publish`,
+      { method: "POST" },
+      token,
+    ),
+  removeSelection: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(
+      `/school/library/${itemId}/selection`,
+      { method: "DELETE" },
+      token,
+    ),
+  deleteItem: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(
+      `/school/library/${itemId}`,
+      { method: "DELETE" },
+      token,
+    ),
+  retryIngestion: (token: string, itemId: string) =>
+    request<import("./types").SchoolLibraryItemRead>(
+      `/school/library/${itemId}/retry-ingestion`,
+      { method: "POST" },
+      token,
+    ),
+};
+
 // ── Audit Log ─────────────────────────────────────────────────────────────────
 
 export interface AuditEntry {
@@ -512,6 +608,7 @@ export interface AuditEntry {
   actor_id: string | null;
   target_type: string | null;
   target_id: string | null;
+  metadata_json?: string | null;
   created_at: string;
 }
 
@@ -622,6 +719,27 @@ export const subjectsApi = {
     request<SubjectRead>(`/subjects/${id}`, { method: "PUT", body: JSON.stringify(data) }, token),
   archive: (token: string, id: string) =>
     request<SubjectRead>(`/subjects/${id}/archive`, { method: "POST" }, token),
+};
+
+// ── Teacher onboarding — T-053 ────────────────────────────────────────────────
+
+export const teacherOnboardingApi = {
+  getOnboarding: (token: string) =>
+    request<TeacherOnboardingRead>("/teachers/me/onboarding", {}, token),
+  completeProfile: (token: string, data: TeacherProfileComplete) =>
+    request<TeacherOnboardingRead>(
+      "/teachers/me/profile",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+  listSubjectOptions: (token: string) =>
+    request<SubjectRead[]>("/teachers/me/subject-options", {}, token),
+  updateCapacity: (token: string, data: TeacherCapacityUpdate) =>
+    request<TeacherCapacityUpdateRead>(
+      "/teachers/me/capacity",
+      { method: "PATCH", body: JSON.stringify(data) },
+      token,
+    ),
 };
 
 // ── Academic Sessions (Coordinator) — T-042 ─────────────────────────────────────

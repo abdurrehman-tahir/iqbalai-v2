@@ -9,18 +9,25 @@ from __future__ import annotations
 # Pre-approved deviation: LangChain import limited to this module per ARCH §7.7
 from langchain_text_splitters import RecursiveCharacterTextSplitter  # noqa: PLC0415
 
-# Per ARCH §7.7 locked chunking params for reference books
+# Per ARCH §7.7 locked chunking params
 _REFERENCE_BOOK_SPLITTER = RecursiveCharacterTextSplitter(
     chunk_size=1500,
     chunk_overlap=300,
     separators=["\n\n", "\n", ". ", " "],
 )
+_CURRICULUM_SPLITTER = RecursiveCharacterTextSplitter(
+    chunk_size=1200,
+    chunk_overlap=200,
+    separators=["\n\n", "\n", ". ", " "],
+)
 
 
-def chunk_text(text: str) -> list[str]:
-    """Split *text* into overlapping chunks per ARCH §7.7 reference-book config.
+def chunk_text(text: str, *, source_type: str = "reference") -> list[str]:
+    """Split *text* into overlapping chunks per ARCH §7.7.
 
+    ``source_type`` is ``reference`` (default) or ``curriculum``.
     Returns a list of non-empty chunk strings.
     """
-    chunks = _REFERENCE_BOOK_SPLITTER.split_text(text)
+    splitter = _CURRICULUM_SPLITTER if source_type == "curriculum" else _REFERENCE_BOOK_SPLITTER
+    chunks = splitter.split_text(text)
     return [c.strip() for c in chunks if c.strip()]

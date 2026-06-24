@@ -1,0 +1,16 @@
+---
+description: Mandatory ticket-loader subagent before implementing any T-XXX ticket
+alwaysApply: true
+---
+
+# Ticket loader (mandatory)
+
+When the user asks to **implement any ticket** (`Implement T-XXX`, `T-XXX`, resume a milestone ticket, etc.):
+
+1. **First action — before any file read, plan, or code** — launch a **Task subagent** (`readonly: true`) whose prompt follows `.cursor/agents/ticket-loader.md` exactly for the given ticket ID.
+2. Wait for the **Ticket Dossier** (`=== TICKET DOSSIER: T-XXX ===` … `=== END DOSSIER ===`).
+3. Work from the dossier only. Do **not** read whole milestone files, whole flow specs, or wide `ARCHITECTURE.md` ranges in this session.
+4. If the dossier is malformed or ERROR, abort and tell the user — do not read source files to paper over it.
+5. After a valid dossier, update `.cursor/session-state.md` (current ticket + next step).
+
+**Parity:** Claude Code equivalent is `.claude/agents/ticket-loader.md` invoked as a native sub-agent.

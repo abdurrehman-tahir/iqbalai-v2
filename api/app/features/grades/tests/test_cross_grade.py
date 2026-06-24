@@ -5,7 +5,11 @@ from __future__ import annotations
 import pytest
 
 from app.core.exceptions import PermissionDeniedError
-from app.features.grades.cross_grade import assert_cross_grade_access
+from app.features.grades.cross_grade import (
+    assert_cross_grade_access,
+    assert_cross_grade_access_by_ordinal,
+    library_item_visible_for_grade_context,
+)
 from app.features.grades.models import Grade, GradeStatus
 
 
@@ -51,3 +55,29 @@ def test_cross_grade_matrix(source_level: int, target_level: int, allowed: bool)
     else:
         with pytest.raises(PermissionDeniedError):
             assert_cross_grade_access(source, target)
+
+
+def test_assert_cross_grade_access_by_ordinal_matches_grade_guard() -> None:
+    assert_cross_grade_access_by_ordinal(10, 9)
+    with pytest.raises(PermissionDeniedError):
+        assert_cross_grade_access_by_ordinal(9, 10)
+
+
+@pytest.mark.parametrize(
+    ("context", "item_grade", "visible"),
+    [
+        (9, 9, True),
+        (9, 8, True),
+        (9, 10, False),
+        (10, 9, True),
+        (9, None, True),
+    ],
+)
+def test_library_item_visible_for_grade_context(context: int, item_grade: int | None, visible: bool) -> None:
+    assert (
+        library_item_visible_for_grade_context(
+            context_ordinal=context,
+            item_grade_ordinal=item_grade,
+        )
+        is visible
+    )

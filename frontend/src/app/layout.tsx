@@ -19,9 +19,14 @@ export default async function RootLayout({
   const isRtl = ["ur", "sd", "ps"].includes(locale);
 
   return (
-    <html lang={locale} dir={isRtl ? "rtl" : "ltr"}>
+    <html
+      lang={locale}
+      dir={isRtl ? "rtl" : "ltr"}
+      translate="no"
+      suppressHydrationWarning
+    >
       <body className="min-h-screen bg-white text-gray-900 antialiased">
-        <NextIntlClientProvider messages={messages}>
+        <NextIntlClientProvider locale={locale} messages={messages}>
           <Providers>{children}</Providers>
         </NextIntlClientProvider>
       </body>

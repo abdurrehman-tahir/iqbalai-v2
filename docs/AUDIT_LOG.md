@@ -107,6 +107,14 @@ Log a finding **only if all three hold**:
 - **Status:** new — promote after the F-03/F-04 fix lands
 - **Promoted rule:** the api client reads `body.error.{code,message}` and parses FastAPI 422 `detail[]`; every mutation has an `onError` that surfaces the message.
 
+### [fe-i18n] non-en locale files missing whole namespaces (key-set drift)
+- **Class:** fe-state
+- **Occurrences:** 2026-06-20 (M-04, PR #16) — new UI strings (curriculum/reference upload, browse, onboarding, capacity) added to `messages/en/common.json` only; `ur`/`sd`/`ps` never received the `school_library` (and most M-04) namespace — 400 lines vs `en`'s 1116. The M-03 PR carried forward the same gap (`coordinator` namespace missing in ur/sd/ps), so this is the second observed occurrence of the same class.
+- **Existing rule when first seen?:** yes (CLAUDE.md #8 + ARCH §13.10 require all four `messages/*.json` to share one key set) — rule is prose-only, nothing enforces it, so en-only additions ship unblocked → `recurred-after-rule` candidate.
+- **Target carrier:** → CI lint `i18n-key-parity` (fail when locale files diverge from the `en` key set) + frontend-master Rule (visible-string keys land in all four locales same PR)
+- **Status:** new — promote at the M-04 boundary; the prose rule already exists and keeps being bypassed, so the fix is a CI lint, not more prose.
+- **Promoted rule:** _(pending)_ every `messages/<locale>/*.json` carries the identical key set to `en`; CI `i18n-key-parity` fails on any missing/extra key (placeholder/`MISSING` values allowed for untranslated strings, absent keys not).
+
 ### [mock-contract-drift] tests mock the fetch layer with a shape that diverges from OpenAPI
 - **Class:** test-gap
 - **Occurrences:** 2026-06-09 (M-01a impl) — Vitest + Playwright mock the fetch layer (`mock-api.ts`) with the old `{ name, description }` shape, so tests (incl. the `e2e-smoke` job) went **green while the live API 422'd every create**. The mock certified the broken contract.

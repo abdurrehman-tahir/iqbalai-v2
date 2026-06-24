@@ -389,6 +389,20 @@
         "title": "Body_create_bulk_import_dry_run",
         "type": "object"
       },
+      "Body_school_library_upload": {
+        "properties": {
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file"
+        ],
+        "title": "Body_school_library_upload",
+        "type": "object"
+      },
       "Body_upload_file": {
         "properties": {
           "file": {
@@ -1551,6 +1565,174 @@
         "title": "SchoolCreate",
         "type": "object"
       },
+      "SchoolLibraryItemRead": {
+        "description": "School library item returned to callers.",
+        "properties": {
+          "content_type": {
+            "title": "Content Type",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "grade_level_ordinal": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Level Ordinal"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ingestion_error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ingestion Error"
+          },
+          "ingestion_status": {
+            "title": "Ingestion Status",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "sha256": {
+            "title": "Sha256",
+            "type": "string"
+          },
+          "storage_key": {
+            "title": "Storage Key",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_tree_jsonb": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Tree Jsonb"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "visibility": {
+            "title": "Visibility",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "title",
+          "content_type",
+          "language",
+          "subject_id",
+          "grade_level_ordinal",
+          "storage_key",
+          "sha256",
+          "ingestion_status",
+          "created_by",
+          "visibility",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "SchoolLibraryItemRead",
+        "type": "object"
+      },
+      "SchoolLibraryListResponse": {
+        "description": "Paginated list of school library items visible to the caller.",
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SchoolLibraryItemRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total"
+        ],
+        "title": "SchoolLibraryListResponse",
+        "type": "object"
+      },
+      "SchoolLibraryUploadResponse": {
+        "description": "Response after POST /school/library \u2014 202 Accepted.",
+        "properties": {
+          "item": {
+            "$ref": "#/components/schemas/SchoolLibraryItemRead"
+          },
+          "message": {
+            "default": "Upload accepted; ingestion will run in a later step.",
+            "title": "Message",
+            "type": "string"
+          },
+          "selection_created": {
+            "title": "Selection Created",
+            "type": "boolean"
+          },
+          "storage_deduplicated": {
+            "title": "Storage Deduplicated",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "item",
+          "storage_deduplicated",
+          "selection_created"
+        ],
+        "title": "SchoolLibraryUploadResponse",
+        "type": "object"
+      },
       "SchoolUpdate": {
         "description": "Payload for updating a School (all fields optional).",
         "properties": {
@@ -2080,6 +2262,57 @@
         "title": "SuccessEnvelope[PostLoginResponse]",
         "type": "object"
       },
+      "SuccessEnvelope_SchoolLibraryItemRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SchoolLibraryItemRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SchoolLibraryItemRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SchoolLibraryListResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SchoolLibraryListResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SchoolLibraryListResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SchoolLibraryUploadResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SchoolLibraryUploadResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SchoolLibraryUploadResponse]",
+        "type": "object"
+      },
       "SuccessEnvelope_SectionRead_": {
         "properties": {
           "data": {
@@ -2146,6 +2379,40 @@
           "data"
         ],
         "title": "SuccessEnvelope[SyllabusTopicRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_TeacherCapacityUpdateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TeacherCapacityUpdateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[TeacherCapacityUpdateRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_TeacherOnboardingRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TeacherOnboardingRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[TeacherOnboardingRead]",
         "type": "object"
       },
       "SuccessEnvelope_TosAcceptResponse_": {
@@ -2554,6 +2821,246 @@
           "created_at"
         ],
         "title": "SyllabusTopicRead",
+        "type": "object"
+      },
+      "TeacherCapacityUpdate": {
+        "description": "Teacher self-edit capacity payload (flow-3 \u00a73.5 \u2014 range [1, 20]).",
+        "properties": {
+          "teacher_capacity": {
+            "maximum": 20.0,
+            "minimum": 1.0,
+            "title": "Teacher Capacity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "teacher_capacity"
+        ],
+        "title": "TeacherCapacityUpdate",
+        "type": "object"
+      },
+      "TeacherCapacityUpdateRead": {
+        "description": "Result after updating teacher capacity.",
+        "properties": {
+          "assignment_count": {
+            "title": "Assignment Count",
+            "type": "integer"
+          },
+          "capacity_below_assignments": {
+            "title": "Capacity Below Assignments",
+            "type": "boolean"
+          },
+          "teacher_capacity": {
+            "title": "Teacher Capacity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "teacher_capacity",
+          "assignment_count",
+          "capacity_below_assignments"
+        ],
+        "title": "TeacherCapacityUpdateRead",
+        "type": "object"
+      },
+      "TeacherOnboardingRead": {
+        "description": "Onboarding gate state \u2014 ``ready_to_teach`` is derived, never stored.",
+        "properties": {
+          "assignment_count": {
+            "title": "Assignment Count",
+            "type": "integer"
+          },
+          "can_create_content": {
+            "title": "Can Create Content",
+            "type": "boolean"
+          },
+          "capacity_below_assignments": {
+            "default": false,
+            "title": "Capacity Below Assignments",
+            "type": "boolean"
+          },
+          "profile": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TeacherProfileRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "profile_complete": {
+            "title": "Profile Complete",
+            "type": "boolean"
+          },
+          "ready_to_teach": {
+            "title": "Ready To Teach",
+            "type": "boolean"
+          },
+          "state": {
+            "$ref": "#/components/schemas/TeacherOnboardingState"
+          },
+          "teacher_capacity": {
+            "default": 5,
+            "title": "Teacher Capacity",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "state",
+          "profile_complete",
+          "ready_to_teach",
+          "assignment_count",
+          "can_create_content"
+        ],
+        "title": "TeacherOnboardingRead",
+        "type": "object"
+      },
+      "TeacherOnboardingState": {
+        "description": "Server-derived lifecycle state for school teachers (flow-3 \u00a73.1).",
+        "enum": [
+          "profile_incomplete",
+          "profile_complete",
+          "ready_to_teach"
+        ],
+        "title": "TeacherOnboardingState",
+        "type": "string"
+      },
+      "TeacherProfileComplete": {
+        "description": "Mandatory first-login profile payload (flow-3 \u00a76).",
+        "properties": {
+          "bio": {
+            "anyOf": [
+              {
+                "maxLength": 500,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "language_preference": {
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Language Preference",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "region_district": {
+            "anyOf": [
+              {
+                "maxLength": 200,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region District"
+          },
+          "region_province": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Region Province",
+            "type": "string"
+          },
+          "subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "title": "Subject Ids",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "region_province",
+          "language_preference",
+          "subject_ids"
+        ],
+        "title": "TeacherProfileComplete",
+        "type": "object"
+      },
+      "TeacherProfileRead": {
+        "description": "Teacher profile fields exposed to the caller.",
+        "properties": {
+          "bio": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Bio"
+          },
+          "language_preference": {
+            "title": "Language Preference",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "profile_completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Profile Completed At"
+          },
+          "region_district": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region District"
+          },
+          "region_province": {
+            "title": "Region Province",
+            "type": "string"
+          },
+          "subject_ids": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Subject Ids",
+            "type": "array"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "name",
+          "region_province",
+          "region_district",
+          "bio",
+          "language_preference",
+          "subject_ids",
+          "profile_completed_at"
+        ],
+        "title": "TeacherProfileRead",
         "type": "object"
       },
       "TosAcceptRequest": {
@@ -5871,6 +6378,554 @@
         ]
       }
     },
+    "/api/v1/school/library/": {
+      "get": {
+        "description": "Returns school-public items plus the caller's own private items and selections. Supports combinable filters by subject, grade context (shows this grade and lower), language, content type, and title search.",
+        "operationId": "school_library_list_items",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 36,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_level_ordinal",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 16,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Level Ordinal"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(en|ur|sd|ps)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Language"
+            }
+          },
+          {
+            "in": "query",
+            "name": "content_type",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(curriculum|reference)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Content Type"
+            }
+          },
+          {
+            "in": "query",
+            "name": "title",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 500,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Title"
+            }
+          },
+          {
+            "in": "query",
+            "name": "limit",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Limit",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "offset",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "minimum": 0,
+              "title": "Offset",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryListResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List school library items visible to the caller",
+        "tags": [
+          "school-library"
+        ]
+      },
+      "post": {
+        "description": "Accepts a PDF via the school_library_content profile (100 MB, per-school dedup). Returns 202 with the library item in ingestion_status=pending.",
+        "operationId": "school_library_upload",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "title",
+            "required": true,
+            "schema": {
+              "maxLength": 500,
+              "minLength": 1,
+              "title": "Title",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "content_type",
+            "required": false,
+            "schema": {
+              "default": "reference",
+              "pattern": "^(curriculum|reference)$",
+              "title": "Content Type",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "default": "en",
+              "pattern": "^(en|ur|sd|ps)$",
+              "title": "Language",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 36,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_level_ordinal",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 16,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Level Ordinal"
+            }
+          },
+          {
+            "in": "query",
+            "name": "visibility",
+            "required": false,
+            "schema": {
+              "default": "private",
+              "pattern": "^(private|school_public)$",
+              "title": "Visibility",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_school_library_upload"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryUploadResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload a PDF to the school content library",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
+    "/api/v1/school/library/{item_id}": {
+      "delete": {
+        "description": "Marks the item deleted. Storage and Qdrant embeddings are retained so existing lecture citations remain valid.",
+        "operationId": "school_library_delete_item",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete a school library item",
+        "tags": [
+          "school-library"
+        ]
+      },
+      "get": {
+        "description": "Returns library item metadata including ingestion status and topic_tree_jsonb for curricula. Respects school visibility rules.",
+        "operationId": "school_library_get_item",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_level_ordinal",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maximum": 16,
+                  "minimum": 1,
+                  "type": "integer"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Level Ordinal"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a school library item",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
+    "/api/v1/school/library/{item_id}/publish": {
+      "post": {
+        "description": "One-way private \u2192 school_public for reference books. Curricula are always public; public items cannot be made private.",
+        "operationId": "school_library_publish_reference",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish a private reference book to the school library",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
+    "/api/v1/school/library/{item_id}/retry-ingestion": {
+      "post": {
+        "description": "Re-queues ingestion for items in pending or failed status. Clears the stored failure reason before retrying.",
+        "operationId": "school_library_retry_ingestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Retry ingestion for a library item",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
+    "/api/v1/school/library/{item_id}/selection": {
+      "delete": {
+        "description": "Removes the caller's selection record. Public items remain available to others.",
+        "operationId": "school_library_remove_selection",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Remove your selection of a library item",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
+    "/api/v1/school/library/{item_id}/visibility": {
+      "patch": {
+        "description": "Allows private \u2192 school_public. Blocks school_public \u2192 private with 412 PRECONDITION_FAILED.",
+        "operationId": "school_library_set_reference_visibility",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "item_id",
+            "required": true,
+            "schema": {
+              "title": "Item Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "visibility",
+            "required": true,
+            "schema": {
+              "pattern": "^(private|school_public)$",
+              "title": "Visibility",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolLibraryItemRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update reference book visibility",
+        "tags": [
+          "school-library"
+        ]
+      }
+    },
     "/api/v1/smoketest/llm": {
       "post": {
         "description": "Run a sample LLM call.",
@@ -6182,6 +7237,130 @@
         "summary": "Archive a subject (status -> archived)",
         "tags": [
           "subjects"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/capacity": {
+      "patch": {
+        "operationId": "teacher_update_capacity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherCapacityUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TeacherCapacityUpdateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update teacher self-edit capacity (1\u201320 grade-subject assignments)",
+        "tags": [
+          "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/onboarding": {
+      "get": {
+        "operationId": "teacher_get_onboarding",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TeacherOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get school teacher onboarding state",
+        "tags": [
+          "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/profile": {
+      "put": {
+        "operationId": "teacher_complete_profile",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherProfileComplete"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TeacherOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete mandatory teacher profile on first login",
+        "tags": [
+          "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/subject-options": {
+      "get": {
+        "operationId": "teacher_list_subject_options",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_SubjectRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List active school subjects for profile completion",
+        "tags": [
+          "teacher-onboarding"
         ]
       }
     },

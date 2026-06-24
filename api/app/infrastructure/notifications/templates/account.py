@@ -221,6 +221,26 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "account.capacity_changed": {
+        "default": {
+            "en": {
+                "title": "Teaching capacity updated",
+                "body": "{teacher_name} changed capacity from {old_capacity} to {new_capacity} ({assignment_count} current assignments).",
+            },
+            "ur": {
+                "title": "تدریسی گنجائش اپ ڈیٹ",
+                "body": "{teacher_name} نے گنجائش {old_capacity} سے {new_capacity} کر دی ({assignment_count} موجودہ تفویضات)۔",
+            },
+            "sd": {
+                "title": "تدريسي گنجائش اپڊيٽ",
+                "body": "{teacher_name} گنجائش {old_capacity} کان {new_capacity} ڪئي ({assignment_count} موجوده تفويضون)۔",
+            },
+            "ps": {
+                "title": "د تدریس ظرفیت تازه شوه",
+                "body": "{teacher_name} ظرفیت له {old_capacity} څخه {new_capacity} ته بدله کړه ({assignment_count} اوسنۍ ګمارنې)۔",
+            },
+        }
+    },
     "account.capacity_override": {
         "default": {
             "en": {
@@ -252,6 +272,7 @@ TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
     "account.deactivated": frozenset({"email", "in_app"}),
     "account.bulk_import_done": frozenset({"in_app"}),
     "account.teacher_assigned_offering": frozenset({"in_app"}),
+    "account.capacity_changed": frozenset({"in_app"}),
     "account.capacity_override": frozenset({"in_app"}),
 }
 

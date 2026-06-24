@@ -875,6 +875,134 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/school/library/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List school library items visible to the caller
+         * @description Returns school-public items plus the caller's own private items and selections. Supports combinable filters by subject, grade context (shows this grade and lower), language, content type, and title search.
+         */
+        get: operations["school_library_list_items"];
+        put?: never;
+        /**
+         * Upload a PDF to the school content library
+         * @description Accepts a PDF via the school_library_content profile (100 MB, per-school dedup). Returns 202 with the library item in ingestion_status=pending.
+         */
+        post: operations["school_library_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/school/library/{item_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Get a school library item
+         * @description Returns library item metadata including ingestion status and topic_tree_jsonb for curricula. Respects school visibility rules.
+         */
+        get: operations["school_library_get_item"];
+        put?: never;
+        post?: never;
+        /**
+         * Soft-delete a school library item
+         * @description Marks the item deleted. Storage and Qdrant embeddings are retained so existing lecture citations remain valid.
+         */
+        delete: operations["school_library_delete_item"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/school/library/{item_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Publish a private reference book to the school library
+         * @description One-way private → school_public for reference books. Curricula are always public; public items cannot be made private.
+         */
+        post: operations["school_library_publish_reference"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/school/library/{item_id}/retry-ingestion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Retry ingestion for a library item
+         * @description Re-queues ingestion for items in pending or failed status. Clears the stored failure reason before retrying.
+         */
+        post: operations["school_library_retry_ingestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/school/library/{item_id}/selection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /**
+         * Remove your selection of a library item
+         * @description Removes the caller's selection record. Public items remain available to others.
+         */
+        delete: operations["school_library_remove_selection"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/school/library/{item_id}/visibility": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /**
+         * Update reference book visibility
+         * @description Allows private → school_public. Blocks school_public → private with 412 PRECONDITION_FAILED.
+         */
+        patch: operations["school_library_set_reference_visibility"];
+        trace?: never;
+    };
     "/api/v1/smoketest/llm": {
         parameters: {
             query?: never;
@@ -962,6 +1090,74 @@ export interface paths {
         put?: never;
         /** Archive a subject (status -> archived) */
         post: operations["subjects_archive"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/capacity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Update teacher self-edit capacity (1–20 grade-subject assignments) */
+        patch: operations["teacher_update_capacity"];
+        trace?: never;
+    };
+    "/api/v1/teachers/me/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get school teacher onboarding state */
+        get: operations["teacher_get_onboarding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Complete mandatory teacher profile on first login */
+        put: operations["teacher_complete_profile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/subject-options": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active school subjects for profile completion */
+        get: operations["teacher_list_subject_options"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1238,6 +1434,11 @@ export interface components {
         };
         /** Body_create_bulk_import_dry_run */
         Body_create_bulk_import_dry_run: {
+            /** File */
+            file: string;
+        };
+        /** Body_school_library_upload */
+        Body_school_library_upload: {
             /** File */
             file: string;
         };
@@ -1687,6 +1888,78 @@ export interface components {
             name: string;
         };
         /**
+         * SchoolLibraryItemRead
+         * @description School library item returned to callers.
+         */
+        SchoolLibraryItemRead: {
+            /** Content Type */
+            content_type: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string;
+            /** Grade Level Ordinal */
+            grade_level_ordinal: number | null;
+            /** Id */
+            id: string;
+            /** Ingestion Error */
+            ingestion_error?: string | null;
+            /** Ingestion Status */
+            ingestion_status: string;
+            /** Language */
+            language: string;
+            /** School Id */
+            school_id: string;
+            /** Sha256 */
+            sha256: string;
+            /** Storage Key */
+            storage_key: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Title */
+            title: string;
+            /** Topic Tree Jsonb */
+            topic_tree_jsonb?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Visibility */
+            visibility: string;
+        };
+        /**
+         * SchoolLibraryListResponse
+         * @description Paginated list of school library items visible to the caller.
+         */
+        SchoolLibraryListResponse: {
+            /** Items */
+            items: components["schemas"]["SchoolLibraryItemRead"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * SchoolLibraryUploadResponse
+         * @description Response after POST /school/library — 202 Accepted.
+         */
+        SchoolLibraryUploadResponse: {
+            item: components["schemas"]["SchoolLibraryItemRead"];
+            /**
+             * Message
+             * @default Upload accepted; ingestion will run in a later step.
+             */
+            message: string;
+            /** Selection Created */
+            selection_created: boolean;
+            /** Storage Deduplicated */
+            storage_deduplicated: boolean;
+        };
+        /**
          * SchoolUpdate
          * @description Payload for updating a School (all fields optional).
          */
@@ -1921,6 +2194,33 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[SchoolLibraryItemRead] */
+        SuccessEnvelope_SchoolLibraryItemRead_: {
+            data: components["schemas"]["SchoolLibraryItemRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SchoolLibraryListResponse] */
+        SuccessEnvelope_SchoolLibraryListResponse_: {
+            data: components["schemas"]["SchoolLibraryListResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SchoolLibraryUploadResponse] */
+        SuccessEnvelope_SchoolLibraryUploadResponse_: {
+            data: components["schemas"]["SchoolLibraryUploadResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[SectionRead] */
         SuccessEnvelope_SectionRead_: {
             data: components["schemas"]["SectionRead"];
@@ -1951,6 +2251,24 @@ export interface components {
         /** SuccessEnvelope[SyllabusTopicRead] */
         SuccessEnvelope_SyllabusTopicRead_: {
             data: components["schemas"]["SyllabusTopicRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[TeacherCapacityUpdateRead] */
+        SuccessEnvelope_TeacherCapacityUpdateRead_: {
+            data: components["schemas"]["TeacherCapacityUpdateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[TeacherOnboardingRead] */
+        SuccessEnvelope_TeacherOnboardingRead_: {
+            data: components["schemas"]["TeacherOnboardingRead"];
             /**
              * Message
              * @default ok
@@ -2152,6 +2470,98 @@ export interface components {
             syllabus_id: string;
             /** Title */
             title: string;
+        };
+        /**
+         * TeacherCapacityUpdate
+         * @description Teacher self-edit capacity payload (flow-3 §3.5 — range [1, 20]).
+         */
+        TeacherCapacityUpdate: {
+            /** Teacher Capacity */
+            teacher_capacity: number;
+        };
+        /**
+         * TeacherCapacityUpdateRead
+         * @description Result after updating teacher capacity.
+         */
+        TeacherCapacityUpdateRead: {
+            /** Assignment Count */
+            assignment_count: number;
+            /** Capacity Below Assignments */
+            capacity_below_assignments: boolean;
+            /** Teacher Capacity */
+            teacher_capacity: number;
+        };
+        /**
+         * TeacherOnboardingRead
+         * @description Onboarding gate state — ``ready_to_teach`` is derived, never stored.
+         */
+        TeacherOnboardingRead: {
+            /** Assignment Count */
+            assignment_count: number;
+            /** Can Create Content */
+            can_create_content: boolean;
+            /**
+             * Capacity Below Assignments
+             * @default false
+             */
+            capacity_below_assignments: boolean;
+            profile?: components["schemas"]["TeacherProfileRead"] | null;
+            /** Profile Complete */
+            profile_complete: boolean;
+            /** Ready To Teach */
+            ready_to_teach: boolean;
+            state: components["schemas"]["TeacherOnboardingState"];
+            /**
+             * Teacher Capacity
+             * @default 5
+             */
+            teacher_capacity: number;
+        };
+        /**
+         * TeacherOnboardingState
+         * @description Server-derived lifecycle state for school teachers (flow-3 §3.1).
+         * @enum {string}
+         */
+        TeacherOnboardingState: "profile_incomplete" | "profile_complete" | "ready_to_teach";
+        /**
+         * TeacherProfileComplete
+         * @description Mandatory first-login profile payload (flow-3 §6).
+         */
+        TeacherProfileComplete: {
+            /** Bio */
+            bio?: string | null;
+            /** Language Preference */
+            language_preference: string;
+            /** Name */
+            name: string;
+            /** Region District */
+            region_district?: string | null;
+            /** Region Province */
+            region_province: string;
+            /** Subject Ids */
+            subject_ids: string[];
+        };
+        /**
+         * TeacherProfileRead
+         * @description Teacher profile fields exposed to the caller.
+         */
+        TeacherProfileRead: {
+            /** Bio */
+            bio: string | null;
+            /** Language Preference */
+            language_preference: string;
+            /** Name */
+            name: string;
+            /** Profile Completed At */
+            profile_completed_at: string | null;
+            /** Region District */
+            region_district: string | null;
+            /** Region Province */
+            region_province: string;
+            /** Subject Ids */
+            subject_ids: string[];
+            /** User Id */
+            user_id: string;
         };
         /**
          * TosAcceptRequest
@@ -4468,6 +4878,273 @@ export interface operations {
             };
         };
     };
+    school_library_list_items: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                grade_level_ordinal?: number | null;
+                language?: string | null;
+                content_type?: string | null;
+                title?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryListResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_upload: {
+        parameters: {
+            query: {
+                title: string;
+                content_type?: string;
+                language?: string;
+                subject_id?: string | null;
+                grade_level_ordinal?: number | null;
+                visibility?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_school_library_upload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryUploadResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_get_item: {
+        parameters: {
+            query?: {
+                grade_level_ordinal?: number | null;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_delete_item: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_publish_reference: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_retry_ingestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_remove_selection: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_library_set_reference_visibility: {
+        parameters: {
+            query: {
+                visibility: string;
+            };
+            header?: never;
+            path: {
+                item_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     smoketest_llm: {
         parameters: {
             query?: never;
@@ -4700,6 +5377,112 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_update_capacity: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeacherCapacityUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_TeacherCapacityUpdateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_onboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_TeacherOnboardingRead_"];
+                };
+            };
+        };
+    };
+    teacher_complete_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeacherProfileComplete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_TeacherOnboardingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_subject_options: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_SubjectRead__"];
                 };
             };
         };

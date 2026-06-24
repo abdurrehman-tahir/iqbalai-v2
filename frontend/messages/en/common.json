@@ -222,7 +222,184 @@
         "action": "Action",
         "actor": "Actor (ID)",
         "target": "Target"
+      },
+      "flagged": "Flagged",
+      "actions": {
+        "school_library_item_uploaded": "Library item uploaded",
+        "school_library_item_published": "Reference published to school",
+        "school_library_item_deleted": "Library item deleted",
+        "school_library_item_ingested": "Library item ingested",
+        "school_library_item_selection_removed": "Library selection removed",
+        "capacity_updated": "Teacher capacity updated",
+        "capacity_override": "Capacity override (elevated)"
       }
+    }
+  },
+  "school_library": {
+    "curriculum": {
+      "upload": {
+        "page_title": "Upload curriculum",
+        "page_subtitle": "Add an official curriculum PDF for your school. Curricula are always shared school-wide.",
+        "public_notice": "Curricula are always visible to everyone in your school — there is no private option.",
+        "title_label": "Title",
+        "title_placeholder": "Punjab Physics Grade 9",
+        "subject_label": "Subject",
+        "subject_placeholder": "Select a subject",
+        "grade_label": "Grade",
+        "grade_placeholder": "Select a grade",
+        "language_label": "Language",
+        "language_en": "English",
+        "language_ur": "Urdu",
+        "language_sd": "Sindhi",
+        "language_ps": "Pashto",
+        "file_label": "Curriculum PDF",
+        "file_help": "PDF only, up to 100 MB.",
+        "file_selected": "Selected: {name}",
+        "submit": "Upload curriculum",
+        "submitting": "Uploading…",
+        "error_generic": "Upload failed. Check the file and try again.",
+        "file_read_error": "Could not read the PDF. Copy it to your Desktop, close any editor, then try again.",
+        "invalid_pdf": "This file is not a valid PDF. In Word or Google Docs use File → Save as PDF / Export as PDF — renaming .docx to .pdf does not work."
+      },
+      "detail": {
+        "subtitle": "School curriculum — shared with all teachers in your school.",
+        "error": "Could not load this curriculum item.",
+        "visibility_label": "Visibility",
+        "visibility_public": "School public",
+        "language_label": "Language",
+        "grade_label": "Grade level",
+        "grade_unknown": "Not tagged",
+        "content_type_label": "Type",
+        "content_type_curriculum": "Curriculum",
+        "topic_tree_title": "Topic tree",
+        "topic_tree_pending": "Topic tree will appear once ingestion completes.",
+        "topic_tree_empty": "No topics were extracted for this curriculum.",
+        "topic_tree_degraded": "Structured parsing could not build a topic tree. You can still use this curriculum, but topic picking may be freeform.",
+        "upload_another": "Upload another curriculum",
+        "status": {
+          "pending": "Pending",
+          "ingesting": "Ingesting",
+          "available": "Available",
+          "failed": "Failed"
+        }
+      }
+    },
+    "reference": {
+      "upload": {
+        "page_title": "Upload reference book",
+        "page_subtitle": "Add supplementary material to your library. Reference books are private by default — share with the school only when you choose.",
+        "privacy_toggle_label": "Make available to the school in the Content Library",
+        "privacy_toggle_help": "When unchecked, only you can see this reference book.",
+        "admin_public_notice": "Reference books uploaded by administrators are always shared with the whole school.",
+        "title_label": "Title",
+        "title_placeholder": "Physics past papers 2024",
+        "subject_label": "Subject (optional)",
+        "subject_placeholder": "Select a subject",
+        "grade_label": "Grade (optional)",
+        "grade_placeholder": "Select a grade",
+        "language_label": "Language",
+        "language_en": "English",
+        "language_ur": "Urdu",
+        "language_sd": "Sindhi",
+        "language_ps": "Pashto",
+        "file_label": "Reference PDF",
+        "file_help": "PDF only, up to 100 MB.",
+        "file_selected": "Selected: {name}",
+        "submit": "Upload reference book",
+        "submitting": "Uploading…",
+        "error_generic": "Upload failed. Check the file and try again.",
+        "file_read_error": "Could not read the PDF. Copy it to your Desktop, close any editor, then try again.",
+        "invalid_pdf": "This file is not a valid PDF. In Word or Google Docs use File → Save as PDF / Export as PDF — renaming .docx to .pdf does not work.",
+        "dedup_public_notice": "This material is already in the school library — using the existing public version."
+      },
+      "detail": {
+        "subtitle": "Reference book in your school content library.",
+        "error": "Could not load this reference book.",
+        "visibility_label": "Visibility",
+        "visibility_public": "School public",
+        "visibility_private": "Private — only you",
+        "language_label": "Language",
+        "grade_label": "Grade level",
+        "grade_unknown": "Not tagged",
+        "content_type_label": "Type",
+        "content_type_reference": "Reference book",
+        "unpublish_blocked": "Once shared with the school, content cannot be made private. You can remove your selection but the content stays available to others.",
+        "publish_section_title": "Share with your school",
+        "publish_section_help": "Publishing makes this reference book visible to other teachers in your school. This cannot be undone.",
+        "publish_button": "Make available to school",
+        "publishing": "Publishing…",
+        "publish_success": "This reference book is now available to your school.",
+        "publish_error": "Could not publish this reference book.",
+        "remove_selection_section_title": "Remove from your library",
+        "remove_selection_help": "Removes this item from your selections. The reference book stays available to others in the school.",
+        "remove_selection_button": "Remove my selection",
+        "removing_selection": "Removing…",
+        "remove_selection_error": "Could not remove your selection.",
+        "upload_another": "Upload another reference book",
+        "status": {
+          "pending": "Pending",
+          "ingesting": "Ingesting",
+          "available": "Available",
+          "failed": "Failed"
+        }
+      }
+    },
+    "browse": {
+      "page_title": "Content Library",
+      "page_subtitle": "Browse curricula and reference books shared with your school, plus your private uploads.",
+      "search_label": "Search by title",
+      "search_placeholder": "Physics notes",
+      "subject_label": "Subject",
+      "grade_label": "Grade context",
+      "grade_help": "Shows content for this grade and lower. Untagged reference books always appear.",
+      "language_label": "Language",
+      "content_type_label": "Content type",
+      "all_subjects": "All subjects",
+      "all_grades": "All grades",
+      "all_languages": "All languages",
+      "all_content_types": "All types",
+      "clear_filters": "Clear filters",
+      "column_title": "Title",
+      "column_type": "Type",
+      "column_visibility": "Visibility",
+      "column_status": "Status",
+      "column_language": "Language",
+      "grade_tag": "Grade {grade}",
+      "visibility_public": "School public",
+      "visibility_private": "Private",
+      "content_type_curriculum": "Curriculum",
+      "content_type_reference": "Reference",
+      "language_en": "English",
+      "language_ur": "Urdu",
+      "language_sd": "Sindhi",
+      "language_ps": "Pashto",
+      "empty_title": "No library items yet",
+      "empty_description": "Upload a curriculum or reference book, or adjust your filters.",
+      "error": "Could not load the content library.",
+      "status": {
+        "pending": "Pending",
+        "ingesting": "Ingesting",
+        "available": "Available",
+        "failed": "Failed"
+      }
+    },
+    "ingestion": {
+      "failed_title": "Ingestion failed",
+      "failed_unknown": "Ingestion failed for an unknown reason.",
+      "retry_button": "Retry ingestion",
+      "retrying": "Retrying…",
+      "retry_error": "Could not retry ingestion.",
+      "status_help": {
+        "pending": "This item is waiting to be ingested.",
+        "ingesting": "Ingestion is in progress — this page updates automatically."
+      }
+    },
+    "lifecycle": {
+      "delete_section_title": "Delete from library",
+      "delete_section_help": "Soft-deletes this item from the library. Stored content is retained for existing citations.",
+      "delete_button": "Delete item",
+      "deleting": "Deleting…",
+      "delete_error": "Could not delete this item."
     }
   },
   "teacher": {
@@ -230,11 +407,65 @@
     "logout": "Sign out",
     "nav": {
       "aria_label": "Teacher navigation",
-      "dashboard": "Dashboard"
+      "dashboard": "Dashboard",
+      "library": "Content Library",
+      "library_upload": "Upload reference book",
+      "curriculum_upload": "Upload curriculum"
+    },
+    "onboarding": {
+      "header_title": "Complete your profile",
+      "title": "Welcome — complete your teacher profile",
+      "subtitle": "Tell us about yourself before you can use the teacher dashboard. This step is required on first login.",
+      "name_label": "Full name",
+      "name_required": "Name is required",
+      "province_label": "Province / region",
+      "district_label": "District (optional)",
+      "language_label": "Preferred language",
+      "language_en": "English",
+      "language_ur": "Urdu",
+      "language_sd": "Sindhi",
+      "language_ps": "Pashto",
+      "subjects_label": "Subjects you teach",
+      "subjects_help": "Select all subjects that apply. Your Coordinator will assign Grade-Subject offerings separately.",
+      "subjects_required": "Select at least one subject",
+      "subjects_empty": "No subjects are configured for your school yet. Ask your Coordinator to add subjects first.",
+      "bio_label": "Brief bio (optional)",
+      "submit": "Save profile and continue",
+      "saving": "Saving…",
+      "load_error": "Could not load subject options",
+      "retry": "Retry",
+      "error_generic": "Could not save your profile. Please try again."
     },
     "dashboard": {
       "title": "Welcome, Teacher",
-      "subtitle": "Your teacher dashboard is ready. Onboarding and lecture tools arrive in upcoming milestones."
+      "subtitle": "Your teacher dashboard. Content library and lecture tools arrive in upcoming milestones.",
+      "awaiting_assignment": "Profile complete — waiting for your Coordinator to assign at least one Grade-Subject offering ({count} assigned so far).",
+      "ready_banner": "You are ready to teach. Your Coordinator has assigned you to at least one Grade-Subject offering."
+    },
+    "capacity": {
+      "title": "Teaching capacity",
+      "subtitle": "Set how many Grade-Subject offerings you can hold at once.",
+      "field_label": "Capacity",
+      "field_help": "Between {min} and {max}. You currently have {count} assignment(s).",
+      "below_assignments_warning": "Capacity {capacity} is below your {count} current assignment(s). This is allowed, but new assignments are blocked until you are under cap.",
+      "currently_below_assignments": "Your saved capacity is below your {count} current assignment(s).",
+      "admin_override_help": "If you need more assignments than your capacity allows, ask your School Admin — they can override when assigning offerings.",
+      "save": "Save capacity",
+      "saving": "Saving…",
+      "saved": "Capacity saved.",
+      "error_generic": "Could not save capacity. Please try again."
+    },
+    "library_upload": {
+      "title": "Upload reference material",
+      "subtitle": "Upload a PDF to your school content library. Files are deduplicated per school.",
+      "title_label": "Title",
+      "file_label": "PDF file",
+      "file_help": "PDF only, up to 100 MB.",
+      "submit": "Upload PDF",
+      "uploading": "Uploading…",
+      "success_new": "\"{title}\" uploaded and pending ingestion.",
+      "success_deduped": "\"{title}\" already exists in your school library — storage reused.",
+      "error_generic": "Upload failed. Check the file and try again."
     }
   },
   "coordinator": {
@@ -246,6 +477,7 @@
       "dashboard": "Dashboard",
       "subjects": "Subjects",
       "grades": "Grades",
+      "curriculum": "Curriculum",
       "bulk_import": "Bulk Import"
     },
     "dashboard": {

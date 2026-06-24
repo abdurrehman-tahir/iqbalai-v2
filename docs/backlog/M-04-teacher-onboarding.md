@@ -35,7 +35,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done (`ead1820`)
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.1 (School Teacher onboarding lifecycle #16)
@@ -77,7 +77,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done (`9204e29`)
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3 (curriculum), §3.4 (reference books, privacy model)
@@ -118,7 +118,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done (`b4d9fbb`)
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3, §3.4 (uploads), §5.4 (dedup nuances)
@@ -159,7 +159,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done (`1601892`)
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3, §3.4 (ingestion → AVAILABLE)
@@ -202,7 +202,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done (`aabaa80`)
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3 (structured parsing applies to curricula only #18)
@@ -242,7 +242,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done (`81ce9c1`)
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3 (curriculum lifecycle; always public to tier)
@@ -279,7 +279,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.4 (reference book lifecycle + privacy model)
@@ -316,7 +316,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §5.3 (library tag filtering)
@@ -350,7 +350,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3, §3.4 (INGESTING → AVAILABLE; failure paths)
@@ -383,7 +383,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.5 (capacity #11 — teacher-editable [1,20], admin override)
@@ -400,11 +400,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Teacher edits own capacity 5 → 8 within bounds → persists
-2. [ ] Capacity outside [1, 20] → rejected
-3. [ ] Lowering capacity below current assignment count → warns but allowed (no auto-unassign); flagged
-4. [ ] School Admin override above a teacher's cap still works (T-046) and is audit-logged
-5. [ ] Capacity change emits a notification + audit entry
+1. [x] Teacher edits own capacity 5 → 8 within bounds → persists
+2. [x] Capacity outside [1, 20] → rejected
+3. [x] Lowering capacity below current assignment count → warns but allowed (no auto-unassign); flagged
+4. [x] School Admin override above a teacher's cap still works (T-046) and is audit-logged
+5. [x] Capacity change emits a notification + audit entry
 
 ### Out of scope
 - Auto-rebalancing assignments when cap lowered (Phase 2)
@@ -419,7 +419,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3 (multiple curricula incl. cross-grade lower)
@@ -438,11 +438,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Grade 9 context shows Grade 9 + Grade 8 curricula; NOT Grade 10
-2. [ ] Grade 10 context shows Grade 10 + Grade 9 + lower
-3. [ ] Untagged (grade-agnostic) reference books are visible regardless
-4. [ ] Guard enforced server-side (not just UI hiding)
-5. [ ] Reuses the exact T-047 guard (no duplicate logic)
+1. [x] Grade 9 context shows Grade 9 + Grade 8 curricula; NOT Grade 10
+2. [x] Grade 10 context shows Grade 10 + Grade 9 + lower
+3. [x] Untagged (grade-agnostic) reference books are visible regardless
+4. [x] Guard enforced server-side (not just UI hiding)
+5. [x] Reuses the exact T-047 guard (no duplicate logic)
 
 ### Out of scope
 - RAG retrieval weighting at lecture-gen time (§7.21 — M-09+)
@@ -454,7 +454,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.3, §3.4 (SOFT_DELETED / REMOVED; existing lectures retain citations)
@@ -471,11 +471,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Soft-deleting a curriculum hides it from the library + new selection
-2. [ ] The underlying row + vectors are retained (citation integrity for future lectures)
-3. [ ] Removing a selection of a public item leaves the item for other selectors
-4. [ ] Soft-deleted items don't appear in browse/search/filter
-5. [ ] Audit entry written on delete
+1. [x] Soft-deleting a curriculum hides it from the library + new selection
+2. [x] The underlying row + vectors are retained (citation integrity for future lectures)
+3. [x] Removing a selection of a public item leaves the item for other selectors
+4. [x] Soft-deleted items don't appear in browse/search/filter
+5. [x] Audit entry written on delete
 
 ### Out of scope
 - Hard-delete / purge (Phase 2; prohibited-action territory per safety rules anyway)
@@ -487,7 +487,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §7 (`content_library` namespace)
@@ -504,11 +504,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Ingestion complete → uploader gets `content_library.item_available`
-2. [ ] Ingestion failed → uploader gets `content_library.item_failed`
-3. [ ] Reference book published to school → relevant teachers notified per tags
-4. [ ] NATS events published for library mutations
-5. [ ] Templates present in en/ur/sd/ps (no `__TODO__`)
+1. [x] Ingestion complete → uploader gets `content_library.item_available`
+2. [x] Ingestion failed → uploader gets `content_library.item_failed`
+3. [x] Reference book published to school → relevant teachers notified per tags
+4. [x] NATS events published for library mutations
+5. [x] Templates present in en/ur/sd/ps (no `__TODO__`)
 
 ### Out of scope
 - Student-facing library notifications (no students in M-04)
@@ -520,7 +520,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 3 / 6
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3 (audit-logged actions)
@@ -537,10 +537,10 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] Each library mutation writes an audit entry (actor, action, target, scope, time)
-2. [ ] private→public publish is logged
-3. [ ] Capacity override (School Admin) flagged/elevated
-4. [ ] Audit page shows M-04 actions, scope-restricted per role
+1. [x] Each library mutation writes an audit entry (actor, action, target, scope, time)
+2. [x] private→public publish is logged
+3. [x] Capacity override (School Admin) flagged/elevated
+4. [x] Audit page shows M-04 actions, scope-restricted per role
 
 ### Out of scope
 - Audit export (Phase 2)
@@ -552,7 +552,7 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 6
 **Milestone:** M-04
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` §3.1-§3.4 (full onboarding + library flow)
@@ -569,11 +569,11 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 
 ### Acceptance (demo script)
 
-1. [ ] E2E runs green in CI end-to-end
-2. [ ] Ingestion pipeline asserted (status → available, chunks in Qdrant, topic tree for curriculum)
-3. [ ] Privacy toggle + private→public one-way asserted
-4. [ ] Cross-grade filter (Grade 9 sees ≤9) asserted
-5. [ ] Idempotent / re-runnable with fresh tenants; uses a fixture PDF (no external download)
+1. [x] E2E runs green in CI end-to-end
+2. [x] Ingestion pipeline asserted (status → available, chunks in Qdrant, topic tree for curriculum)
+3. [x] Privacy toggle + private→public one-way asserted
+4. [x] Cross-grade filter (Grade 9 sees ≤9) asserted
+5. [x] Idempotent / re-runnable with fresh tenants; uses a fixture PDF (no external download)
 
 ### Out of scope
 - Frontend Playwright E2E (Phase 2 unless already established)

@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { BookOpen, GraduationCap, LayoutDashboard, LogOut, Upload } from "lucide-react";
+import { BookOpen, GraduationCap, LayoutDashboard, Library, LogOut, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
@@ -18,6 +18,7 @@ const NAV = [
   { key: "dashboard", href: "/coordinator", icon: LayoutDashboard },
   { key: "subjects", href: "/coordinator/subjects", icon: BookOpen },
   { key: "grades", href: "/coordinator/grades", icon: GraduationCap },
+  { key: "curriculum", href: "/coordinator/library/curriculum/upload", icon: Library },
   { key: "bulk_import", href: "/coordinator/bulk-import", icon: Upload },
 ] as const;
 
@@ -58,7 +59,9 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
                   href={href}
                   className={cn(
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium",
-                    pathname === href
+                    pathname === href ||
+                      (key === "curriculum" &&
+                        pathname.startsWith("/coordinator/library/curriculum"))
                       ? "bg-brand-50 text-brand-700"
                       : "text-gray-600 hover:bg-gray-100"
                   )}
