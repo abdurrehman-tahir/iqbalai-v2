@@ -193,7 +193,7 @@ docker compose exec frontend pnpm test                 # run frontend tests
 ```bash
 docker compose down -v        # stop + remove ALL volumes (data lost)
 docker compose up -d
-docker compose exec api alembic upgrade head
+docker compose exec api alembic upgrade heads
 ```
 
 Use this when migrations get into a weird state during development. Never run `down -v` on staging or production.
