@@ -1,0 +1,14 @@
+---
+description: Load phase-complete-review before opening a PR or when user asks if work is ready
+alwaysApply: true
+---
+
+# phase-complete-review skill
+
+Before **`gh pr create`**, opening a milestone PR, or when the user says **"ready to push"**, **"review my PR"**, **"is this ready"**, or **"check before I push"**:
+
+1. **Read and apply** `.cursor/skills/phase-complete-review/SKILL.md`.
+2. Run Pass 1 (section-reading audit) and Pass 2 (per-area checklists).
+3. Fix violations or list them explicitly before opening the PR.
+
+Load once per milestone at PR time — not on every ticket. Parity: `.claude/skills/phase-complete-review/SKILL.md`.

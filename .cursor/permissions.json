@@ -1,0 +1,25 @@
+{
+  "terminalAllowlist": [
+    "git:*",
+    "uv:*",
+    "pnpm:*",
+    "npx:*",
+    "docker:*",
+    "docker compose:*",
+    "python:*",
+    "python3:*",
+    "grep:*",
+    "find:*",
+    "gh:*",
+    "echo:*",
+    "tee:*",
+    "pre-commit:*",
+    "alembic:*",
+    "ruff:*",
+    "mypy:*"
+  ],
+  "mcpAllowlist": [
+    "user-github:*",
+    "user-semble:*"
+  ]
+}

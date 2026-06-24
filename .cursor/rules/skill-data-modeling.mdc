@@ -1,0 +1,13 @@
+---
+description: Load data-modeling skill when creating or modifying SQLAlchemy models
+globs: "**/models.py,api/app/db/base.py"
+alwaysApply: false
+---
+
+# data-modeling skill
+
+**Read and apply** `.cursor/skills/data-modeling/SKILL.md` before writing or changing this file.
+
+Walk Rules 1–9 in the skill. The model is source of truth — then `alembic revision --autogenerate`, review, one concern per migration (ARCH §4.12).
+
+Do **not** use this skill for repository/service/router code, Pydantic `schemas.py`, migration files, or tests.

@@ -1,0 +1,39 @@
+{
+  "version": 1,
+  "permissions": {
+    "allow": [
+      "Shell(git)",
+      "Shell(uv)",
+      "Shell(pnpm)",
+      "Shell(npx)",
+      "Shell(docker)",
+      "Shell(python)",
+      "Shell(python3)",
+      "Shell(grep)",
+      "Shell(find)",
+      "Shell(gh)",
+      "Shell(echo)",
+      "Shell(tee)",
+      "Shell(pre-commit)",
+      "Shell(alembic)",
+      "Shell(ruff)",
+      "Shell(mypy)",
+      "Read(docs/**)",
+      "Read(.cursor/**)",
+      "Read(api/**)",
+      "Read(frontend/**)",
+      "Read(scripts/**)",
+      "Read(/tmp/**)",
+      "Write(api/**)",
+      "Write(frontend/**)",
+      "Write(docs/backlog/**)",
+      "Write(.cursor/session-state.md)",
+      "Mcp(user-github:*)",
+      "Mcp(user-semble:*)"
+    ],
+    "deny": [
+      "Read(.env*)",
+      "Write(.env*)"
+    ]
+  }
+}

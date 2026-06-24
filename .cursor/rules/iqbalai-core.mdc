@@ -1,0 +1,25 @@
+---
+description: IqbalAI v2 core project rules — read .cursor/AGENTS.md at session start
+alwaysApply: true
+---
+
+# IqbalAI v2 (Cursor)
+
+You are working on **IqbalAI v2**. Follow the full project rules in `.cursor/AGENTS.md` (the Cursor equivalent of `.claude/CLAUDE.md` for Claude Code users). Both toolchains coexist — do not remove or merge them.
+
+**Session start:** Read `docs/ARCHITECTURE.md` §0 only (not the whole file).
+
+**Sub-agents:** `.cursor/rules/ticket-loader.mdc` — mandatory Task subagent before any `Implement T-XXX` (see `.cursor/agents/ticket-loader.md`).
+
+**Skills** (rules auto-load the skill file when triggered):
+| Rule | Skill |
+|---|---|
+| `skill-stack-enforcer.mdc` | `.cursor/skills/stack-enforcer/SKILL.md` |
+| `skill-frontend-master.mdc` | `.cursor/skills/frontend-master/SKILL.md` |
+| `skill-data-modeling.mdc` | `.cursor/skills/data-modeling/SKILL.md` |
+| `skill-phase-complete-review.mdc` | `.cursor/skills/phase-complete-review/SKILL.md` |
+
+**Permissions (parity with `.claude/settings.local.json`):** `.cursor/permissions.json` (IDE terminal/MCP allowlist) + `.cursor/cli.json` (CLI agent). Enable Run Mode / Allowlist in Cursor Settings for the allowlist to apply.
+
+**Session recovery:** After compaction, read `.cursor/session-state.md` first.
+

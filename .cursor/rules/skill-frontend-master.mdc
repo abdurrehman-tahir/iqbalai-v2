@@ -1,0 +1,13 @@
+---
+description: Load frontend-master skill for forms, pages, data-fetching, and UI components
+globs: frontend/src/**/*.tsx
+alwaysApply: false
+---
+
+# frontend-master skill
+
+When editing `.tsx` under `frontend/src/` for a **form, data-fetching component, new page/screen, accessibility-sensitive interaction, or frontend dependency** — **read and apply** `.cursor/skills/frontend-master/SKILL.md` before writing code.
+
+**Skip** for trivial label/copy-only edits, prop renames, or test-only changes.
+
+Mandatory outcomes from the skill: four UI states, next-intl keys (no hardcoded English), shadcn + Tailwind tokens, Vitest+RTL tests, Playwright `@smoke` for new pages, generated API types (never hand-mirrored).

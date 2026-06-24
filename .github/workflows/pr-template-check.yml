@@ -21,10 +21,16 @@ jobs:
             const body = context.payload.pull_request.body || "";
 
             // Required headers with non-empty content under them.
+            // "Milestone & feature reference" replaced legacy "Phase & feature reference"
+            // (see PULL_REQUEST_TEMPLATE.md + BRANCHING.md milestone rename, 2026-05-29).
             const requiredSections = [
               { name: "Summary", header: "## Summary" },
               { name: "Type", header: "## Type" },
-              { name: "Phase & feature reference", header: "## Phase & feature reference" },
+              {
+                name: "Milestone & feature reference",
+                header: "## Milestone & feature reference",
+                altHeader: "## Phase & feature reference",
+              },
               { name: "Stack compliance", header: "## Stack compliance" },
               { name: "Testing", header: "## Testing" },
               { name: "Open questions for @abdurrehman", header: "## Open questions for @abdurrehman" },
@@ -34,13 +40,18 @@ jobs:
             const empty = [];
 
             for (const section of requiredSections) {
-              const idx = body.indexOf(section.header);
+              let idx = body.indexOf(section.header);
+              if (idx === -1 && section.altHeader) {
+                idx = body.indexOf(section.altHeader);
+              }
               if (idx === -1) {
                 missing.push(section.name);
                 continue;
               }
+              const matchedHeader =
+                body.slice(idx).startsWith(section.header) ? section.header : section.altHeader;
               // Find next ## header or end of body
-              const rest = body.slice(idx + section.header.length);
+              const rest = body.slice(idx + matchedHeader.length);
               const nextHeader = rest.search(/\n##\s/);
               const content = (nextHeader === -1 ? rest : rest.slice(0, nextHeader))
                 .replace(/<!--[\s\S]*?-->/g, "")
