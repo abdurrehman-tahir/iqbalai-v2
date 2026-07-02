@@ -149,7 +149,8 @@ test.describe("Coordinator curriculum upload @smoke", () => {
     await page.getByRole("button", { name: /Upload curriculum/i }).click();
 
     await expect(page).toHaveURL(/\/coordinator\/library\/curriculum\/curriculum-item-1$/);
-    await expect(page.getByRole("status")).toHaveText(/Available|Ingesting/i, {
+    // Badge uses role="status"; Next.js dev overlay also exposes role="status" — target the badge only.
+    await expect(page.getByText(/^Available$|^Ingesting$/i)).toBeVisible({
       timeout: 15_000,
     });
     await expect(page.getByText("Mechanics")).toBeVisible({ timeout: 15_000 });

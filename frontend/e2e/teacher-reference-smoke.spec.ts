@@ -176,15 +176,18 @@ test.describe("Teacher reference upload @smoke", () => {
   test("uploads public reference when privacy toggle is checked", async ({ page }) => {
     await page.goto(`${BASE_URL}/teacher/library/reference/upload`);
 
+    await expect(page.getByRole("heading", { name: /Upload reference book/i })).toBeVisible();
     await page.getByLabel(/^Title/i).fill("Shared Notes");
-    await page.getByLabel(/Make available to the school/i).check();
     await page.getByLabel(/Reference PDF/i).setInputFiles({
       name: "notes.pdf",
       mimeType: "application/pdf",
       buffer: Buffer.from("%PDF-1.4 test"),
     });
+    await page.getByRole("checkbox", { name: /Make available to the school/i }).check();
 
-    await page.getByRole("button", { name: /Upload reference book/i }).click();
+    const submit = page.getByRole("button", { name: /Upload reference book/i });
+    await expect(submit).toBeEnabled({ timeout: 15_000 });
+    await submit.click();
 
     await expect(page).toHaveURL(/\/teacher\/library\/reference\/reference-item-1$/);
     await expect(page.getByText("School public")).toBeVisible({ timeout: 15_000 });

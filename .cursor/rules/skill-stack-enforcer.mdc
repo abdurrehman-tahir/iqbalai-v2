@@ -1,0 +1,15 @@
+---
+description: Load stack-enforcer skill for backend imports, deps, and infrastructure changes
+globs: api/pyproject.toml,api/app/infrastructure/**/*
+alwaysApply: false
+---
+
+# stack-enforcer skill
+
+**Read and apply** `.cursor/skills/stack-enforcer/SKILL.md` before writing or committing this change.
+
+Also read it when editing any `api/**/*.py` file and **adding or modifying a non-stdlib import**, or when the user mentions a third-party library (`openai`, `redis`, `langchain`, etc.).
+
+Then read `docs/STACK_LOCK.md` §9 (forbidden imports) if not already in context.
+
+Skill guidance wins over generic rules when both apply. Pre-commit hooks enforce regardless.
