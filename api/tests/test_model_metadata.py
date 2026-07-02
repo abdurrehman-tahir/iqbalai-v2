@@ -23,12 +23,19 @@ from app.db.base import AuditMixin, Base, SoftDeleteMixin
 # Importing the model modules registers their tables on Base.metadata. The alembic
 # env only imports Base, so the test is the place that pulls the full model set in.
 from app.features.audit import models as audit_models  # noqa: F401
+from app.features.exam_frameworks import models as exam_framework_models  # noqa: F401
 from app.features.exam_syllabi import models as exam_models  # noqa: F401
 from app.features.files import models as files_models  # noqa: F401
+from app.features.independent_student_onboarding import (
+    models as independent_student_models,  # noqa: F401
+)
+from app.features.independent_teacher_onboarding import (
+    models as independent_teacher_models,  # noqa: F401
+)
 from app.features.independent_users import models as independent_user_models  # noqa: F401
-from app.features.independent_teacher_onboarding import models as independent_teacher_models  # noqa: F401
-from app.features.independent_student_onboarding import models as independent_student_models  # noqa: F401
-from app.features.library import independent_personal_models as independent_personal_models  # noqa: F401
+from app.features.library import (
+    independent_personal_models as independent_personal_models,  # noqa: F401
+)
 from app.features.library import models as library_models  # noqa: F401
 from app.features.library import platform_read_models as platform_read_models  # noqa: F401
 from app.features.notifications import models as notif_models  # noqa: F401

@@ -1,16 +1,18 @@
 # Session state (live — Claude Code updates this)
 
-**Current milestone:** M-03 — Subjects + Grade/Section/Subject offerings (PR opened → staging)
-**Branch:** milestone/M-03-grade-section-subject
-**Current ticket:** T-052 — Milestone PR + demo — DONE (PR opened)
+**Current milestone:** M-07 — Exam Framework Engine
+**Branch:** milestone/M-07-exam-framework (created off milestone/M-06-student-onboarding)
+**Current ticket:** T-091 — Exam Framework data model (in progress)
+
+## Plan
+- Branch made off M-06. When M-06 merges to staging, REBASE this branch onto staging (deferred — external event).
+- Implement T-091..T-100 one ticket per commit.
 
 ## Done this milestone
-- T-041 through T-051 — all implemented and committed on branch.
-- Post-demo fixes: grades/offerings actor lookup by `authentik_id`; `school_0027` aligns `users.role` column with ORM enum; assign-modal loading/error/empty states + en i18n keys.
+- (none committed yet)
 
-## Next milestone
-- M-04 — Teacher onboarding (see `docs/backlog/M-04-teacher-onboarding.md`)
-
-## Carry-forward flags for the M-03 PR
-- Non-en `coordinator` i18n namespace missing (ur/sd/ps) — inherited from M-02, not introduced by M-03.
-- Frontend Playwright E2E for grade-detail offerings assign flow not added (T-051 backend harness only).
+## Notes / gotchas
+- Migrations hand-authored in established style (env.py only imports Base; no autogenerate registry).
+- Platform-shared tables live in `school` schema; independent schema gets read-only cross-schema views (§3.16/§4.21).
+- Register new model modules' imports in tests/test_model_metadata.py for the offline FK/enum lint.
+- School head: school_0041. Independent head: independent_0006.
