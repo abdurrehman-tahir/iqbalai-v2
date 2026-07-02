@@ -308,6 +308,10 @@ export interface IndependentStudentOnboardingRead {
   } | null;
 }
 
+export interface IndependentStudentProfileComplete {
+  exam_date: string;
+}
+
 export const independentStudentOnboardingApi = {
   listExamFrameworks: () =>
     request<ExamFrameworkOption[]>("/independent/students/me/exam-frameworks"),
@@ -317,7 +321,7 @@ export const independentStudentOnboardingApi = {
       {},
       token,
     ),
-  completeProfile: (token: string, data: { exam_date: string }) =>
+  completeProfile: (token: string, data: IndependentStudentProfileComplete) =>
     request<IndependentStudentOnboardingRead>(
       "/independent/students/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
