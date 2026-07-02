@@ -21,6 +21,9 @@ vi.mock("@/lib/api", () => ({
     }),
     signup: (...args: unknown[]) => signupMock(...args),
   },
+  independentStudentOnboardingApi: {
+    listExamFrameworks: vi.fn().mockResolvedValue([]),
+  },
 }));
 
 vi.mock("@/lib/auth", () => ({
