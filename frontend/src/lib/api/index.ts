@@ -47,6 +47,14 @@ import type {
   TosVersion,
   TosVersionCreate,
   TosVersionRead,
+  IndependentSignupCreate,
+  IndependentSignupInfo,
+  IndependentSignupResponse,
+  IndependentTeacherOnboardingRead,
+  IndependentTeacherProfileComplete,
+  IndependentStudentOnboardingRead,
+  IndependentStudentProfileComplete,
+  ExamFrameworkOption,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -217,28 +225,11 @@ export const authApi = {
 
 // ── Independent signup ────────────────────────────────────────────────────────
 
-export interface IndependentSignupInfo {
-  roles: string[];
-  languages: string[];
-}
-
-export interface IndependentSignupCreate {
-  email: string;
-  password: string;
-  display_name: string;
-  role: "independent_teacher" | "independent_student";
-  language_preference: "en" | "ur" | "sd" | "ps";
-  grade_level?: number;
-  exam_syllabus_id?: string;
-}
-
-export interface IndependentSignupResponse {
-  user_id: string;
-  email: string;
-  role: string;
-  tenant_type: string;
-  message: string;
-}
+export type {
+  IndependentSignupInfo,
+  IndependentSignupCreate,
+  IndependentSignupResponse,
+} from "./types";
 
 export const independentSignupApi = {
   getInfo: () => request<IndependentSignupInfo>("/independent/signup"),
@@ -251,23 +242,7 @@ export const independentSignupApi = {
 
 // ── Independent teacher onboarding ────────────────────────────────────────────
 
-export interface IndependentTeacherOnboardingRead {
-  state: "profile_incomplete" | "ready_to_use";
-  profile_complete: boolean;
-  ready_to_use: boolean;
-  can_create_content: boolean;
-  profile: {
-    user_id: string;
-    name: string;
-    language_preference: string;
-    profile_completed_at: string | null;
-  } | null;
-}
-
-export interface IndependentTeacherProfileComplete {
-  name: string;
-  language_preference: "en" | "ur" | "sd" | "ps";
-}
+export type { IndependentTeacherOnboardingRead, IndependentTeacherProfileComplete } from "./types";
 
 export const independentTeacherOnboardingApi = {
   getOnboarding: (token: string) =>
@@ -284,33 +259,11 @@ export const independentTeacherOnboardingApi = {
     ),
 };
 
-export interface ExamFrameworkOption {
-  id: string;
-  name: string;
-  exam_board: string;
-  language: string;
-}
-
-export interface IndependentStudentOnboardingRead {
-  state: "profile_incomplete" | "ready_to_study";
-  profile_complete: boolean;
-  ready_to_study: boolean;
-  self_study_only: boolean;
-  profile: {
-    user_id: string;
-    name: string;
-    language_preference: string;
-    grade_level: number;
-    exam_syllabus_id: string;
-    exam_date: string | null;
-    diagnostic_available: boolean;
-    diagnostic_deferred: boolean;
-  } | null;
-}
-
-export interface IndependentStudentProfileComplete {
-  exam_date: string;
-}
+export type {
+  ExamFrameworkOption,
+  IndependentStudentOnboardingRead,
+  IndependentStudentProfileComplete,
+} from "./types";
 
 export const independentStudentOnboardingApi = {
   listExamFrameworks: () =>

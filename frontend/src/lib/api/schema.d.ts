@@ -781,6 +781,147 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/independent/personal-content/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the caller's private pool items */
+        get: operations["independent_personal_content_list"];
+        put?: never;
+        /**
+         * Upload a PDF to the independent private pool
+         * @description Accepts a PDF via the independent_personal_content profile (100 MB, per-user dedup). Content is always private to the uploading user.
+         */
+        post: operations["independent_personal_content_upload"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/personal-content/{content_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a private pool item owned by the caller */
+        get: operations["independent_personal_content_get"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Independent signup form metadata */
+        get: operations["get_independent_signup_info"];
+        put?: never;
+        /** Self-signup for independent teachers and students */
+        post: operations["create_independent_signup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/students/me/exam-frameworks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List exam frameworks available for independent student signup */
+        get: operations["list_independent_exam_frameworks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/students/me/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get independent student onboarding state */
+        get: operations["independent_student_get_onboarding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/students/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set exam date on first login for independent students */
+        put: operations["independent_student_complete_profile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/onboarding": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get independent teacher onboarding state */
+        get: operations["independent_teacher_get_onboarding"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/profile": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Complete mandatory independent teacher profile on first login */
+        put: operations["independent_teacher_complete_profile"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications/": {
         parameters: {
             query?: never;
@@ -815,6 +956,43 @@ export interface paths {
          * @description The authenticated user may only mark their own notifications as read.
          */
         post: operations["mark_notification_read"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/library/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * List platform library books (read-only)
+         * @description Returns platform-tier reference books visible to all authenticated tenants. School and independent users share read-only access; only Platform Admin can upload.
+         */
+        get: operations["platform_library_list_books"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/platform/library/{book_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a platform library book (read-only) */
+        get: operations["platform_library_get_book"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1437,6 +1615,11 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_independent_personal_content_upload */
+        Body_independent_personal_content_upload: {
+            /** File */
+            file: string;
+        };
         /** Body_school_library_upload */
         Body_school_library_upload: {
             /** File */
@@ -1533,6 +1716,20 @@ export interface components {
             email: string;
             /** Id */
             id: string;
+        };
+        /**
+         * ExamFrameworkOption
+         * @description Public exam framework option — backed by exam syllabi until M-07.
+         */
+        ExamFrameworkOption: {
+            /** Exam Board */
+            exam_board: string;
+            /** Id */
+            id: string;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
         };
         /**
          * ExamSyllabusCreate
@@ -1643,6 +1840,204 @@ export interface components {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
         };
+        /**
+         * IndependentPersonalContentRead
+         * @description Private pool item returned to the owning independent user.
+         */
+        IndependentPersonalContentRead: {
+            /** Content Type */
+            content_type: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** File Key */
+            file_key: string;
+            /** File Sha256 */
+            file_sha256: string;
+            /** Id */
+            id: string;
+            /** Ingestion Error */
+            ingestion_error?: string | null;
+            /** Status */
+            status: string;
+            /** Structured Parsing Status */
+            structured_parsing_status?: string | null;
+            /** Title */
+            title: string;
+            /** Topic Tree Jsonb */
+            topic_tree_jsonb?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** User Id */
+            user_id: string;
+            /** Vector Collection */
+            vector_collection: string;
+        };
+        /**
+         * IndependentPersonalListResponse
+         * @description Paginated list of the caller's private pool items.
+         */
+        IndependentPersonalListResponse: {
+            /** Items */
+            items: components["schemas"]["IndependentPersonalContentRead"][];
+            /** Total */
+            total: number;
+        };
+        /**
+         * IndependentPersonalUploadResponse
+         * @description Response after POST /independent/personal-content — 202 Accepted.
+         */
+        IndependentPersonalUploadResponse: {
+            item: components["schemas"]["IndependentPersonalContentRead"];
+            /**
+             * Message
+             * @default Upload accepted; ingestion queued on the ingestion worker.
+             */
+            message: string;
+            /** Storage Deduplicated */
+            storage_deduplicated: boolean;
+        };
+        /** IndependentSignupCreate */
+        IndependentSignupCreate: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /** Exam Syllabus Id */
+            exam_syllabus_id?: string | null;
+            /** Grade Level */
+            grade_level?: number | null;
+            /**
+             * Language Preference
+             * @default en
+             */
+            language_preference: string;
+            /** Password */
+            password: string;
+            role: components["schemas"]["IndependentUserRole"];
+        };
+        /** IndependentSignupInfo */
+        IndependentSignupInfo: {
+            /** Languages */
+            languages: string[];
+            /** Roles */
+            roles: string[];
+        };
+        /** IndependentSignupResponse */
+        IndependentSignupResponse: {
+            /** Email */
+            email: string;
+            /** Message */
+            message: string;
+            /** Role */
+            role: string;
+            /** Tenant Type */
+            tenant_type: string;
+            /** User Id */
+            user_id: string;
+        };
+        /** IndependentStudentOnboardingRead */
+        IndependentStudentOnboardingRead: {
+            profile?: components["schemas"]["IndependentStudentProfileRead"] | null;
+            /** Profile Complete */
+            profile_complete: boolean;
+            /** Ready To Study */
+            ready_to_study: boolean;
+            /**
+             * Self Study Only
+             * @default true
+             */
+            self_study_only: boolean;
+            state: components["schemas"]["IndependentStudentOnboardingState"];
+        };
+        /**
+         * IndependentStudentOnboardingState
+         * @enum {string}
+         */
+        IndependentStudentOnboardingState: "profile_incomplete" | "ready_to_study";
+        /** IndependentStudentProfileComplete */
+        IndependentStudentProfileComplete: {
+            /**
+             * Exam Date
+             * Format: date
+             * @description Target exam date (required on first login)
+             */
+            exam_date: string;
+        };
+        /** IndependentStudentProfileRead */
+        IndependentStudentProfileRead: {
+            /**
+             * Diagnostic Available
+             * @default true
+             */
+            diagnostic_available: boolean;
+            /**
+             * Diagnostic Deferred
+             * @default true
+             */
+            diagnostic_deferred: boolean;
+            /** Exam Date */
+            exam_date: string | null;
+            /** Exam Syllabus Id */
+            exam_syllabus_id: string;
+            /** Grade Level */
+            grade_level: number;
+            /** Language Preference */
+            language_preference: string;
+            /** Name */
+            name: string;
+            /** Profile Completed At */
+            profile_completed_at: string | null;
+            /** User Id */
+            user_id: string;
+        };
+        /** IndependentTeacherOnboardingRead */
+        IndependentTeacherOnboardingRead: {
+            /** Can Create Content */
+            can_create_content: boolean;
+            profile?: components["schemas"]["IndependentTeacherProfileRead"] | null;
+            /** Profile Complete */
+            profile_complete: boolean;
+            /** Ready To Use */
+            ready_to_use: boolean;
+            state: components["schemas"]["IndependentTeacherOnboardingState"];
+        };
+        /**
+         * IndependentTeacherOnboardingState
+         * @enum {string}
+         */
+        IndependentTeacherOnboardingState: "profile_incomplete" | "ready_to_use";
+        /** IndependentTeacherProfileComplete */
+        IndependentTeacherProfileComplete: {
+            /** Language Preference */
+            language_preference: string;
+            /** Name */
+            name: string;
+        };
+        /** IndependentTeacherProfileRead */
+        IndependentTeacherProfileRead: {
+            /** Language Preference */
+            language_preference: string;
+            /** Name */
+            name: string;
+            /** Profile Completed At */
+            profile_completed_at: string | null;
+            /** User Id */
+            user_id: string;
+        };
+        /**
+         * IndependentUserRole
+         * @description Roles for self-signup independent users.
+         * @enum {string}
+         */
+        IndependentUserRole: "independent_teacher" | "independent_student";
         /**
          * LibraryBookListResponse
          * @description Paginated list of platform reference books.
@@ -1859,8 +2254,11 @@ export interface components {
          * @description Response from POST /api/v1/auth/post-login.
          */
         PostLoginResponse: {
-            /** @default active */
-            account_status: components["schemas"]["UserAccountStatus"];
+            /**
+             * Account Status
+             * @default active
+             */
+            account_status: string;
             /** Current Tos Version Id */
             current_tos_version_id: string | null;
             /** District Id */
@@ -1869,9 +2267,15 @@ export interface components {
             email: string;
             /** Is First Login */
             is_first_login: boolean;
-            role: components["schemas"]["UserRole"];
+            /** Role */
+            role: string;
             /** School Id */
             school_id?: string | null;
+            /**
+             * Tenant Type
+             * @default school
+             */
+            tenant_type: string;
             /** Tos Acceptance Required */
             tos_acceptance_required: boolean;
             /** User Id */
@@ -2167,6 +2571,87 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[IndependentPersonalContentRead] */
+        SuccessEnvelope_IndependentPersonalContentRead_: {
+            data: components["schemas"]["IndependentPersonalContentRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[IndependentPersonalListResponse] */
+        SuccessEnvelope_IndependentPersonalListResponse_: {
+            data: components["schemas"]["IndependentPersonalListResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[IndependentPersonalUploadResponse] */
+        SuccessEnvelope_IndependentPersonalUploadResponse_: {
+            data: components["schemas"]["IndependentPersonalUploadResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[IndependentSignupInfo] */
+        SuccessEnvelope_IndependentSignupInfo_: {
+            data: components["schemas"]["IndependentSignupInfo"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[IndependentSignupResponse] */
+        SuccessEnvelope_IndependentSignupResponse_: {
+            data: components["schemas"]["IndependentSignupResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[IndependentStudentOnboardingRead] */
+        SuccessEnvelope_IndependentStudentOnboardingRead_: {
+            data: components["schemas"]["IndependentStudentOnboardingRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[IndependentTeacherOnboardingRead] */
+        SuccessEnvelope_IndependentTeacherOnboardingRead_: {
+            data: components["schemas"]["IndependentTeacherOnboardingRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[LibraryBookListResponse] */
+        SuccessEnvelope_LibraryBookListResponse_: {
+            data: components["schemas"]["LibraryBookListResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[LibraryBookRead] */
+        SuccessEnvelope_LibraryBookRead_: {
+            data: components["schemas"]["LibraryBookRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[OfferingRead] */
         SuccessEnvelope_OfferingRead_: {
             data: components["schemas"]["OfferingRead"];
@@ -2335,6 +2820,16 @@ export interface components {
         SuccessEnvelope_list_EligibleTeacherRead__: {
             /** Data */
             data: components["schemas"]["EligibleTeacherRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[ExamFrameworkOption]] */
+        SuccessEnvelope_list_ExamFrameworkOption__: {
+            /** Data */
+            data: components["schemas"]["ExamFrameworkOption"][];
             /**
              * Message
              * @default ok
@@ -4740,6 +5235,287 @@ export interface operations {
             };
         };
     };
+    independent_personal_content_list: {
+        parameters: {
+            query?: {
+                content_type?: string | null;
+                title?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentPersonalListResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_personal_content_upload: {
+        parameters: {
+            query: {
+                title: string;
+                content_type?: string;
+                language?: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_independent_personal_content_upload"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentPersonalUploadResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_personal_content_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                content_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentPersonalContentRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_independent_signup_info: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentSignupInfo_"];
+                };
+            };
+        };
+    };
+    create_independent_signup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IndependentSignupCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentSignupResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_independent_exam_frameworks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_ExamFrameworkOption__"];
+                };
+            };
+        };
+    };
+    independent_student_get_onboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentStudentOnboardingRead_"];
+                };
+            };
+        };
+    };
+    independent_student_complete_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IndependentStudentProfileComplete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentStudentOnboardingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_get_onboarding: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentTeacherOnboardingRead_"];
+                };
+            };
+        };
+    };
+    independent_teacher_complete_profile: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IndependentTeacherProfileComplete"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentTeacherOnboardingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_notifications: {
         parameters: {
             query?: {
@@ -4790,6 +5566,73 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["NotificationRead"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    platform_library_list_books: {
+        parameters: {
+            query?: {
+                content_type?: string | null;
+                language?: string | null;
+                subject_tag?: string | null;
+                title?: string | null;
+                limit?: number;
+                offset?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LibraryBookListResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    platform_library_get_book: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                book_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LibraryBookRead_"];
                 };
             };
             /** @description Validation Error */
