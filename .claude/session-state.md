@@ -10,7 +10,7 @@
 
 ## Done this milestone
 - T-091 — data model (3 tables + dual-head views) — commit 864b378
-- T-092 — Framework definition CRUD (Platform Admin, DRAFT) — commit pending
+- T-092 — Framework definition CRUD (Platform Admin, DRAFT) — commit 6986b64
 
 ## Notes / gotchas
 - Migrations hand-authored in established style (env.py only imports Base; no autogenerate registry).
