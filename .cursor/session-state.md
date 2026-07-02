@@ -1,16 +1,15 @@
 # Session state (live — Cursor agent updates this)
 
-**Current milestone:** M-03 — Subjects + Grade/Section/Subject offerings (PR opened → staging)
-**Branch:** milestone/M-03-grade-section-subject
-**Current ticket:** T-052 — Milestone PR + demo — DONE (PR opened)
+**Current milestone:** M-05 — Independent Users (PR #19 opened → staging)
+**Branch:** milestone/M-05-independent-users
+**Current ticket:** T-076 — Milestone PR + demo — DONE (PR #19 opened)
 
 ## Done this milestone
-- T-041 through T-051 — all implemented and committed on branch.
-- Post-demo fixes: grades/offerings actor lookup by `authentik_id`; `school_0027` aligns `users.role` column with ORM enum; assign-modal loading/error/empty states + en i18n keys.
+- T-069 through T-076 — all implemented; backlog ledger + ROADMAP updated; PR opened.
 
 ## Next milestone
-- M-04 — Teacher onboarding (see `docs/backlog/M-04-teacher-onboarding.md`)
+- M-06 — Student Onboarding (see `docs/backlog/M-06-student-onboarding.md`)
 
-## Carry-forward flags for the M-03 PR
-- Non-en `coordinator` i18n namespace missing (ur/sd/ps) — inherited from M-02, not introduced by M-03.
-- Frontend Playwright E2E for grade-detail offerings assign flow not added (T-051 backend harness only).
+## Carry-forward flags for the M-05 PR
+- i18n parity: `independent_*` keys in `en` only (ur/sd/ps backfill deferred).
+- Cross-tenant HTTP 404 integration test for independent endpoints — advisory follow-up.
