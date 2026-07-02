@@ -566,6 +566,171 @@
         "title": "BulkImportRowResult",
         "type": "object"
       },
+      "DataRightsDeletionCreate": {
+        "properties": {
+          "confirm": {
+            "description": "Must be true to acknowledge the 30-day grace period and review queue.",
+            "title": "Confirm",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "confirm"
+        ],
+        "title": "DataRightsDeletionCreate",
+        "type": "object"
+      },
+      "DataRightsRequestRead": {
+        "properties": {
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "deletion_scheduled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Deletion Scheduled At"
+          },
+          "download_available": {
+            "default": false,
+            "title": "Download Available",
+            "type": "boolean"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ready_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ready At"
+          },
+          "request_type": {
+            "$ref": "#/components/schemas/DataRightsRequestType"
+          },
+          "requested_at": {
+            "format": "date-time",
+            "title": "Requested At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/DataRightsRequestStatus"
+          }
+        },
+        "required": [
+          "id",
+          "request_type",
+          "status",
+          "requested_at"
+        ],
+        "title": "DataRightsRequestRead",
+        "type": "object"
+      },
+      "DataRightsRequestStatus": {
+        "enum": [
+          "requested",
+          "processing",
+          "ready",
+          "expired",
+          "grace_period",
+          "cancelled",
+          "completed"
+        ],
+        "title": "DataRightsRequestStatus",
+        "type": "string"
+      },
+      "DataRightsRequestType": {
+        "enum": [
+          "export",
+          "deletion"
+        ],
+        "title": "DataRightsRequestType",
+        "type": "string"
+      },
+      "DataRightsStatusRead": {
+        "properties": {
+          "deletion_policy_message": {
+            "title": "Deletion Policy Message",
+            "type": "string"
+          },
+          "deletion_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DataRightsRequestRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "export_policy_message": {
+            "title": "Export Policy Message",
+            "type": "string"
+          },
+          "export_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DataRightsRequestRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "export_policy_message",
+          "deletion_policy_message"
+        ],
+        "title": "DataRightsStatusRead",
+        "type": "object"
+      },
       "DeletedResponse": {
         "description": "Payload for soft-delete endpoints \u2014 `data` of a `SuccessEnvelope`.",
         "properties": {
@@ -784,6 +949,52 @@
         "title": "EnrolledStudentRead",
         "type": "object"
       },
+      "ExamFrameworkCreate": {
+        "description": "Payload to create a DRAFT framework definition (Platform Admin).",
+        "properties": {
+          "exam_target": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Exam Target",
+            "type": "string"
+          },
+          "language": {
+            "default": "en",
+            "maxLength": 10,
+            "minLength": 2,
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "maxLength": 100,
+            "minLength": 1,
+            "title": "Region",
+            "type": "string"
+          },
+          "target_grade_range": {
+            "items": {
+              "type": "integer"
+            },
+            "minItems": 1,
+            "title": "Target Grade Range",
+            "type": "array"
+          }
+        },
+        "required": [
+          "name",
+          "exam_target",
+          "region",
+          "target_grade_range"
+        ],
+        "title": "ExamFrameworkCreate",
+        "type": "object"
+      },
       "ExamFrameworkOption": {
         "description": "Public exam framework option \u2014 backed by exam syllabi until M-07.",
         "properties": {
@@ -811,6 +1022,137 @@
           "language"
         ],
         "title": "ExamFrameworkOption",
+        "type": "object"
+      },
+      "ExamFrameworkRead": {
+        "description": "Response schema for a single exam-framework definition.",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "created_by": {
+            "title": "Created By",
+            "type": "string"
+          },
+          "exam_target": {
+            "title": "Exam Target",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/FrameworkStatus"
+          },
+          "target_grade_range": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Target Grade Range",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "exam_target",
+          "region",
+          "target_grade_range",
+          "language",
+          "status",
+          "created_by",
+          "created_at"
+        ],
+        "title": "ExamFrameworkRead",
+        "type": "object"
+      },
+      "ExamFrameworkUpdate": {
+        "description": "Payload to edit a DRAFT framework (all fields optional \u2014 merge).",
+        "properties": {
+          "exam_target": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exam Target"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "maxLength": 10,
+                "minLength": 2,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "name": {
+            "anyOf": [
+              {
+                "maxLength": 255,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Name"
+          },
+          "region": {
+            "anyOf": [
+              {
+                "maxLength": 100,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Region"
+          },
+          "target_grade_range": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "integer"
+                },
+                "minItems": 1,
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Grade Range"
+          }
+        },
+        "title": "ExamFrameworkUpdate",
         "type": "object"
       },
       "ExamSyllabusCreate": {
@@ -1026,6 +1368,19 @@
         "title": "ExamSyllabusUpdate",
         "type": "object"
       },
+      "FrameworkStatus": {
+        "description": "Exam-framework definition lifecycle (Flow 4 \u00a73.5.1).\n\ndraft -> researching -> pending_approval -> published -> refreshing ->\n(published new version) ; published/any -> deprecated (existing students\ngrandfathered). Additive-only per ARCH \u00a74.9.",
+        "enum": [
+          "draft",
+          "researching",
+          "pending_approval",
+          "published",
+          "refreshing",
+          "deprecated"
+        ],
+        "title": "FrameworkStatus",
+        "type": "string"
+      },
       "GradeCreate": {
         "properties": {
           "name": {
@@ -1122,6 +1477,89 @@
         },
         "title": "GradeUpdate",
         "type": "object"
+      },
+      "GraduationRequestCreate": {
+        "properties": {
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "student_user_id"
+        ],
+        "title": "GraduationRequestCreate",
+        "type": "object"
+      },
+      "GraduationRequestRead": {
+        "properties": {
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "approved_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By User Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "requested_at": {
+            "format": "date-time",
+            "title": "Requested At",
+            "type": "string"
+          },
+          "requested_by_user_id": {
+            "title": "Requested By User Id",
+            "type": "string"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GraduationRequestStatus"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "student_user_id",
+          "school_id",
+          "requested_by_user_id",
+          "status",
+          "requested_at"
+        ],
+        "title": "GraduationRequestRead",
+        "type": "object"
+      },
+      "GraduationRequestStatus": {
+        "enum": [
+          "pending",
+          "approved",
+          "rejected"
+        ],
+        "title": "GraduationRequestStatus",
+        "type": "string"
       },
       "HTTPValidationError": {
         "properties": {
@@ -2055,6 +2493,260 @@
         "title": "PaginatedEnvelope[AuditLogEntryRead]",
         "type": "object"
       },
+      "ParentChildLinkRead": {
+        "properties": {
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "parent_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Name"
+          },
+          "parent_user_id": {
+            "title": "Parent User Id",
+            "type": "string"
+          },
+          "read_only_access": {
+            "default": false,
+            "title": "Read Only Access",
+            "type": "boolean"
+          },
+          "revoked_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Revoked At"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ParentChildLinkStatus"
+          },
+          "student_email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student Email"
+          },
+          "student_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student Name"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "parent_user_id",
+          "student_user_id",
+          "status",
+          "created_at"
+        ],
+        "title": "ParentChildLinkRead",
+        "type": "object"
+      },
+      "ParentChildLinkStatus": {
+        "enum": [
+          "pending",
+          "approved",
+          "revoked"
+        ],
+        "title": "ParentChildLinkStatus",
+        "type": "string"
+      },
+      "ParentConnectionsRead": {
+        "properties": {
+          "links": {
+            "items": {
+              "$ref": "#/components/schemas/ParentChildLinkRead"
+            },
+            "title": "Links",
+            "type": "array"
+          },
+          "parent_state": {
+            "title": "Parent State",
+            "type": "string"
+          }
+        },
+        "required": [
+          "parent_state",
+          "links"
+        ],
+        "title": "ParentConnectionsRead",
+        "type": "object"
+      },
+      "ParentLinkRequestCreate": {
+        "properties": {
+          "student_email": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Student Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "student_email"
+        ],
+        "title": "ParentLinkRequestCreate",
+        "type": "object"
+      },
+      "ParentSignupCreate": {
+        "properties": {
+          "display_name": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "language_preference": {
+            "default": "en",
+            "pattern": "^(en|ur|sd|ps)$",
+            "title": "Language Preference",
+            "type": "string"
+          },
+          "password": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password",
+          "display_name"
+        ],
+        "title": "ParentSignupCreate",
+        "type": "object"
+      },
+      "ParentSignupInfo": {
+        "properties": {
+          "languages": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Languages",
+            "type": "array"
+          }
+        },
+        "required": [
+          "languages"
+        ],
+        "title": "ParentSignupInfo",
+        "type": "object"
+      },
+      "ParentSignupResponse": {
+        "properties": {
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "message": {
+            "title": "Message",
+            "type": "string"
+          },
+          "parent_state": {
+            "title": "Parent State",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "tenant_type": {
+            "title": "Tenant Type",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "role",
+          "tenant_type",
+          "parent_state",
+          "message"
+        ],
+        "title": "ParentSignupResponse",
+        "type": "object"
+      },
+      "ParentStudentAccessStateRead": {
+        "properties": {
+          "access_state": {
+            "title": "Access State",
+            "type": "string"
+          },
+          "read_only_access": {
+            "title": "Read Only Access",
+            "type": "boolean"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "student_user_id",
+          "access_state",
+          "read_only_access"
+        ],
+        "title": "ParentStudentAccessStateRead",
+        "type": "object"
+      },
       "PersonaRead": {
         "description": "Response schema for a single TeachingPersona.",
         "properties": {
@@ -2203,6 +2895,17 @@
           "is_first_login": {
             "title": "Is First Login",
             "type": "boolean"
+          },
+          "parent_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent State"
           },
           "role": {
             "title": "Role",
@@ -2448,6 +3151,50 @@
             ],
             "title": "Enrollment Grade Id"
           },
+          "exam_date_set": {
+            "default": false,
+            "title": "Exam Date Set",
+            "type": "boolean"
+          },
+          "future_date_warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Future Date Warning"
+          },
+          "graduation_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graduation Message"
+          },
+          "lecture_read_only": {
+            "default": false,
+            "title": "Lecture Read Only",
+            "type": "boolean"
+          },
+          "migration_scheduled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Scheduled At"
+          },
           "mode_selected": {
             "title": "Mode Selected",
             "type": "boolean"
@@ -2468,6 +3215,16 @@
           },
           "ready_to_study": {
             "title": "Ready To Study",
+            "type": "boolean"
+          },
+          "school_read_only": {
+            "default": false,
+            "title": "School Read Only",
+            "type": "boolean"
+          },
+          "self_study_enabled": {
+            "default": true,
+            "title": "Self Study Enabled",
             "type": "boolean"
           },
           "show_complete_profile_banner": {
@@ -2493,7 +3250,8 @@
           "invited",
           "profile_basic",
           "mode_selection",
-          "ready_to_study"
+          "ready_to_study",
+          "school_read_only"
         ],
         "title": "SchoolStudentOnboardingState",
         "type": "string"
@@ -2588,6 +3346,35 @@
           }
         },
         "title": "StudentBannerDismiss",
+        "type": "object"
+      },
+      "StudentConnectionsRead": {
+        "properties": {
+          "access_state": {
+            "title": "Access State",
+            "type": "string"
+          },
+          "link_history": {
+            "items": {
+              "$ref": "#/components/schemas/ParentChildLinkRead"
+            },
+            "title": "Link History",
+            "type": "array"
+          },
+          "linked_parents": {
+            "items": {
+              "$ref": "#/components/schemas/ParentChildLinkRead"
+            },
+            "title": "Linked Parents",
+            "type": "array"
+          }
+        },
+        "required": [
+          "access_state",
+          "linked_parents",
+          "link_history"
+        ],
+        "title": "StudentConnectionsRead",
         "type": "object"
       },
       "StudentEnrollmentCreate": {
@@ -2688,6 +3475,113 @@
         "title": "StudentEnrollmentStatus",
         "type": "string"
       },
+      "StudentExamDateUpdate": {
+        "properties": {
+          "exam_date": {
+            "description": "Target exam date",
+            "format": "date",
+            "title": "Exam Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exam_date"
+        ],
+        "title": "StudentExamDateUpdate",
+        "type": "object"
+      },
+      "StudentGraduationStatusRead": {
+        "properties": {
+          "graduated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graduated At"
+          },
+          "graduation_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Graduation Message"
+          },
+          "is_graduated": {
+            "default": false,
+            "title": "Is Graduated",
+            "type": "boolean"
+          },
+          "lecture_read_only": {
+            "default": false,
+            "title": "Lecture Read Only",
+            "type": "boolean"
+          },
+          "migrated_out": {
+            "default": false,
+            "title": "Migrated Out",
+            "type": "boolean"
+          },
+          "migration_scheduled_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Migration Scheduled At"
+          },
+          "pending_graduation_request": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/GraduationRequestRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "school_read_only": {
+            "default": false,
+            "title": "School Read Only",
+            "type": "boolean"
+          },
+          "self_study_enabled": {
+            "default": true,
+            "title": "Self Study Enabled",
+            "type": "boolean"
+          }
+        },
+        "title": "StudentGraduationStatusRead",
+        "type": "object"
+      },
+      "StudentLinkRequestList": {
+        "properties": {
+          "pending": {
+            "items": {
+              "$ref": "#/components/schemas/ParentChildLinkRead"
+            },
+            "title": "Pending",
+            "type": "array"
+          }
+        },
+        "required": [
+          "pending"
+        ],
+        "title": "StudentLinkRequestList",
+        "type": "object"
+      },
       "StudentModeSelect": {
         "properties": {
           "lecture_mode": {
@@ -2742,6 +3636,18 @@
           "display_name": {
             "title": "Display Name",
             "type": "string"
+          },
+          "exam_date": {
+            "anyOf": [
+              {
+                "format": "date",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exam Date"
           },
           "language_preference": {
             "title": "Language Preference",
@@ -3143,6 +4049,40 @@
         "title": "SuccessEnvelope[BulkImportRead]",
         "type": "object"
       },
+      "SuccessEnvelope_DataRightsRequestRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DataRightsRequestRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[DataRightsRequestRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_DataRightsStatusRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DataRightsStatusRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[DataRightsStatusRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DeletedResponse_": {
         "properties": {
           "data": {
@@ -3177,6 +4117,23 @@
         "title": "SuccessEnvelope[DisclaimerVersionRead]",
         "type": "object"
       },
+      "SuccessEnvelope_ExamFrameworkRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ExamFrameworkRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ExamFrameworkRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_ExamSyllabusRead_": {
         "properties": {
           "data": {
@@ -3209,6 +4166,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[GradeRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_GraduationRequestRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GraduationRequestRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[GraduationRequestRead]",
         "type": "object"
       },
       "SuccessEnvelope_IndependentPersonalContentRead_": {
@@ -3381,6 +4355,91 @@
         "title": "SuccessEnvelope[OfferingRead]",
         "type": "object"
       },
+      "SuccessEnvelope_ParentChildLinkRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ParentChildLinkRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ParentChildLinkRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_ParentConnectionsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ParentConnectionsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ParentConnectionsRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_ParentSignupInfo_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ParentSignupInfo"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ParentSignupInfo]",
+        "type": "object"
+      },
+      "SuccessEnvelope_ParentSignupResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ParentSignupResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ParentSignupResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_ParentStudentAccessStateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ParentStudentAccessStateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ParentStudentAccessStateRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_PersonaRead_": {
         "properties": {
           "data": {
@@ -3500,6 +4559,23 @@
         "title": "SuccessEnvelope[SectionRead]",
         "type": "object"
       },
+      "SuccessEnvelope_StudentConnectionsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentConnectionsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentConnectionsRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_StudentEnrollmentRead_": {
         "properties": {
           "data": {
@@ -3515,6 +4591,40 @@
           "data"
         ],
         "title": "SuccessEnvelope[StudentEnrollmentRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentGraduationStatusRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentGraduationStatusRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentGraduationStatusRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentLinkRequestList_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentLinkRequestList"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentLinkRequestList]",
         "type": "object"
       },
       "SuccessEnvelope_SubjectRead_": {
@@ -3754,6 +4864,27 @@
         "title": "SuccessEnvelope[list[ExamFrameworkOption]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_ExamFrameworkRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ExamFrameworkRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[ExamFrameworkRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_ExamSyllabusRead__": {
         "properties": {
           "data": {
@@ -3794,6 +4925,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[GradeRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_GraduationRequestRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/GraduationRequestRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[GraduationRequestRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_OfferingRead__": {
@@ -6696,6 +7848,240 @@
         ]
       }
     },
+    "/api/v1/exam-frameworks/": {
+      "get": {
+        "operationId": "exam_frameworks_list",
+        "parameters": [
+          {
+            "description": "Filter by status",
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/FrameworkStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "description": "Filter by status",
+              "title": "Status"
+            }
+          },
+          {
+            "description": "Include soft-deleted definitions",
+            "in": "query",
+            "name": "include_deleted",
+            "required": false,
+            "schema": {
+              "default": false,
+              "description": "Include soft-deleted definitions",
+              "title": "Include Deleted",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_ExamFrameworkRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List exam-framework definitions",
+        "tags": [
+          "exam_frameworks"
+        ]
+      },
+      "post": {
+        "operationId": "exam_frameworks_create",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamFrameworkCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ExamFrameworkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Create a DRAFT exam-framework definition",
+        "tags": [
+          "exam_frameworks"
+        ]
+      }
+    },
+    "/api/v1/exam-frameworks/{framework_id}": {
+      "delete": {
+        "operationId": "exam_frameworks_delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ExamFrameworkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Soft-delete a DRAFT exam-framework definition",
+        "tags": [
+          "exam_frameworks"
+        ]
+      },
+      "get": {
+        "operationId": "exam_frameworks_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ExamFrameworkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a single exam-framework definition",
+        "tags": [
+          "exam_frameworks"
+        ]
+      },
+      "put": {
+        "operationId": "exam_frameworks_update",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ExamFrameworkUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ExamFrameworkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit a DRAFT exam-framework definition",
+        "tags": [
+          "exam_frameworks"
+        ]
+      }
+    },
     "/api/v1/grades/": {
       "get": {
         "operationId": "grades_list",
@@ -7436,6 +8822,66 @@
         ]
       }
     },
+    "/api/v1/graduation/requests": {
+      "get": {
+        "operationId": "list_graduation_requests",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_GraduationRequestRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List graduation requests for the caller's school",
+        "tags": [
+          "graduation"
+        ]
+      },
+      "post": {
+        "operationId": "create_graduation_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GraduationRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GraduationRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request graduation for a final-grade student",
+        "tags": [
+          "graduation"
+        ]
+      }
+    },
     "/api/v1/health": {
       "get": {
         "description": "Liveness probe \u2014 always returns 200 if the app is running.",
@@ -8000,6 +9446,377 @@
         ]
       }
     },
+    "/api/v1/parents/me/connections": {
+      "get": {
+        "operationId": "parent_get_connections",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ParentConnectionsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List parent link requests and linked children",
+        "tags": [
+          "parent-links"
+        ]
+      }
+    },
+    "/api/v1/parents/me/data-rights": {
+      "get": {
+        "operationId": "parent_get_data_rights",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DataRightsStatusRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get parent data-rights status",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/parents/me/data-rights/deletion": {
+      "post": {
+        "operationId": "parent_request_account_deletion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataRightsDeletionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DataRightsRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit an account deletion request (30-day grace, queued for review)",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/parents/me/data-rights/deletion/{request_id}/cancel": {
+      "post": {
+        "operationId": "parent_cancel_account_deletion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DataRightsRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel a deletion request during the grace period",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/parents/me/data-rights/export": {
+      "post": {
+        "operationId": "parent_request_data_export",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DataRightsRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Request a personal data export",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/parents/me/data-rights/export/{request_id}/download": {
+      "get": {
+        "operationId": "parent_download_data_export",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download a ready personal data export",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/parents/me/link-requests": {
+      "post": {
+        "operationId": "parent_create_link_request",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParentLinkRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ParentChildLinkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request a link to a school student by email",
+        "tags": [
+          "parent-links"
+        ]
+      }
+    },
+    "/api/v1/parents/me/links/{link_id}/revoke": {
+      "post": {
+        "operationId": "parent_revoke_link",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "title": "Link Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ParentChildLinkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke an approved parent-child link",
+        "tags": [
+          "parent-links"
+        ]
+      }
+    },
+    "/api/v1/parents/me/students/{student_user_id}/access-state": {
+      "get": {
+        "operationId": "parent_get_student_access_state",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_user_id",
+            "required": true,
+            "schema": {
+              "title": "Student User Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ParentStudentAccessStateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read-only access gate for a linked student (Flow 10)",
+        "tags": [
+          "parent-links"
+        ]
+      }
+    },
+    "/api/v1/parents/signup": {
+      "get": {
+        "operationId": "get_parent_signup_info",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ParentSignupInfo_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Parent signup form metadata",
+        "tags": [
+          "parent-signup"
+        ]
+      },
+      "post": {
+        "operationId": "create_parent_signup",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ParentSignupCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ParentSignupResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Self-signup for parents of school students",
+        "tags": [
+          "parent-signup"
+        ]
+      }
+    },
     "/api/v1/platform/library/": {
       "get": {
         "description": "Returns platform-tier reference books visible to all authenticated tenants. School and independent users share read-only access; only Platform Admin can upload.",
@@ -8186,6 +10003,69 @@
         "summary": "List recent audit log entries for the caller's school",
         "tags": [
           "audit"
+        ]
+      }
+    },
+    "/api/v1/school/admin/graduation/requests": {
+      "get": {
+        "operationId": "school_admin_list_graduation_requests",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_GraduationRequestRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List graduation requests for the School Admin's school",
+        "tags": [
+          "graduation"
+        ]
+      }
+    },
+    "/api/v1/school/admin/graduation/requests/{request_id}/approve": {
+      "post": {
+        "operationId": "school_admin_approve_graduation",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GraduationRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve a graduation request (enters SCHOOL_READ_ONLY)",
+        "tags": [
+          "graduation"
         ]
       }
     },
@@ -8900,6 +10780,318 @@
         ]
       }
     },
+    "/api/v1/students/me/connections": {
+      "get": {
+        "operationId": "student_get_connections",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentConnectionsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List linked parents and link history for the current student",
+        "tags": [
+          "student-parent-links"
+        ]
+      }
+    },
+    "/api/v1/students/me/data-rights": {
+      "get": {
+        "operationId": "student_get_data_rights",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DataRightsStatusRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get student data-rights status",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/students/me/data-rights/deletion": {
+      "post": {
+        "operationId": "student_request_account_deletion",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DataRightsDeletionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DataRightsRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit an account deletion request (30-day grace, queued for review)",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/students/me/data-rights/deletion/{request_id}/cancel": {
+      "post": {
+        "operationId": "student_cancel_account_deletion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DataRightsRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Cancel a deletion request during the grace period",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/students/me/data-rights/export": {
+      "post": {
+        "operationId": "student_request_data_export",
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DataRightsRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Request a personal data export",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/students/me/data-rights/export/{request_id}/download": {
+      "get": {
+        "operationId": "student_download_data_export",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Download a ready personal data export",
+        "tags": [
+          "data-rights"
+        ]
+      }
+    },
+    "/api/v1/students/me/graduation": {
+      "get": {
+        "operationId": "student_get_graduation_status",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentGraduationStatusRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get school student graduation / read-only status",
+        "tags": [
+          "graduation"
+        ]
+      }
+    },
+    "/api/v1/students/me/link-requests": {
+      "get": {
+        "operationId": "student_list_link_requests",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentLinkRequestList_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List pending parent link requests for the current student",
+        "tags": [
+          "student-parent-links"
+        ]
+      }
+    },
+    "/api/v1/students/me/link-requests/{link_id}/approve": {
+      "post": {
+        "operationId": "student_approve_link_request",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "title": "Link Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ParentChildLinkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve a pending parent link request",
+        "tags": [
+          "student-parent-links"
+        ]
+      }
+    },
+    "/api/v1/students/me/links/{link_id}/revoke": {
+      "post": {
+        "operationId": "student_revoke_parent_link",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "link_id",
+            "required": true,
+            "schema": {
+              "title": "Link Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ParentChildLinkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Revoke an approved parent link",
+        "tags": [
+          "student-parent-links"
+        ]
+      }
+    },
     "/api/v1/students/me/onboarding": {
       "get": {
         "operationId": "student_get_onboarding",
@@ -8957,6 +11149,47 @@
           }
         },
         "summary": "Dismiss the optional complete-your-profile banner",
+        "tags": [
+          "student-onboarding"
+        ]
+      }
+    },
+    "/api/v1/students/me/onboarding/exam-date": {
+      "put": {
+        "operationId": "student_set_exam_date",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentExamDateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SchoolStudentOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set or update deferrable exam date",
         "tags": [
           "student-onboarding"
         ]

@@ -6,6 +6,7 @@
  */
 import { test, expect } from "@playwright/test";
 import {
+  EXAM_FRAMEWORK_CREATE_FROM_UI,
   EXAM_SYLLABUS_CREATE_FROM_UI,
   SUBJECT_CREATE_FROM_UI,
   SUBSCRIPTION_TIER_CREATE_FROM_UI,
@@ -46,6 +47,25 @@ test.describe("Admin create — real backend contract @smoke @real", () => {
     expect(body.data).toBeTruthy();
     expect(body.data.name).toBe(EXAM_SYLLABUS_CREATE_FROM_UI.name);
     expect(body.data.exam_board).toBe(EXAM_SYLLABUS_CREATE_FROM_UI.exam_board);
+  });
+
+  test("POST /exam-frameworks accepts UI payload", async ({ request }) => {
+    const name = `${EXAM_FRAMEWORK_CREATE_FROM_UI.name} ${Date.now()}`;
+
+    const response = await request.post(`${API_BASE}/exam-frameworks/`, {
+      headers: {
+        Authorization: `Bearer ${ADMIN_TOKEN}`,
+        "Content-Type": "application/json",
+      },
+      data: { ...EXAM_FRAMEWORK_CREATE_FROM_UI, name },
+    });
+
+    expect(response.status(), await response.text()).toBe(201);
+    const body = await response.json();
+    expect(body.data).toBeTruthy();
+    expect(body.data.name).toBe(name);
+    // New definitions always land in DRAFT (service create_framework).
+    expect(body.data.status).toBe("draft");
   });
 
   test("POST /admin/subscription-tiers accepts UI payload", async ({ request }) => {

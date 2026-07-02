@@ -8,7 +8,72 @@ T-092 / T-096.
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from datetime import datetime
+
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.features.exam_frameworks.models import FrameworkStatus
+
+# Valid school grade band (Flow 4 §3.5, T-092 Acceptance #4).
+_MIN_GRADE = 1
+_MAX_GRADE = 14
+
+
+def _validate_grade_range(value: list[int]) -> list[int]:
+    if not value:
+        raise ValueError("target_grade_range must not be empty")
+    for grade in value:
+        if grade < _MIN_GRADE or grade > _MAX_GRADE:
+            raise ValueError(f"grade values must be within {_MIN_GRADE}-{_MAX_GRADE}")
+    return value
+
+
+class ExamFrameworkRead(BaseModel):
+    """Response schema for a single exam-framework definition."""
+
+    id: str
+    name: str
+    exam_target: str
+    region: str
+    target_grade_range: list[int]
+    language: str
+    status: FrameworkStatus
+    created_by: str
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class ExamFrameworkCreate(BaseModel):
+    """Payload to create a DRAFT framework definition (Platform Admin)."""
+
+    name: str = Field(..., min_length=1, max_length=255)
+    exam_target: str = Field(..., min_length=1, max_length=255)
+    region: str = Field(..., min_length=1, max_length=100)
+    target_grade_range: list[int] = Field(..., min_length=1)
+    language: str = Field(default="en", min_length=2, max_length=10)
+
+    @field_validator("target_grade_range")
+    @classmethod
+    def _check_grade_range(cls, value: list[int]) -> list[int]:
+        return _validate_grade_range(value)
+
+
+class ExamFrameworkUpdate(BaseModel):
+    """Payload to edit a DRAFT framework (all fields optional — merge)."""
+
+    name: str | None = Field(default=None, min_length=1, max_length=255)
+    exam_target: str | None = Field(default=None, min_length=1, max_length=255)
+    region: str | None = Field(default=None, min_length=1, max_length=100)
+    target_grade_range: list[int] | None = Field(default=None, min_length=1)
+    language: str | None = Field(default=None, min_length=2, max_length=10)
+
+    @field_validator("target_grade_range")
+    @classmethod
+    def _check_grade_range(cls, value: list[int] | None) -> list[int] | None:
+        if value is None:
+            return value
+        return _validate_grade_range(value)
 
 
 class SourceCitation(BaseModel):

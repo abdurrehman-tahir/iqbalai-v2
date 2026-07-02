@@ -72,6 +72,7 @@
       "languages": "__TODO__ Languages",
       "personas": "__TODO__ Teaching Personas",
       "exam_syllabi": "__TODO__ Exam Syllabi",
+      "exam_frameworks": "__TODO__ Exam Frameworks",
       "subscription_tiers": "__TODO__ Subscription Tiers",
       "tos": "__TODO__ ToS & Disclaimer",
       "library": "__TODO__ Platform Library",
@@ -217,6 +218,63 @@
       "delete_modal": {
         "title": "__TODO__ Delete syllabus?",
         "description": "__TODO__ Are you sure you want to delete \"{name}\"?",
+        "cancel": "__TODO__ Cancel",
+        "confirm": "__TODO__ Delete"
+      }
+    },
+    "exam_frameworks": {
+      "title": "__TODO__ Exam Frameworks",
+      "subtitle": "__TODO__ Platform-managed exam framework definitions. New definitions start as drafts; only drafts can be edited or deleted.",
+      "error": "__TODO__ Failed to load frameworks",
+      "retry": "__TODO__ Retry",
+      "add_button": "__TODO__ Add framework",
+      "table_label": "__TODO__ Exam frameworks table",
+      "empty": {
+        "title": "__TODO__ No frameworks yet",
+        "description": "__TODO__ Create the first exam framework definition — e.g. Matric Punjab Board — Physics.",
+        "cta": "__TODO__ Add first framework"
+      },
+      "col": {
+        "name": "__TODO__ Name",
+        "exam_target": "__TODO__ Exam target",
+        "region": "__TODO__ Region",
+        "grades": "__TODO__ Grades",
+        "status": "__TODO__ Status",
+        "actions": "__TODO__ Actions"
+      },
+      "status": {
+        "draft": "__TODO__ Draft",
+        "researching": "__TODO__ Researching",
+        "pending_approval": "__TODO__ Pending approval",
+        "published": "__TODO__ Published",
+        "refreshing": "__TODO__ Refreshing",
+        "deprecated": "__TODO__ Deprecated"
+      },
+      "actions": {
+        "edit": "__TODO__ Edit {name}",
+        "delete": "__TODO__ Delete {name}"
+      },
+      "modal": {
+        "edit_title": "__TODO__ Edit framework",
+        "create_title": "__TODO__ New framework",
+        "name_label": "__TODO__ Name",
+        "name_placeholder": "__TODO__ e.g. Matric Punjab — Physics",
+        "exam_target_label": "__TODO__ Exam target",
+        "exam_target_placeholder": "__TODO__ e.g. Matric Punjab Board — Physics",
+        "region_label": "__TODO__ Region",
+        "region_placeholder": "__TODO__ e.g. Punjab, Sindh, any",
+        "grades_label": "__TODO__ Target grades",
+        "grades_placeholder": "__TODO__ e.g. 9, 10",
+        "grades_hint": "__TODO__ Comma-separated grade numbers (1–14).",
+        "grades_error": "__TODO__ Enter comma-separated grade numbers between 1 and 14.",
+        "cancel": "__TODO__ Cancel",
+        "save": "__TODO__ Save changes",
+        "create": "__TODO__ Create",
+        "close": "__TODO__ Close"
+      },
+      "delete_modal": {
+        "title": "__TODO__ Delete framework?",
+        "description": "__TODO__ Are you sure you want to delete \"{name}\"? Only draft frameworks can be deleted.",
         "cancel": "__TODO__ Cancel",
         "confirm": "__TODO__ Delete"
       }

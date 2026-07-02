@@ -13,6 +13,9 @@ import type {
   ExamSyllabusCreate,
   ExamSyllabusRead,
   ExamSyllabusUpdate,
+  ExamFrameworkCreate,
+  ExamFrameworkRead,
+  ExamFrameworkUpdate,
   LibraryUploadParams,
   LibraryUploadResponse,
   Notification,
@@ -60,6 +63,7 @@ export type {
   Notification,
   PersonaRead as Persona,
   ExamSyllabusRead as Syllabus,
+  ExamFrameworkRead as Framework,
   SubscriptionTierRead as SubscriptionTier,
   SubjectRead as Subject,
   SubjectCreate,
@@ -329,19 +333,15 @@ export const parentChildLinksApi = {
     request<ParentChildLinkRead>(
       "/parents/me/link-requests",
       { method: "POST", body: JSON.stringify({ student_email }) },
-      token,
+      token
     ),
   revokeLink: (token: string, linkId: string) =>
-    request<ParentChildLinkRead>(
-      `/parents/me/links/${linkId}/revoke`,
-      { method: "POST" },
-      token,
-    ),
+    request<ParentChildLinkRead>(`/parents/me/links/${linkId}/revoke`, { method: "POST" }, token),
   getStudentAccessState: (token: string, studentUserId: string) =>
     request<ParentStudentAccessStateRead>(
       `/parents/me/students/${studentUserId}/access-state`,
       {},
-      token,
+      token
     ),
   listStudentPending: (token: string) =>
     request<StudentLinkRequestList>("/students/me/link-requests", {}, token),
@@ -351,14 +351,10 @@ export const parentChildLinksApi = {
     request<ParentChildLinkRead>(
       `/students/me/link-requests/${linkId}/approve`,
       { method: "POST" },
-      token,
+      token
     ),
   revokeParentLink: (token: string, linkId: string) =>
-    request<ParentChildLinkRead>(
-      `/students/me/links/${linkId}/revoke`,
-      { method: "POST" },
-      token,
-    ),
+    request<ParentChildLinkRead>(`/students/me/links/${linkId}/revoke`, { method: "POST" }, token),
 };
 
 // ── Independent teacher onboarding ────────────────────────────────────────────
@@ -383,16 +379,12 @@ export interface IndependentTeacherProfileComplete {
 
 export const independentTeacherOnboardingApi = {
   getOnboarding: (token: string) =>
-    request<IndependentTeacherOnboardingRead>(
-      "/independent/teachers/me/onboarding",
-      {},
-      token,
-    ),
+    request<IndependentTeacherOnboardingRead>("/independent/teachers/me/onboarding", {}, token),
   completeProfile: (token: string, data: IndependentTeacherProfileComplete) =>
     request<IndependentTeacherOnboardingRead>(
       "/independent/teachers/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
 };
 
@@ -424,16 +416,12 @@ export const independentStudentOnboardingApi = {
   listExamFrameworks: () =>
     request<ExamFrameworkOption[]>("/independent/students/me/exam-frameworks"),
   getOnboarding: (token: string) =>
-    request<IndependentStudentOnboardingRead>(
-      "/independent/students/me/onboarding",
-      {},
-      token,
-    ),
+    request<IndependentStudentOnboardingRead>("/independent/students/me/onboarding", {}, token),
   completeProfile: (token: string, data: { exam_date: string }) =>
     request<IndependentStudentOnboardingRead>(
       "/independent/students/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
 };
 
@@ -532,6 +520,26 @@ export const syllabiApi = {
     ),
   delete: (token: string, id: string) =>
     request<void>(`/admin/exam-syllabi/${id}`, { method: "DELETE" }, token),
+};
+
+// ── Exam Frameworks (T-092, Platform Admin) ───────────────────────────────────
+
+export const frameworksApi = {
+  list: (token: string) => request<ExamFrameworkRead[]>("/exam-frameworks/", {}, token),
+  create: (token: string, data: ExamFrameworkCreate) =>
+    request<ExamFrameworkRead>(
+      "/exam-frameworks/",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  update: (token: string, id: string, data: ExamFrameworkUpdate) =>
+    request<ExamFrameworkRead>(
+      `/exam-frameworks/${id}`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  delete: (token: string, id: string) =>
+    request<ExamFrameworkRead>(`/exam-frameworks/${id}`, { method: "DELETE" }, token),
 };
 
 // ── Districts ─────────────────────────────────────────────────────────────────
@@ -769,7 +777,7 @@ export const schoolLibraryApi = {
     return request<import("./types").SchoolLibraryListResponse>(
       `/school/library${query ? `?${query}` : ""}`,
       {},
-      token,
+      token
     );
   },
   upload: (token: string, params: SchoolLibraryUploadParams) => {
@@ -791,7 +799,7 @@ export const schoolLibraryApi = {
     return requestFormData<import("./types").SchoolLibraryUploadResponse>(
       `/school/library?${qs.toString()}`,
       formData,
-      token,
+      token
     );
   },
   get: (token: string, itemId: string) =>
@@ -800,25 +808,25 @@ export const schoolLibraryApi = {
     request<import("./types").SchoolLibraryItemRead>(
       `/school/library/${itemId}/publish`,
       { method: "POST" },
-      token,
+      token
     ),
   removeSelection: (token: string, itemId: string) =>
     request<import("./types").SchoolLibraryItemRead>(
       `/school/library/${itemId}/selection`,
       { method: "DELETE" },
-      token,
+      token
     ),
   deleteItem: (token: string, itemId: string) =>
     request<import("./types").SchoolLibraryItemRead>(
       `/school/library/${itemId}`,
       { method: "DELETE" },
-      token,
+      token
     ),
   retryIngestion: (token: string, itemId: string) =>
     request<import("./types").SchoolLibraryItemRead>(
       `/school/library/${itemId}/retry-ingestion`,
       { method: "POST" },
-      token,
+      token
     ),
 };
 
@@ -888,7 +896,11 @@ async function uploadRequest<T>(path: string, formData: FormData, token: string)
   });
 
   if (!res.ok) {
-    let errorJson: { error?: { code?: string; message?: string }; code?: string; message?: string } = {};
+    let errorJson: {
+      error?: { code?: string; message?: string };
+      code?: string;
+      message?: string;
+    } = {};
     try {
       errorJson = await res.json();
     } catch {
@@ -958,7 +970,7 @@ export const teacherOnboardingApi = {
     request<TeacherOnboardingRead>(
       "/teachers/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   listSubjectOptions: (token: string) =>
     request<SubjectRead[]>("/teachers/me/subject-options", {}, token),
@@ -966,7 +978,7 @@ export const teacherOnboardingApi = {
     request<TeacherCapacityUpdateRead>(
       "/teachers/me/capacity",
       { method: "PATCH", body: JSON.stringify(data) },
-      token,
+      token
     ),
 };
 
@@ -977,25 +989,25 @@ export const studentOnboardingApi = {
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/profile-basic",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   selectModes: (token: string, data: StudentModeSelect) =>
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/modes",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   dismissBanner: (token: string) =>
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/dismiss-banner",
       { method: "POST", body: JSON.stringify({ dismissed: true }) },
-      token,
+      token
     ),
   setExamDate: (token: string, exam_date: string) =>
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/exam-date",
       { method: "PUT", body: JSON.stringify({ exam_date }) },
-      token,
+      token
     ),
 };
 
@@ -1040,46 +1052,38 @@ export const dataRightsApi = {
   getStudentStatus: (token: string) =>
     request<DataRightsStatusRead>("/students/me/data-rights", {}, token),
   requestStudentExport: (token: string) =>
-    request<DataRightsRequestRead>(
-      "/students/me/data-rights/export",
-      { method: "POST" },
-      token,
-    ),
+    request<DataRightsRequestRead>("/students/me/data-rights/export", { method: "POST" }, token),
   downloadStudentExport: (token: string, requestId: string) =>
     downloadRequest(`/students/me/data-rights/export/${requestId}/download`, token),
   requestStudentDeletion: (token: string, confirm: boolean) =>
     request<DataRightsRequestRead>(
       "/students/me/data-rights/deletion",
       { method: "POST", body: JSON.stringify({ confirm }) },
-      token,
+      token
     ),
   cancelStudentDeletion: (token: string, requestId: string) =>
     request<DataRightsRequestRead>(
       `/students/me/data-rights/deletion/${requestId}/cancel`,
       { method: "POST" },
-      token,
+      token
     ),
   getParentStatus: (token: string) =>
     request<DataRightsStatusRead>("/parents/me/data-rights", {}, token),
   requestParentExport: (token: string) =>
-    request<DataRightsRequestRead>(
-      "/parents/me/data-rights/export",
-      { method: "POST" },
-      token,
-    ),
+    request<DataRightsRequestRead>("/parents/me/data-rights/export", { method: "POST" }, token),
   downloadParentExport: (token: string, requestId: string) =>
     downloadRequest(`/parents/me/data-rights/export/${requestId}/download`, token),
   requestParentDeletion: (token: string, confirm: boolean) =>
     request<DataRightsRequestRead>(
       "/parents/me/data-rights/deletion",
       { method: "POST", body: JSON.stringify({ confirm }) },
-      token,
+      token
     ),
   cancelParentDeletion: (token: string, requestId: string) =>
     request<DataRightsRequestRead>(
       `/parents/me/data-rights/deletion/${requestId}/cancel`,
       { method: "POST" },
-      token,
+      token
     ),
 };
 
@@ -1087,8 +1091,7 @@ export const dataRightsApi = {
 
 export const academicSessionsApi = {
   list: (token: string) => request<AcademicSessionRead[]>("/academic-sessions/", {}, token),
-  getActive: (token: string) =>
-    request<ActiveSessionRead>("/academic-sessions/active", {}, token),
+  getActive: (token: string) => request<ActiveSessionRead>("/academic-sessions/active", {}, token),
   create: (token: string, data: AcademicSessionCreate) =>
     request<AcademicSessionRead>(
       "/academic-sessions/",
@@ -1135,11 +1138,19 @@ export const sectionsApi = {
   create: (token: string, gradeId: string, data: SectionCreate) =>
     request<SectionRead>(
       `/grades/${gradeId}/sections/`,
-      { method: "POST", body: JSON.stringify(data), headers: { "Idempotency-Key": crypto.randomUUID() } },
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
       token
     ),
   archive: (token: string, gradeId: string, sectionId: string) =>
-    request<SectionRead>(`/grades/${gradeId}/sections/${sectionId}/archive`, { method: "POST" }, token),
+    request<SectionRead>(
+      `/grades/${gradeId}/sections/${sectionId}/archive`,
+      { method: "POST" },
+      token
+    ),
 };
 
 // ── Offerings (Coordinator) — T-045/T-046 ───────────────────────────────────────
@@ -1150,14 +1161,28 @@ export const offeringsApi = {
   create: (token: string, gradeId: string, data: OfferingCreate) =>
     request<OfferingRead>(
       `/grades/${gradeId}/offerings/`,
-      { method: "POST", body: JSON.stringify(data), headers: { "Idempotency-Key": crypto.randomUUID() } },
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
       token
     ),
   archive: (token: string, gradeId: string, offeringId: string) =>
-    request<OfferingRead>(`/grades/${gradeId}/offerings/${offeringId}/archive`, { method: "POST" }, token),
+    request<OfferingRead>(
+      `/grades/${gradeId}/offerings/${offeringId}/archive`,
+      { method: "POST" },
+      token
+    ),
   eligibleTeachers: (token: string, gradeId: string) =>
     request<EligibleTeacherRead[]>(`/grades/${gradeId}/offerings/eligible-teachers`, {}, token),
-  assign: (token: string, gradeId: string, offeringId: string, data: OfferingAssign, ifMatch: string) =>
+  assign: (
+    token: string,
+    gradeId: string,
+    offeringId: string,
+    data: OfferingAssign,
+    ifMatch: string
+  ) =>
     request<OfferingRead>(
       `/grades/${gradeId}/offerings/${offeringId}/assign`,
       { method: "POST", body: JSON.stringify(data), headers: { "If-Match": ifMatch } },

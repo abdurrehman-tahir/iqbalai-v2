@@ -2,14 +2,15 @@
 
 **Current milestone:** M-07 — Exam Framework Engine
 **Branch:** milestone/M-07-exam-framework (created off milestone/M-06-student-onboarding)
-**Current ticket:** T-091 — Exam Framework data model (in progress)
+**Current ticket:** T-093 — Pattern-A AI research agent (next)
 
 ## Plan
 - Branch made off M-06. When M-06 merges to staging, REBASE this branch onto staging (deferred — external event).
 - Implement T-091..T-100 one ticket per commit.
 
 ## Done this milestone
-- (none committed yet)
+- T-091 — data model (3 tables + dual-head views) — commit 864b378
+- T-092 — Framework definition CRUD (Platform Admin, DRAFT) — commit pending
 
 ## Notes / gotchas
 - Migrations hand-authored in established style (env.py only imports Base; no autogenerate registry).

@@ -13,6 +13,7 @@ import {
   ClipboardList,
   Library,
   Building2,
+  Target,
   Menu,
   X,
   LogOut,
@@ -44,6 +45,12 @@ const NAV_ITEMS: NavItem[] = [
   { key: "languages", href: "/admin/languages", icon: Globe, roles: [PLATFORM_ADMIN] },
   { key: "personas", href: "/admin/personas", icon: BookOpen, roles: [PLATFORM_ADMIN] },
   { key: "exam_syllabi", href: "/admin/exam-syllabi", icon: BookOpen, roles: [PLATFORM_ADMIN] },
+  {
+    key: "exam_frameworks",
+    href: "/admin/exam-frameworks",
+    icon: Target,
+    roles: [PLATFORM_ADMIN],
+  },
   {
     key: "subscription_tiers",
     href: "/admin/subscription-tiers",

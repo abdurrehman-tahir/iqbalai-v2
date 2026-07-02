@@ -125,5 +125,43 @@
     "required": ["name", "language"],
     "title": "SubjectCreate",
     "type": "object"
+  },
+  "ExamFrameworkCreate": {
+    "properties": {
+      "exam_target": {
+        "maxLength": 255,
+        "minLength": 1,
+        "title": "Exam Target",
+        "type": "string"
+      },
+      "language": {
+        "default": "en",
+        "maxLength": 10,
+        "minLength": 2,
+        "title": "Language",
+        "type": "string"
+      },
+      "name": {
+        "maxLength": 255,
+        "minLength": 1,
+        "title": "Name",
+        "type": "string"
+      },
+      "region": {
+        "maxLength": 100,
+        "minLength": 1,
+        "title": "Region",
+        "type": "string"
+      },
+      "target_grade_range": {
+        "items": {
+          "type": "integer"
+        },
+        "minItems": 1,
+        "title": "Target Grade Range",
+        "type": "array"
+      }
+    },
+    "required": ["name", "exam_target", "region", "target_grade_range"]
   }
 }

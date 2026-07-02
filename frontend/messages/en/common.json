@@ -839,6 +839,7 @@
       "languages": "Languages",
       "personas": "Teaching Personas",
       "exam_syllabi": "Exam Syllabi",
+      "exam_frameworks": "Exam Frameworks",
       "subscription_tiers": "Subscription Tiers",
       "tos": "ToS & Disclaimer",
       "library": "Platform Library",
@@ -1039,6 +1040,63 @@
       "delete_modal": {
         "title": "Delete syllabus?",
         "description": "Are you sure you want to delete \"{name}\"? Students with this syllabus selected will retain their selection.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      }
+    },
+    "exam_frameworks": {
+      "title": "Exam Frameworks",
+      "subtitle": "Platform-managed exam framework definitions. New definitions start as drafts; only drafts can be edited or deleted.",
+      "error": "Failed to load frameworks",
+      "retry": "Retry",
+      "add_button": "Add framework",
+      "table_label": "Exam frameworks table",
+      "empty": {
+        "title": "No frameworks yet",
+        "description": "Create the first exam framework definition — e.g. Matric Punjab Board — Physics.",
+        "cta": "Add first framework"
+      },
+      "col": {
+        "name": "Name",
+        "exam_target": "Exam target",
+        "region": "Region",
+        "grades": "Grades",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "draft": "Draft",
+        "researching": "Researching",
+        "pending_approval": "Pending approval",
+        "published": "Published",
+        "refreshing": "Refreshing",
+        "deprecated": "Deprecated"
+      },
+      "actions": {
+        "edit": "Edit {name}",
+        "delete": "Delete {name}"
+      },
+      "modal": {
+        "edit_title": "Edit framework",
+        "create_title": "New framework",
+        "name_label": "Name",
+        "name_placeholder": "e.g. Matric Punjab — Physics",
+        "exam_target_label": "Exam target",
+        "exam_target_placeholder": "e.g. Matric Punjab Board — Physics",
+        "region_label": "Region",
+        "region_placeholder": "e.g. Punjab, Sindh, any",
+        "grades_label": "Target grades",
+        "grades_placeholder": "e.g. 9, 10",
+        "grades_hint": "Comma-separated grade numbers (1–14).",
+        "grades_error": "Enter comma-separated grade numbers between 1 and 14.",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Create",
+        "close": "Close"
+      },
+      "delete_modal": {
+        "title": "Delete framework?",
+        "description": "Are you sure you want to delete \"{name}\"? Only draft frameworks can be deleted.",
         "cancel": "Cancel",
         "confirm": "Delete"
       }
