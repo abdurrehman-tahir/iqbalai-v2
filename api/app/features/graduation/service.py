@@ -8,7 +8,12 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.core.exceptions import ConflictError, NotFoundError, PermissionDeniedError, PreconditionFailedError
+from app.core.exceptions import (
+    ConflictError,
+    NotFoundError,
+    PermissionDeniedError,
+    PreconditionFailedError,
+)
 from app.features.exam_syllabi.repository import ExamSyllabiRepository
 from app.features.grades.models import Grade
 from app.features.grades.scope import assert_grade_in_scope
@@ -24,7 +29,9 @@ from app.features.graduation.repository import (
 )
 from app.features.graduation.schemas import GraduationRequestRead, StudentGraduationStatusRead
 from app.features.independent_student_onboarding.models import IndependentStudentProfile
-from app.features.independent_student_onboarding.repository import IndependentStudentProfileRepository
+from app.features.independent_student_onboarding.repository import (
+    IndependentStudentProfileRepository,
+)
 from app.features.independent_users.models import (
     IndependentUser,
     IndependentUserAccountStatus,
@@ -37,7 +44,7 @@ from app.features.student_enrollments.models import StudentEnrollment, StudentEn
 from app.features.student_enrollments.repository import StudentEnrollmentRepository
 from app.features.student_onboarding.models import StudentProfile
 from app.features.student_onboarding.repository import StudentProfileRepository
-from app.features.users.models import User, UserRole
+from app.features.users.models import UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
 from app.infrastructure.authentik.client import AuthentikClientProtocol, get_authentik_client
@@ -170,7 +177,11 @@ class GraduationService:
             raise PermissionDeniedError()
 
         student = await self._users.get_by_id(payload_student_user_id)
-        if student is None or student.role != UserRole.STUDENT or student.school_id != actor.school_id:
+        if (
+            student is None
+            or student.role != UserRole.STUDENT
+            or student.school_id != actor.school_id
+        ):
             raise NotFoundError("Student not found")
 
         enrollment = await self._active_enrollment(student.id)

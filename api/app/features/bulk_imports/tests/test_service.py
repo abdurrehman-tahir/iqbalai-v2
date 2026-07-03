@@ -7,9 +7,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-from app.core.exceptions import PreconditionFailedError
+from app.core.exceptions import PreconditionFailedError, ValidationError
 from app.features.bulk_imports.models import BulkImport, BulkImportStatus
-from app.core.exceptions import ValidationError
 from app.features.bulk_imports.service import BulkImportService, _parse_csv
 from app.features.files.schemas import UploadInitiated, UploadStatus
 from app.features.grades.models import Grade, GradeStatus
@@ -55,10 +54,14 @@ def _default_section() -> Section:
 
 
 def _patch_dry_run_deps(svc: BulkImportService, monkeypatch: pytest.MonkeyPatch) -> None:
-    monkeypatch.setattr(svc._sessions, "get_school_active_label", AsyncMock(return_value="2025-2026"))
+    monkeypatch.setattr(
+        svc._sessions, "get_school_active_label", AsyncMock(return_value="2025-2026")
+    )
     monkeypatch.setattr(svc._grades, "get_by_name_session", AsyncMock(return_value=_grade()))
     monkeypatch.setattr(svc._sections, "get_by_name", AsyncMock(return_value=None))
-    monkeypatch.setattr(svc._sections, "list_by_grade", AsyncMock(return_value=[_default_section()]))
+    monkeypatch.setattr(
+        svc._sections, "list_by_grade", AsyncMock(return_value=[_default_section()])
+    )
     monkeypatch.setattr(svc._invites, "get_pending_by_email", AsyncMock(return_value=None))
     monkeypatch.setattr(svc._independent_users, "get_by_email", AsyncMock(return_value=None))
 
@@ -88,9 +91,7 @@ async def test_dry_run_flags_out_of_scope_grade() -> None:
     _patch_dry_run_deps(svc, pytest.MonkeyPatch())
 
     csv = _csv_bytes(
-        "name,email,grade\n"
-        "Valid,valid@test.com,Grade 9\n"
-        "Bad Grade,bad@test.com,Grade 10\n"
+        "name,email,grade\n" "Valid,valid@test.com,Grade 9\n" "Bad Grade,bad@test.com,Grade 10\n"
     )
     upload_result = UploadInitiated(
         upload_id="upload-1",
@@ -115,7 +116,9 @@ async def test_dry_run_flags_out_of_scope_grade() -> None:
         patch.object(svc._invites, "get_pending_by_email", AsyncMock(return_value=None)),
         patch.object(svc._independent_users, "get_by_email", AsyncMock(return_value=None)),
     ):
-        result = await svc.dry_run(data=csv, filename="students.csv", actor_authentik_id="auth-coord")
+        result = await svc.dry_run(
+            data=csv, filename="students.csv", actor_authentik_id="auth-coord"
+        )
 
     assert result.total_rows == 2
     assert result.success_rows == 1
@@ -131,11 +134,7 @@ async def test_dry_run_detects_duplicate_email_in_file() -> None:
     mock_session = AsyncMock()
     svc = BulkImportService(mock_session)
 
-    csv = _csv_bytes(
-        "name,email,grade\n"
-        "One,dup@test.com,Grade 9\n"
-        "Two,dup@test.com,Grade 9\n"
-    )
+    csv = _csv_bytes("name,email,grade\n" "One,dup@test.com,Grade 9\n" "Two,dup@test.com,Grade 9\n")
     upload_result = UploadInitiated(
         upload_id="upload-1",
         status=UploadStatus.READY,
@@ -159,7 +158,9 @@ async def test_dry_run_detects_duplicate_email_in_file() -> None:
         patch.object(svc._invites, "get_pending_by_email", AsyncMock(return_value=None)),
         patch.object(svc._independent_users, "get_by_email", AsyncMock(return_value=None)),
     ):
-        result = await svc.dry_run(data=csv, filename="students.csv", actor_authentik_id="auth-coord")
+        result = await svc.dry_run(
+            data=csv, filename="students.csv", actor_authentik_id="auth-coord"
+        )
 
     dup_row = next(r for r in result.rows if r.row_number == 3)
     assert "duplicate_email_in_file" in dup_row.errors

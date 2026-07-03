@@ -95,7 +95,9 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeUserRepo.by_email = {}
     _FakeParentProfileRepo.store = {}
     monkeypatch.setattr("app.features.parent_signup.service.UserRepository", _FakeUserRepo)
-    monkeypatch.setattr("app.features.parent_signup.service.ParentProfileRepository", _FakeParentProfileRepo)
+    monkeypatch.setattr(
+        "app.features.parent_signup.service.ParentProfileRepository", _FakeParentProfileRepo
+    )
     monkeypatch.setattr(
         "app.features.parent_signup.service.IndependentUserRepository",
         _FakeIndependentUserRepo,
@@ -109,7 +111,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
-    yield None  # type: ignore[misc]
+    yield None
 
 
 def _build_client() -> AsyncClient:

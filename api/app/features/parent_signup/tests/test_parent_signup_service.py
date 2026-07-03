@@ -73,10 +73,11 @@ def _profile(*, verified: bool = True, unlinked_since: datetime | None = None) -
 
 
 @pytest.mark.asyncio
-async def test_activate_on_login_sets_parent_active_unlinked(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_activate_on_login_sets_parent_active_unlinked(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     user = _parent_user()
     profile = _profile(verified=False, unlinked_since=None)
-    user_repo = _FakeUserRepo()
     profile_repo = _FakeProfileRepo()
     profile_repo.profiles["parent-1"] = profile
 

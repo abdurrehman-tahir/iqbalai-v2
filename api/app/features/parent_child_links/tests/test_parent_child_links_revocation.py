@@ -4,26 +4,20 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
-from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
-from fastapi import FastAPI
-from httpx import ASGITransport, AsyncClient
 
-from app.api.v1.router import router as v1_router
-from app.core.dependencies import get_current_user, get_db
-from app.core.exceptions import setup_exception_handlers
 from app.features.parent_child_links.models import ParentChildLink, ParentChildLinkStatus
 from app.features.parent_child_links.tests.test_parent_child_links_api import (
     PARENT,
     PARENT_PROFILE,
     STUDENT,
+    _build_client,
     _FakeIndependentUserRepo,
     _FakeLinkRepo,
     _FakeParentProfileRepo,
     _FakeUserRepo,
-    _build_client,
     _parent_claims,
     _student_claims,
 )
@@ -101,7 +95,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
-    yield None  # type: ignore[misc]
+    yield None
 
 
 def _parent2_claims() -> dict[str, object]:

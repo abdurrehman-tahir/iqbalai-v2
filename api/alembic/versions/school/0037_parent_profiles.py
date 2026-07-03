@@ -65,6 +65,8 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_parent_profiles_unlinked_since", table_name="parent_profiles", schema="school")
+    op.drop_index(
+        "ix_parent_profiles_unlinked_since", table_name="parent_profiles", schema="school"
+    )
     op.drop_index("ix_parent_profiles_deleted_at", table_name="parent_profiles", schema="school")
     op.drop_table("parent_profiles", schema="school")

@@ -294,9 +294,7 @@ class BulkImportService:
             elif not session_label:
                 errors.append("grade_not_found")
             else:
-                grade_row = await self._grades.get_by_name_session(
-                    school_id, grade, session_label
-                )
+                grade_row = await self._grades.get_by_name_session(school_id, grade, session_label)
                 if grade_row is None:
                     errors.append("grade_not_found")
                 else:
@@ -399,7 +397,9 @@ def _parse_xlsx(data: bytes) -> list[dict[str, str]]:
     if missing:
         raise ValidationError(f"Missing required columns: {', '.join(sorted(missing))}")
 
-    col_index = {name: headers.index(name) for name in REQUIRED_COLUMNS | OPTIONAL_COLUMNS if name in headers}
+    col_index = {
+        name: headers.index(name) for name in REQUIRED_COLUMNS | OPTIONAL_COLUMNS if name in headers
+    }
     rows: list[dict[str, str]] = []
     for raw in rows_iter:
         if raw is None or not any(str(cell or "").strip() for cell in raw):

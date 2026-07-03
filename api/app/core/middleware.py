@@ -41,7 +41,9 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
 )
 
 
-def _enrich_claims_from_user(claims: dict[str, object], user: User | IndependentUser) -> dict[str, object]:
+def _enrich_claims_from_user(
+    claims: dict[str, object], user: User | IndependentUser
+) -> dict[str, object]:
     """Override JWT role/scope with the app database — Authentik tokens lack app roles."""
     enriched = dict(claims)
     enriched["role"] = user.role.value

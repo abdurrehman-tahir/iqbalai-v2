@@ -37,9 +37,7 @@ PARENT_STATE_LINKED = "LINKED"
 ACCESS_STATE_LINKED = "LINKED"
 ACCESS_STATE_UNLINKED = "UNLINKED"
 
-_LINK_REQUEST_ERROR = (
-    "Unable to send link request. Check the student email and try again."
-)
+_LINK_REQUEST_ERROR = "Unable to send link request. Check the student email and try again."
 
 
 class ParentChildLinkService:
@@ -157,9 +155,7 @@ class ParentChildLinkService:
     async def get_parent_connections(self, claims: dict[str, object]) -> ParentConnectionsRead:
         parent, profile = await self._require_parent(claims)
         links = await self._links.list_for_parent(parent.id)
-        reads = [
-            await self._to_link_read(link, include_student=True) for link in links
-        ]
+        reads = [await self._to_link_read(link, include_student=True) for link in links]
         return ParentConnectionsRead(
             parent_state=self._compute_parent_state(profile, links),
             links=reads,
@@ -262,9 +258,7 @@ class ParentChildLinkService:
     ) -> StudentLinkRequestList:
         student = await self._require_student(claims)
         pending = await self._links.list_pending_for_student(student.id)
-        reads = [
-            await self._to_link_read(link, include_parent=True) for link in pending
-        ]
+        reads = [await self._to_link_read(link, include_parent=True) for link in pending]
         return StudentLinkRequestList(pending=reads)
 
     async def approve_link_request(
@@ -324,12 +318,8 @@ class ParentChildLinkService:
         student = await self._require_student(claims)
         all_links = await self._links.list_for_student(student.id)
         approved = [link for link in all_links if link.status == ParentChildLinkStatus.APPROVED]
-        linked_reads = [
-            await self._to_link_read(link, include_parent=True) for link in approved
-        ]
-        history_reads = [
-            await self._to_link_read(link, include_parent=True) for link in all_links
-        ]
+        linked_reads = [await self._to_link_read(link, include_parent=True) for link in approved]
+        history_reads = [await self._to_link_read(link, include_parent=True) for link in all_links]
         return StudentConnectionsRead(
             access_state=self._student_access_state(all_links),
             linked_parents=linked_reads,

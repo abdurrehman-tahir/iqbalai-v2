@@ -9,12 +9,12 @@ from app.core.exceptions import AccountDeactivatedError, AccountSuspendedError
 from app.core.tenant import get_tenant_type
 from app.features.independent_users.models import IndependentUserAccountStatus
 from app.features.independent_users.service import IndependentUserService
-from app.features.tos.repository import TosRepository
 from app.features.parent_signup.service import (
     PARENT_STATE_ACTIVE_UNLINKED,
     ParentSignupService,
 )
-from app.features.users.models import User, UserAccountStatus, UserRole
+from app.features.tos.repository import TosRepository
+from app.features.users.models import UserAccountStatus, UserRole
 from app.features.users.service import UserService
 
 logger = structlog.get_logger(__name__)

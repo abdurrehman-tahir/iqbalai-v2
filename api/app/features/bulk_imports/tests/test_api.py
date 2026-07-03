@@ -71,7 +71,9 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         ),
     }
     monkeypatch.setattr("app.features.bulk_imports.service.UserRepository", _FakeUserRepo)
-    monkeypatch.setattr("app.features.bulk_imports.service.BulkImportRepository", _FakeBulkImportRepo)
+    monkeypatch.setattr(
+        "app.features.bulk_imports.service.BulkImportRepository", _FakeBulkImportRepo
+    )
     monkeypatch.setattr("app.features.bulk_imports.service.audit", AsyncMock())
     monkeypatch.setattr("app.features.bulk_imports.service.notify_account_event", AsyncMock())
 
@@ -89,7 +91,9 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         def __init__(self, session: Any) -> None:
             pass
 
-        async def get_by_name_session(self, school_id: str, name: str, academic_session: str) -> Grade | None:
+        async def get_by_name_session(
+            self, school_id: str, name: str, academic_session: str
+        ) -> Grade | None:
             if name == "Grade 9":
                 return Grade(
                     id="grade-9",
@@ -108,7 +112,9 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         async def get_by_name(self, grade_id: str, name: str) -> Section | None:
             return None
 
-        async def list_by_grade(self, grade_id: str, include_archived: bool = False) -> list[Section]:
+        async def list_by_grade(
+            self, grade_id: str, include_archived: bool = False
+        ) -> list[Section]:
             return [
                 Section(
                     id="default-9",
@@ -133,11 +139,15 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         async def get_by_email(self, email: str) -> None:
             return None
 
-    monkeypatch.setattr("app.features.bulk_imports.service.AcademicSessionRepository", _FakeSessionRepo)
+    monkeypatch.setattr(
+        "app.features.bulk_imports.service.AcademicSessionRepository", _FakeSessionRepo
+    )
     monkeypatch.setattr("app.features.bulk_imports.service.GradeRepository", _FakeGradeRepo)
     monkeypatch.setattr("app.features.bulk_imports.service.SectionRepository", _FakeSectionRepo)
     monkeypatch.setattr("app.features.bulk_imports.service.UserInviteRepository", _FakeInviteRepo)
-    monkeypatch.setattr("app.features.bulk_imports.service.IndependentUserRepository", _FakeIndependentRepo)
+    monkeypatch.setattr(
+        "app.features.bulk_imports.service.IndependentUserRepository", _FakeIndependentRepo
+    )
     monkeypatch.setattr(
         "app.features.bulk_imports.service.run_upload_pipeline",
         AsyncMock(
@@ -171,9 +181,7 @@ def _build_client(role: str = "coordinator") -> AsyncClient:
 @pytest.mark.asyncio
 async def test_coordinator_can_upload_csv_dry_run() -> None:
     csv_content = (
-        "name,email,grade\n"
-        "Alice,alice@test.com,Grade 9\n"
-        "Bob,bad@test.com,Grade 11\n"
+        "name,email,grade\n" "Alice,alice@test.com,Grade 9\n" "Bob,bad@test.com,Grade 11\n"
     )
     async with _build_client() as client:
         res = await client.post(

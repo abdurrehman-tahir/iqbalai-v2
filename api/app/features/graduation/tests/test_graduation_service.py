@@ -118,13 +118,21 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeEnrollmentRepo.store = {ENROLLMENT.id: ENROLLMENT}
 
     monkeypatch.setattr("app.features.graduation.service.UserRepository", _FakeUserRepo)
-    monkeypatch.setattr("app.features.graduation.service.StudentProfileRepository", _FakeProfileRepo)
-    monkeypatch.setattr("app.features.graduation.service.StudentEnrollmentRepository", _FakeEnrollmentRepo)
+    monkeypatch.setattr(
+        "app.features.graduation.service.StudentProfileRepository", _FakeProfileRepo
+    )
+    monkeypatch.setattr(
+        "app.features.graduation.service.StudentEnrollmentRepository", _FakeEnrollmentRepo
+    )
     monkeypatch.setattr("app.features.graduation.service.GraduationRequestRepository", MagicMock())
-    monkeypatch.setattr("app.features.graduation.service.GraduationMigrationLogRepository", MagicMock())
+    monkeypatch.setattr(
+        "app.features.graduation.service.GraduationMigrationLogRepository", MagicMock()
+    )
     monkeypatch.setattr("app.features.graduation.service.ParentChildLinkRepository", MagicMock())
     monkeypatch.setattr("app.features.graduation.service.IndependentUserRepository", MagicMock())
-    monkeypatch.setattr("app.features.graduation.service.IndependentStudentProfileRepository", MagicMock())
+    monkeypatch.setattr(
+        "app.features.graduation.service.IndependentStudentProfileRepository", MagicMock()
+    )
     monkeypatch.setattr("app.features.graduation.service.ExamSyllabiRepository", MagicMock())
     monkeypatch.setattr("app.features.graduation.service.audit", AsyncMock())
     monkeypatch.setattr("app.features.graduation.service.notify_account_event", AsyncMock())
