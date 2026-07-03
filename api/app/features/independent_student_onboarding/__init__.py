@@ -1,0 +1,1 @@
+"""Independent student onboarding feature."""

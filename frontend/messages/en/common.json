@@ -1112,5 +1112,79 @@
         "clear": "Clear"
       }
     }
+  },
+  "independent": {
+    "signup": {
+      "title": "Create your independent account",
+      "subtitle": "Sign up as an independent teacher or student — no school required.",
+      "role_label": "I am a",
+      "role_teacher": "Independent Teacher",
+      "role_student": "Independent Student",
+      "name_label": "Full name",
+      "email_label": "Email",
+      "language_label": "Preferred language",
+      "language_en": "English",
+      "language_ur": "Urdu",
+      "language_sd": "Sindhi",
+      "language_ps": "Pashto",
+      "password_label": "Password",
+      "confirm_password_label": "Confirm password",
+      "passwords_must_match": "Passwords must match",
+      "submit": "Create account",
+      "have_account": "Already have an account? Sign in",
+      "success": "Your account is ready. Sign in to continue.",
+      "go_login": "Sign in",
+      "error_generic": "Could not create account. Please try again.",
+      "grade_label": "Grade level",
+      "exam_framework_label": "Exam framework",
+      "exam_framework_placeholder": "Select your exam target"
+    },
+    "teacher": {
+      "header_title": "Independent Teacher",
+      "logout": "Sign out",
+      "nav": {
+        "aria_label": "Independent teacher navigation",
+        "dashboard": "Dashboard"
+      },
+      "onboarding": {
+        "header_title": "Complete your profile",
+        "title": "Welcome — complete your profile",
+        "subtitle": "Tell us your name and preferred language to get started.",
+        "name_label": "Full name",
+        "language_label": "Preferred language",
+        "language_en": "English",
+        "language_ur": "Urdu",
+        "language_sd": "Sindhi",
+        "language_ps": "Pashto",
+        "submit": "Save profile and continue",
+        "error_generic": "Could not save profile. Please try again."
+      },
+      "home": {
+        "ready_banner": "You are ready to use IqbalAI.",
+        "welcome": "Welcome, {name}. Your independent workspace is ready."
+      }
+    },
+    "student": {
+      "header_title": "Independent Student",
+      "logout": "Sign out",
+      "nav": {
+        "aria_label": "Independent student navigation",
+        "dashboard": "Self-Study"
+      },
+      "onboarding": {
+        "header_title": "Complete your profile",
+        "title": "Set your exam date",
+        "subtitle": "Confirm when you plan to take your exam.",
+        "exam_date_label": "Exam date",
+        "diagnostic_deferred": "Diagnostic assessment will be available in a future update (M-08).",
+        "submit": "Save and continue",
+        "error_generic": "Could not save profile. Please try again."
+      },
+      "home": {
+        "ready_banner": "You are ready to study.",
+        "self_study_only": "Self-Study Mode is your only mode — no lecture mode switcher.",
+        "diagnostic_deferred": "Diagnostic: coming soon (M-08 hook present)."
+      }
+    }
   }
 }

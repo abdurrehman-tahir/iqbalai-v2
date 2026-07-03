@@ -9,8 +9,8 @@ def _make_claims(role: str) -> dict[str, object]:
     return {"sub": "user123", "role": role, "email": "test@school.pk"}
 
 
-def test_role_hierarchy_has_seven_roles() -> None:
-    assert len(ROLE_HIERARCHY) == 7
+def test_role_hierarchy_has_nine_roles() -> None:
+    assert len(ROLE_HIERARCHY) == 9
 
 
 def test_platform_admin_is_highest() -> None:
@@ -19,6 +19,11 @@ def test_platform_admin_is_highest() -> None:
 
 def test_student_and_parent_are_peers() -> None:
     assert ROLE_HIERARCHY["student"] == ROLE_HIERARCHY["parent"]
+
+
+def test_independent_roles_match_school_peers() -> None:
+    assert ROLE_HIERARCHY["independent_teacher"] == ROLE_HIERARCHY["teacher"]
+    assert ROLE_HIERARCHY["independent_student"] == ROLE_HIERARCHY["student"]
 
 
 def test_require_role_allows_higher_role() -> None:

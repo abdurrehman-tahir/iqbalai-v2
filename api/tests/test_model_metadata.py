@@ -25,7 +25,12 @@ from app.db.base import AuditMixin, Base, SoftDeleteMixin
 from app.features.audit import models as audit_models  # noqa: F401
 from app.features.exam_syllabi import models as exam_models  # noqa: F401
 from app.features.files import models as files_models  # noqa: F401
+from app.features.independent_users import models as independent_user_models  # noqa: F401
+from app.features.independent_teacher_onboarding import models as independent_teacher_models  # noqa: F401
+from app.features.independent_student_onboarding import models as independent_student_models  # noqa: F401
+from app.features.library import independent_personal_models as independent_personal_models  # noqa: F401
 from app.features.library import models as library_models  # noqa: F401
+from app.features.library import platform_read_models as platform_read_models  # noqa: F401
 from app.features.notifications import models as notif_models  # noqa: F401
 from app.features.personas import models as persona_models  # noqa: F401
 from app.features.subscriptions import models as sub_models  # noqa: F401
@@ -96,8 +101,13 @@ def test_every_foreign_key_has_ondelete_and_index() -> None:
 
 # Stable value sets backed by native Postgres enums (ARCH §4.4).
 _ENUM_COLUMNS = [
-    ("users", "role"),
-    ("users", "status"),
+    ("school", "users", "role"),
+    ("school", "users", "status"),
+    ("independent", "users", "role"),
+    ("independent", "users", "status"),
+    ("independent", "independent_personal_content", "content_type"),
+    ("independent", "independent_personal_content", "status"),
+    ("independent", "independent_personal_content", "structured_parsing_status"),
 ]
 
 # Varchar-backed enum labels in migrations; ORM uses native_enum=False (create_type=False).
@@ -112,9 +122,9 @@ _VARCHAR_ENUM_COLUMNS = [
 ]
 
 
-@pytest.mark.parametrize(("table_name", "column_name"), _ENUM_COLUMNS)
-def test_stable_columns_are_native_enums(table_name: str, column_name: str) -> None:
-    table = Base.metadata.tables[f"school.{table_name}"]
+@pytest.mark.parametrize(("schema", "table_name", "column_name"), _ENUM_COLUMNS)
+def test_stable_columns_are_native_enums(schema: str, table_name: str, column_name: str) -> None:
+    table = Base.metadata.tables[f"{schema}.{table_name}"]
     col = table.columns[column_name]
     assert isinstance(col.type, SAEnum), f"{table_name}.{column_name} is not an Enum type"
     assert col.type.native_enum is True, f"{table_name}.{column_name} is not a native enum"

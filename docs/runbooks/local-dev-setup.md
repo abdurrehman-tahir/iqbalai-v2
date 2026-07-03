@@ -101,10 +101,17 @@ docker compose logs --tail=50 <service-name>
 ## Phase 5 — Run migrations
 
 ```bash
-docker compose exec api alembic upgrade head
+docker compose exec api alembic upgrade heads
 ```
 
-This applies both the `school` and `independent` schema migrations (dual Alembic heads per ARCH §4.21).
+This applies **both** the `school` and `independent` schema migrations (dual Alembic heads per ARCH §4.21). Do **not** use bare `alembic upgrade head` — that fails when multiple heads exist.
+
+To upgrade one branch only:
+
+```bash
+docker compose exec api alembic upgrade school@head
+docker compose exec api alembic upgrade independent@head
+```
 
 You'll see Alembic output for each migration as it runs. If you see errors mentioning "schema does not exist", the Postgres init script in M-00 T-003 hasn't been merged yet — check the M-00 progress.
 
@@ -175,7 +182,7 @@ For frontend changes, Next.js dev server hot-reloads. If not, `docker compose re
 ### Run a one-off command (migration, script, etc.)
 
 ```bash
-docker compose exec api alembic upgrade head           # run pending migrations
+docker compose exec api alembic upgrade heads           # run pending migrations
 docker compose exec api alembic revision -m "name"     # create a new migration
 docker compose exec api python -m pytest tests/        # run backend tests
 docker compose exec frontend pnpm test                 # run frontend tests

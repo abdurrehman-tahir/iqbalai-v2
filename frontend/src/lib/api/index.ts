@@ -47,6 +47,14 @@ import type {
   TosVersion,
   TosVersionCreate,
   TosVersionRead,
+  IndependentSignupCreate,
+  IndependentSignupInfo,
+  IndependentSignupResponse,
+  IndependentTeacherOnboardingRead,
+  IndependentTeacherProfileComplete,
+  IndependentStudentOnboardingRead,
+  IndependentStudentProfileComplete,
+  ExamFrameworkOption,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -213,6 +221,65 @@ export const authApi = {
       method: "POST",
       body: JSON.stringify(data),
     }),
+};
+
+// ── Independent signup ────────────────────────────────────────────────────────
+
+export type {
+  IndependentSignupInfo,
+  IndependentSignupCreate,
+  IndependentSignupResponse,
+} from "./types";
+
+export const independentSignupApi = {
+  getInfo: () => request<IndependentSignupInfo>("/independent/signup"),
+  signup: (data: IndependentSignupCreate) =>
+    request<IndependentSignupResponse>("/independent/signup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
+// ── Independent teacher onboarding ────────────────────────────────────────────
+
+export type { IndependentTeacherOnboardingRead, IndependentTeacherProfileComplete } from "./types";
+
+export const independentTeacherOnboardingApi = {
+  getOnboarding: (token: string) =>
+    request<IndependentTeacherOnboardingRead>(
+      "/independent/teachers/me/onboarding",
+      {},
+      token,
+    ),
+  completeProfile: (token: string, data: IndependentTeacherProfileComplete) =>
+    request<IndependentTeacherOnboardingRead>(
+      "/independent/teachers/me/profile",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+};
+
+export type {
+  ExamFrameworkOption,
+  IndependentStudentOnboardingRead,
+  IndependentStudentProfileComplete,
+} from "./types";
+
+export const independentStudentOnboardingApi = {
+  listExamFrameworks: () =>
+    request<ExamFrameworkOption[]>("/independent/students/me/exam-frameworks"),
+  getOnboarding: (token: string) =>
+    request<IndependentStudentOnboardingRead>(
+      "/independent/students/me/onboarding",
+      {},
+      token,
+    ),
+  completeProfile: (token: string, data: IndependentStudentProfileComplete) =>
+    request<IndependentStudentOnboardingRead>(
+      "/independent/students/me/profile",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
 };
 
 // ── Users ─────────────────────────────────────────────────────────────────────

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pydantic import BaseModel
 
-from app.features.users.models import UserAccountStatus, UserRole
+from app.features.users.models import UserAccountStatus
 
 
 class PostLoginResponse(BaseModel):
@@ -12,11 +12,12 @@ class PostLoginResponse(BaseModel):
 
     user_id: str
     email: str
-    role: UserRole
+    role: str
+    tenant_type: str = "school"
     district_id: str | None = None
     school_id: str | None = None
     is_first_login: bool
     # True when user has not yet accepted the current ToS
     tos_acceptance_required: bool
     current_tos_version_id: str | None
-    account_status: UserAccountStatus = UserAccountStatus.ACTIVE
+    account_status: str = UserAccountStatus.ACTIVE.value

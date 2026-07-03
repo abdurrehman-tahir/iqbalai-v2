@@ -23,6 +23,16 @@ def test_list_profiles_includes_recovery_bundle() -> None:
     assert "recovery_bundle" in list_profiles()
 
 
+def test_list_profiles_includes_independent_personal_content() -> None:
+    assert "independent_personal_content" in list_profiles()
+
+
+def test_get_profile_independent_personal_content() -> None:
+    profile = get_profile("independent_personal_content")
+    assert profile.max_size_bytes == 100 * 1024 * 1024
+    assert profile.bucket == "pdfs"
+
+
 def test_magic_bytes_valid_pdf() -> None:
     pdf_data = b"%PDF-1.4 rest of file..."
     assert _validate_magic_bytes(pdf_data, RECOVERY_BUNDLE) is True

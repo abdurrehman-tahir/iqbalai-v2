@@ -1,0 +1,1 @@
+"""Independent signup feature package."""
