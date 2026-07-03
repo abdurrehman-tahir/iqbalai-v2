@@ -775,6 +775,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/graduation/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List graduation requests for the caller's school */
+        get: operations["list_graduation_requests"];
+        put?: never;
+        /** Request graduation for a final-grade student */
+        post: operations["create_graduation_request"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/health": {
         parameters: {
             query?: never;
@@ -996,6 +1014,177 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/parents/me/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List parent link requests and linked children */
+        get: operations["parent_get_connections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parents/me/data-rights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get parent data-rights status */
+        get: operations["parent_get_data_rights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parents/me/data-rights/deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit an account deletion request (30-day grace, queued for review) */
+        post: operations["parent_request_account_deletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parents/me/data-rights/deletion/{request_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a deletion request during the grace period */
+        post: operations["parent_cancel_account_deletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parents/me/data-rights/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request a personal data export */
+        post: operations["parent_request_data_export"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parents/me/data-rights/export/{request_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a ready personal data export */
+        get: operations["parent_download_data_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parents/me/link-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request a link to a school student by email */
+        post: operations["parent_create_link_request"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parents/me/links/{link_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke an approved parent-child link */
+        post: operations["parent_revoke_link"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parents/me/students/{student_user_id}/access-state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read-only access gate for a linked student (Flow 10) */
+        get: operations["parent_get_student_access_state"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/parents/signup": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Parent signup form metadata */
+        get: operations["get_parent_signup_info"];
+        put?: never;
+        /** Self-signup for parents of school students */
+        post: operations["create_parent_signup"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/platform/library/": {
         parameters: {
             query?: never;
@@ -1047,6 +1236,40 @@ export interface paths {
         get: operations["list_school_audit_log"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/school/admin/graduation/requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List graduation requests for the School Admin's school */
+        get: operations["school_admin_list_graduation_requests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/school/admin/graduation/requests/{request_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a graduation request (enters SCHOOL_READ_ONLY) */
+        post: operations["school_admin_approve_graduation"];
         delete?: never;
         options?: never;
         head?: never;
@@ -1255,6 +1478,176 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/connections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List linked parents and link history for the current student */
+        get: operations["student_get_connections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/data-rights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get student data-rights status */
+        get: operations["student_get_data_rights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/data-rights/deletion": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit an account deletion request (30-day grace, queued for review) */
+        post: operations["student_request_account_deletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/data-rights/deletion/{request_id}/cancel": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Cancel a deletion request during the grace period */
+        post: operations["student_cancel_account_deletion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/data-rights/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request a personal data export */
+        post: operations["student_request_data_export"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/data-rights/export/{request_id}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Download a ready personal data export */
+        get: operations["student_download_data_export"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/graduation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get school student graduation / read-only status */
+        get: operations["student_get_graduation_status"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/link-requests": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List pending parent link requests for the current student */
+        get: operations["student_list_link_requests"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/link-requests/{link_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve a pending parent link request */
+        post: operations["student_approve_link_request"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/links/{link_id}/revoke": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke an approved parent link */
+        post: operations["student_revoke_parent_link"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/onboarding": {
         parameters: {
             query?: never;
@@ -1283,6 +1676,23 @@ export interface paths {
         put?: never;
         /** Dismiss the optional complete-your-profile banner */
         post: operations["student_dismiss_profile_banner"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/onboarding/exam-date": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Set or update deferrable exam date */
+        put: operations["student_set_exam_date"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -1787,6 +2197,60 @@ export interface components {
              */
             status: "valid" | "invalid" | "enrolled" | "failed";
         };
+        /** DataRightsDeletionCreate */
+        DataRightsDeletionCreate: {
+            /**
+             * Confirm
+             * @description Must be true to acknowledge the 30-day grace period and review queue.
+             */
+            confirm: boolean;
+        };
+        /** DataRightsRequestRead */
+        DataRightsRequestRead: {
+            /** Cancelled At */
+            cancelled_at?: string | null;
+            /** Completed At */
+            completed_at?: string | null;
+            /** Deletion Scheduled At */
+            deletion_scheduled_at?: string | null;
+            /**
+             * Download Available
+             * @default false
+             */
+            download_available: boolean;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Id */
+            id: string;
+            /** Ready At */
+            ready_at?: string | null;
+            request_type: components["schemas"]["DataRightsRequestType"];
+            /**
+             * Requested At
+             * Format: date-time
+             */
+            requested_at: string;
+            status: components["schemas"]["DataRightsRequestStatus"];
+        };
+        /**
+         * DataRightsRequestStatus
+         * @enum {string}
+         */
+        DataRightsRequestStatus: "requested" | "processing" | "ready" | "expired" | "grace_period" | "cancelled" | "completed";
+        /**
+         * DataRightsRequestType
+         * @enum {string}
+         */
+        DataRightsRequestType: "export" | "deletion";
+        /** DataRightsStatusRead */
+        DataRightsStatusRead: {
+            /** Deletion Policy Message */
+            deletion_policy_message: string;
+            deletion_request?: components["schemas"]["DataRightsRequestRead"] | null;
+            /** Export Policy Message */
+            export_policy_message: string;
+            export_request?: components["schemas"]["DataRightsRequestRead"] | null;
+        };
         /**
          * DeletedResponse
          * @description Payload for soft-delete endpoints — `data` of a `SuccessEnvelope`.
@@ -1878,20 +2342,6 @@ export interface components {
             /** Id */
             id: string;
             status: components["schemas"]["UserAccountStatus"];
-        };
-        /**
-         * ExamFrameworkOption
-         * @description Public exam framework option — backed by exam syllabi until M-07.
-         */
-        ExamFrameworkOption: {
-            /** Exam Board */
-            exam_board: string;
-            /** Id */
-            id: string;
-            /** Language */
-            language: string;
-            /** Name */
-            name: string;
         };
         /**
          * ExamFrameworkOption
@@ -2011,6 +2461,37 @@ export interface components {
             /** Name */
             name?: string | null;
         };
+        /** GraduationRequestCreate */
+        GraduationRequestCreate: {
+            /** Student User Id */
+            student_user_id: string;
+        };
+        /** GraduationRequestRead */
+        GraduationRequestRead: {
+            /** Approved At */
+            approved_at?: string | null;
+            /** Approved By User Id */
+            approved_by_user_id?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Requested At
+             * Format: date-time
+             */
+            requested_at: string;
+            /** Requested By User Id */
+            requested_by_user_id: string;
+            /** School Id */
+            school_id: string;
+            status: components["schemas"]["GraduationRequestStatus"];
+            /** Student User Id */
+            student_user_id: string;
+        };
+        /**
+         * GraduationRequestStatus
+         * @enum {string}
+         */
+        GraduationRequestStatus: "pending" | "approved" | "rejected";
         /** HTTPValidationError */
         HTTPValidationError: {
             /** Detail */
@@ -2383,6 +2864,96 @@ export interface components {
             /** Total */
             total: number;
         };
+        /** ParentChildLinkRead */
+        ParentChildLinkRead: {
+            /** Approved At */
+            approved_at?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Parent Name */
+            parent_name?: string | null;
+            /** Parent User Id */
+            parent_user_id: string;
+            /**
+             * Read Only Access
+             * @default false
+             */
+            read_only_access: boolean;
+            /** Revoked At */
+            revoked_at?: string | null;
+            status: components["schemas"]["ParentChildLinkStatus"];
+            /** Student Email */
+            student_email?: string | null;
+            /** Student Name */
+            student_name?: string | null;
+            /** Student User Id */
+            student_user_id: string;
+        };
+        /**
+         * ParentChildLinkStatus
+         * @enum {string}
+         */
+        ParentChildLinkStatus: "pending" | "approved" | "revoked";
+        /** ParentConnectionsRead */
+        ParentConnectionsRead: {
+            /** Links */
+            links: components["schemas"]["ParentChildLinkRead"][];
+            /** Parent State */
+            parent_state: string;
+        };
+        /** ParentLinkRequestCreate */
+        ParentLinkRequestCreate: {
+            /** Student Email */
+            student_email: string;
+        };
+        /** ParentSignupCreate */
+        ParentSignupCreate: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /**
+             * Language Preference
+             * @default en
+             */
+            language_preference: string;
+            /** Password */
+            password: string;
+        };
+        /** ParentSignupInfo */
+        ParentSignupInfo: {
+            /** Languages */
+            languages: string[];
+        };
+        /** ParentSignupResponse */
+        ParentSignupResponse: {
+            /** Email */
+            email: string;
+            /** Message */
+            message: string;
+            /** Parent State */
+            parent_state: string;
+            /** Role */
+            role: string;
+            /** Tenant Type */
+            tenant_type: string;
+            /** User Id */
+            user_id: string;
+        };
+        /** ParentStudentAccessStateRead */
+        ParentStudentAccessStateRead: {
+            /** Access State */
+            access_state: string;
+            /** Read Only Access */
+            read_only_access: boolean;
+            /** Student User Id */
+            student_user_id: string;
+        };
         /**
          * PersonaRead
          * @description Response schema for a single TeachingPersona.
@@ -2443,6 +3014,8 @@ export interface components {
             email: string;
             /** Is First Login */
             is_first_login: boolean;
+            /** Parent State */
+            parent_state?: string | null;
             /** Role */
             role: string;
             /** School Id */
@@ -2543,6 +3116,22 @@ export interface components {
         SchoolStudentOnboardingRead: {
             /** Enrollment Grade Id */
             enrollment_grade_id?: string | null;
+            /**
+             * Exam Date Set
+             * @default false
+             */
+            exam_date_set: boolean;
+            /** Future Date Warning */
+            future_date_warning?: string | null;
+            /** Graduation Message */
+            graduation_message?: string | null;
+            /**
+             * Lecture Read Only
+             * @default false
+             */
+            lecture_read_only: boolean;
+            /** Migration Scheduled At */
+            migration_scheduled_at?: string | null;
             /** Mode Selected */
             mode_selected: boolean;
             profile?: components["schemas"]["StudentProfileRead"] | null;
@@ -2550,6 +3139,16 @@ export interface components {
             profile_basic_complete: boolean;
             /** Ready To Study */
             ready_to_study: boolean;
+            /**
+             * School Read Only
+             * @default false
+             */
+            school_read_only: boolean;
+            /**
+             * Self Study Enabled
+             * @default true
+             */
+            self_study_enabled: boolean;
             /** Show Complete Profile Banner */
             show_complete_profile_banner: boolean;
             state: components["schemas"]["SchoolStudentOnboardingState"];
@@ -2558,7 +3157,7 @@ export interface components {
          * SchoolStudentOnboardingState
          * @enum {string}
          */
-        SchoolStudentOnboardingState: "invited" | "profile_basic" | "mode_selection" | "ready_to_study";
+        SchoolStudentOnboardingState: "invited" | "profile_basic" | "mode_selection" | "ready_to_study" | "school_read_only";
         /**
          * SchoolUpdate
          * @description Payload for updating a School (all fields optional).
@@ -2601,6 +3200,15 @@ export interface components {
              * @default true
              */
             dismissed: boolean;
+        };
+        /** StudentConnectionsRead */
+        StudentConnectionsRead: {
+            /** Access State */
+            access_state: string;
+            /** Link History */
+            link_history: components["schemas"]["ParentChildLinkRead"][];
+            /** Linked Parents */
+            linked_parents: components["schemas"]["ParentChildLinkRead"][];
         };
         /**
          * StudentEnrollmentCreate
@@ -2645,6 +3253,55 @@ export interface components {
          * @enum {string}
          */
         StudentEnrollmentStatus: "active" | "withdrawn" | "graduated";
+        /** StudentExamDateUpdate */
+        StudentExamDateUpdate: {
+            /**
+             * Exam Date
+             * Format: date
+             * @description Target exam date
+             */
+            exam_date: string;
+        };
+        /** StudentGraduationStatusRead */
+        StudentGraduationStatusRead: {
+            /** Graduated At */
+            graduated_at?: string | null;
+            /** Graduation Message */
+            graduation_message?: string | null;
+            /**
+             * Is Graduated
+             * @default false
+             */
+            is_graduated: boolean;
+            /**
+             * Lecture Read Only
+             * @default false
+             */
+            lecture_read_only: boolean;
+            /**
+             * Migrated Out
+             * @default false
+             */
+            migrated_out: boolean;
+            /** Migration Scheduled At */
+            migration_scheduled_at?: string | null;
+            pending_graduation_request?: components["schemas"]["GraduationRequestRead"] | null;
+            /**
+             * School Read Only
+             * @default false
+             */
+            school_read_only: boolean;
+            /**
+             * Self Study Enabled
+             * @default true
+             */
+            self_study_enabled: boolean;
+        };
+        /** StudentLinkRequestList */
+        StudentLinkRequestList: {
+            /** Pending */
+            pending: components["schemas"]["ParentChildLinkRead"][];
+        };
         /** StudentModeSelect */
         StudentModeSelect: {
             /**
@@ -2673,6 +3330,8 @@ export interface components {
             deferrable_banner_dismissed: boolean;
             /** Display Name */
             display_name: string;
+            /** Exam Date */
+            exam_date?: string | null;
             /** Language Preference */
             language_preference: string;
             /** Lecture Mode Enabled */
@@ -2832,6 +3491,24 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[DataRightsRequestRead] */
+        SuccessEnvelope_DataRightsRequestRead_: {
+            data: components["schemas"]["DataRightsRequestRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[DataRightsStatusRead] */
+        SuccessEnvelope_DataRightsStatusRead_: {
+            data: components["schemas"]["DataRightsStatusRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[DeletedResponse] */
         SuccessEnvelope_DeletedResponse_: {
             data: components["schemas"]["DeletedResponse"];
@@ -2862,6 +3539,15 @@ export interface components {
         /** SuccessEnvelope[GradeRead] */
         SuccessEnvelope_GradeRead_: {
             data: components["schemas"]["GradeRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[GraduationRequestRead] */
+        SuccessEnvelope_GraduationRequestRead_: {
+            data: components["schemas"]["GraduationRequestRead"];
             /**
              * Message
              * @default ok
@@ -2958,6 +3644,51 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[ParentChildLinkRead] */
+        SuccessEnvelope_ParentChildLinkRead_: {
+            data: components["schemas"]["ParentChildLinkRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[ParentConnectionsRead] */
+        SuccessEnvelope_ParentConnectionsRead_: {
+            data: components["schemas"]["ParentConnectionsRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[ParentSignupInfo] */
+        SuccessEnvelope_ParentSignupInfo_: {
+            data: components["schemas"]["ParentSignupInfo"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[ParentSignupResponse] */
+        SuccessEnvelope_ParentSignupResponse_: {
+            data: components["schemas"]["ParentSignupResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[ParentStudentAccessStateRead] */
+        SuccessEnvelope_ParentStudentAccessStateRead_: {
+            data: components["schemas"]["ParentStudentAccessStateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[PersonaRead] */
         SuccessEnvelope_PersonaRead_: {
             data: components["schemas"]["PersonaRead"];
@@ -3021,9 +3752,36 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[StudentConnectionsRead] */
+        SuccessEnvelope_StudentConnectionsRead_: {
+            data: components["schemas"]["StudentConnectionsRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[StudentEnrollmentRead] */
         SuccessEnvelope_StudentEnrollmentRead_: {
             data: components["schemas"]["StudentEnrollmentRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentGraduationStatusRead] */
+        SuccessEnvelope_StudentGraduationStatusRead_: {
+            data: components["schemas"]["StudentGraduationStatusRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentLinkRequestList] */
+        SuccessEnvelope_StudentLinkRequestList_: {
+            data: components["schemas"]["StudentLinkRequestList"];
             /**
              * Message
              * @default ok
@@ -3165,6 +3923,16 @@ export interface components {
         SuccessEnvelope_list_GradeRead__: {
             /** Data */
             data: components["schemas"]["GradeRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[GraduationRequestRead]] */
+        SuccessEnvelope_list_GraduationRequestRead__: {
+            /** Data */
+            data: components["schemas"]["GraduationRequestRead"][];
             /**
              * Message
              * @default ok
@@ -5568,6 +6336,59 @@ export interface operations {
             };
         };
     };
+    list_graduation_requests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_GraduationRequestRead__"];
+                };
+            };
+        };
+    };
+    create_graduation_request: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GraduationRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_GraduationRequestRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     health_check: {
         parameters: {
             query?: never;
@@ -5956,6 +6777,309 @@ export interface operations {
             };
         };
     };
+    parent_get_connections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ParentConnectionsRead_"];
+                };
+            };
+        };
+    };
+    parent_get_data_rights: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DataRightsStatusRead_"];
+                };
+            };
+        };
+    };
+    parent_request_account_deletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataRightsDeletionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DataRightsRequestRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parent_cancel_account_deletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DataRightsRequestRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parent_request_data_export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DataRightsRequestRead_"];
+                };
+            };
+        };
+    };
+    parent_download_data_export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parent_create_link_request: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParentLinkRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ParentChildLinkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parent_revoke_link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ParentChildLinkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parent_get_student_access_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                student_user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ParentStudentAccessStateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_parent_signup_info: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ParentSignupInfo_"];
+                };
+            };
+        };
+    };
+    create_parent_signup: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ParentSignupCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ParentSignupResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     platform_library_list_books: {
         parameters: {
             query?: {
@@ -6039,6 +7163,57 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["PaginatedEnvelope_AuditLogEntryRead_"];
+                };
+            };
+        };
+    };
+    school_admin_list_graduation_requests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_GraduationRequestRead__"];
+                };
+            };
+        };
+    };
+    school_admin_approve_graduation: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_GraduationRequestRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -6439,6 +7614,263 @@ export interface operations {
             };
         };
     };
+    student_get_connections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentConnectionsRead_"];
+                };
+            };
+        };
+    };
+    student_get_data_rights: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DataRightsStatusRead_"];
+                };
+            };
+        };
+    };
+    student_request_account_deletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DataRightsDeletionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DataRightsRequestRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_cancel_account_deletion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DataRightsRequestRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_request_data_export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DataRightsRequestRead_"];
+                };
+            };
+        };
+    };
+    student_download_data_export: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                request_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_graduation_status: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentGraduationStatusRead_"];
+                };
+            };
+        };
+    };
+    student_list_link_requests: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentLinkRequestList_"];
+                };
+            };
+        };
+    };
+    student_approve_link_request: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ParentChildLinkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_revoke_parent_link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                link_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ParentChildLinkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     student_get_onboarding: {
         parameters: {
             query?: never;
@@ -6469,6 +7901,39 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["StudentBannerDismiss"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SchoolStudentOnboardingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_set_exam_date: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentExamDateUpdate"];
             };
         };
         responses: {
