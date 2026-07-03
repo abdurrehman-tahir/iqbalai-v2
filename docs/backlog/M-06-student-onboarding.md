@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** in-progress
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-077 through T-090
 **Spec source:** `flow-4-student-onboarding.md` v3 (school-student portions: §3.1, §3.3, §3.7, §3.8, §3.9)
@@ -34,7 +34,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** ae47fd1
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.1 (enrollment by Coordinator into Grade + Section)
@@ -71,7 +72,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 594cec1
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.1 (mandatory fields trimmed; mode selection mandatory)
@@ -109,7 +111,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 4ad9464
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.1 (enrollment at scale)
@@ -142,7 +145,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 2ac9420
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.3 (parent registration)
@@ -175,7 +179,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 3d10ad6
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.3 (link request → student approval, §6.13 opt-in)
@@ -212,7 +217,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 6977d1c
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.3 (revocation; multiple parents/children)
@@ -245,7 +251,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** e93bab4
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.7 (exam date lifecycle #52)
@@ -278,7 +285,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** f79990c
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.8 (data rights lifecycle #15)
@@ -314,7 +322,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 9cef9ed
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.9 (GRADUATED — SCHOOL_READ_ONLY)
@@ -348,7 +357,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
+**Commit:** 223fc56
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.9 (AUTO_MIGRATED_TO_INDEPENDENT, atomic, retries)
@@ -387,7 +397,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3
 **Milestone:** M-06
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 58c8fe0
 
 ### Spec source
 - `flow-4-student-onboarding.md` §7 (notifications)
@@ -420,7 +431,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 3 / 6
 **Milestone:** M-06
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 5fd30e8
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.8, §3.9 (audit-logged actions)
@@ -451,7 +463,8 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 6
 **Milestone:** M-06
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 91a1488
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.1, §3.3, §3.9 (full flows)
