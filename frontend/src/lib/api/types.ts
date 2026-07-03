@@ -66,6 +66,7 @@ export type DisclaimerVersionCreate = Schemas["DisclaimerVersionCreate"];
 export type PersonaRead = Schemas["PersonaRead"];
 export type ExamSyllabusRead = Schemas["ExamSyllabusRead"];
 export type ExamFrameworkRead = Schemas["ExamFrameworkRead"];
+export type FrameworkResearchJobRead = Schemas["FrameworkResearchJobRead"];
 export type SubscriptionTierRead = Schemas["SubscriptionTierRead"];
 export type SubjectRead = Schemas["SubjectRead"];
 export type SubjectStatus = Schemas["SubjectStatus"];

@@ -1368,6 +1368,88 @@
         "title": "ExamSyllabusUpdate",
         "type": "object"
       },
+      "FrameworkResearchJobRead": {
+        "description": "Response schema for a Pattern-A research run (T-093).",
+        "properties": {
+          "cost_usd": {
+            "title": "Cost Usd",
+            "type": "number"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error"
+          },
+          "finished_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Finished At"
+          },
+          "framework_id": {
+            "title": "Framework Id",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "sources_count": {
+            "title": "Sources Count",
+            "type": "integer"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/ResearchJobStatus"
+          },
+          "study_plan_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Study Plan Id"
+          }
+        },
+        "required": [
+          "id",
+          "framework_id",
+          "status",
+          "cost_usd",
+          "sources_count",
+          "error",
+          "study_plan_id",
+          "started_at",
+          "finished_at",
+          "created_at"
+        ],
+        "title": "FrameworkResearchJobRead",
+        "type": "object"
+      },
       "FrameworkStatus": {
         "description": "Exam-framework definition lifecycle (Flow 4 \u00a73.5.1).\n\ndraft -> researching -> pending_approval -> published -> refreshing ->\n(published new version) ; published/any -> deprecated (existing students\ngrandfathered). Additive-only per ARCH \u00a74.9.",
         "enum": [
@@ -2947,6 +3029,17 @@
         "title": "PostLoginResponse",
         "type": "object"
       },
+      "ResearchJobStatus": {
+        "description": "Pattern-A research-run lifecycle (Flow 4 \u00a73.5.1, ARCH \u00a78.21, T-093).\n\nrunning -> succeeded (plan produced, pending approval)\n        -> partial   (cost ceiling hit; partial result preserved + flagged)\n        -> research_failed (retries exhausted; framework reverts to draft).\nAdditive-only per ARCH \u00a74.9.",
+        "enum": [
+          "running",
+          "succeeded",
+          "partial",
+          "research_failed"
+        ],
+        "title": "ResearchJobStatus",
+        "type": "string"
+      },
       "SchoolCreate": {
         "description": "Payload for creating a new School within a district.",
         "properties": {
@@ -4149,6 +4242,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[ExamSyllabusRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_FrameworkResearchJobRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FrameworkResearchJobRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[FrameworkResearchJobRead]",
         "type": "object"
       },
       "SuccessEnvelope_GradeRead_": {
@@ -8077,6 +8187,88 @@
           }
         },
         "summary": "Edit a DRAFT exam-framework definition",
+        "tags": [
+          "exam_frameworks"
+        ]
+      }
+    },
+    "/api/v1/exam-frameworks/{framework_id}/research": {
+      "get": {
+        "operationId": "exam_frameworks_latest_research",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_FrameworkResearchJobRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get the latest AI research job for a framework (progress/result)",
+        "tags": [
+          "exam_frameworks"
+        ]
+      },
+      "post": {
+        "operationId": "exam_frameworks_trigger_research",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_FrameworkResearchJobRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Trigger the Pattern-A AI research run for a DRAFT framework",
         "tags": [
           "exam_frameworks"
         ]

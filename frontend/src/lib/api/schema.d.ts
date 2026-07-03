@@ -621,6 +621,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/exam-frameworks/{framework_id}/research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the latest AI research job for a framework (progress/result) */
+        get: operations["exam_frameworks_latest_research"];
+        put?: never;
+        /** Trigger the Pattern-A AI research run for a DRAFT framework */
+        post: operations["exam_frameworks_trigger_research"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/grades/": {
         parameters: {
             query?: never;
@@ -2524,6 +2542,37 @@ export interface components {
             region?: string | null;
         };
         /**
+         * FrameworkResearchJobRead
+         * @description Response schema for a Pattern-A research run (T-093).
+         */
+        FrameworkResearchJobRead: {
+            /** Cost Usd */
+            cost_usd: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Framework Id */
+            framework_id: string;
+            /** Id */
+            id: string;
+            /** Sources Count */
+            sources_count: number;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            status: components["schemas"]["ResearchJobStatus"];
+            /** Study Plan Id */
+            study_plan_id: string | null;
+        };
+        /**
          * FrameworkStatus
          * @description Exam-framework definition lifecycle (Flow 4 §3.5.1).
          *
@@ -3139,6 +3188,17 @@ export interface components {
             user_id: string;
         };
         /**
+         * ResearchJobStatus
+         * @description Pattern-A research-run lifecycle (Flow 4 §3.5.1, ARCH §8.21, T-093).
+         *
+         *     running -> succeeded (plan produced, pending approval)
+         *             -> partial   (cost ceiling hit; partial result preserved + flagged)
+         *             -> research_failed (retries exhausted; framework reverts to draft).
+         *     Additive-only per ARCH §4.9.
+         * @enum {string}
+         */
+        ResearchJobStatus: "running" | "succeeded" | "partial" | "research_failed";
+        /**
          * SchoolCreate
          * @description Payload for creating a new School within a district.
          */
@@ -3647,6 +3707,15 @@ export interface components {
         /** SuccessEnvelope[ExamSyllabusRead] */
         SuccessEnvelope_ExamSyllabusRead_: {
             data: components["schemas"]["ExamSyllabusRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[FrameworkResearchJobRead] */
+        SuccessEnvelope_FrameworkResearchJobRead_: {
+            data: components["schemas"]["FrameworkResearchJobRead"];
             /**
              * Message
              * @default ok
@@ -6119,6 +6188,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_ExamFrameworkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_latest_research: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkResearchJobRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_trigger_research: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkResearchJobRead_"];
                 };
             };
             /** @description Validation Error */

@@ -14,8 +14,18 @@ from __future__ import annotations
 
 import enum
 from datetime import datetime
+from decimal import Decimal
 
-from sqlalchemy import DateTime, ForeignKey, Integer, String, UniqueConstraint
+from sqlalchemy import (
+    CheckConstraint,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    UniqueConstraint,
+)
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
 from sqlalchemy.orm import Mapped, mapped_column
@@ -53,6 +63,21 @@ class SelectionStatus(str, enum.Enum):
 
     ACTIVE = "active"
     ABANDONED = "abandoned"
+
+
+class ResearchJobStatus(str, enum.Enum):
+    """Pattern-A research-run lifecycle (Flow 4 §3.5.1, ARCH §8.21, T-093).
+
+    running -> succeeded (plan produced, pending approval)
+            -> partial   (cost ceiling hit; partial result preserved + flagged)
+            -> research_failed (retries exhausted; framework reverts to draft).
+    Additive-only per ARCH §4.9.
+    """
+
+    RUNNING = "running"
+    SUCCEEDED = "succeeded"
+    PARTIAL = "partial"
+    RESEARCH_FAILED = "research_failed"
 
 
 class SelectionTenantType(str, enum.Enum):
@@ -155,6 +180,73 @@ class FrameworkStudyPlan(AuditMixin, Base):
             kwargs["id"] = _uuid7()
         if "status" not in kwargs:
             kwargs["status"] = StudyPlanStatus.DRAFT
+        super().__init__(**kwargs)
+
+
+class FrameworkResearchJob(AuditMixin, Base):
+    """A Pattern-A AI research run for a framework (append-only job record, T-093).
+
+    Records one execution of the SearXNG -> web_fetch -> LLM-synthesis pipeline
+    (ARCH §8.21): its terminal status, estimated USD spend, cited-source count, any
+    error, and the study-plan version it produced (null unless it got that far).
+    Not soft-deletable — an immutable audit trail of research attempts.
+    """
+
+    __tablename__ = "framework_research_jobs"
+    __table_args__ = (
+        CheckConstraint("cost_usd >= 0", name="framework_research_jobs_cost_nonneg_check"),
+        CheckConstraint("sources_count >= 0", name="framework_research_jobs_sources_nonneg_check"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    framework_id: Mapped[str] = mapped_column(
+        String(36),
+        # A job is meaningless without its framework -> CASCADE (§4.6, skill Rule 3).
+        ForeignKey("school.exam_frameworks.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    status: Mapped[ResearchJobStatus] = mapped_column(
+        SAEnum(
+            ResearchJobStatus,
+            name="framework_research_job_status",
+            schema="school",
+            values_callable=lambda statuses: [s.value for s in statuses],
+            native_enum=True,
+            create_type=False,
+        ),
+        nullable=False,
+        default=ResearchJobStatus.RUNNING,
+    )
+    # Estimated LLM spend for the run (metered from token usage); 4dp is ample.
+    cost_usd: Mapped[Decimal] = mapped_column(Numeric(10, 4), nullable=False, default=Decimal("0"))
+    sources_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Failure/partial reason surfaced to the Platform Admin; null on success.
+    error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # The plan version this run produced; SET NULL so pruning a plan keeps the job
+    # history intact (informational link, §4.6).
+    study_plan_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.framework_study_plans.id", ondelete="SET NULL"),
+        nullable=True,
+        index=True,
+    )
+    started_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Null until the run terminates (event may not have happened yet, §4.7).
+    finished_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "status" not in kwargs:
+            kwargs["status"] = ResearchJobStatus.RUNNING
+        # Match the DB server defaults in-memory so a freshly built (pre-flush) job
+        # is already a valid metering record (cost 0, no sources yet).
+        if "cost_usd" not in kwargs:
+            kwargs["cost_usd"] = Decimal("0")
+        if "sources_count" not in kwargs:
+            kwargs["sources_count"] = 0
         super().__init__(**kwargs)
 
 

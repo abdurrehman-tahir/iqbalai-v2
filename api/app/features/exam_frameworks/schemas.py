@@ -12,7 +12,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.features.exam_frameworks.models import FrameworkStatus
+from app.features.exam_frameworks.models import FrameworkStatus, ResearchJobStatus
 
 # Valid school grade band (Flow 4 §3.5, T-092 Acceptance #4).
 _MIN_GRADE = 1
@@ -76,6 +76,23 @@ class ExamFrameworkUpdate(BaseModel):
         return _validate_grade_range(value)
 
 
+class FrameworkResearchJobRead(BaseModel):
+    """Response schema for a Pattern-A research run (T-093)."""
+
+    id: str
+    framework_id: str
+    status: ResearchJobStatus
+    cost_usd: float
+    sources_count: int
+    error: str | None
+    study_plan_id: str | None
+    started_at: datetime
+    finished_at: datetime | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
 class SourceCitation(BaseModel):
     """A single cited source for an AI-generated plan."""
 
@@ -127,3 +144,5 @@ class FrameworkStudyPlanContent(BaseModel):
     topics: list[FrameworkTopic] = Field(default_factory=list)
     weekly_pacing: list[WeeklyPacing] = Field(default_factory=list)
     exam_strategy: ExamStrategy
+    # Copyright transparency note attached to every AI-generated plan (§8.21, T-093).
+    copyright_note: str = Field(default="", max_length=1000)

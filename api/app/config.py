@@ -82,6 +82,20 @@ class Settings(BaseSettings):
     EMBEDDING_VECTOR_DIM: int = 0  # 0 = provider default (1024 or 384)
     INFINITY_URL: str = "http://localhost:7997"
 
+    # Web search — self-hosted SearXNG (RAG tier-3 fallback + framework research,
+    # STACK_LOCK §Web-search; ARCH §7.12/§8.21).
+    WEBSEARCH_URL: str = "http://localhost:8888"
+
+    # Exam-framework AI research (T-093, ARCH §3.19/§8.21).
+    # Hard USD cost ceiling per research run; agent halts + flags a partial result
+    # if the estimated LLM spend crosses it.
+    FRAMEWORK_RESEARCH_COST_CEILING_USD: float = 10.0
+    # Blended token price used to estimate a run's USD cost from LLM usage. A safety
+    # knob for the ceiling above — not billing-grade; tune per provider.
+    FRAMEWORK_RESEARCH_USD_PER_1K_TOKENS: float = 0.001
+    # How many top search results to fetch + synthesise per run (§8.21: 10-20).
+    FRAMEWORK_RESEARCH_MAX_SOURCES: int = 15
+
     # Browser origins allowed for cross-origin API calls (comma-separated).
     CORS_ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 

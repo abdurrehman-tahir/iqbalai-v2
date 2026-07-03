@@ -6,9 +6,13 @@ import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Target, Plus, Pencil, Trash2 } from "lucide-react";
+import { Target, Plus, Pencil, Trash2, FlaskConical, Loader2 } from "lucide-react";
 import { frameworksApi, ApiError, type Framework } from "@/lib/api";
-import type { ExamFrameworkCreate, ExamFrameworkUpdate } from "@/lib/api/types";
+import type {
+  ExamFrameworkCreate,
+  ExamFrameworkUpdate,
+  FrameworkResearchJobRead,
+} from "@/lib/api/types";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
@@ -85,6 +89,7 @@ export function FrameworksClient() {
   const [editTarget, setEditTarget] = useState<Framework | null>(null);
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Framework | null>(null);
+  const [researchTarget, setResearchTarget] = useState<Framework | null>(null);
   const [formError, setFormError] = useState("");
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -124,6 +129,17 @@ export function FrameworksClient() {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["exam-frameworks"] });
       setDeleteTarget(null);
+    },
+    onError: (err: Error) => {
+      setFormError(err instanceof ApiError ? err.message : err.message);
+    },
+  });
+
+  // T-093: kick off the AI research run; the framework flips DRAFT -> RESEARCHING.
+  const researchMutation = useMutation({
+    mutationFn: (id: string) => frameworksApi.triggerResearch(token ?? "", id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["exam-frameworks"] });
     },
     onError: (err: Error) => {
       setFormError(err instanceof ApiError ? err.message : err.message);
@@ -250,6 +266,35 @@ export function FrameworksClient() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center justify-end gap-2">
+                      {framework.status === "draft" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => researchMutation.mutate(framework.id)}
+                          loading={
+                            researchMutation.isPending &&
+                            researchMutation.variables === framework.id
+                          }
+                          aria-label={t("actions.research", { name: framework.name })}
+                          className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+                        >
+                          <FlaskConical className="size-4" aria-hidden="true" />
+                        </Button>
+                      )}
+                      {framework.status !== "draft" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setResearchTarget(framework)}
+                          aria-label={t("actions.view_research", { name: framework.name })}
+                        >
+                          {framework.status === "researching" ? (
+                            <Loader2 className="size-4 animate-spin" aria-hidden="true" />
+                          ) : (
+                            <FlaskConical className="size-4" aria-hidden="true" />
+                          )}
+                        </Button>
+                      )}
                       <Button
                         variant="ghost"
                         size="icon"
@@ -394,6 +439,82 @@ export function FrameworksClient() {
           </Button>
         </div>
       </Modal>
+
+      <Modal
+        open={!!researchTarget}
+        onClose={() => setResearchTarget(null)}
+        title={t("research_modal.title")}
+        description={t("research_modal.description", { name: researchTarget?.name ?? "" })}
+        size="md"
+        closeLabel={t("research_modal.close")}
+      >
+        {researchTarget && <ResearchJobPanel frameworkId={researchTarget.id} token={token ?? ""} />}
+      </Modal>
     </div>
+  );
+}
+
+/** Fetches and renders the latest research job for a framework — all four UI
+ * states (loading / empty=no run yet / error / success). */
+function ResearchJobPanel({ frameworkId, token }: { frameworkId: string; token: string }) {
+  const t = useTranslations("admin.exam_frameworks");
+  const { data, isLoading, isError, refetch } = useQuery<FrameworkResearchJobRead>({
+    queryKey: ["exam-frameworks", "research", frameworkId],
+    queryFn: () => frameworksApi.latestResearch(token, frameworkId),
+    enabled: !!token,
+    retry: false,
+    // A running job progresses server-side; poll while it's in flight.
+    refetchInterval: (query) => (query.state.data?.status === "running" ? 4000 : false),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3" aria-busy="true">
+        <Skeleton className="h-5 w-40" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
+  // The endpoint 404s when no run has ever been triggered -> empty state.
+  if (isError || !data) {
+    return (
+      <EmptyState
+        icon={FlaskConical}
+        title={t("research_modal.empty_title")}
+        description={t("research_modal.empty_description")}
+      />
+    );
+  }
+
+  return (
+    <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
+      <dt className="text-gray-500">{t("research_modal.status")}</dt>
+      <dd className="font-medium text-gray-900">
+        <span className="inline-flex items-center gap-2">
+          {data.status === "running" && (
+            <Loader2 className="size-4 animate-spin text-indigo-600" aria-hidden="true" />
+          )}
+          {t(`research_status.${data.status}`)}
+        </span>
+      </dd>
+      <dt className="text-gray-500">{t("research_modal.cost")}</dt>
+      <dd className="font-medium text-gray-900">${data.cost_usd.toFixed(2)}</dd>
+      <dt className="text-gray-500">{t("research_modal.sources")}</dt>
+      <dd className="font-medium text-gray-900">{data.sources_count}</dd>
+      {data.error && (
+        <>
+          <dt className="text-gray-500">{t("research_modal.error")}</dt>
+          <dd className="text-red-600" role="alert">
+            {data.error}
+          </dd>
+        </>
+      )}
+      <div className="col-span-2 pt-2">
+        <Button variant="outline" size="sm" onClick={() => refetch()}>
+          {t("research_modal.refresh")}
+        </Button>
+      </div>
+    </dl>
   );
 }

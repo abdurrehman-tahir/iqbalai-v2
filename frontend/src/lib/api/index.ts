@@ -16,6 +16,7 @@ import type {
   ExamFrameworkCreate,
   ExamFrameworkRead,
   ExamFrameworkUpdate,
+  FrameworkResearchJobRead,
   LibraryUploadParams,
   LibraryUploadResponse,
   Notification,
@@ -64,6 +65,7 @@ export type {
   PersonaRead as Persona,
   ExamSyllabusRead as Syllabus,
   ExamFrameworkRead as Framework,
+  FrameworkResearchJobRead as FrameworkResearchJob,
   SubscriptionTierRead as SubscriptionTier,
   SubjectRead as Subject,
   SubjectCreate,
@@ -540,6 +542,12 @@ export const frameworksApi = {
     ),
   delete: (token: string, id: string) =>
     request<ExamFrameworkRead>(`/exam-frameworks/${id}`, { method: "DELETE" }, token),
+  // T-093: kick off the Pattern-A AI research run for a DRAFT framework (202).
+  triggerResearch: (token: string, id: string) =>
+    request<FrameworkResearchJobRead>(`/exam-frameworks/${id}/research`, { method: "POST" }, token),
+  // Latest research job for a framework (progress / result); 404 if none yet.
+  latestResearch: (token: string, id: string) =>
+    request<FrameworkResearchJobRead>(`/exam-frameworks/${id}/research`, {}, token),
 };
 
 // ── Districts ─────────────────────────────────────────────────────────────────

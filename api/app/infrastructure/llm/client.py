@@ -7,6 +7,7 @@ groq, anthropic, or any provider SDK outside this file and its providers/ submod
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
+from dataclasses import dataclass
 
 import structlog
 from openai import AsyncOpenAI
@@ -14,6 +15,24 @@ from openai import AsyncOpenAI
 from app.config import get_settings
 
 logger = structlog.get_logger(__name__)
+
+
+@dataclass(frozen=True)
+class ChatUsage:
+    """A chat completion plus its token usage (for cost accounting).
+
+    Returned by :func:`chat_with_usage` so callers that must enforce a spend
+    ceiling (e.g. framework research, T-093) can meter tokens without importing
+    a provider SDK — the LLM chokepoint stays in this module (ARCH §8.1/§8.13).
+    """
+
+    text: str
+    prompt_tokens: int
+    completion_tokens: int
+
+    @property
+    def total_tokens(self) -> int:
+        return self.prompt_tokens + self.completion_tokens
 
 
 def _get_client(task: str = "") -> AsyncOpenAI:
@@ -91,6 +110,50 @@ async def chat(
             completion_tokens=response.usage.completion_tokens if response.usage else 0,
         )
         return content
+    except Exception as exc:
+        logger.error("llm_chat_failed", task=task, provider=settings.LLM_PROVIDER, error=str(exc))
+        raise
+
+
+async def chat_with_usage(
+    messages: list[dict[str, str]],
+    task: str = "",
+    temperature: float = 0.7,
+    max_tokens: int = 2048,
+) -> ChatUsage:
+    """Like :func:`chat`, but also returns token usage for cost metering.
+
+    Callers enforcing a USD ceiling (framework research) need per-call token
+    counts. Usage may be absent from a provider response; missing counts are
+    reported as 0 (a conservative under-count is preferable to failing the run).
+    """
+    settings = get_settings()
+    model = _resolve_model(task)
+    client = _get_client(task)
+    try:
+        response = await client.chat.completions.create(
+            model=model,
+            messages=messages,  # type: ignore[arg-type]
+            temperature=temperature,
+            max_tokens=max_tokens,
+        )
+        content = response.choices[0].message.content or ""
+        usage = response.usage
+        prompt_tokens = usage.prompt_tokens if usage else 0
+        completion_tokens = usage.completion_tokens if usage else 0
+        logger.info(
+            "llm_chat_complete",
+            task=task,
+            provider=settings.LLM_PROVIDER,
+            model=model,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+        )
+        return ChatUsage(
+            text=content,
+            prompt_tokens=prompt_tokens,
+            completion_tokens=completion_tokens,
+        )
     except Exception as exc:
         logger.error("llm_chat_failed", task=task, provider=settings.LLM_PROVIDER, error=str(exc))
         raise

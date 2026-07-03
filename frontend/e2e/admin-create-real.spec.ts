@@ -66,6 +66,16 @@ test.describe("Admin create — real backend contract @smoke @real", () => {
     expect(body.data.name).toBe(name);
     // New definitions always land in DRAFT (service create_framework).
     expect(body.data.status).toBe("draft");
+
+    // T-093: the DRAFT framework can be handed to the AI research pipeline — the
+    // trigger is accepted (202) and returns a RUNNING job.
+    const research = await request.post(`${API_BASE}/exam-frameworks/${body.data.id}/research`, {
+      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
+    });
+    expect(research.status(), await research.text()).toBe(202);
+    const researchBody = await research.json();
+    expect(researchBody.data.framework_id).toBe(body.data.id);
+    expect(researchBody.data.status).toBe("running");
   });
 
   test("POST /admin/subscription-tiers accepts UI payload", async ({ request }) => {

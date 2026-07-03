@@ -99,6 +99,31 @@ async function installAdminMocks(page: Page) {
         return;
       }
 
+      // T-093: trigger the AI research run — flips the framework to RESEARCHING
+      // and returns a RUNNING job (202 Accepted).
+      const researchMatch = path.match(/^\/exam-frameworks\/([^/]+)\/research$/);
+      if (method === "POST" && researchMatch) {
+        const target = frameworks.find((f) => f.id === researchMatch[1]);
+        if (target) target.status = "researching";
+        await route.fulfill({
+          status: 202,
+          contentType: "application/json",
+          body: envelope({
+            id: "job-1",
+            framework_id: researchMatch[1],
+            status: "running",
+            cost_usd: 0,
+            sources_count: 0,
+            error: null,
+            study_plan_id: null,
+            started_at: new Date().toISOString(),
+            finished_at: null,
+            created_at: new Date().toISOString(),
+          }),
+        });
+        return;
+      }
+
       await route.fulfill({
         status: 404,
         contentType: "application/json",
@@ -150,5 +175,12 @@ test.describe("Platform Admin Exam Frameworks @smoke", () => {
     await expect(
       page.getByRole("cell", { name: "Matric Punjab — Physics", exact: true })
     ).toBeVisible({ timeout: 5_000 });
+
+    // T-093: trigger AI research on the DRAFT row → the status flips to Researching.
+    await page
+      .getByRole("button", { name: /run ai research/i })
+      .first()
+      .click();
+    await expect(page.getByText(/researching/i).first()).toBeVisible({ timeout: 5_000 });
   });
 });

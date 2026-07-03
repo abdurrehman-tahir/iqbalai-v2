@@ -252,7 +252,9 @@
       },
       "actions": {
         "edit": "__TODO__ Edit {name}",
-        "delete": "__TODO__ Delete {name}"
+        "delete": "__TODO__ Delete {name}",
+        "research": "__TODO__ Run AI research for {name}",
+        "view_research": "__TODO__ View research for {name}"
       },
       "modal": {
         "edit_title": "__TODO__ Edit framework",
@@ -277,6 +279,24 @@
         "description": "__TODO__ Are you sure you want to delete \"{name}\"? Only draft frameworks can be deleted.",
         "cancel": "__TODO__ Cancel",
         "confirm": "__TODO__ Delete"
+      },
+      "research_status": {
+        "running": "__TODO__ Running",
+        "succeeded": "__TODO__ Succeeded",
+        "partial": "__TODO__ Partial (cost ceiling reached)",
+        "research_failed": "__TODO__ Failed"
+      },
+      "research_modal": {
+        "title": "__TODO__ AI research run",
+        "description": "__TODO__ Latest research job for {name}.",
+        "close": "__TODO__ Close",
+        "status": "__TODO__ Status",
+        "cost": "__TODO__ Estimated cost",
+        "sources": "__TODO__ Sources cited",
+        "error": "__TODO__ Details",
+        "refresh": "__TODO__ Refresh",
+        "empty_title": "__TODO__ No research run yet",
+        "empty_description": "__TODO__ Trigger AI research from a DRAFT framework to generate a study plan."
       }
     },
     "subscription_tiers": {

@@ -20,6 +20,7 @@ from app.features.exam_frameworks.schemas import (
     ExamFrameworkCreate,
     ExamFrameworkRead,
     ExamFrameworkUpdate,
+    FrameworkResearchJobRead,
 )
 from app.features.exam_frameworks.service import ExamFrameworkService
 
@@ -112,3 +113,37 @@ async def delete_framework(
     svc = ExamFrameworkService(db)
     framework = await svc.delete_framework(framework_id, actor_id=str(claims.get("sub", "")))
     return success(ExamFrameworkRead.model_validate(framework).model_dump())
+
+
+@router.post(
+    "/{framework_id}/research",
+    response_model=SuccessEnvelope[FrameworkResearchJobRead],
+    operation_id="exam_frameworks_trigger_research",
+    summary="Trigger the Pattern-A AI research run for a DRAFT framework",
+    status_code=202,
+    dependencies=[require_role("platform_admin")],
+)
+async def trigger_research(
+    framework_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ExamFrameworkService(db)
+    job = await svc.trigger_research(framework_id, actor_id=str(claims.get("sub", "")))
+    return success(FrameworkResearchJobRead.model_validate(job).model_dump())
+
+
+@router.get(
+    "/{framework_id}/research",
+    response_model=SuccessEnvelope[FrameworkResearchJobRead],
+    operation_id="exam_frameworks_latest_research",
+    summary="Get the latest AI research job for a framework (progress/result)",
+    dependencies=[require_role("platform_admin")],
+)
+async def latest_research(
+    framework_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ExamFrameworkService(db)
+    job = await svc.get_latest_job(framework_id)
+    return success(FrameworkResearchJobRead.model_validate(job).model_dump())

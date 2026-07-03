@@ -1074,7 +1074,9 @@
       },
       "actions": {
         "edit": "Edit {name}",
-        "delete": "Delete {name}"
+        "delete": "Delete {name}",
+        "research": "Run AI research for {name}",
+        "view_research": "View research for {name}"
       },
       "modal": {
         "edit_title": "Edit framework",
@@ -1099,6 +1101,24 @@
         "description": "Are you sure you want to delete \"{name}\"? Only draft frameworks can be deleted.",
         "cancel": "Cancel",
         "confirm": "Delete"
+      },
+      "research_status": {
+        "running": "Running",
+        "succeeded": "Succeeded",
+        "partial": "Partial (cost ceiling reached)",
+        "research_failed": "Failed"
+      },
+      "research_modal": {
+        "title": "AI research run",
+        "description": "Latest research job for {name}.",
+        "close": "Close",
+        "status": "Status",
+        "cost": "Estimated cost",
+        "sources": "Sources cited",
+        "error": "Details",
+        "refresh": "Refresh",
+        "empty_title": "No research run yet",
+        "empty_description": "Trigger AI research from a DRAFT framework to generate a study plan."
       }
     },
     "subscription_tiers": {
