@@ -31,9 +31,10 @@ class UserRole(str, enum.Enum):
 
 
 class UserAccountStatus(str, enum.Enum):
-    """User lifecycle status per flow-2 §3.5."""
+    """User lifecycle status per flow-2 §3.5 + flow-4 §3.1 (INVITED for school students)."""
 
     ACTIVE = "active"
+    INVITED = "invited"
     SUSPENDED = "suspended"
     DEACTIVATED = "deactivated"
 

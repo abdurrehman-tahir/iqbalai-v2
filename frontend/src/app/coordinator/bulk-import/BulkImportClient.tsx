@@ -13,6 +13,12 @@ import { cn } from "@/lib/utils";
 
 const MAX_FILE_SIZE_MB = 5;
 
+function rowBadgeVariant(status: string): "success" | "destructive" | "secondary" {
+  if (status === "valid" || status === "enrolled") return "success";
+  if (status === "invalid" || status === "failed") return "destructive";
+  return "secondary";
+}
+
 export function BulkImportClient() {
   const t = useTranslations("coordinator.bulk_import");
   const { mounted, token } = useClientAuth();
@@ -20,6 +26,7 @@ export function BulkImportClient() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [fileError, setFileError] = useState("");
   const [result, setResult] = useState<BulkImportJob | null>(null);
+  const [commitError, setCommitError] = useState<string | null>(null);
 
   const uploadMutation = useMutation({
     mutationFn: async () => {
@@ -29,15 +36,31 @@ export function BulkImportClient() {
     onSuccess: (job) => {
       setResult(job);
       setFileError("");
+      setCommitError(null);
     },
     onError: (err: Error) => {
       setFileError(err.message);
     },
   });
 
+  const commitMutation = useMutation({
+    mutationFn: async () => {
+      if (!result || !token) throw new Error("Missing import job or token");
+      return bulkImportApi.commit(token, result.id);
+    },
+    onSuccess: (job) => {
+      setResult(job);
+      setCommitError(null);
+    },
+    onError: (err: Error) => {
+      setCommitError(err.message);
+    },
+  });
+
   function handleFileChange(file: File | null) {
     setFileError("");
     setResult(null);
+    setCommitError(null);
     if (!file) {
       setSelectedFile(null);
       return;
@@ -62,6 +85,9 @@ export function BulkImportClient() {
       uploadMutation.mutate();
     }
   }
+
+  const canCommit =
+    result?.status === "dry_run_complete" && (result.success_rows ?? 0) > 0;
 
   return (
     <div className="space-y-8 max-w-5xl">
@@ -135,16 +161,13 @@ export function BulkImportClient() {
                     <td className="px-4 py-3">{row.data?.email ?? "—"}</td>
                     <td className="px-4 py-3">{row.data?.grade ?? "—"}</td>
                     <td className="px-4 py-3">
-                      <Badge
-                        variant={row.status === "valid" ? "success" : "destructive"}
-                        className={cn(row.status === "valid" && "capitalize")}
-                      >
-                        {row.status === "valid" ? t("status.valid") : t("status.invalid")}
+                      <Badge variant={rowBadgeVariant(row.status)} className={cn("capitalize")}>
+                        {t(`status.${row.status}` as "status.valid")}
                       </Badge>
                     </td>
                     <td className="px-4 py-3 text-red-600">
                       {row.errors.length
-                        ? row.errors.map((code) => t(`error_codes.${code}`)).join("; ")
+                        ? row.errors.map((code) => t(`error_codes.${code}` as "error_codes.missing_name")).join("; ")
                         : "—"}
                     </td>
                   </tr>
@@ -153,9 +176,24 @@ export function BulkImportClient() {
             </table>
           </div>
 
-          <Button type="button" disabled title={t("commit_disabled_hint")}>
-            {t("commit_disabled")}
-          </Button>
+          {commitError && <p className="text-sm text-red-600">{commitError}</p>}
+
+          {canCommit && (
+            <Button
+              type="button"
+              onClick={() => commitMutation.mutate()}
+              disabled={commitMutation.isPending}
+            >
+              {commitMutation.isPending ? t("committing") : t("commit_button")}
+            </Button>
+          )}
+
+          {result.status === "committed" && (
+            <p className="text-sm text-green-700">{t("commit_success")}</p>
+          )}
+          {result.status === "committed_with_errors" && (
+            <p className="text-sm text-amber-700">{t("commit_partial")}</p>
+          )}
         </section>
       )}
     </div>

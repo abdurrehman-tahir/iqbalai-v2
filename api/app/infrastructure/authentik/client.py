@@ -25,6 +25,8 @@ class AuthentikClientProtocol(Protocol):
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None: ...
 
+    async def set_tenant_type(self, authentik_id: str, tenant_type: str) -> None: ...
+
 
 class DevAuthentikClient:
     """In-memory stub used when AUTHENTIK_API_TOKEN is unset (local dev + tests)."""
@@ -59,6 +61,9 @@ class DevAuthentikClient:
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None:
         logger.info("dev_authentik_group_added", pk=authentik_id, group=group_slug)
+
+    async def set_tenant_type(self, authentik_id: str, tenant_type: str) -> None:
+        logger.info("dev_authentik_tenant_type_set", pk=authentik_id, tenant_type=tenant_type)
 
 
 class AuthentikClient:
@@ -149,6 +154,9 @@ class AuthentikClient:
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None:
         logger.info("authentik_add_to_group", pk=authentik_id, group=group_slug)
+
+    async def set_tenant_type(self, authentik_id: str, tenant_type: str) -> None:
+        logger.info("authentik_set_tenant_type", pk=authentik_id, tenant_type=tenant_type)
 
 
 _dev_client: DevAuthentikClient | None = None

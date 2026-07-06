@@ -35,3 +35,8 @@ class BulkImportRepository:
             )
         )
         return result.scalar_one_or_none()
+
+    async def update(self, job: BulkImport) -> BulkImport:
+        await self._session.commit()
+        await self._session.refresh(job)
+        return job

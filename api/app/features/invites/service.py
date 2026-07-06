@@ -148,17 +148,13 @@ class InviteService:
         if payload.role == UserRole.SCHOOL_ADMIN:
             if not school_id:
                 raise ValidationError("school_id is required for school_admin invites")
-            district_id = await self._validate_school_for_invite(
-                school_id, claims, caller_role
-            )
+            district_id = await self._validate_school_for_invite(school_id, claims, caller_role)
         elif payload.role == UserRole.COORDINATOR:
             if caller_role == "school_admin":
                 school_id = str(claims.get("school_id", "") or "") or school_id
             if not school_id:
                 raise ValidationError("school_id is required for coordinator invites")
-            district_id = await self._validate_school_for_invite(
-                school_id, claims, caller_role
-            )
+            district_id = await self._validate_school_for_invite(school_id, claims, caller_role)
             grades = [g.strip() for g in (payload.grade_scope or []) if g.strip()]
             if not grades:
                 raise ValidationError("grade_scope must include at least one grade")
@@ -168,9 +164,7 @@ class InviteService:
                 school_id = str(claims.get("school_id", "") or "") or school_id
             if not school_id:
                 raise ValidationError("school_id is required for teacher invites")
-            district_id = await self._validate_school_for_invite(
-                school_id, claims, caller_role
-            )
+            district_id = await self._validate_school_for_invite(school_id, claims, caller_role)
         elif payload.district_id:
             district = await self._districts.get_by_id(payload.district_id)
             if district is None or district.deleted_at is not None:
@@ -389,17 +383,31 @@ class InviteService:
         await self._authentik.activate_user(invite.authentik_id)
 
         display_name = payload.display_name or invite.display_name
-        user = User(
-            authentik_id=invite.authentik_id,
-            email=invite.email,
-            display_name=display_name,
-            role=invite.invited_role,
-            status=UserAccountStatus.ACTIVE,
-            district_id=invite.district_id,
-            school_id=invite.school_id,
-            scoped_ids=_scoped_ids_from_invite(invite),
-        )
-        await self._users.create(user)
+        if invite.invited_role == UserRole.STUDENT:
+            existing = await self._users.get_by_email(invite.email)
+            if existing is None or existing.deleted_at is not None:
+                raise ValidationError(
+                    "Student enrollment record missing — contact your coordinator"
+                )
+            if existing.status != UserAccountStatus.INVITED:
+                raise ConflictError("Student account is not pending invite acceptance")
+            existing.authentik_id = invite.authentik_id
+            existing.display_name = display_name
+            existing.status = UserAccountStatus.ACTIVE
+            await self._users.update(existing)
+            user = existing
+        else:
+            user = User(
+                authentik_id=invite.authentik_id,
+                email=invite.email,
+                display_name=display_name,
+                role=invite.invited_role,
+                status=UserAccountStatus.ACTIVE,
+                district_id=invite.district_id,
+                school_id=invite.school_id,
+                scoped_ids=_scoped_ids_from_invite(invite),
+            )
+            await self._users.create(user)
 
         invite.status = UserInviteStatus.ACCEPTED
         invite.accepted_at = datetime.now(timezone.utc)

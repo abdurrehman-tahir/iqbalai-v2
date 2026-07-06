@@ -1,6 +1,8 @@
 # CLAUDE.md
 
-**You are working on IqbalAI v2.** This file is read automatically at the start of every Claude Code session and after every context compaction. Read it carefully. The rules below are non-negotiable.
+**You are working on IqbalAI v2 in Claude Code.** This file is read automatically at the start of every Claude Code session and after every context compaction. Read it carefully. The rules below are non-negotiable.
+
+> **Cursor users:** parallel rules for Cursor live in `.cursor/AGENTS.md` (+ `.cursor/skills/`, `.cursor/agents/`, `.cursor/rules/`, `.cursor/permissions.json`). Both toolchains coexist — do not remove either folder.
 
 ## The §0 rule — the single most important reading rule
 
@@ -241,6 +243,18 @@ At session start, this CLAUDE.md auto-loads and you read `docs/ARCHITECTURE.md` 
 **Resume rule (where to start, even if Hamza says nothing specific):** before waiting, determine the resume point — (1) read `ROADMAP.md` to find the currently-active milestone (the first not `done`); (2) read that milestone file's ticket `Status:` fields — **the first ticket not marked `done` is where you resume**; (3) `.claude/session-state.md` is a fast hint for the same thing. **If `session-state.md` and the milestone file disagree, the milestone file's `Status:` fields win** (they're the durable source of truth; session-state is only a scratchpad). If Hamza names a specific ticket, that overrides the resume point. Then your literal first action for that ticket is to invoke the `ticket-loader` sub-agent.
 
 After a context compaction, read `.claude/session-state.md` first to recover (do NOT re-fetch the milestone/spec/ARCH from scratch).
+
+## Claude Code toolchain files (parity with `.cursor/`)
+
+| Claude Code | Cursor | Purpose |
+|---|---|---|
+| `.claude/CLAUDE.md` | `.cursor/AGENTS.md` | Main project rules |
+| `.claude/skills/` | `.cursor/skills/` | Domain skills |
+| `.claude/agents/ticket-loader.md` | `.cursor/agents/ticket-loader.md` | Ticket dossier subagent |
+| `.claude/session-state.md` | `.cursor/session-state.md` | Session recovery scratchpad |
+| `.claude/settings.local.json` | `.cursor/permissions.json` + `.cursor/cli.json` | Command allowlists |
+
+Both toolchains read the same `docs/` folder. Do not remove or merge `.claude/` and `.cursor/`.
 
 ---
 

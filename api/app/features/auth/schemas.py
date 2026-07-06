@@ -21,3 +21,4 @@ class PostLoginResponse(BaseModel):
     tos_acceptance_required: bool
     current_tos_version_id: str | None
     account_status: str = UserAccountStatus.ACTIVE.value
+    parent_state: str | None = None

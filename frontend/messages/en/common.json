@@ -231,7 +231,26 @@
         "school_library_item_ingested": "Library item ingested",
         "school_library_item_selection_removed": "Library selection removed",
         "capacity_updated": "Teacher capacity updated",
-        "capacity_override": "Capacity override (elevated)"
+        "capacity_override": "Capacity override (elevated)",
+        "student_enrolled": "Student enrolled",
+        "bulk_import_dry_run_complete": "Bulk import validated",
+        "bulk_import_committed": "Bulk import committed",
+        "user_parent_signup": "Parent self-signup",
+        "student_profile_basic_completed": "Student profile basics completed",
+        "student_modes_selected": "Student study modes selected",
+        "student_exam_date_set": "Student exam date set",
+        "parent_link_requested": "Parent link requested",
+        "parent_link_approved": "Parent link approved",
+        "parent_link_revoked_by_parent": "Parent link revoked (parent)",
+        "parent_link_revoked_by_student": "Parent link revoked (student)",
+        "parent_link_re_requested": "Parent link re-requested",
+        "data_rights_export_requested": "Data export requested (elevated)",
+        "data_rights_deletion_requested": "Deletion requested (elevated)",
+        "data_rights_deletion_cancelled": "Deletion cancelled (elevated)",
+        "graduation_requested": "Graduation requested",
+        "graduation_approved": "Graduation approved",
+        "graduation_migrated": "Student migrated to independent (elevated)",
+        "graduation_migration_failed": "Migration failed (elevated)"
       }
     }
   },
@@ -400,6 +419,76 @@
       "delete_button": "Delete item",
       "deleting": "Deleting…",
       "delete_error": "Could not delete this item."
+    }
+  },
+  "student": {
+    "header_title": "Student dashboard",
+    "logout": "Sign out",
+    "onboarding": {
+      "header_title": "Complete your profile",
+      "title": "Welcome — confirm your details",
+      "subtitle": "Confirm your name, choose your language, and accept the Terms of Service to continue.",
+      "modes_title": "Choose how you study",
+      "modes_subtitle": "Pick at least one mode. You can use both Lecture and Self-Study.",
+      "name_label": "Full name",
+      "language_label": "Preferred language",
+      "language_en": "English",
+      "language_ur": "Urdu",
+      "language_sd": "Sindhi",
+      "language_ps": "Pashto",
+      "tos_label": "I accept the Terms of Service",
+      "profile_submit": "Continue",
+      "lecture_mode": "Lecture mode (class-based)",
+      "self_study_mode": "Self-study mode",
+      "modes_submit": "Start studying",
+      "error_generic": "Something went wrong. Please try again."
+    },
+    "dashboard": {
+      "title": "Welcome, Student",
+      "subtitle": "Your student dashboard. Lectures and study tools arrive in upcoming milestones.",
+      "profile_banner": "Add your target exam date to personalize your study plan — or skip for now.",
+      "profile_banner_dismiss": "Skip for now",
+      "exam_date_label": "Target exam date",
+      "exam_date_save": "Save exam date",
+      "exam_date_saved": "Exam date saved.",
+      "exam_date_error": "Could not save exam date. Choose today or a future date.",
+      "exam_date_future_warning": "That date is far in the future — you can change it anytime.",
+      "link_requests_title": "Parent link requests",
+      "link_requests_empty": "No pending parent link requests.",
+      "link_request_from": "{name} wants to link to your account",
+      "link_request_approve": "Approve",
+      "link_request_error": "Could not update link request. Please try again.",
+      "linked_parents_title": "Linked parents",
+      "linked_parents_empty": "No linked parents.",
+      "revoke_parent": "Revoke",
+      "access_state_label": "Parent access",
+      "access_state_LINKED": "At least one parent has read-only access",
+      "access_state_UNLINKED": "No parent read-only access",
+      "data_rights_link": "Data & privacy",
+      "graduation_banner_title": "You've graduated",
+      "graduation_banner_body": "Lecture mode is read-only. Self-Study stays fully available until your account moves to Independent mode.",
+      "graduation_migration_date": "Independent migration scheduled: {date}"
+    },
+    "data_rights": {
+      "title": "Data & privacy",
+      "subtitle": "Under Pakistan's PDPB 2025 you can export your personal data or request account deletion.",
+      "back_to_dashboard": "Back to dashboard",
+      "export_title": "Download your data",
+      "export_policy": "Request a ZIP bundle of your personal data. Exports are ready within 24 hours and downloadable for 7 days.",
+      "export_request": "Request export",
+      "export_download": "Download export",
+      "export_requested": "Export requested — we will notify you when it is ready.",
+      "export_status": "Latest export status: {status}",
+      "deletion_title": "Delete your account",
+      "deletion_policy": "Deletion requests enter a 30-day grace period and are queued for review. We do not hard-delete immediately because audit records must be retained.",
+      "deletion_confirm_label": "I understand my request enters a 30-day grace period and is queued for review — not an instant deletion.",
+      "deletion_request": "Submit deletion request",
+      "deletion_requested": "Deletion request received. You may cancel during the grace period.",
+      "deletion_grace_active": "Deletion scheduled for review after {date}. You may cancel until then.",
+      "deletion_cancel": "Cancel deletion request",
+      "deletion_cancelled": "Deletion request cancelled.",
+      "download_started": "Download started.",
+      "error_generic": "Something went wrong. Please try again."
     }
   },
   "teacher": {
@@ -611,6 +700,18 @@
           "description": "Archive section \"{name}\"?",
           "cancel": "Cancel",
           "confirm": "Archive"
+        },
+        "enroll_button": "Enroll student",
+        "enroll_modal": {
+          "title": "Enroll student in {section}",
+          "name_label": "Student name",
+          "name_placeholder": "Full name",
+          "email_label": "Email",
+          "email_placeholder": "student@school.edu",
+          "cancel": "Cancel",
+          "submit": "Send invite",
+          "success": "Student invited",
+          "generic_error": "Enrollment failed."
         }
       },
       "offerings": {
@@ -673,15 +774,17 @@
     },
     "bulk_import": {
       "title": "Bulk Import",
-      "subtitle": "Upload a CSV or XLSX roster to validate student rows before enrollment (M-06).",
+      "subtitle": "Upload a CSV or XLSX roster to validate student rows, then enroll valid rows.",
       "file_label": "Student roster file",
       "choose_file": "Choose file",
       "file_hint": "Required columns: name, email, grade. Optional: section, language. Max 5 MB, 5,000 rows.",
       "run_dry_run": "Run dry-run validation",
       "validating": "Validating…",
-      "results_title": "Dry-run results",
-      "commit_disabled": "Coming in M-06",
-      "commit_disabled_hint": "Student creation is enabled in milestone M-06",
+      "results_title": "Import results",
+      "commit_button": "Enroll valid rows",
+      "committing": "Enrolling…",
+      "commit_success": "All valid rows were enrolled and invite emails sent.",
+      "commit_partial": "Import finished with some rows skipped or failed — review the table below.",
       "summary": {
         "total": "{count} rows",
         "valid": "{count} valid",
@@ -697,7 +800,9 @@
       },
       "status": {
         "valid": "Valid",
-        "invalid": "Invalid"
+        "invalid": "Invalid",
+        "enrolled": "Enrolled",
+        "failed": "Failed"
       },
       "errors": {
         "invalid_type": "Only CSV and XLSX files are supported.",
@@ -711,6 +816,11 @@
         "email_in_other_school": "Email belongs to another school",
         "missing_grade": "Grade is required",
         "grade_out_of_scope": "Grade outside your scope",
+        "grade_not_found": "Grade not found in active session",
+        "section_not_found": "Section not found for grade",
+        "email_already_exists": "Email already registered or invited",
+        "enrollment_failed": "Enrollment failed",
+        "enrollment_conflict": "Enrollment conflict",
         "invalid_language": "Unsupported language"
       }
     }
@@ -1185,6 +1295,70 @@
         "self_study_only": "Self-Study Mode is your only mode — no lecture mode switcher.",
         "diagnostic_deferred": "Diagnostic: coming soon (M-08 hook present)."
       }
+    }
+  },
+  "parent": {
+    "signup": {
+      "title": "Create your parent account",
+      "subtitle": "Sign up to link to your school student's account — read-only access after approval.",
+      "name_label": "Full name",
+      "email_label": "Email",
+      "language_label": "Preferred language",
+      "language_en": "English",
+      "language_ur": "Urdu",
+      "language_sd": "Sindhi",
+      "language_ps": "Pashto",
+      "password_label": "Password",
+      "confirm_password_label": "Confirm password",
+      "passwords_must_match": "Passwords must match",
+      "submit": "Create account",
+      "have_account": "Already have an account? Sign in",
+      "success": "Your account is ready. Verify your email and sign in to link to your child.",
+      "go_login": "Sign in",
+      "error_generic": "Could not create account. Please try again."
+    },
+    "home": {
+      "header_title": "Parent dashboard",
+      "logout": "Sign out",
+      "title": "Link to your child",
+      "subtitle": "Enter your school student's email to send a link request. They must approve before you get read-only access.",
+      "state_label": "Status",
+      "state_LINK_PENDING": "Link pending student approval",
+      "state_LINKED": "Linked to at least one student",
+      "state_PARENT_ACTIVE_UNLINKED": "No children linked yet",
+      "student_email_label": "Student email",
+      "submit_link": "Send link request",
+      "links_title": "Your link requests",
+      "links_empty": "No link requests yet.",
+      "link_status_pending": "Pending approval",
+      "link_status_approved": "Linked (read-only access)",
+      "link_status_revoked": "Revoked",
+      "revoke_link": "Revoke link",
+      "read_only_badge": "Read-only access active",
+      "success_request": "Link request sent. Waiting for your child to approve.",
+      "error_generic": "Could not send link request. Check the email and try again.",
+      "data_rights_link": "Data & privacy"
+    },
+    "data_rights": {
+      "title": "Data & privacy",
+      "subtitle": "Under Pakistan's PDPB 2025 you can export your personal data or request account deletion.",
+      "back_to_dashboard": "Back to dashboard",
+      "export_title": "Download your data",
+      "export_policy": "Request a ZIP bundle of your personal data. Exports are ready within 24 hours and downloadable for 7 days.",
+      "export_request": "Request export",
+      "export_download": "Download export",
+      "export_requested": "Export requested — we will notify you when it is ready.",
+      "export_status": "Latest export status: {status}",
+      "deletion_title": "Delete your account",
+      "deletion_policy": "Deletion requests enter a 30-day grace period and are queued for review. We do not hard-delete immediately because audit records must be retained.",
+      "deletion_confirm_label": "I understand my request enters a 30-day grace period and is queued for review — not an instant deletion.",
+      "deletion_request": "Submit deletion request",
+      "deletion_requested": "Deletion request received. You may cancel during the grace period.",
+      "deletion_grace_active": "Deletion scheduled for review after {date}. You may cancel until then.",
+      "deletion_cancel": "Cancel deletion request",
+      "deletion_cancelled": "Deletion request cancelled.",
+      "download_started": "Download started.",
+      "error_generic": "Something went wrong. Please try again."
     }
   }
 }

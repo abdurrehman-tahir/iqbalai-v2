@@ -14,7 +14,7 @@ from app.core.tenant import get_tenant_type
 from app.db.session import async_session_factory
 from app.features.independent_users.models import IndependentUser, IndependentUserAccountStatus
 from app.features.independent_users.repository import IndependentUserRepository
-from app.features.users.models import User, UserAccountStatus
+from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
 from app.features.users.service import _ROLE_LOGIN_PRIORITY
 
@@ -34,13 +34,16 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/api/v1/auth/login",
         "/api/v1/auth/accept-invite",
         "/api/v1/independent/signup",
+        "/api/v1/parents/signup",
         "/api/v1/independent/students/me/exam-frameworks",
         "/metrics",
     }
 )
 
 
-def _enrich_claims_from_user(claims: dict[str, object], user: User | IndependentUser) -> dict[str, object]:
+def _enrich_claims_from_user(
+    claims: dict[str, object], user: User | IndependentUser
+) -> dict[str, object]:
     """Override JWT role/scope with the app database — Authentik tokens lack app roles."""
     enriched = dict(claims)
     enriched["role"] = user.role.value
@@ -152,6 +155,16 @@ def _account_status_block(user: User | IndependentUser) -> JSONResponse | None:
     return None
 
 
+def _allow_suspended_parent_post_login(request: Request, user: User | IndependentUser) -> bool:
+    """Let auto-suspended unlinked parents reach post-login so auth can resume them."""
+    return (
+        request.url.path == "/api/v1/auth/post-login"
+        and isinstance(user, User)
+        and user.role == UserRole.PARENT
+        and user.status == UserAccountStatus.SUSPENDED
+    )
+
+
 class AuthMiddleware(BaseHTTPMiddleware):
     """Validate JWT bearer token on every request except PUBLIC_PATHS.
 
@@ -199,7 +212,7 @@ class AuthMiddleware(BaseHTTPMiddleware):
         user = await _resolve_active_user(claims)
         if user is not None:
             blocked = _account_status_block(user)
-            if blocked is not None:
+            if blocked is not None and not _allow_suspended_parent_post_login(request, user):
                 return blocked
             claims = _enrich_claims_from_user(claims, user)
 

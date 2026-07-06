@@ -85,6 +85,10 @@ class Settings(BaseSettings):
     # Browser origins allowed for cross-origin API calls (comma-separated).
     CORS_ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
+    GRADUATION_GRACE_DAYS: int = 180
+    FINAL_GRADE_LEVEL_ORDINAL: int = 12
+    GRADUATION_MIGRATION_MAX_ATTEMPTS: int = 5
+
     @property
     def cors_allowed_origins(self) -> list[str]:
         return [o.strip() for o in self.CORS_ALLOWED_ORIGINS.split(",") if o.strip()]
