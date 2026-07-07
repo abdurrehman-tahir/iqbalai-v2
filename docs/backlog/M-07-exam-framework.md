@@ -255,7 +255,7 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Milestone:** M-07
 **Estimate:** 1 day
 **Status:** done
-**Commit:** _pending (this commit)_
+**Commit:** 51284d0
 **Note:** `framework` is not a locked §9.21 namespace; per product decision, framework
 notifications reuse existing namespaces — `system` for Platform-Admin alerts,
 `self_study` for the student version-available notice (no new namespace, no amendment).
