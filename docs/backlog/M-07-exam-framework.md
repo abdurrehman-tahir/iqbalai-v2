@@ -323,7 +323,8 @@ notifications reuse existing namespaces — `system` for Platform-Admin alerts,
 **Layer:** 6
 **Milestone:** M-07
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** _pending (this commit)_
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5 (full framework flow)
