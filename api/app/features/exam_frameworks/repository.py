@@ -18,6 +18,7 @@ from app.features.exam_frameworks.models import (
     FrameworkResearchJob,
     FrameworkStatus,
     FrameworkStudyPlan,
+    StudyPlanStatus,
 )
 
 logger = structlog.get_logger(__name__)
@@ -68,6 +69,59 @@ class ExamFrameworkRepository:
     def add(self, obj: FrameworkResearchJob | FrameworkStudyPlan) -> None:
         """Stage a new row on the session without committing (atomic multi-write)."""
         self._session.add(obj)
+
+    async def get_plan_by_id(self, plan_id: str) -> FrameworkStudyPlan | None:
+        result = await self._session.execute(
+            select(FrameworkStudyPlan).where(FrameworkStudyPlan.id == plan_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_pending_plan(self, framework_id: str) -> FrameworkStudyPlan | None:
+        """The latest PENDING_APPROVAL plan for a framework (the one under review)."""
+        result = await self._session.execute(
+            select(FrameworkStudyPlan)
+            .where(
+                FrameworkStudyPlan.framework_id == framework_id,
+                FrameworkStudyPlan.status == StudyPlanStatus.PENDING_APPROVAL,
+            )
+            .order_by(FrameworkStudyPlan.version.desc())
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_current_published_plan(self, framework_id: str) -> FrameworkStudyPlan | None:
+        """The current APPROVED plan (highest version) for a framework, if any."""
+        result = await self._session.execute(
+            select(FrameworkStudyPlan)
+            .where(
+                FrameworkStudyPlan.framework_id == framework_id,
+                FrameworkStudyPlan.status == StudyPlanStatus.APPROVED,
+            )
+            .order_by(FrameworkStudyPlan.version.desc())
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_plan_by_version(
+        self, framework_id: str, version: int
+    ) -> FrameworkStudyPlan | None:
+        result = await self._session.execute(
+            select(FrameworkStudyPlan).where(
+                FrameworkStudyPlan.framework_id == framework_id,
+                FrameworkStudyPlan.version == version,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def list_pending_approval_frameworks(self) -> list[ExamFramework]:
+        """Frameworks awaiting Platform-Admin approval — for the SLA beat (T-094)."""
+        result = await self._session.execute(
+            select(ExamFramework).where(
+                ExamFramework.status == FrameworkStatus.PENDING_APPROVAL,
+                not_deleted(ExamFramework),
+            )
+        )
+        return list(result.scalars().all())
 
     async def commit(self) -> None:
         await self._session.commit()

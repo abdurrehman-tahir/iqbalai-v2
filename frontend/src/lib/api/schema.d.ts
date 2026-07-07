@@ -621,6 +621,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/exam-frameworks/{framework_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve the pending plan -> PUBLISHED (selectable by students) */
+        post: operations["exam_frameworks_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the study plan pending approval for review (content + sources) */
+        get: operations["exam_frameworks_review_plan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject the pending plan -> DRAFT with reviewer notes */
+        post: operations["exam_frameworks_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/exam-frameworks/{framework_id}/research": {
         parameters: {
             query?: never;
@@ -2542,6 +2593,14 @@ export interface components {
             region?: string | null;
         };
         /**
+         * FrameworkRejectRequest
+         * @description Payload to reject a pending plan back to DRAFT with reviewer notes (T-094).
+         */
+        FrameworkRejectRequest: {
+            /** Notes */
+            notes: string;
+        };
+        /**
          * FrameworkResearchJobRead
          * @description Response schema for a Pattern-A research run (T-093).
          */
@@ -2582,6 +2641,44 @@ export interface components {
          * @enum {string}
          */
         FrameworkStatus: "draft" | "researching" | "pending_approval" | "published" | "refreshing" | "deprecated";
+        /**
+         * FrameworkStudyPlanRead
+         * @description Response schema for a versioned study plan under Platform-Admin review (T-094).
+         *
+         *     Surfaces the full generated ``content_jsonb`` + cited sources so the reviewer can
+         *     read the plan before approving/rejecting (Acceptance #1).
+         */
+        FrameworkStudyPlanRead: {
+            /** Approved At */
+            approved_at: string | null;
+            /** Approved By */
+            approved_by: string | null;
+            /** Content Jsonb */
+            content_jsonb: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Framework Id */
+            framework_id: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Id */
+            id: string;
+            /** Reviewer Notes */
+            reviewer_notes: string | null;
+            /** Sources Cited Jsonb */
+            sources_cited_jsonb: unknown[];
+            status: components["schemas"]["StudyPlanStatus"];
+            /** Version */
+            version: number;
+        };
         /** GradeCreate */
         GradeCreate: {
             /** Name */
@@ -3514,6 +3611,12 @@ export interface components {
             user_id: string;
         };
         /**
+         * StudyPlanStatus
+         * @description Per-version study-plan lifecycle. Independent view exposes ``approved`` only.
+         * @enum {string}
+         */
+        StudyPlanStatus: "draft" | "pending_approval" | "approved" | "superseded";
+        /**
          * SubjectCreate
          * @description Payload for creating a new Subject in the caller's school catalogue.
          */
@@ -3716,6 +3819,15 @@ export interface components {
         /** SuccessEnvelope[FrameworkResearchJobRead] */
         SuccessEnvelope_FrameworkResearchJobRead_: {
             data: components["schemas"]["FrameworkResearchJobRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[FrameworkStudyPlanRead] */
+        SuccessEnvelope_FrameworkStudyPlanRead_: {
+            data: components["schemas"]["FrameworkStudyPlanRead"];
             /**
              * Message
              * @default ok
@@ -6188,6 +6300,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_ExamFrameworkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkStudyPlanRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_review_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkStudyPlanRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FrameworkRejectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkStudyPlanRead_"];
                 };
             };
             /** @description Validation Error */

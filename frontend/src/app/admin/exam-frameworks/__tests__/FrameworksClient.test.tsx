@@ -12,6 +12,9 @@ vi.mock("@/hooks/use-client-auth", () => ({
 const mockList = vi.fn();
 const mockTriggerResearch = vi.fn();
 const mockLatestResearch = vi.fn();
+const mockReviewPlan = vi.fn();
+const mockApprove = vi.fn();
+const mockReject = vi.fn();
 vi.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error {},
   frameworksApi: {
@@ -21,6 +24,9 @@ vi.mock("@/lib/api", () => ({
     delete: vi.fn(),
     triggerResearch: (...a: unknown[]) => mockTriggerResearch(...a),
     latestResearch: (...a: unknown[]) => mockLatestResearch(...a),
+    reviewPlan: (...a: unknown[]) => mockReviewPlan(...a),
+    approve: (...a: unknown[]) => mockApprove(...a),
+    reject: (...a: unknown[]) => mockReject(...a),
   },
 }));
 
@@ -116,5 +122,93 @@ describe("FrameworksClient — AI research (T-093)", () => {
 
     await userEvent.click(screen.getByRole("button", { name: "actions.view_research" }));
     await waitFor(() => expect(screen.getByText("research_modal.empty_title")).toBeInTheDocument());
+  });
+});
+
+const PENDING_FRAMEWORK = { ...DRAFT_FRAMEWORK, status: "pending_approval" };
+const PENDING_PLAN = {
+  id: "plan1",
+  framework_id: "fw1",
+  version: 2,
+  content_jsonb: {
+    topics: [{ topic_name: "Kinematics" }, { topic_name: "Dynamics" }],
+    weekly_pacing: [{}, {}, {}],
+    exam_strategy: {},
+  },
+  sources_cited_jsonb: [{ url: "https://ex.com", title: "Past papers" }],
+  generated_at: "2026-01-01T00:00:00Z",
+  approved_by: null,
+  approved_at: null,
+  status: "pending_approval",
+  reviewer_notes: null,
+  created_at: "2026-01-01T00:00:00Z",
+};
+
+describe("FrameworksClient — approval review (T-094)", () => {
+  it("review action is only offered for a pending-approval framework", async () => {
+    mockList.mockResolvedValue([DRAFT_FRAMEWORK]);
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("Matric Punjab — Physics")).toBeInTheDocument());
+    expect(screen.queryByRole("button", { name: "actions.review" })).not.toBeInTheDocument();
+  });
+
+  it("opens the review panel and shows plan content + cited sources", async () => {
+    mockList.mockResolvedValue([PENDING_FRAMEWORK]);
+    mockReviewPlan.mockResolvedValue(PENDING_PLAN);
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("Matric Punjab — Physics")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "actions.review" }));
+    await waitFor(() => expect(mockReviewPlan).toHaveBeenCalledWith("tok", "fw1"));
+    await waitFor(() => expect(screen.getByText("Kinematics")).toBeInTheDocument());
+    expect(screen.getByText("Past papers")).toBeInTheDocument();
+  });
+
+  it("approves the plan", async () => {
+    mockList.mockResolvedValue([PENDING_FRAMEWORK]);
+    mockReviewPlan.mockResolvedValue(PENDING_PLAN);
+    mockApprove.mockResolvedValue({ ...PENDING_PLAN, status: "approved" });
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("Matric Punjab — Physics")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "actions.review" }));
+    await waitFor(() => expect(screen.getByText("Kinematics")).toBeInTheDocument());
+    await userEvent.click(screen.getByRole("button", { name: "review_modal.approve" }));
+    await waitFor(() => expect(mockApprove).toHaveBeenCalledWith("tok", "fw1"));
+  });
+
+  it("rejects the plan with reviewer notes", async () => {
+    mockList.mockResolvedValue([PENDING_FRAMEWORK]);
+    mockReviewPlan.mockResolvedValue(PENDING_PLAN);
+    mockReject.mockResolvedValue({ ...PENDING_PLAN, status: "draft" });
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("Matric Punjab — Physics")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "actions.review" }));
+    await waitFor(() => expect(screen.getByText("Kinematics")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "review_modal.reject" }));
+    await userEvent.type(
+      screen.getByLabelText("review_modal.notes_label", { exact: false }),
+      "Topic weights look off; re-run research.",
+    );
+    await userEvent.click(screen.getByRole("button", { name: "review_modal.confirm_reject" }));
+    await waitFor(() =>
+      expect(mockReject).toHaveBeenCalledWith("tok", "fw1", {
+        notes: "Topic weights look off; re-run research.",
+      }),
+    );
+  });
+
+  it("shows empty state when no plan is pending (404)", async () => {
+    mockList.mockResolvedValue([PENDING_FRAMEWORK]);
+    mockReviewPlan.mockRejectedValue(new Error("not found"));
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("Matric Punjab — Physics")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "actions.review" }));
+    await waitFor(() =>
+      expect(screen.getByText("review_modal.empty_title")).toBeInTheDocument(),
+    );
   });
 });

@@ -174,6 +174,12 @@ class FrameworkStudyPlan(AuditMixin, Base):
         nullable=False,
         default=StudyPlanStatus.DRAFT,
     )
+    # Reviewer notes captured when a Platform Admin rejects a pending plan
+    # (Flow 4 §3.5.1); null unless the plan was rejected back to DRAFT (T-094).
+    reviewer_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
+    # Comma-separated SLA reminder markers already sent for this pending plan
+    # (e.g. "7,14") so the approval-SLA beat never re-fires the same one (T-094).
+    sla_reminders_sent: Mapped[str | None] = mapped_column(String(50), nullable=True)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:

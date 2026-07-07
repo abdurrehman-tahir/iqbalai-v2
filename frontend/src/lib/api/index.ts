@@ -17,6 +17,8 @@ import type {
   ExamFrameworkRead,
   ExamFrameworkUpdate,
   FrameworkResearchJobRead,
+  FrameworkStudyPlanRead,
+  FrameworkRejectRequest,
   LibraryUploadParams,
   LibraryUploadResponse,
   Notification,
@@ -548,6 +550,19 @@ export const frameworksApi = {
   // Latest research job for a framework (progress / result); 404 if none yet.
   latestResearch: (token: string, id: string) =>
     request<FrameworkResearchJobRead>(`/exam-frameworks/${id}/research`, {}, token),
+  // T-094: read the plan pending approval (content + cited sources) for review.
+  reviewPlan: (token: string, id: string) =>
+    request<FrameworkStudyPlanRead>(`/exam-frameworks/${id}/plan`, {}, token),
+  // T-094: approve the pending plan -> PUBLISHED (selectable by students).
+  approve: (token: string, id: string) =>
+    request<FrameworkStudyPlanRead>(`/exam-frameworks/${id}/approve`, { method: "POST" }, token),
+  // T-094: reject the pending plan -> DRAFT with reviewer notes.
+  reject: (token: string, id: string, data: FrameworkRejectRequest) =>
+    request<FrameworkStudyPlanRead>(
+      `/exam-frameworks/${id}/reject`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
 };
 
 // ── Districts ─────────────────────────────────────────────────────────────────

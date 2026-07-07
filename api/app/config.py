@@ -103,6 +103,13 @@ class Settings(BaseSettings):
     FINAL_GRADE_LEVEL_ORDINAL: int = 12
     GRADUATION_MIGRATION_MAX_ATTEMPTS: int = 5
 
+    # Exam-framework approval SLA (T-094, Flow 4 §3.5.1, ARCH §3.19/§10.6). The
+    # Platform-Admin approval target is 72h; a reminder fires after REMINDER_DAYS and
+    # an escalation after ESCALATION_DAYS for any plan still in PENDING_APPROVAL.
+    FRAMEWORK_APPROVAL_SLA_HOURS: int = 72
+    FRAMEWORK_APPROVAL_REMINDER_DAYS: int = 7
+    FRAMEWORK_APPROVAL_ESCALATION_DAYS: int = 14
+
     @property
     def cors_allowed_origins(self) -> list[str]:
         return [o.strip() for o in self.CORS_ALLOWED_ORIGINS.split(",") if o.strip()]

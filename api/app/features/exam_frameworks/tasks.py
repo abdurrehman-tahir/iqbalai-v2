@@ -63,3 +63,20 @@ async def _fail_research_async(framework_id: str, job_id: str, error: str) -> No
     async with async_session_factory() as session:
         svc = ExamFrameworkService(session)
         await svc.mark_research_failed(framework_id, job_id, error)
+
+
+@shared_task(name="framework.approval_sla_sweep", queue="notifications")  # type: ignore[misc]
+def approval_sla_sweep() -> int:
+    """Daily beat: fire reminder/escalation for plans stuck in PENDING_APPROVAL (T-094)."""
+    return asyncio.run(_approval_sla_sweep_async())
+
+
+async def _approval_sla_sweep_async() -> int:
+    from app.db.session import async_session_factory
+    from app.features.exam_frameworks.service import ExamFrameworkService
+
+    async with async_session_factory() as session:
+        svc = ExamFrameworkService(session)
+        fired = await svc.sweep_approval_sla()
+    logger.info("framework_approval_sla_sweep_complete", fired=fired)
+    return fired

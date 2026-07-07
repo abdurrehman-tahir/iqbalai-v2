@@ -31,4 +31,9 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "graduation.migration_reminder_sweep",
         "schedule": crontab(hour=9, minute=0),  # daily sweep
     },
+    # M-07 exam frameworks (ARCH §10.6).
+    "framework-approval-sla-sweep": {
+        "task": "framework.approval_sla_sweep",
+        "schedule": crontab(hour=7, minute=0),  # daily: reminder@7d, escalation@14d
+    },
 }

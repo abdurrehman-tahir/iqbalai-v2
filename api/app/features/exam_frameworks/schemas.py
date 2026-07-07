@@ -12,7 +12,11 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
-from app.features.exam_frameworks.models import FrameworkStatus, ResearchJobStatus
+from app.features.exam_frameworks.models import (
+    FrameworkStatus,
+    ResearchJobStatus,
+    StudyPlanStatus,
+)
 
 # Valid school grade band (Flow 4 §3.5, T-092 Acceptance #4).
 _MIN_GRADE = 1
@@ -91,6 +95,34 @@ class FrameworkResearchJobRead(BaseModel):
     created_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class FrameworkStudyPlanRead(BaseModel):
+    """Response schema for a versioned study plan under Platform-Admin review (T-094).
+
+    Surfaces the full generated ``content_jsonb`` + cited sources so the reviewer can
+    read the plan before approving/rejecting (Acceptance #1).
+    """
+
+    id: str
+    framework_id: str
+    version: int
+    content_jsonb: dict[str, object]
+    sources_cited_jsonb: list[object]
+    generated_at: datetime
+    approved_by: str | None
+    approved_at: datetime | None
+    status: StudyPlanStatus
+    reviewer_notes: str | None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class FrameworkRejectRequest(BaseModel):
+    """Payload to reject a pending plan back to DRAFT with reviewer notes (T-094)."""
+
+    notes: str = Field(..., min_length=1, max_length=4000)
 
 
 class SourceCitation(BaseModel):

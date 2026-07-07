@@ -20,7 +20,9 @@ from app.features.exam_frameworks.schemas import (
     ExamFrameworkCreate,
     ExamFrameworkRead,
     ExamFrameworkUpdate,
+    FrameworkRejectRequest,
     FrameworkResearchJobRead,
+    FrameworkStudyPlanRead,
 )
 from app.features.exam_frameworks.service import ExamFrameworkService
 
@@ -147,3 +149,56 @@ async def latest_research(
     svc = ExamFrameworkService(db)
     job = await svc.get_latest_job(framework_id)
     return success(FrameworkResearchJobRead.model_validate(job).model_dump())
+
+
+@router.get(
+    "/{framework_id}/plan",
+    response_model=SuccessEnvelope[FrameworkStudyPlanRead],
+    operation_id="exam_frameworks_review_plan",
+    summary="Read the study plan pending approval for review (content + sources)",
+    dependencies=[require_role("platform_admin")],
+)
+async def review_plan(
+    framework_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ExamFrameworkService(db)
+    plan = await svc.get_plan_for_review(framework_id)
+    return success(FrameworkStudyPlanRead.model_validate(plan).model_dump())
+
+
+@router.post(
+    "/{framework_id}/approve",
+    response_model=SuccessEnvelope[FrameworkStudyPlanRead],
+    operation_id="exam_frameworks_approve",
+    summary="Approve the pending plan -> PUBLISHED (selectable by students)",
+    dependencies=[require_role("platform_admin")],
+)
+async def approve_plan(
+    framework_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ExamFrameworkService(db)
+    plan = await svc.approve_plan(framework_id, actor_id=str(claims.get("sub", "")))
+    return success(FrameworkStudyPlanRead.model_validate(plan).model_dump())
+
+
+@router.post(
+    "/{framework_id}/reject",
+    response_model=SuccessEnvelope[FrameworkStudyPlanRead],
+    operation_id="exam_frameworks_reject",
+    summary="Reject the pending plan -> DRAFT with reviewer notes",
+    dependencies=[require_role("platform_admin")],
+)
+async def reject_plan(
+    framework_id: str,
+    payload: FrameworkRejectRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ExamFrameworkService(db)
+    plan = await svc.reject_plan(
+        framework_id, notes=payload.notes, actor_id=str(claims.get("sub", ""))
+    )
+    return success(FrameworkStudyPlanRead.model_validate(plan).model_dump())

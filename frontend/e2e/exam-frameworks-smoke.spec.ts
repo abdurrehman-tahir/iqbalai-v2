@@ -31,8 +31,25 @@ function envelope<T>(data: T) {
   return JSON.stringify({ data, message: "ok" });
 }
 
-async function installAdminMocks(page: Page) {
-  const frameworks: MockFramework[] = [];
+async function installAdminMocks(page: Page, seed: MockFramework[] = []) {
+  const frameworks: MockFramework[] = [...seed];
+  const plan = {
+    id: "plan-1",
+    framework_id: "framework-pending",
+    version: 1,
+    content_jsonb: {
+      topics: [{ topic_name: "Kinematics" }, { topic_name: "Dynamics" }],
+      weekly_pacing: [{}, {}, {}],
+      exam_strategy: {},
+    },
+    sources_cited_jsonb: [{ url: "https://ex.com", title: "Past papers" }],
+    generated_at: new Date().toISOString(),
+    approved_by: null,
+    approved_at: null,
+    status: "pending_approval",
+    reviewer_notes: null,
+    created_at: new Date().toISOString(),
+  };
 
   await page.route(
     (url) => url.pathname.includes("/api/v1/"),
@@ -124,6 +141,54 @@ async function installAdminMocks(page: Page) {
         return;
       }
 
+      // T-094: review the pending study plan.
+      const planMatch = path.match(/^\/exam-frameworks\/([^/]+)\/plan$/);
+      if (method === "GET" && planMatch) {
+        const target = frameworks.find((f) => f.id === planMatch[1]);
+        if (!target || target.status !== "pending_approval") {
+          await route.fulfill({
+            status: 404,
+            contentType: "application/json",
+            body: JSON.stringify({
+              error: { code: "NOT_FOUND", message: "No plan pending approval" },
+            }),
+          });
+          return;
+        }
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({ ...plan, framework_id: target.id }),
+        });
+        return;
+      }
+
+      // T-094: approve → framework PUBLISHED, plan APPROVED.
+      const approveMatch = path.match(/^\/exam-frameworks\/([^/]+)\/approve$/);
+      if (method === "POST" && approveMatch) {
+        const target = frameworks.find((f) => f.id === approveMatch[1]);
+        if (target) target.status = "published";
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({ ...plan, framework_id: approveMatch[1], status: "approved" }),
+        });
+        return;
+      }
+
+      // T-094: reject → framework back to DRAFT with reviewer notes.
+      const rejectMatch = path.match(/^\/exam-frameworks\/([^/]+)\/reject$/);
+      if (method === "POST" && rejectMatch) {
+        const target = frameworks.find((f) => f.id === rejectMatch[1]);
+        if (target) target.status = "draft";
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({ ...plan, framework_id: rejectMatch[1], status: "draft" }),
+        });
+        return;
+      }
+
       await route.fulfill({
         status: 404,
         contentType: "application/json",
@@ -182,5 +247,40 @@ test.describe("Platform Admin Exam Frameworks @smoke", () => {
       .first()
       .click();
     await expect(page.getByText(/researching/i).first()).toBeVisible({ timeout: 5_000 });
+  });
+
+  test("Admin reviews a pending plan and approves it → framework publishes", async ({
+    page,
+  }) => {
+    const pending: MockFramework = {
+      id: "framework-pending",
+      name: "Matric Sindh — Chemistry",
+      exam_target: "Matric Sindh Board — Chemistry",
+      region: "Sindh",
+      target_grade_range: [9, 10],
+      language: "en",
+      status: "pending_approval",
+      created_by: "user-platform-admin-1",
+      created_at: new Date().toISOString(),
+    };
+    await installAdminMocks(page, [pending]);
+    await seedSession(page);
+
+    await page.goto(`${BASE_URL}/admin/exam-frameworks`);
+    await expect(
+      page.getByRole("cell", { name: "Matric Sindh — Chemistry", exact: true })
+    ).toBeVisible({ timeout: 5_000 });
+
+    // Open the review surface → plan content + cited sources render.
+    await page
+      .getByRole("button", { name: /review study plan/i })
+      .first()
+      .click();
+    await expect(page.getByText("Kinematics")).toBeVisible({ timeout: 5_000 });
+    await expect(page.getByText("Past papers")).toBeVisible();
+
+    // Approve & publish → row status flips to Published.
+    await page.getByRole("button", { name: /approve & publish/i }).click();
+    await expect(page.getByText(/published/i).first()).toBeVisible({ timeout: 5_000 });
   });
 });

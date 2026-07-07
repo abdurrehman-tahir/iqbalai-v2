@@ -162,3 +162,4 @@ frontend/playwright-report/
 
 # Local developer issue log (not for VCS)
 issue.txt
+bug.txt

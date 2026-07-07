@@ -1368,6 +1368,22 @@
         "title": "ExamSyllabusUpdate",
         "type": "object"
       },
+      "FrameworkRejectRequest": {
+        "description": "Payload to reject a pending plan back to DRAFT with reviewer notes (T-094).",
+        "properties": {
+          "notes": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Notes",
+            "type": "string"
+          }
+        },
+        "required": [
+          "notes"
+        ],
+        "title": "FrameworkRejectRequest",
+        "type": "object"
+      },
       "FrameworkResearchJobRead": {
         "description": "Response schema for a Pattern-A research run (T-093).",
         "properties": {
@@ -1462,6 +1478,95 @@
         ],
         "title": "FrameworkStatus",
         "type": "string"
+      },
+      "FrameworkStudyPlanRead": {
+        "description": "Response schema for a versioned study plan under Platform-Admin review (T-094).\n\nSurfaces the full generated ``content_jsonb`` + cited sources so the reviewer can\nread the plan before approving/rejecting (Acceptance #1).",
+        "properties": {
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "content_jsonb": {
+            "additionalProperties": true,
+            "title": "Content Jsonb",
+            "type": "object"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "framework_id": {
+            "title": "Framework Id",
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "reviewer_notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reviewer Notes"
+          },
+          "sources_cited_jsonb": {
+            "items": {},
+            "title": "Sources Cited Jsonb",
+            "type": "array"
+          },
+          "status": {
+            "$ref": "#/components/schemas/StudyPlanStatus"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "framework_id",
+          "version",
+          "content_jsonb",
+          "sources_cited_jsonb",
+          "generated_at",
+          "approved_by",
+          "approved_at",
+          "status",
+          "reviewer_notes",
+          "created_at"
+        ],
+        "title": "FrameworkStudyPlanRead",
+        "type": "object"
       },
       "GradeCreate": {
         "properties": {
@@ -3796,6 +3901,17 @@
         "title": "StudentProfileRead",
         "type": "object"
       },
+      "StudyPlanStatus": {
+        "description": "Per-version study-plan lifecycle. Independent view exposes ``approved`` only.",
+        "enum": [
+          "draft",
+          "pending_approval",
+          "approved",
+          "superseded"
+        ],
+        "title": "StudyPlanStatus",
+        "type": "string"
+      },
       "SubjectCreate": {
         "description": "Payload for creating a new Subject in the caller's school catalogue.",
         "properties": {
@@ -4259,6 +4375,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[FrameworkResearchJobRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_FrameworkStudyPlanRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/FrameworkStudyPlanRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[FrameworkStudyPlanRead]",
         "type": "object"
       },
       "SuccessEnvelope_GradeRead_": {
@@ -8187,6 +8320,142 @@
           }
         },
         "summary": "Edit a DRAFT exam-framework definition",
+        "tags": [
+          "exam_frameworks"
+        ]
+      }
+    },
+    "/api/v1/exam-frameworks/{framework_id}/approve": {
+      "post": {
+        "operationId": "exam_frameworks_approve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_FrameworkStudyPlanRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve the pending plan -> PUBLISHED (selectable by students)",
+        "tags": [
+          "exam_frameworks"
+        ]
+      }
+    },
+    "/api/v1/exam-frameworks/{framework_id}/plan": {
+      "get": {
+        "operationId": "exam_frameworks_review_plan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_FrameworkStudyPlanRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read the study plan pending approval for review (content + sources)",
+        "tags": [
+          "exam_frameworks"
+        ]
+      }
+    },
+    "/api/v1/exam-frameworks/{framework_id}/reject": {
+      "post": {
+        "operationId": "exam_frameworks_reject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FrameworkRejectRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_FrameworkStudyPlanRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reject the pending plan -> DRAFT with reviewer notes",
         "tags": [
           "exam_frameworks"
         ]

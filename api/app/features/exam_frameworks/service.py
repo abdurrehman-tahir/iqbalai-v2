@@ -15,7 +15,7 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
-from app.core.exceptions import ConflictError, NotFoundError
+from app.core.exceptions import ConflictError, NotFoundError, PreconditionFailedError
 from app.features.exam_frameworks import research
 from app.features.exam_frameworks.models import (
     ExamFramework,
@@ -31,6 +31,7 @@ from app.features.exam_frameworks.schemas import (
     ExamFrameworkUpdate,
     FrameworkStudyPlanContent,
 )
+from app.infrastructure.audit.log import audit
 
 logger = structlog.get_logger(__name__)
 
@@ -39,6 +40,17 @@ COPYRIGHT_NOTE = (
     "Practice problems are AI-generated in the style of publicly available past "
     "papers, not reproductions of copyrighted questions. All sources are cited."
 )
+
+
+def _parse_sent_markers(raw: str | None) -> set[str]:
+    """Parse the comma-separated SLA-reminder markers already fired for a plan."""
+    if not raw:
+        return set()
+    return {part.strip() for part in raw.split(",") if part.strip()}
+
+
+def _format_sent_markers(markers: set[str]) -> str | None:
+    return ",".join(sorted(markers, key=int)) if markers else None
 
 
 class ExamFrameworkService:
@@ -249,3 +261,177 @@ class ExamFrameworkService:
         logger.warning(
             "framework_research_failed", framework_id=framework_id, job_id=job_id, error=error
         )
+
+    # --- approval workflow (T-094) -------------------------------------------
+
+    async def get_plan_for_review(self, framework_id: str) -> FrameworkStudyPlan:
+        """The PENDING_APPROVAL plan a Platform Admin reviews before approving.
+
+        404 if the framework isn't awaiting approval — students never reach here,
+        and the caller (router) is already ``platform_admin``-gated.
+        """
+        framework = await self.get_framework(framework_id)
+        if framework.status != FrameworkStatus.PENDING_APPROVAL:
+            raise NotFoundError(
+                f"Framework '{framework_id}' has no plan pending approval "
+                f"(status '{framework.status.value}')"
+            )
+        plan = await self._repo.get_pending_plan(framework_id)
+        if plan is None:
+            raise NotFoundError(f"No pending study plan for framework '{framework_id}'")
+        return plan
+
+    async def approve_plan(self, framework_id: str, actor_id: str) -> FrameworkStudyPlan:
+        """Approve the pending plan -> PUBLISHED (Acceptance #2).
+
+        Supersedes the previously published version (if any) so exactly one plan is
+        APPROVED at a time; the framework moves to PUBLISHED and becomes selectable.
+        Approval is an elevated, audited action (§14.10) — it exposes content to
+        students.
+        """
+        framework = await self.get_framework(framework_id)
+        if framework.status != FrameworkStatus.PENDING_APPROVAL:
+            raise ConflictError(
+                f"Only a framework pending approval can be approved "
+                f"(framework '{framework_id}' is '{framework.status.value}')"
+            )
+        plan = await self._repo.get_pending_plan(framework_id)
+        if plan is None:
+            raise PreconditionFailedError(
+                f"No pending study plan to approve for framework '{framework_id}'"
+            )
+
+        # Retire the prior published version so only the newest is APPROVED (§4.18).
+        prior = await self._repo.get_current_published_plan(framework_id)
+        if prior is not None and prior.id != plan.id:
+            prior.status = StudyPlanStatus.SUPERSEDED
+
+        now = datetime.now(timezone.utc)
+        plan.status = StudyPlanStatus.APPROVED
+        plan.approved_by = actor_id
+        plan.approved_at = now
+        framework.status = FrameworkStatus.PUBLISHED
+        await self._repo.commit()
+        await self._repo.refresh(plan)
+
+        await audit(
+            session=self._session,
+            action="framework.approved",
+            actor_id=actor_id,
+            actor_role="platform_admin",
+            target_type="framework_study_plan",
+            target_id=plan.id,
+            metadata={"flagged": True, "framework_id": framework_id, "version": plan.version},
+        )
+        await audit(
+            session=self._session,
+            action="framework.published",
+            actor_id=actor_id,
+            actor_role="platform_admin",
+            target_type="exam_framework",
+            target_id=framework_id,
+            metadata={"flagged": True, "version": plan.version},
+        )
+        logger.info(
+            "framework_plan_approved",
+            framework_id=framework_id,
+            plan_id=plan.id,
+            version=plan.version,
+            by=actor_id,
+        )
+        return plan
+
+    async def reject_plan(self, framework_id: str, notes: str, actor_id: str) -> FrameworkStudyPlan:
+        """Reject the pending plan -> back to DRAFT with reviewer notes (Acceptance #3)."""
+        framework = await self.get_framework(framework_id)
+        if framework.status != FrameworkStatus.PENDING_APPROVAL:
+            raise ConflictError(
+                f"Only a framework pending approval can be rejected "
+                f"(framework '{framework_id}' is '{framework.status.value}')"
+            )
+        plan = await self._repo.get_pending_plan(framework_id)
+        if plan is None:
+            raise PreconditionFailedError(
+                f"No pending study plan to reject for framework '{framework_id}'"
+            )
+
+        plan.status = StudyPlanStatus.DRAFT
+        plan.reviewer_notes = notes
+        framework.status = FrameworkStatus.DRAFT
+        await self._repo.commit()
+        await self._repo.refresh(plan)
+
+        await audit(
+            session=self._session,
+            action="framework.rejected",
+            actor_id=actor_id,
+            actor_role="platform_admin",
+            target_type="framework_study_plan",
+            target_id=plan.id,
+            metadata={"framework_id": framework_id, "version": plan.version},
+        )
+        logger.info(
+            "framework_plan_rejected",
+            framework_id=framework_id,
+            plan_id=plan.id,
+            by=actor_id,
+        )
+        return plan
+
+    async def sweep_approval_sla(self) -> int:
+        """Fire reminder/escalation events for plans stuck in PENDING_APPROVAL.
+
+        Reminder after ``FRAMEWORK_APPROVAL_REMINDER_DAYS`` (7); escalation after
+        ``FRAMEWORK_APPROVAL_ESCALATION_DAYS`` (14). Each marker is recorded on the
+        plan's ``sla_reminders_sent`` so it never re-fires (idempotent beat, T-094).
+        Notification delivery is layered on in T-097; here we detect + audit.
+        Returns the number of markers fired this sweep.
+        """
+        settings = get_settings()
+        reminder_days = settings.FRAMEWORK_APPROVAL_REMINDER_DAYS
+        escalation_days = settings.FRAMEWORK_APPROVAL_ESCALATION_DAYS
+        now = datetime.now(timezone.utc)
+        fired = 0
+
+        for framework in await self._repo.list_pending_approval_frameworks():
+            plan = await self._repo.get_pending_plan(framework.id)
+            if plan is None:
+                continue
+            age_days = (now - plan.generated_at).days
+            sent = _parse_sent_markers(plan.sla_reminders_sent)
+
+            # Escalation supersedes the reminder once the harder threshold is crossed.
+            marker: str | None = None
+            action: str | None = None
+            if age_days >= escalation_days and str(escalation_days) not in sent:
+                marker, action = str(escalation_days), "framework.approval_escalated"
+            elif age_days >= reminder_days and str(reminder_days) not in sent:
+                marker, action = str(reminder_days), "framework.approval_reminder"
+            if marker is None or action is None:
+                continue
+
+            sent.add(marker)
+            plan.sla_reminders_sent = _format_sent_markers(sent)
+            await self._repo.commit()
+            await audit(
+                session=self._session,
+                action=action,
+                actor_id="system",
+                actor_role="system",
+                target_type="exam_framework",
+                target_id=framework.id,
+                metadata={
+                    "flagged": action == "framework.approval_escalated",
+                    "plan_id": plan.id,
+                    "age_days": age_days,
+                },
+            )
+            fired += 1
+            logger.info(
+                "framework_approval_sla_fired",
+                framework_id=framework.id,
+                plan_id=plan.id,
+                action=action,
+                age_days=age_days,
+            )
+        return fired

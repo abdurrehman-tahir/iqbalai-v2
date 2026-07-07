@@ -1076,7 +1076,8 @@
         "edit": "Edit {name}",
         "delete": "Delete {name}",
         "research": "Run AI research for {name}",
-        "view_research": "View research for {name}"
+        "view_research": "View research for {name}",
+        "review": "Review study plan for {name}"
       },
       "modal": {
         "edit_title": "Edit framework",
@@ -1119,6 +1120,28 @@
         "refresh": "Refresh",
         "empty_title": "No research run yet",
         "empty_description": "Trigger AI research from a DRAFT framework to generate a study plan."
+      },
+      "review_modal": {
+        "title": "Review study plan",
+        "description": "Review the generated study plan for {name} before publishing.",
+        "close": "Close",
+        "version": "Plan version",
+        "topics": "Topics",
+        "weeks": "Weeks of pacing",
+        "topics_heading": "Topics",
+        "no_topics": "No topics in this plan.",
+        "sources_heading": "Cited sources",
+        "no_sources": "No sources cited.",
+        "empty_title": "No plan pending approval",
+        "empty_description": "This framework has no study plan awaiting review.",
+        "notes_label": "Reviewer notes",
+        "notes_placeholder": "Explain what needs to change before this can be published.",
+        "notes_error": "Notes are required to reject a plan (max 4000 characters).",
+        "cancel": "Cancel",
+        "confirm_reject": "Reject plan",
+        "refresh": "Refresh",
+        "reject": "Reject",
+        "approve": "Approve & publish"
       }
     },
     "subscription_tiers": {

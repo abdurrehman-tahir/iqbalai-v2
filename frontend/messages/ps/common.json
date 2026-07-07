@@ -254,7 +254,8 @@
         "edit": "__TODO__ Edit {name}",
         "delete": "__TODO__ Delete {name}",
         "research": "__TODO__ Run AI research for {name}",
-        "view_research": "__TODO__ View research for {name}"
+        "view_research": "__TODO__ View research for {name}",
+        "review": "__TODO__ Review study plan for {name}"
       },
       "modal": {
         "edit_title": "__TODO__ Edit framework",
@@ -297,6 +298,28 @@
         "refresh": "__TODO__ Refresh",
         "empty_title": "__TODO__ No research run yet",
         "empty_description": "__TODO__ Trigger AI research from a DRAFT framework to generate a study plan."
+      },
+      "review_modal": {
+        "title": "__TODO__ Review study plan",
+        "description": "__TODO__ Review the generated study plan for {name} before publishing.",
+        "close": "__TODO__ Close",
+        "version": "__TODO__ Plan version",
+        "topics": "__TODO__ Topics",
+        "weeks": "__TODO__ Weeks of pacing",
+        "topics_heading": "__TODO__ Topics",
+        "no_topics": "__TODO__ No topics in this plan.",
+        "sources_heading": "__TODO__ Cited sources",
+        "no_sources": "__TODO__ No sources cited.",
+        "empty_title": "__TODO__ No plan pending approval",
+        "empty_description": "__TODO__ This framework has no study plan awaiting review.",
+        "notes_label": "__TODO__ Reviewer notes",
+        "notes_placeholder": "__TODO__ Explain what needs to change before this can be published.",
+        "notes_error": "__TODO__ Notes are required to reject a plan (max 4000 characters).",
+        "cancel": "__TODO__ Cancel",
+        "confirm_reject": "__TODO__ Reject plan",
+        "refresh": "__TODO__ Refresh",
+        "reject": "__TODO__ Reject",
+        "approve": "__TODO__ Approve & publish"
       }
     },
     "subscription_tiers": {

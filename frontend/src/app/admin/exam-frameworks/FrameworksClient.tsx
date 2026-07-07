@@ -6,12 +6,23 @@ import { useTranslations } from "next-intl";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Target, Plus, Pencil, Trash2, FlaskConical, Loader2 } from "lucide-react";
+import {
+  Target,
+  Plus,
+  Pencil,
+  Trash2,
+  FlaskConical,
+  Loader2,
+  ClipboardCheck,
+  CheckCircle2,
+  XCircle,
+} from "lucide-react";
 import { frameworksApi, ApiError, type Framework } from "@/lib/api";
 import type {
   ExamFrameworkCreate,
   ExamFrameworkUpdate,
   FrameworkResearchJobRead,
+  FrameworkStudyPlanRead,
 } from "@/lib/api/types";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -20,6 +31,7 @@ import { ErrorState } from "@/components/error-state";
 import { Button } from "@/components/ui/button";
 import { Modal } from "@/components/ui/modal";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { AdminPageHeader } from "@/components/admin/AdminPageHeader";
@@ -90,6 +102,7 @@ export function FrameworksClient() {
   const [showCreate, setShowCreate] = useState(false);
   const [deleteTarget, setDeleteTarget] = useState<Framework | null>(null);
   const [researchTarget, setResearchTarget] = useState<Framework | null>(null);
+  const [reviewTarget, setReviewTarget] = useState<Framework | null>(null);
   const [formError, setFormError] = useState("");
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -281,6 +294,17 @@ export function FrameworksClient() {
                           <FlaskConical className="size-4" aria-hidden="true" />
                         </Button>
                       )}
+                      {framework.status === "pending_approval" && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => setReviewTarget(framework)}
+                          aria-label={t("actions.review", { name: framework.name })}
+                          className="text-amber-600 hover:text-amber-800 hover:bg-amber-50"
+                        >
+                          <ClipboardCheck className="size-4" aria-hidden="true" />
+                        </Button>
+                      )}
                       {framework.status !== "draft" && (
                         <Button
                           variant="ghost"
@@ -450,6 +474,235 @@ export function FrameworksClient() {
       >
         {researchTarget && <ResearchJobPanel frameworkId={researchTarget.id} token={token ?? ""} />}
       </Modal>
+
+      <Modal
+        open={!!reviewTarget}
+        onClose={() => setReviewTarget(null)}
+        title={t("review_modal.title")}
+        description={t("review_modal.description", { name: reviewTarget?.name ?? "" })}
+        size="xl"
+        closeLabel={t("review_modal.close")}
+      >
+        {reviewTarget && (
+          <ReviewPlanPanel
+            frameworkId={reviewTarget.id}
+            token={token ?? ""}
+            onDecided={() => {
+              qc.invalidateQueries({ queryKey: ["exam-frameworks"] });
+              setReviewTarget(null);
+            }}
+          />
+        )}
+      </Modal>
+    </div>
+  );
+}
+
+const reviewSchema = z.object({
+  notes: z.string().min(1).max(4000),
+});
+type ReviewFormValues = z.infer<typeof reviewSchema>;
+
+/** Platform-Admin review surface (T-094): reads the PENDING_APPROVAL plan (content
+ * + cited sources) and approves (-> PUBLISHED) or rejects (-> DRAFT with notes).
+ * Renders all four states: loading / empty (no pending plan) / error / success. */
+function ReviewPlanPanel({
+  frameworkId,
+  token,
+  onDecided,
+}: {
+  frameworkId: string;
+  token: string;
+  onDecided: () => void;
+}) {
+  const t = useTranslations("admin.exam_frameworks");
+  const [showReject, setShowReject] = useState(false);
+  const [actionError, setActionError] = useState("");
+
+  const { data, isLoading, isError, refetch } = useQuery<FrameworkStudyPlanRead>({
+    queryKey: ["exam-frameworks", "plan", frameworkId],
+    queryFn: () => frameworksApi.reviewPlan(token, frameworkId),
+    enabled: !!token,
+    retry: false,
+  });
+
+  const approveMutation = useMutation({
+    mutationFn: () => frameworksApi.approve(token, frameworkId),
+    onSuccess: onDecided,
+    onError: (err: Error) =>
+      setActionError(err instanceof ApiError ? err.message : err.message),
+  });
+
+  const rejectForm = useForm<ReviewFormValues>({
+    resolver: zodResolver(reviewSchema),
+    defaultValues: { notes: "" },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (values: ReviewFormValues) =>
+      frameworksApi.reject(token, frameworkId, { notes: values.notes }),
+    onSuccess: onDecided,
+    onError: (err: Error) =>
+      setActionError(err instanceof ApiError ? err.message : err.message),
+  });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-3" aria-busy="true">
+        <Skeleton className="h-5 w-48" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
+  // The endpoint 404s when the framework isn't pending approval -> empty state.
+  if (isError || !data) {
+    return (
+      <EmptyState
+        icon={ClipboardCheck}
+        title={t("review_modal.empty_title")}
+        description={t("review_modal.empty_description")}
+      />
+    );
+  }
+
+  const content = data.content_jsonb as {
+    topics?: { topic_name?: string }[];
+    weekly_pacing?: unknown[];
+  };
+  const sources = data.sources_cited_jsonb as { url?: string; title?: string }[];
+  const topics = content.topics ?? [];
+
+  return (
+    <div className="space-y-5">
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+        <dt className="text-gray-500">{t("review_modal.version")}</dt>
+        <dd className="font-medium text-gray-900">{data.version}</dd>
+        <dt className="text-gray-500">{t("review_modal.topics")}</dt>
+        <dd className="font-medium text-gray-900">{topics.length}</dd>
+        <dt className="text-gray-500">{t("review_modal.weeks")}</dt>
+        <dd className="font-medium text-gray-900">{(content.weekly_pacing ?? []).length}</dd>
+      </dl>
+
+      <section>
+        <h3 className="text-sm font-semibold text-gray-900 mb-2">
+          {t("review_modal.topics_heading")}
+        </h3>
+        {topics.length === 0 ? (
+          <p className="text-sm text-gray-500">{t("review_modal.no_topics")}</p>
+        ) : (
+          <ul className="list-disc space-y-1 ps-5 text-sm text-gray-700 max-h-40 overflow-y-auto">
+            {topics.map((topic, i) => (
+              <li key={i}>{topic.topic_name ?? "—"}</li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section>
+        <h3 className="text-sm font-semibold text-gray-900 mb-2">
+          {t("review_modal.sources_heading")}
+        </h3>
+        {sources.length === 0 ? (
+          <p className="text-sm text-gray-500">{t("review_modal.no_sources")}</p>
+        ) : (
+          <ul className="space-y-1 text-sm max-h-40 overflow-y-auto">
+            {sources.map((source, i) => (
+              <li key={i} className="truncate">
+                <a
+                  href={source.url}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  className="text-indigo-600 hover:underline"
+                  dir="ltr"
+                >
+                  {source.title || source.url}
+                </a>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      {actionError && (
+        <p className="text-sm text-red-600" role="alert">
+          {actionError}
+        </p>
+      )}
+
+      {showReject ? (
+        <form
+          onSubmit={rejectForm.handleSubmit((values) => rejectMutation.mutate(values))}
+          className="space-y-3 border-t border-gray-100 pt-4"
+        >
+          <div>
+            <Label htmlFor="reject-notes" required>
+              {t("review_modal.notes_label")}
+            </Label>
+            <Textarea
+              id="reject-notes"
+              rows={3}
+              {...rejectForm.register("notes")}
+              placeholder={t("review_modal.notes_placeholder")}
+            />
+            {rejectForm.formState.errors.notes && (
+              <p className="text-xs text-red-600 mt-1" role="alert">
+                {t("review_modal.notes_error")}
+              </p>
+            )}
+          </div>
+          <div className="flex justify-end gap-3">
+            <Button
+              type="button"
+              variant="outline"
+              size="md"
+              onClick={() => setShowReject(false)}
+            >
+              {t("review_modal.cancel")}
+            </Button>
+            <Button
+              type="submit"
+              variant="destructive"
+              size="md"
+              loading={rejectMutation.isPending}
+            >
+              {t("review_modal.confirm_reject")}
+            </Button>
+          </div>
+        </form>
+      ) : (
+        <div className="flex justify-end gap-3 border-t border-gray-100 pt-4">
+          <Button variant="outline" size="sm" onClick={() => refetch()}>
+            {t("review_modal.refresh")}
+          </Button>
+          <Button
+            variant="outline"
+            size="md"
+            className="gap-2 text-red-600"
+            onClick={() => {
+              setActionError("");
+              setShowReject(true);
+            }}
+          >
+            <XCircle className="size-4" aria-hidden="true" />
+            {t("review_modal.reject")}
+          </Button>
+          <Button
+            variant="primary"
+            size="md"
+            className="gap-2"
+            loading={approveMutation.isPending}
+            onClick={() => {
+              setActionError("");
+              approveMutation.mutate();
+            }}
+          >
+            <CheckCircle2 className="size-4" aria-hidden="true" />
+            {t("review_modal.approve")}
+          </Button>
+        </div>
+      )}
     </div>
   );
 }
