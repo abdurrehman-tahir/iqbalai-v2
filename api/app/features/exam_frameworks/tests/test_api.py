@@ -89,6 +89,12 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         _FakeFrameworkRepo,
     )
 
+    # CRUD + research-trigger now audit (T-098); stub it (tests run without a live session).
+    async def _noop_audit(**kwargs: object) -> None:
+        return None
+
+    monkeypatch.setattr("app.features.exam_frameworks.service.audit", _noop_audit)
+
 
 def _build_client(role: str = "platform_admin") -> AsyncClient:
     app = FastAPI()

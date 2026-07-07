@@ -1,4 +1,4 @@
-"""Registered audit action identifiers — M-03/M-04/M-06."""
+"""Registered audit action identifiers — M-03/M-04/M-06/M-07."""
 
 from __future__ import annotations
 
@@ -40,6 +40,20 @@ GRADUATION_APPROVED = "graduation.approved"
 GRADUATION_MIGRATED = "graduation.migrated"
 GRADUATION_MIGRATION_FAILED = "graduation.migration_failed"
 
+# M-07 — exam frameworks (platform-tier lifecycle). Strings match what the
+# exam_frameworks service emits (note: refresh uses ``refresh_triggered``).
+FRAMEWORK_CREATED = "framework.created"
+FRAMEWORK_UPDATED = "framework.updated"
+FRAMEWORK_DELETED = "framework.deleted"
+FRAMEWORK_RESEARCH_TRIGGERED = "framework.research_triggered"
+FRAMEWORK_APPROVED = "framework.approved"
+FRAMEWORK_REJECTED = "framework.rejected"
+FRAMEWORK_PUBLISHED = "framework.published"
+FRAMEWORK_REFRESH_TRIGGERED = "framework.refresh_triggered"
+FRAMEWORK_DEPRECATED = "framework.deprecated"
+FRAMEWORK_APPROVAL_REMINDER = "framework.approval_reminder"
+FRAMEWORK_APPROVAL_ESCALATED = "framework.approval_escalated"
+
 ELEVATED_AUDIT_ACTIONS = frozenset(
     {
         CAPACITY_OVERRIDE,
@@ -48,6 +62,12 @@ ELEVATED_AUDIT_ACTIONS = frozenset(
         DATA_RIGHTS_DELETION_CANCELLED,
         GRADUATION_MIGRATED,
         GRADUATION_MIGRATION_FAILED,
+        # Approval + publish expose AI content to students; deprecation + escalation
+        # change what students may select / need urgent attention (T-098 Acceptance #2).
+        FRAMEWORK_APPROVED,
+        FRAMEWORK_PUBLISHED,
+        FRAMEWORK_DEPRECATED,
+        FRAMEWORK_APPROVAL_ESCALATED,
     }
 )
 
@@ -87,4 +107,20 @@ M06_AUDIT_ACTIONS = frozenset(
     }
 )
 
-REGISTERED_AUDIT_ACTIONS = M04_AUDIT_ACTIONS | M06_AUDIT_ACTIONS
+M07_AUDIT_ACTIONS = frozenset(
+    {
+        FRAMEWORK_CREATED,
+        FRAMEWORK_UPDATED,
+        FRAMEWORK_DELETED,
+        FRAMEWORK_RESEARCH_TRIGGERED,
+        FRAMEWORK_APPROVED,
+        FRAMEWORK_REJECTED,
+        FRAMEWORK_PUBLISHED,
+        FRAMEWORK_REFRESH_TRIGGERED,
+        FRAMEWORK_DEPRECATED,
+        FRAMEWORK_APPROVAL_REMINDER,
+        FRAMEWORK_APPROVAL_ESCALATED,
+    }
+)
+
+REGISTERED_AUDIT_ACTIONS = M04_AUDIT_ACTIONS | M06_AUDIT_ACTIONS | M07_AUDIT_ACTIONS

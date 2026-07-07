@@ -2,7 +2,7 @@
 
 **Current milestone:** M-07 — Exam Framework Engine
 **Branch:** milestone/M-07-exam-framework (created off milestone/M-06-student-onboarding)
-**Current ticket:** T-098 — Audit logging (next)
+**Current ticket:** T-099 — E2E smoke test (next)
 
 ## Plan
 - Branch made off M-06. When M-06 merges to staging, REBASE this branch onto staging (deferred — external event).
@@ -15,7 +15,8 @@
 - T-094 — Approval workflow (PENDING_APPROVAL → PUBLISHED, SLA reminder@7d/escalation@14d) — commit 9625fb5
 - T-095 — Versioning + quarterly refresh + deprecation (refresh beat, deprecate, refresh-safe reverts) — commit 863f5ed
 - T-096 — Student framework selection + rendering + region scoping (both tenants; /student/exam-frameworks) — commit d0d7eb4
-- T-097 — Notifications: system (admin) + self_study (student) namespaces; NATS events; 4-lang templates — this commit
+- T-097 — Notifications: system (admin) + self_study (student) namespaces; NATS events; 4-lang templates — commit 51284d0
+- T-098 — Audit logging: M07_AUDIT_ACTIONS registry + 4 new audit() calls (create/update/delete/research_triggered) + elevated flags — this commit
 
 ## T-097 notes
 - User decided: reuse existing §9.21 namespaces (system for admin, self_study for student v2-available), NOT a new `framework` namespace. No amendment.

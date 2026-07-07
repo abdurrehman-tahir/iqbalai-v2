@@ -82,6 +82,15 @@ class ExamFrameworkService:
             created_by=actor_id,
         )
         created = await self._repo.create(framework)
+        await audit(
+            session=self._session,
+            action="framework.created",
+            actor_id=actor_id,
+            actor_role="platform_admin",
+            target_type="exam_framework",
+            target_id=created.id,
+            metadata={"name": created.name, "region": created.region},
+        )
         logger.info("exam_framework_created", framework_id=created.id, by=actor_id)
         return created
 
@@ -103,6 +112,14 @@ class ExamFrameworkService:
             framework.language = payload.language
 
         updated = await self._repo.update(framework)
+        await audit(
+            session=self._session,
+            action="framework.updated",
+            actor_id=actor_id,
+            actor_role="platform_admin",
+            target_type="exam_framework",
+            target_id=updated.id,
+        )
         logger.info("exam_framework_updated", framework_id=updated.id, by=actor_id)
         return updated
 
@@ -110,6 +127,14 @@ class ExamFrameworkService:
         framework = await self.get_framework(id)
         self._require_draft(framework, "deleted")
         await self._repo.soft_delete(framework)
+        await audit(
+            session=self._session,
+            action="framework.deleted",
+            actor_id=actor_id,
+            actor_role="platform_admin",
+            target_type="exam_framework",
+            target_id=framework.id,
+        )
         logger.info("exam_framework_deleted", framework_id=framework.id, by=actor_id)
         return framework
 
@@ -148,6 +173,15 @@ class ExamFrameworkService:
         from app.features.exam_frameworks.tasks import research_framework
 
         research_framework.delay(framework_id, job.id)
+        await audit(
+            session=self._session,
+            action="framework.research_triggered",
+            actor_id=actor_id,
+            actor_role="platform_admin",
+            target_type="exam_framework",
+            target_id=framework_id,
+            metadata={"job_id": job.id},
+        )
         logger.info(
             "framework_research_triggered",
             framework_id=framework_id,

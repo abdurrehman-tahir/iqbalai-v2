@@ -128,6 +128,12 @@ def _reset_repo(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeRepo.plans = {}
     monkeypatch.setattr(service_module, "ExamFrameworkRepository", _FakeRepo)
 
+    # trigger_research now audits (T-098); stub it (tests run without a live session).
+    async def _noop_audit(**kwargs: object) -> None:
+        return None
+
+    monkeypatch.setattr(service_module, "audit", _noop_audit)
+
 
 @pytest.mark.asyncio
 async def test_trigger_research_moves_to_researching(monkeypatch: pytest.MonkeyPatch) -> None:
