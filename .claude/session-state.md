@@ -17,7 +17,13 @@
 - T-096 — Student framework selection + rendering + region scoping (both tenants; /student/exam-frameworks) — commit d0d7eb4
 - T-097 — Notifications: system (admin) + self_study (student) namespaces; NATS events; 4-lang templates — commit 51284d0
 - T-098 — Audit logging: M07_AUDIT_ACTIONS registry + 4 new audit() calls + elevated flags — commit dab0089
-- T-099 — E2E smoke test: tests/test_m07_exam_framework_e2e.py drives full lifecycle (create→research→approve→select→render→refresh→v2→switch) with shared in-memory store, mocked research — this commit
+- T-099 — E2E smoke test: tests/test_m07_exam_framework_e2e.py drives full lifecycle — commit 247edc8
+
+## T-100 status (PR + demo) — NOT auto-completable
+- T-094–T-099 all DONE, committed, tested. All M-07 files ruff/format/mypy clean; M-07 backend + FE tests green; E2E green.
+- T-100 is human-gated: open PR milestone/M-07-exam-framework → staging, run phase-complete-review, LIVE DEMO for Abd.+Awais, address review, MERGE. Cannot do demo/merge autonomously. Awaiting user decision to push+open PR (outward-facing on shared origin git@github.com:abdurrehman-tahir/iqbalai-v2).
+- **CI-GREEN BLOCKER (pre-existing, NOT M-07):** `ruff check .` = 160 errors repo-wide; `ruff format --check .` = 64 files would reformat; mypy app/ has errors in bulk_imports/library. These predate M-07 (branch cut from M-06 in this state; even app/main.py fails). Fixing = repo-wide cleanup, out of M-07 scope. T-100 "CI green" needs this addressed separately — flag to Abd.
+- Also still open (flagged earlier): T-096 legacy exam_syllabi vs new exam_frameworks engine reconciliation (product decision); M-06 ledger shows all todo though code shipped (ledger lag).
 
 ## T-097 notes
 - User decided: reuse existing §9.21 namespaces (system for admin, self_study for student v2-available), NOT a new `framework` namespace. No amendment.
