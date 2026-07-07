@@ -375,6 +375,53 @@
         "title": "AuditLogEntryRead",
         "type": "object"
       },
+      "AvailableFrameworkRead": {
+        "description": "A published framework a student may select (T-096), with its current version.",
+        "properties": {
+          "current_version": {
+            "title": "Current Version",
+            "type": "integer"
+          },
+          "exam_target": {
+            "title": "Exam Target",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "target_grade_range": {
+            "items": {
+              "type": "integer"
+            },
+            "title": "Target Grade Range",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "exam_target",
+          "region",
+          "target_grade_range",
+          "language",
+          "current_version"
+        ],
+        "title": "AvailableFrameworkRead",
+        "type": "object"
+      },
       "Body_create_bulk_import_dry_run": {
         "properties": {
           "file": {
@@ -3535,6 +3582,15 @@
         "title": "SectionStatus",
         "type": "string"
       },
+      "SelectionStatus": {
+        "description": "Student framework-selection lifecycle (Flow 4 \u00a73.5.3).",
+        "enum": [
+          "active",
+          "abandoned"
+        ],
+        "title": "SelectionStatus",
+        "type": "string"
+      },
       "StudentBannerDismiss": {
         "properties": {
           "dismissed": {
@@ -3899,6 +3955,101 @@
           "deferrable_banner_dismissed"
         ],
         "title": "StudentProfileRead",
+        "type": "object"
+      },
+      "StudentSelectionRead": {
+        "description": "A student's framework selection (T-096).\n\n``latest_version`` + ``update_available`` power the opt-in \"v2 available \u2014 switch?\"\nbanner (T-095): a refreshed, approved version exists beyond the pinned one.",
+        "properties": {
+          "exam_target": {
+            "title": "Exam Target",
+            "type": "string"
+          },
+          "framework_id": {
+            "title": "Framework Id",
+            "type": "string"
+          },
+          "framework_name": {
+            "title": "Framework Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "latest_version": {
+            "title": "Latest Version",
+            "type": "integer"
+          },
+          "pinned_version": {
+            "title": "Pinned Version",
+            "type": "integer"
+          },
+          "selected_at": {
+            "format": "date-time",
+            "title": "Selected At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/SelectionStatus"
+          },
+          "update_available": {
+            "title": "Update Available",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "id",
+          "framework_id",
+          "framework_name",
+          "exam_target",
+          "pinned_version",
+          "latest_version",
+          "update_available",
+          "status",
+          "selected_at"
+        ],
+        "title": "StudentSelectionRead",
+        "type": "object"
+      },
+      "StudentStudyPlanRead": {
+        "description": "The pinned study-plan version a student sees rendered (T-096, \u00a73.5.2).\n\nThis is also the self-study integration hook: the structured plan (topics, weekly\npacing, exam strategy) is exposed here for the future Flow 8 planner (M-08+).",
+        "properties": {
+          "content_jsonb": {
+            "additionalProperties": true,
+            "title": "Content Jsonb",
+            "type": "object"
+          },
+          "exam_target": {
+            "title": "Exam Target",
+            "type": "string"
+          },
+          "framework_id": {
+            "title": "Framework Id",
+            "type": "string"
+          },
+          "framework_name": {
+            "title": "Framework Name",
+            "type": "string"
+          },
+          "generated_at": {
+            "format": "date-time",
+            "title": "Generated At",
+            "type": "string"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "framework_id",
+          "framework_name",
+          "exam_target",
+          "version",
+          "content_jsonb",
+          "generated_at"
+        ],
+        "title": "StudentStudyPlanRead",
         "type": "object"
       },
       "StudyPlanStatus": {
@@ -4870,6 +5021,40 @@
         "title": "SuccessEnvelope[StudentLinkRequestList]",
         "type": "object"
       },
+      "SuccessEnvelope_StudentSelectionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentSelectionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentSelectionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentStudyPlanRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentStudyPlanRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentStudyPlanRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_SubjectRead_": {
         "properties": {
           "data": {
@@ -5042,6 +5227,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[AcademicSessionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_AvailableFrameworkRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/AvailableFrameworkRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[AvailableFrameworkRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_DisclaimerVersionRead__": {
@@ -5273,6 +5479,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[SectionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_StudentSelectionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/StudentSelectionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[StudentSelectionRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_SubjectRead__": {
@@ -11385,6 +11612,253 @@
         "summary": "Smoketest Rag",
         "tags": [
           "smoketest"
+        ]
+      }
+    },
+    "/api/v1/student/exam-frameworks/available": {
+      "get": {
+        "operationId": "student_frameworks_available",
+        "parameters": [
+          {
+            "description": "Student's region (matches region or 'any')",
+            "in": "query",
+            "name": "region",
+            "required": true,
+            "schema": {
+              "description": "Student's region (matches region or 'any')",
+              "minLength": 1,
+              "title": "Region",
+              "type": "string"
+            }
+          },
+          {
+            "description": "Student's grade level",
+            "in": "query",
+            "name": "grade",
+            "required": true,
+            "schema": {
+              "description": "Student's grade level",
+              "maximum": 14,
+              "minimum": 1,
+              "title": "Grade",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_AvailableFrameworkRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Browse selectable frameworks (region + grade scoped)",
+        "tags": [
+          "exam_frameworks_student"
+        ]
+      }
+    },
+    "/api/v1/student/exam-frameworks/selections": {
+      "get": {
+        "operationId": "student_frameworks_selections",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_StudentSelectionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List my framework selections (with opt-in update flag)",
+        "tags": [
+          "exam_frameworks_student"
+        ]
+      }
+    },
+    "/api/v1/student/exam-frameworks/selections/{selection_id}": {
+      "delete": {
+        "operationId": "student_frameworks_drop",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "selection_id",
+            "required": true,
+            "schema": {
+              "title": "Selection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentSelectionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Drop a selection (-> ABANDONED; history retained)",
+        "tags": [
+          "exam_frameworks_student"
+        ]
+      }
+    },
+    "/api/v1/student/exam-frameworks/selections/{selection_id}/study-plan": {
+      "get": {
+        "operationId": "student_frameworks_study_plan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "selection_id",
+            "required": true,
+            "schema": {
+              "title": "Selection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentStudyPlanRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Render the pinned study plan for a selection (self-study hook)",
+        "tags": [
+          "exam_frameworks_student"
+        ]
+      }
+    },
+    "/api/v1/student/exam-frameworks/selections/{selection_id}/switch": {
+      "post": {
+        "operationId": "student_frameworks_switch",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "selection_id",
+            "required": true,
+            "schema": {
+              "title": "Selection Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentSelectionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Opt in to the latest published version for a selection",
+        "tags": [
+          "exam_frameworks_student"
+        ]
+      }
+    },
+    "/api/v1/student/exam-frameworks/{framework_id}/select": {
+      "post": {
+        "operationId": "student_frameworks_select",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentSelectionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Select a framework (ACTIVE, pinned to the current version)",
+        "tags": [
+          "exam_frameworks_student"
         ]
       }
     },

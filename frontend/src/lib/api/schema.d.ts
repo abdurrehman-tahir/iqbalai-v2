@@ -1635,6 +1635,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/student/exam-frameworks/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Browse selectable frameworks (region + grade scoped) */
+        get: operations["student_frameworks_available"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/selections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List my framework selections (with opt-in update flag) */
+        get: operations["student_frameworks_selections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/selections/{selection_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Drop a selection (-> ABANDONED; history retained) */
+        delete: operations["student_frameworks_drop"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/selections/{selection_id}/study-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Render the pinned study plan for a selection (self-study hook) */
+        get: operations["student_frameworks_study_plan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/selections/{selection_id}/switch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Opt in to the latest published version for a selection */
+        post: operations["student_frameworks_switch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/{framework_id}/select": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select a framework (ACTIVE, pinned to the current version) */
+        post: operations["student_frameworks_select"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/connections": {
         parameters: {
             query?: never;
@@ -2278,6 +2380,26 @@ export interface components {
             target_id: string | null;
             /** Target Type */
             target_type: string | null;
+        };
+        /**
+         * AvailableFrameworkRead
+         * @description A published framework a student may select (T-096), with its current version.
+         */
+        AvailableFrameworkRead: {
+            /** Current Version */
+            current_version: number;
+            /** Exam Target */
+            exam_target: string;
+            /** Id */
+            id: string;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** Region */
+            region: string;
+            /** Target Grade Range */
+            target_grade_range: number[];
         };
         /** Body_create_bulk_import_dry_run */
         Body_create_bulk_import_dry_run: {
@@ -3509,6 +3631,12 @@ export interface components {
          * @enum {string}
          */
         SectionStatus: "active" | "archived";
+        /**
+         * SelectionStatus
+         * @description Student framework-selection lifecycle (Flow 4 §3.5.3).
+         * @enum {string}
+         */
+        SelectionStatus: "active" | "abandoned";
         /** StudentBannerDismiss */
         StudentBannerDismiss: {
             /**
@@ -3660,6 +3788,61 @@ export interface components {
             tos_accepted_at: string | null;
             /** User Id */
             user_id: string;
+        };
+        /**
+         * StudentSelectionRead
+         * @description A student's framework selection (T-096).
+         *
+         *     ``latest_version`` + ``update_available`` power the opt-in "v2 available — switch?"
+         *     banner (T-095): a refreshed, approved version exists beyond the pinned one.
+         */
+        StudentSelectionRead: {
+            /** Exam Target */
+            exam_target: string;
+            /** Framework Id */
+            framework_id: string;
+            /** Framework Name */
+            framework_name: string;
+            /** Id */
+            id: string;
+            /** Latest Version */
+            latest_version: number;
+            /** Pinned Version */
+            pinned_version: number;
+            /**
+             * Selected At
+             * Format: date-time
+             */
+            selected_at: string;
+            status: components["schemas"]["SelectionStatus"];
+            /** Update Available */
+            update_available: boolean;
+        };
+        /**
+         * StudentStudyPlanRead
+         * @description The pinned study-plan version a student sees rendered (T-096, §3.5.2).
+         *
+         *     This is also the self-study integration hook: the structured plan (topics, weekly
+         *     pacing, exam strategy) is exposed here for the future Flow 8 planner (M-08+).
+         */
+        StudentStudyPlanRead: {
+            /** Content Jsonb */
+            content_jsonb: {
+                [key: string]: unknown;
+            };
+            /** Exam Target */
+            exam_target: string;
+            /** Framework Id */
+            framework_id: string;
+            /** Framework Name */
+            framework_name: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Version */
+            version: number;
         };
         /**
          * StudyPlanStatus
@@ -4137,6 +4320,24 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[StudentSelectionRead] */
+        SuccessEnvelope_StudentSelectionRead_: {
+            data: components["schemas"]["StudentSelectionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentStudyPlanRead] */
+        SuccessEnvelope_StudentStudyPlanRead_: {
+            data: components["schemas"]["StudentStudyPlanRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[SubjectRead] */
         SuccessEnvelope_SubjectRead_: {
             data: components["schemas"]["SubjectRead"];
@@ -4222,6 +4423,16 @@ export interface components {
         SuccessEnvelope_list_AcademicSessionRead__: {
             /** Data */
             data: components["schemas"]["AcademicSessionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[AvailableFrameworkRead]] */
+        SuccessEnvelope_list_AvailableFrameworkRead__: {
+            /** Data */
+            data: components["schemas"]["AvailableFrameworkRead"][];
             /**
              * Message
              * @default ok
@@ -4332,6 +4543,16 @@ export interface components {
         SuccessEnvelope_list_SectionRead__: {
             /** Data */
             data: components["schemas"]["SectionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[StudentSelectionRead]] */
+        SuccessEnvelope_list_StudentSelectionRead__: {
+            /** Data */
+            data: components["schemas"]["StudentSelectionRead"][];
             /**
              * Message
              * @default ok
@@ -8386,6 +8607,184 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_frameworks_available: {
+        parameters: {
+            query: {
+                /** @description Student's region (matches region or 'any') */
+                region: string;
+                /** @description Student's grade level */
+                grade: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_AvailableFrameworkRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_frameworks_selections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_StudentSelectionRead__"];
+                };
+            };
+        };
+    };
+    student_frameworks_drop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentSelectionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_frameworks_study_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentStudyPlanRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_frameworks_switch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentSelectionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_frameworks_select: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentSelectionRead_"];
                 };
             };
             /** @description Validation Error */

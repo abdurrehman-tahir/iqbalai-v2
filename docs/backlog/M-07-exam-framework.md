@@ -216,7 +216,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** _pending (this commit)_
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5.2 (render structure), §3.5.3 (selection), §3.5.4 (mode interaction)

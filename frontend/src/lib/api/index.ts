@@ -19,6 +19,9 @@ import type {
   FrameworkResearchJobRead,
   FrameworkStudyPlanRead,
   FrameworkRejectRequest,
+  AvailableFrameworkRead,
+  StudentSelectionRead,
+  StudentStudyPlanRead,
   LibraryUploadParams,
   LibraryUploadResponse,
   Notification,
@@ -572,6 +575,45 @@ export const frameworksApi = {
   // T-095: full study-plan version history for a framework (newest first).
   listVersions: (token: string, id: string) =>
     request<FrameworkStudyPlanRead[]>(`/exam-frameworks/${id}/versions`, {}, token),
+};
+
+// ── Student exam frameworks (T-096) ────────────────────────────────────────────
+// Both tenant types (school + independent students). Region + grade are supplied by
+// the caller; selections pin to the current published version.
+export const studentFrameworksApi = {
+  available: (token: string, region: string, grade: number) =>
+    request<AvailableFrameworkRead[]>(
+      `/student/exam-frameworks/available?region=${encodeURIComponent(region)}&grade=${grade}`,
+      {},
+      token
+    ),
+  select: (token: string, frameworkId: string) =>
+    request<StudentSelectionRead>(
+      `/student/exam-frameworks/${frameworkId}/select`,
+      { method: "POST" },
+      token
+    ),
+  selections: (token: string) =>
+    request<StudentSelectionRead[]>("/student/exam-frameworks/selections", {}, token),
+  studyPlan: (token: string, selectionId: string) =>
+    request<StudentStudyPlanRead>(
+      `/student/exam-frameworks/selections/${selectionId}/study-plan`,
+      {},
+      token
+    ),
+  // T-095/T-096: opt in to the latest published version (never auto-switched).
+  switchVersion: (token: string, selectionId: string) =>
+    request<StudentSelectionRead>(
+      `/student/exam-frameworks/selections/${selectionId}/switch`,
+      { method: "POST" },
+      token
+    ),
+  drop: (token: string, selectionId: string) =>
+    request<StudentSelectionRead>(
+      `/student/exam-frameworks/selections/${selectionId}`,
+      { method: "DELETE" },
+      token
+    ),
 };
 
 // ── Districts ─────────────────────────────────────────────────────────────────

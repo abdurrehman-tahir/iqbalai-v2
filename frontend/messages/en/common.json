@@ -467,7 +467,8 @@
       "data_rights_link": "Data & privacy",
       "graduation_banner_title": "You've graduated",
       "graduation_banner_body": "Lecture mode is read-only. Self-Study stays fully available until your account moves to Independent mode.",
-      "graduation_migration_date": "Independent migration scheduled: {date}"
+      "graduation_migration_date": "Independent migration scheduled: {date}",
+      "exam_frameworks_link": "Exam frameworks"
     },
     "data_rights": {
       "title": "Data & privacy",
@@ -489,6 +490,44 @@
       "deletion_cancelled": "Deletion request cancelled.",
       "download_started": "Download started.",
       "error_generic": "Something went wrong. Please try again."
+    },
+    "frameworks": {
+      "title": "Exam Frameworks",
+      "subtitle": "Pick an exam target to get an AI-built study plan — topics, weekly pacing, and exam strategy.",
+      "error": "Couldn't load your frameworks.",
+      "retry": "Retry",
+      "my_title": "My frameworks",
+      "my_empty_title": "No frameworks selected yet",
+      "my_empty_description": "Browse below and select an exam target to start a study plan.",
+      "status": {
+        "active": "Active",
+        "abandoned": "Dropped"
+      },
+      "version_label": "Study plan v{version}",
+      "update_available": "An updated plan (v{version}) is available.",
+      "switch": "Switch to new version",
+      "view_plan": "View study plan",
+      "drop": "Drop",
+      "browse_title": "Browse frameworks",
+      "region_label": "Region",
+      "region_placeholder": "e.g. Punjab",
+      "grade_label": "Grade",
+      "browse_button": "Browse",
+      "browse_hint": "Enter your region and grade to see matching exam frameworks.",
+      "browse_empty_title": "No frameworks match",
+      "browse_empty_description": "No published frameworks for that region and grade yet.",
+      "select": "Select",
+      "selected": "Selected",
+      "plan_modal": {
+        "title": "{name} — study plan",
+        "close": "Close",
+        "error": "Couldn't load the study plan.",
+        "version": "Version",
+        "topics": "Topics",
+        "weeks": "Weeks planned",
+        "topics_heading": "Topics (by past-paper weight)",
+        "no_topics": "No topics in this plan yet."
+      }
     }
   },
   "teacher": {

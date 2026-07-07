@@ -15,6 +15,7 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator
 from app.features.exam_frameworks.models import (
     FrameworkStatus,
     ResearchJobStatus,
+    SelectionStatus,
     StudyPlanStatus,
 )
 
@@ -123,6 +124,57 @@ class FrameworkRejectRequest(BaseModel):
     """Payload to reject a pending plan back to DRAFT with reviewer notes (T-094)."""
 
     notes: str = Field(..., min_length=1, max_length=4000)
+
+
+class AvailableFrameworkRead(BaseModel):
+    """A published framework a student may select (T-096), with its current version."""
+
+    id: str
+    name: str
+    exam_target: str
+    region: str
+    target_grade_range: list[int]
+    language: str
+    current_version: int
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class StudentSelectionRead(BaseModel):
+    """A student's framework selection (T-096).
+
+    ``latest_version`` + ``update_available`` power the opt-in "v2 available — switch?"
+    banner (T-095): a refreshed, approved version exists beyond the pinned one.
+    """
+
+    id: str
+    framework_id: str
+    framework_name: str
+    exam_target: str
+    pinned_version: int
+    latest_version: int
+    update_available: bool
+    status: SelectionStatus
+    selected_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class StudentStudyPlanRead(BaseModel):
+    """The pinned study-plan version a student sees rendered (T-096, §3.5.2).
+
+    This is also the self-study integration hook: the structured plan (topics, weekly
+    pacing, exam strategy) is exposed here for the future Flow 8 planner (M-08+).
+    """
+
+    framework_id: str
+    framework_name: str
+    exam_target: str
+    version: int
+    content_jsonb: dict[str, object]
+    generated_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
 
 
 class SourceCitation(BaseModel):

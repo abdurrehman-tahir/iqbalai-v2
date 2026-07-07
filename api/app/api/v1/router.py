@@ -12,6 +12,7 @@ from app.features.bulk_imports.router import router as bulk_imports_router
 from app.features.data_rights.parent_router import router as parent_data_rights_router
 from app.features.data_rights.student_router import router as student_data_rights_router
 from app.features.exam_frameworks.router import router as exam_frameworks_router
+from app.features.exam_frameworks.student_router import router as student_frameworks_router
 from app.features.exam_syllabi.router import router as syllabi_router
 from app.features.files.router import router as uploads_router
 from app.features.grades.router import router as grades_router
@@ -67,6 +68,7 @@ router.include_router(admin_users_router)
 router.include_router(tos_router)
 router.include_router(syllabi_router)
 router.include_router(exam_frameworks_router)
+router.include_router(student_frameworks_router)
 router.include_router(districts_router)
 router.include_router(schools_router)
 router.include_router(school_admin_router)
