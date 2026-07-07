@@ -50,6 +50,12 @@ quote-style = "double"
 [tool.ruff.lint]
 select = ["E", "F", "I"]
 
+[tool.ruff.lint.per-file-ignores]
+# Notification templates hold human-language strings across 4 locales (en/ur/sd/ps).
+# These bodies cannot be line-wrapped without harming readability or changing the text,
+# so E501 is not meaningful here (the formatter still governs code line length elsewhere).
+"app/infrastructure/notifications/templates/*.py" = ["E501"]
+
 [tool.ruff.lint.isort]
 known-first-party = ["app"]
 

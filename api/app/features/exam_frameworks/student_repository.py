@@ -130,6 +130,24 @@ class StudentFrameworkRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_active_selections_pinned_below(
+        self, framework_id: str, version: int
+    ) -> list[StudentFrameworkSelection]:
+        """ACTIVE selections of a framework pinned to an older version than ``version``.
+
+        Recipients for the ``framework.version_available`` notification when a refreshed
+        (v2+) plan is approved (T-097 Acceptance #3).
+        """
+        result = await self._session.execute(
+            select(StudentFrameworkSelection).where(
+                StudentFrameworkSelection.framework_id == framework_id,
+                StudentFrameworkSelection.status == SelectionStatus.ACTIVE,
+                StudentFrameworkSelection.pinned_version < version,
+                not_deleted(StudentFrameworkSelection),
+            )
+        )
+        return list(result.scalars().all())
+
     async def get_selection_by_id(self, selection_id: str) -> StudentFrameworkSelection | None:
         result = await self._session.execute(
             select(StudentFrameworkSelection).where(

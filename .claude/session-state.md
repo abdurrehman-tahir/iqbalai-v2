@@ -2,7 +2,7 @@
 
 **Current milestone:** M-07 — Exam Framework Engine
 **Branch:** milestone/M-07-exam-framework (created off milestone/M-06-student-onboarding)
-**Current ticket:** T-097 — Notifications (framework namespace) (next)
+**Current ticket:** T-098 — Audit logging (next)
 
 ## Plan
 - Branch made off M-06. When M-06 merges to staging, REBASE this branch onto staging (deferred — external event).
@@ -14,7 +14,14 @@
 - T-093 — Pattern-A AI research agent (SearXNG → web_fetch → LLM synthesis) — commit f930079
 - T-094 — Approval workflow (PENDING_APPROVAL → PUBLISHED, SLA reminder@7d/escalation@14d) — commit 9625fb5
 - T-095 — Versioning + quarterly refresh + deprecation (refresh beat, deprecate, refresh-safe reverts) — commit 863f5ed
-- T-096 — Student framework selection + rendering + region scoping (both tenants; /student/exam-frameworks) — this commit
+- T-096 — Student framework selection + rendering + region scoping (both tenants; /student/exam-frameworks) — commit d0d7eb4
+- T-097 — Notifications: system (admin) + self_study (student) namespaces; NATS events; 4-lang templates — this commit
+
+## T-097 notes
+- User decided: reuse existing §9.21 namespaces (system for admin, self_study for student v2-available), NOT a new `framework` namespace. No amendment.
+- pre-commit hook is NOT installed in this clone → my commits don't run ruff/mypy locally; CI (`uv run ruff check .` + `ruff format --check .`) is the real gate. RUN THE FORMAT GATE MANUALLY via api/.venv before each commit.
+- Added `[tool.ruff.lint.per-file-ignores]` for notifications/templates/*.py = ["E501"] — fixes latent E501 in the pre-existing connections.py template too (would otherwise fail T-100 CI).
+- LATENT RISK for T-100: `ruff check .` runs whole repo; there may be other pre-existing lint issues outside exam_frameworks. Check at PR time.
 
 ## T-096 notes
 - Legacy independent-signup selection uses `exam_syllabi` (older table), NOT the T-091 `exam_frameworks` engine. T-096 built the real selection engine ALONGSIDE the legacy syllabus path (did not touch signup). Reconciling the two is a product decision for Abd. — flagged, not done.

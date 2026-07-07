@@ -246,6 +246,23 @@ class ExamFrameworkService:
             version=version,
             cost_usd=str(outcome.cost_usd),
         )
+
+        # Post-commit side effects (T-097): a completed run notifies Platform Admins that
+        # a plan is pending approval + emits a lifecycle event. Partial (cost-halted) runs
+        # stay DRAFT and notify nobody.
+        if not outcome.partial:
+            from app.features.exam_frameworks.notifications import notify_platform_admins
+            from app.infrastructure.events.exam_frameworks import publish_framework_event
+
+            await notify_platform_admins(
+                self._session,
+                template_key="system.framework_pending_approval",
+                framework=framework,
+            )
+            await publish_framework_event(
+                event_type="framework.research_completed",
+                payload={"framework_id": framework_id, "version": version},
+            )
         return job.status
 
     async def mark_research_failed(self, framework_id: str, job_id: str, error: str) -> None:
@@ -308,7 +325,9 @@ class ExamFrameworkService:
             )
 
         # Retire the prior published version so only the newest is APPROVED (§4.18).
+        # A prior published plan means this is a refreshed v2+ (drives the T-097 notice).
         prior = await self._repo.get_current_published_plan(framework_id)
+        is_new_version = prior is not None and prior.id != plan.id
         if prior is not None and prior.id != plan.id:
             prior.status = StudyPlanStatus.SUPERSEDED
 
@@ -345,6 +364,21 @@ class ExamFrameworkService:
             version=plan.version,
             by=actor_id,
         )
+
+        # Post-commit side effects (T-097): emit the published lifecycle event; if this is
+        # a refreshed version, notify students pinned to the older version (opt-in switch).
+        from app.infrastructure.events.exam_frameworks import publish_framework_event
+
+        await publish_framework_event(
+            event_type="framework.published",
+            payload={"framework_id": framework_id, "version": plan.version},
+        )
+        if is_new_version:
+            from app.features.exam_frameworks.notifications import notify_version_available
+
+            await notify_version_available(
+                self._session, framework=framework, new_version=plan.version
+            )
         return plan
 
     async def reject_plan(self, framework_id: str, notes: str, actor_id: str) -> FrameworkStudyPlan:
@@ -392,9 +426,11 @@ class ExamFrameworkService:
         Reminder after ``FRAMEWORK_APPROVAL_REMINDER_DAYS`` (7); escalation after
         ``FRAMEWORK_APPROVAL_ESCALATION_DAYS`` (14). Each marker is recorded on the
         plan's ``sla_reminders_sent`` so it never re-fires (idempotent beat, T-094).
-        Notification delivery is layered on in T-097; here we detect + audit.
+        Each marker audits AND notifies every Platform Admin (T-097).
         Returns the number of markers fired this sweep.
         """
+        from app.features.exam_frameworks.notifications import notify_platform_admins
+
         settings = get_settings()
         reminder_days = settings.FRAMEWORK_APPROVAL_REMINDER_DAYS
         escalation_days = settings.FRAMEWORK_APPROVAL_ESCALATION_DAYS
@@ -421,6 +457,7 @@ class ExamFrameworkService:
             sent.add(marker)
             plan.sla_reminders_sent = _format_sent_markers(sent)
             await self._repo.commit()
+            escalated = action == "framework.approval_escalated"
             await audit(
                 session=self._session,
                 action=action,
@@ -429,10 +466,20 @@ class ExamFrameworkService:
                 target_type="exam_framework",
                 target_id=framework.id,
                 metadata={
-                    "flagged": action == "framework.approval_escalated",
+                    "flagged": escalated,
                     "plan_id": plan.id,
                     "age_days": age_days,
                 },
+            )
+            await notify_platform_admins(
+                self._session,
+                template_key=(
+                    "system.framework_approval_escalated"
+                    if escalated
+                    else "system.framework_approval_reminder"
+                ),
+                framework=framework,
+                extra_params={"days": str(age_days)},
             )
             fired += 1
             logger.info(
@@ -499,6 +546,12 @@ class ExamFrameworkService:
             target_id=framework_id,
             metadata={"job_id": job.id},
         )
+        from app.infrastructure.events.exam_frameworks import publish_framework_event
+
+        await publish_framework_event(
+            event_type="framework.refresh_triggered",
+            payload={"framework_id": framework_id, "job_id": job.id},
+        )
         logger.info("framework_refresh_triggered", framework_id=framework_id, job_id=job.id)
         return job
 
@@ -544,6 +597,12 @@ class ExamFrameworkService:
             target_type="exam_framework",
             target_id=framework_id,
             metadata={"flagged": True},
+        )
+        from app.infrastructure.events.exam_frameworks import publish_framework_event
+
+        await publish_framework_event(
+            event_type="framework.deprecated",
+            payload={"framework_id": framework_id},
         )
         logger.info("framework_deprecated", framework_id=framework_id, by=actor_id)
         return framework

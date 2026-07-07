@@ -32,9 +32,7 @@ class UserRepository:
 
     async def get_by_authentik_id_any(self, authentik_id: str) -> User | None:
         """Return a user row regardless of soft-delete (for login/middleware checks)."""
-        result = await self._session.execute(
-            select(User).where(User.authentik_id == authentik_id)
-        )
+        result = await self._session.execute(select(User).where(User.authentik_id == authentik_id))
         return result.scalar_one_or_none()
 
     async def get_by_email(self, email: str) -> User | None:
@@ -61,6 +59,20 @@ class UserRepository:
         await self._session.commit()
         await self._session.refresh(user)
         return user
+
+    async def list_platform_admins(self) -> list[User]:
+        """Active Platform Admins (platform-level: no district/school) — notification
+        recipients for framework research/approval alerts (T-097)."""
+        result = await self._session.execute(
+            select(User).where(
+                User.role == UserRole.PLATFORM_ADMIN,
+                User.status == UserAccountStatus.ACTIVE,
+                User.district_id.is_(None),
+                User.school_id.is_(None),
+                not_deleted(User),
+            )
+        )
+        return list(result.scalars().all())
 
     async def list_by_school_and_role(self, school_id: str, role: UserRole) -> list[User]:
         result = await self._session.execute(
