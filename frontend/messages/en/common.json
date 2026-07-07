@@ -1077,7 +1077,9 @@
         "delete": "Delete {name}",
         "research": "Run AI research for {name}",
         "view_research": "View research for {name}",
-        "review": "Review study plan for {name}"
+        "review": "Review study plan for {name}",
+        "refresh": "Refresh (re-run AI research) for {name}",
+        "deprecate": "Deprecate {name}"
       },
       "modal": {
         "edit_title": "Edit framework",
@@ -1142,6 +1144,12 @@
         "refresh": "Refresh",
         "reject": "Reject",
         "approve": "Approve & publish"
+      },
+      "deprecate_modal": {
+        "title": "Deprecate framework?",
+        "description": "Deprecate \"{name}\"? It won't be offered to new students; existing students keep their current version.",
+        "cancel": "Cancel",
+        "confirm": "Deprecate"
       }
     },
     "subscription_tiers": {

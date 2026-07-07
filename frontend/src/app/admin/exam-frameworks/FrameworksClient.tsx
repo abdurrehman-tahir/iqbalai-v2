@@ -16,6 +16,8 @@ import {
   ClipboardCheck,
   CheckCircle2,
   XCircle,
+  RefreshCw,
+  Ban,
 } from "lucide-react";
 import { frameworksApi, ApiError, type Framework } from "@/lib/api";
 import type {
@@ -103,6 +105,7 @@ export function FrameworksClient() {
   const [deleteTarget, setDeleteTarget] = useState<Framework | null>(null);
   const [researchTarget, setResearchTarget] = useState<Framework | null>(null);
   const [reviewTarget, setReviewTarget] = useState<Framework | null>(null);
+  const [deprecateTarget, setDeprecateTarget] = useState<Framework | null>(null);
   const [formError, setFormError] = useState("");
 
   const { data, isLoading, isError, refetch } = useQuery({
@@ -153,6 +156,29 @@ export function FrameworksClient() {
     mutationFn: (id: string) => frameworksApi.triggerResearch(token ?? "", id),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["exam-frameworks"] });
+    },
+    onError: (err: Error) => {
+      setFormError(err instanceof ApiError ? err.message : err.message);
+    },
+  });
+
+  // T-095: re-run research on a PUBLISHED framework -> new version pending approval.
+  const refreshMutation = useMutation({
+    mutationFn: (id: string) => frameworksApi.refresh(token ?? "", id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["exam-frameworks"] });
+    },
+    onError: (err: Error) => {
+      setFormError(err instanceof ApiError ? err.message : err.message);
+    },
+  });
+
+  // T-095: deprecate a PUBLISHED framework — existing students grandfathered.
+  const deprecateMutation = useMutation({
+    mutationFn: (id: string) => frameworksApi.deprecate(token ?? "", id),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["exam-frameworks"] });
+      setDeprecateTarget(null);
     },
     onError: (err: Error) => {
       setFormError(err instanceof ApiError ? err.message : err.message);
@@ -304,6 +330,32 @@ export function FrameworksClient() {
                         >
                           <ClipboardCheck className="size-4" aria-hidden="true" />
                         </Button>
+                      )}
+                      {framework.status === "published" && (
+                        <>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => refreshMutation.mutate(framework.id)}
+                            loading={
+                              refreshMutation.isPending &&
+                              refreshMutation.variables === framework.id
+                            }
+                            aria-label={t("actions.refresh", { name: framework.name })}
+                            className="text-emerald-600 hover:text-emerald-800 hover:bg-emerald-50"
+                          >
+                            <RefreshCw className="size-4" aria-hidden="true" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => setDeprecateTarget(framework)}
+                            aria-label={t("actions.deprecate", { name: framework.name })}
+                            className="text-orange-600 hover:text-orange-800 hover:bg-orange-50"
+                          >
+                            <Ban className="size-4" aria-hidden="true" />
+                          </Button>
+                        </>
                       )}
                       {framework.status !== "draft" && (
                         <Button
@@ -460,6 +512,29 @@ export function FrameworksClient() {
             onClick={() => deleteTarget && deleteMutation.mutate(deleteTarget.id)}
           >
             {t("delete_modal.confirm")}
+          </Button>
+        </div>
+      </Modal>
+
+      <Modal
+        open={!!deprecateTarget}
+        onClose={() => setDeprecateTarget(null)}
+        title={t("deprecate_modal.title")}
+        description={t("deprecate_modal.description", { name: deprecateTarget?.name ?? "" })}
+        size="sm"
+        closeLabel={t("deprecate_modal.cancel")}
+      >
+        <div className="flex justify-end gap-3">
+          <Button variant="outline" size="md" onClick={() => setDeprecateTarget(null)}>
+            {t("deprecate_modal.cancel")}
+          </Button>
+          <Button
+            variant="destructive"
+            size="md"
+            loading={deprecateMutation.isPending}
+            onClick={() => deprecateTarget && deprecateMutation.mutate(deprecateTarget.id)}
+          >
+            {t("deprecate_modal.confirm")}
           </Button>
         </div>
       </Modal>

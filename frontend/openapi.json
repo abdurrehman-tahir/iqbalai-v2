@@ -5149,6 +5149,27 @@
         "title": "SuccessEnvelope[list[ExamSyllabusRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_FrameworkStudyPlanRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/FrameworkStudyPlanRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[FrameworkStudyPlanRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_GradeRead__": {
         "properties": {
           "data": {
@@ -8367,6 +8388,48 @@
         ]
       }
     },
+    "/api/v1/exam-frameworks/{framework_id}/deprecate": {
+      "post": {
+        "operationId": "exam_frameworks_deprecate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ExamFrameworkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Deprecate a PUBLISHED framework (no new selections; existing grandfathered)",
+        "tags": [
+          "exam_frameworks"
+        ]
+      }
+    },
     "/api/v1/exam-frameworks/{framework_id}/plan": {
       "get": {
         "operationId": "exam_frameworks_review_plan",
@@ -8404,6 +8467,48 @@
           }
         },
         "summary": "Read the study plan pending approval for review (content + sources)",
+        "tags": [
+          "exam_frameworks"
+        ]
+      }
+    },
+    "/api/v1/exam-frameworks/{framework_id}/refresh": {
+      "post": {
+        "operationId": "exam_frameworks_refresh",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "202": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_FrameworkResearchJobRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Re-run research on a PUBLISHED framework -> new version (T-095)",
         "tags": [
           "exam_frameworks"
         ]
@@ -8538,6 +8643,48 @@
           }
         },
         "summary": "Trigger the Pattern-A AI research run for a DRAFT framework",
+        "tags": [
+          "exam_frameworks"
+        ]
+      }
+    },
+    "/api/v1/exam-frameworks/{framework_id}/versions": {
+      "get": {
+        "operationId": "exam_frameworks_versions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "framework_id",
+            "required": true,
+            "schema": {
+              "title": "Framework Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_FrameworkStudyPlanRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List a framework's study-plan version history (newest first)",
         "tags": [
           "exam_frameworks"
         ]

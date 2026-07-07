@@ -563,6 +563,15 @@ export const frameworksApi = {
       { method: "POST", body: JSON.stringify(data) },
       token
     ),
+  // T-095: re-run research on a PUBLISHED framework -> new version (202).
+  refresh: (token: string, id: string) =>
+    request<FrameworkResearchJobRead>(`/exam-frameworks/${id}/refresh`, { method: "POST" }, token),
+  // T-095: deprecate a PUBLISHED framework (no new selections; existing grandfathered).
+  deprecate: (token: string, id: string) =>
+    request<ExamFrameworkRead>(`/exam-frameworks/${id}/deprecate`, { method: "POST" }, token),
+  // T-095: full study-plan version history for a framework (newest first).
+  listVersions: (token: string, id: string) =>
+    request<FrameworkStudyPlanRead[]>(`/exam-frameworks/${id}/versions`, {}, token),
 };
 
 // ── Districts ─────────────────────────────────────────────────────────────────

@@ -15,6 +15,8 @@ const mockLatestResearch = vi.fn();
 const mockReviewPlan = vi.fn();
 const mockApprove = vi.fn();
 const mockReject = vi.fn();
+const mockRefresh = vi.fn();
+const mockDeprecate = vi.fn();
 vi.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error {},
   frameworksApi: {
@@ -27,6 +29,8 @@ vi.mock("@/lib/api", () => ({
     reviewPlan: (...a: unknown[]) => mockReviewPlan(...a),
     approve: (...a: unknown[]) => mockApprove(...a),
     reject: (...a: unknown[]) => mockReject(...a),
+    refresh: (...a: unknown[]) => mockRefresh(...a),
+    deprecate: (...a: unknown[]) => mockDeprecate(...a),
   },
 }));
 
@@ -210,5 +214,52 @@ describe("FrameworksClient — approval review (T-094)", () => {
     await waitFor(() =>
       expect(screen.getByText("review_modal.empty_title")).toBeInTheDocument(),
     );
+  });
+});
+
+const PUBLISHED_FRAMEWORK = { ...DRAFT_FRAMEWORK, status: "published" };
+
+describe("FrameworksClient — versioning + refresh + deprecate (T-095)", () => {
+  it("refresh/deprecate actions are only offered for a PUBLISHED framework", async () => {
+    mockList.mockResolvedValue([DRAFT_FRAMEWORK]);
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("Matric Punjab — Physics")).toBeInTheDocument());
+    expect(screen.queryByRole("button", { name: "actions.refresh" })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: "actions.deprecate" })).not.toBeInTheDocument();
+  });
+
+  it("triggers a refresh on a PUBLISHED framework", async () => {
+    mockList.mockResolvedValue([PUBLISHED_FRAMEWORK]);
+    mockRefresh.mockResolvedValue({
+      id: "job2",
+      framework_id: "fw1",
+      status: "running",
+      cost_usd: 0,
+      sources_count: 0,
+      error: null,
+      study_plan_id: null,
+      started_at: "2026-01-01T00:00:00Z",
+      finished_at: null,
+      created_at: "2026-01-01T00:00:00Z",
+    });
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("Matric Punjab — Physics")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "actions.refresh" }));
+    await waitFor(() => expect(mockRefresh).toHaveBeenCalledWith("tok", "fw1"));
+  });
+
+  it("deprecates a PUBLISHED framework after confirmation", async () => {
+    mockList.mockResolvedValue([PUBLISHED_FRAMEWORK]);
+    mockDeprecate.mockResolvedValue({ ...PUBLISHED_FRAMEWORK, status: "deprecated" });
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("Matric Punjab — Physics")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "actions.deprecate" }));
+    await waitFor(() =>
+      expect(screen.getByText("deprecate_modal.title")).toBeInTheDocument(),
+    );
+    await userEvent.click(screen.getByRole("button", { name: "deprecate_modal.confirm" }));
+    await waitFor(() => expect(mockDeprecate).toHaveBeenCalledWith("tok", "fw1"));
   });
 });

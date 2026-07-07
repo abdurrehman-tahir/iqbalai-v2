@@ -9,7 +9,7 @@ Delete is a soft-delete (SoftDeleteMixin), consistent with the house pattern.
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -231,7 +231,8 @@ class ExamFrameworkService:
         if outcome.partial:
             job.status = ResearchJobStatus.PARTIAL
             job.error = "Cost ceiling reached; partial result preserved as a DRAFT plan."
-            framework.status = FrameworkStatus.DRAFT
+            # A refresh keeps its live version published; an initial run reverts to DRAFT.
+            framework.status = await self._revert_status_after_research(framework_id)
         else:
             job.status = ResearchJobStatus.SUCCEEDED
             framework.status = FrameworkStatus.PENDING_APPROVAL
@@ -255,8 +256,13 @@ class ExamFrameworkService:
             job.status = ResearchJobStatus.RESEARCH_FAILED
             job.error = error[:4000]
             job.finished_at = datetime.now(timezone.utc)
-        if framework is not None and framework.status == FrameworkStatus.RESEARCHING:
-            framework.status = FrameworkStatus.DRAFT
+        # A failed refresh keeps the live version published; an initial run reverts to
+        # DRAFT (T-093/T-095). Only revert if research was actually in flight.
+        if framework is not None and framework.status in (
+            FrameworkStatus.RESEARCHING,
+            FrameworkStatus.REFRESHING,
+        ):
+            framework.status = await self._revert_status_after_research(framework_id)
         await self._repo.commit()
         logger.warning(
             "framework_research_failed", framework_id=framework_id, job_id=job_id, error=error
@@ -357,7 +363,9 @@ class ExamFrameworkService:
 
         plan.status = StudyPlanStatus.DRAFT
         plan.reviewer_notes = notes
-        framework.status = FrameworkStatus.DRAFT
+        # Rejecting a refresh (v2) leaves the live v1 published; rejecting an initial
+        # plan reverts the framework to DRAFT (T-094/T-095).
+        framework.status = await self._revert_status_after_research(framework_id)
         await self._repo.commit()
         await self._repo.refresh(plan)
 
@@ -435,3 +443,107 @@ class ExamFrameworkService:
                 age_days=age_days,
             )
         return fired
+
+    async def _revert_status_after_research(self, framework_id: str) -> FrameworkStatus:
+        """Where a framework lands when a research run does not publish.
+
+        PUBLISHED if a live approved version already exists (a *refresh* run keeps its
+        current version live); DRAFT otherwise (the *initial* run has nothing to fall
+        back to). Never auto-switches students — the live plan is untouched (T-095).
+        """
+        published = await self._repo.get_current_published_plan(framework_id)
+        return FrameworkStatus.PUBLISHED if published is not None else FrameworkStatus.DRAFT
+
+    # --- versioning + quarterly refresh + deprecation (T-095) -----------------
+
+    async def list_plan_versions(self, framework_id: str) -> list[FrameworkStudyPlan]:
+        """Full version history for a framework (newest first), for the review UI."""
+        await self.get_framework(framework_id)
+        return await self._repo.list_plans(framework_id)
+
+    async def trigger_refresh(self, framework_id: str, actor_id: str) -> FrameworkResearchJob:
+        """Re-run research on a PUBLISHED framework -> new version (Acceptance #1).
+
+        Moves PUBLISHED -> REFRESHING and enqueues the same Pattern-A pipeline as the
+        initial run; a success produces version n+1 in PENDING_APPROVAL for the same
+        Platform-Admin approval gate. The live version stays published throughout — a
+        refresh never disturbs pinned students until they opt in (T-096).
+        """
+        framework = await self.get_framework(framework_id)
+        if framework.status != FrameworkStatus.PUBLISHED:
+            raise ConflictError(
+                f"Only a PUBLISHED framework can be refreshed "
+                f"(framework '{framework_id}' is '{framework.status.value}')"
+            )
+
+        job = FrameworkResearchJob(
+            framework_id=framework_id,
+            status=ResearchJobStatus.RUNNING,
+            started_at=datetime.now(timezone.utc),
+        )
+        framework.status = FrameworkStatus.REFRESHING
+        self._repo.add(job)
+        await self._repo.commit()
+        await self._repo.refresh(job)
+
+        # Lazy import avoids a tasks<->service import cycle.
+        from app.features.exam_frameworks.tasks import research_framework
+
+        research_framework.delay(framework_id, job.id)
+        await audit(
+            session=self._session,
+            action="framework.refresh_triggered",
+            actor_id=actor_id,
+            actor_role="platform_admin",
+            target_type="exam_framework",
+            target_id=framework_id,
+            metadata={"job_id": job.id},
+        )
+        logger.info("framework_refresh_triggered", framework_id=framework_id, job_id=job.id)
+        return job
+
+    async def sweep_quarterly_refresh(self) -> int:
+        """Beat body: re-research each PUBLISHED framework past the refresh cadence.
+
+        Runs daily; ``FRAMEWORK_REFRESH_DAYS`` (default 90) sets the cadence, checked
+        against each framework's last research run (ARCH §8.21/§10.6). Returns the
+        number of frameworks moved into a refresh this sweep.
+        """
+        settings = get_settings()
+        cutoff = datetime.now(timezone.utc) - timedelta(days=settings.FRAMEWORK_REFRESH_DAYS)
+        due = await self._repo.list_frameworks_due_for_refresh(cutoff)
+        triggered = 0
+        for framework in due:
+            await self.trigger_refresh(framework.id, actor_id="system")
+            triggered += 1
+        logger.info("framework_quarterly_refresh_swept", due=len(due), triggered=triggered)
+        return triggered
+
+    async def deprecate_framework(self, framework_id: str, actor_id: str) -> ExamFramework:
+        """Deprecate a PUBLISHED framework (Acceptance #4).
+
+        No longer offered for new selections (T-096 filters DEPRECATED out); existing
+        students are grandfathered — their selections and pinned versions are untouched.
+        Elevated, audited action (§14.10) — it changes what students may select.
+        """
+        framework = await self.get_framework(framework_id)
+        if framework.status != FrameworkStatus.PUBLISHED:
+            raise ConflictError(
+                f"Only a PUBLISHED framework can be deprecated "
+                f"(framework '{framework_id}' is '{framework.status.value}')"
+            )
+        framework.status = FrameworkStatus.DEPRECATED
+        await self._repo.commit()
+        await self._repo.refresh_framework(framework)
+
+        await audit(
+            session=self._session,
+            action="framework.deprecated",
+            actor_id=actor_id,
+            actor_role="platform_admin",
+            target_type="exam_framework",
+            target_id=framework_id,
+            metadata={"flagged": True},
+        )
+        logger.info("framework_deprecated", framework_id=framework_id, by=actor_id)
+        return framework

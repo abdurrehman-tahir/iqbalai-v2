@@ -255,7 +255,9 @@
         "delete": "__TODO__ Delete {name}",
         "research": "__TODO__ Run AI research for {name}",
         "view_research": "__TODO__ View research for {name}",
-        "review": "__TODO__ Review study plan for {name}"
+        "review": "__TODO__ Review study plan for {name}",
+        "refresh": "__TODO__ Refresh (re-run AI research) for {name}",
+        "deprecate": "__TODO__ Deprecate {name}"
       },
       "modal": {
         "edit_title": "__TODO__ Edit framework",
@@ -320,6 +322,12 @@
         "refresh": "__TODO__ Refresh",
         "reject": "__TODO__ Reject",
         "approve": "__TODO__ Approve & publish"
+      },
+      "deprecate_modal": {
+        "title": "__TODO__ Deprecate framework?",
+        "description": "__TODO__ Deprecate \"{name}\"? It won't be offered to new students; existing students keep their current version.",
+        "cancel": "__TODO__ Cancel",
+        "confirm": "__TODO__ Deprecate"
       }
     },
     "subscription_tiers": {

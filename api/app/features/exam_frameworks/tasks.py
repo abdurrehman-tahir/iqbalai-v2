@@ -80,3 +80,24 @@ async def _approval_sla_sweep_async() -> int:
         fired = await svc.sweep_approval_sla()
     logger.info("framework_approval_sla_sweep_complete", fired=fired)
     return fired
+
+
+@shared_task(name="framework.refresh_quarterly", queue="ml")  # type: ignore[misc]
+def refresh_quarterly() -> int:
+    """Daily beat: re-research PUBLISHED frameworks past the refresh cadence (T-095).
+
+    The 90-day cadence (``FRAMEWORK_REFRESH_DAYS``) is enforced in the service, not the
+    beat — the beat wakes daily and lets the service pick what is due (ARCH §10.6).
+    """
+    return asyncio.run(_refresh_quarterly_async())
+
+
+async def _refresh_quarterly_async() -> int:
+    from app.db.session import async_session_factory
+    from app.features.exam_frameworks.service import ExamFrameworkService
+
+    async with async_session_factory() as session:
+        svc = ExamFrameworkService(session)
+        triggered = await svc.sweep_quarterly_refresh()
+    logger.info("framework_refresh_quarterly_complete", triggered=triggered)
+    return triggered

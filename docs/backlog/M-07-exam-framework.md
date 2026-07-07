@@ -147,7 +147,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 9625fb5
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5.1 (manual approval gate; 72hr SLA, 7-day reminder, 14-day escalation)
@@ -181,7 +182,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** _pending (this commit)_
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5.1 (REFRESHING, versioning, deprecation)

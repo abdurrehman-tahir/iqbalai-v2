@@ -638,6 +638,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/exam-frameworks/{framework_id}/deprecate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deprecate a PUBLISHED framework (no new selections; existing grandfathered) */
+        post: operations["exam_frameworks_deprecate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/exam-frameworks/{framework_id}/plan": {
         parameters: {
             query?: never;
@@ -649,6 +666,23 @@ export interface paths {
         get: operations["exam_frameworks_review_plan"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Re-run research on a PUBLISHED framework -> new version (T-095) */
+        post: operations["exam_frameworks_refresh"];
         delete?: never;
         options?: never;
         head?: never;
@@ -684,6 +718,23 @@ export interface paths {
         put?: never;
         /** Trigger the Pattern-A AI research run for a DRAFT framework */
         post: operations["exam_frameworks_trigger_research"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a framework's study-plan version history (newest first) */
+        get: operations["exam_frameworks_versions"];
+        put?: never;
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -4227,6 +4278,16 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[list[FrameworkStudyPlanRead]] */
+        SuccessEnvelope_list_FrameworkStudyPlanRead__: {
+            /** Data */
+            data: components["schemas"]["FrameworkStudyPlanRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[GradeRead]] */
         SuccessEnvelope_list_GradeRead__: {
             /** Data */
@@ -6344,6 +6405,37 @@ export interface operations {
             };
         };
     };
+    exam_frameworks_deprecate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ExamFrameworkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     exam_frameworks_review_plan: {
         parameters: {
             query?: never;
@@ -6362,6 +6454,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_FrameworkStudyPlanRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkResearchJobRead_"];
                 };
             };
             /** @description Validation Error */
@@ -6459,6 +6582,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_FrameworkResearchJobRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_versions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_FrameworkStudyPlanRead__"];
                 };
             };
             /** @description Validation Error */

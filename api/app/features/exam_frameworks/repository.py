@@ -123,11 +123,51 @@ class ExamFrameworkRepository:
         )
         return list(result.scalars().all())
 
+    async def list_plans(self, framework_id: str) -> list[FrameworkStudyPlan]:
+        """All study-plan versions for a framework, newest first (version history, T-095)."""
+        result = await self._session.execute(
+            select(FrameworkStudyPlan)
+            .where(FrameworkStudyPlan.framework_id == framework_id)
+            .order_by(FrameworkStudyPlan.version.desc())
+        )
+        return list(result.scalars().all())
+
+    async def list_frameworks_due_for_refresh(self, cutoff: datetime) -> list[ExamFramework]:
+        """PUBLISHED frameworks whose most recent research run started before ``cutoff``.
+
+        Drives the quarterly-refresh beat (T-095, ARCH §8.21/§10.6): the beat runs
+        daily and this picks frameworks whose last Pattern-A run is older than
+        ``FRAMEWORK_REFRESH_DAYS``. Oldest-first so a backlog drains deterministically.
+        """
+        last_run = (
+            select(
+                FrameworkResearchJob.framework_id.label("framework_id"),
+                func.max(FrameworkResearchJob.started_at).label("last_started_at"),
+            )
+            .group_by(FrameworkResearchJob.framework_id)
+            .subquery()
+        )
+        stmt = (
+            select(ExamFramework)
+            .join(last_run, last_run.c.framework_id == ExamFramework.id)
+            .where(
+                ExamFramework.status == FrameworkStatus.PUBLISHED,
+                not_deleted(ExamFramework),
+                last_run.c.last_started_at < cutoff,
+            )
+            .order_by(last_run.c.last_started_at.asc())
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def commit(self) -> None:
         await self._session.commit()
 
     async def refresh(self, obj: FrameworkResearchJob | FrameworkStudyPlan) -> None:
         await self._session.refresh(obj)
+
+    async def refresh_framework(self, framework: ExamFramework) -> None:
+        await self._session.refresh(framework)
 
     async def get_job_by_id(self, job_id: str) -> FrameworkResearchJob | None:
         result = await self._session.execute(

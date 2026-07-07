@@ -65,6 +65,14 @@ class _FakeRepo:
     async def refresh(self, obj: Any) -> None:
         return None
 
+    async def get_current_published_plan(self, framework_id: str) -> FrameworkStudyPlan | None:
+        appr = [
+            p
+            for p in self.plans.values()
+            if p.framework_id == framework_id and p.status == StudyPlanStatus.APPROVED
+        ]
+        return max(appr, key=lambda p: p.version) if appr else None
+
     async def get_job_by_id(self, job_id: str) -> FrameworkResearchJob | None:
         return self.jobs.get(job_id)
 

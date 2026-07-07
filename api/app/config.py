@@ -109,6 +109,10 @@ class Settings(BaseSettings):
     FRAMEWORK_APPROVAL_SLA_HOURS: int = 72
     FRAMEWORK_APPROVAL_REMINDER_DAYS: int = 7
     FRAMEWORK_APPROVAL_ESCALATION_DAYS: int = 14
+    # Refresh cadence (days) for the quarterly Pattern-A re-research (T-095, ARCH
+    # §8.21/§10.6). The beat runs daily and picks PUBLISHED frameworks whose last
+    # research run is older than this — cadence is enforced in the task, not the beat.
+    FRAMEWORK_REFRESH_DAYS: int = 90
 
     @property
     def cors_allowed_origins(self) -> list[str]:

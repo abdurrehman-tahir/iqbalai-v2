@@ -202,3 +202,54 @@ async def reject_plan(
         framework_id, notes=payload.notes, actor_id=str(claims.get("sub", ""))
     )
     return success(FrameworkStudyPlanRead.model_validate(plan).model_dump())
+
+
+@router.post(
+    "/{framework_id}/refresh",
+    response_model=SuccessEnvelope[FrameworkResearchJobRead],
+    operation_id="exam_frameworks_refresh",
+    summary="Re-run research on a PUBLISHED framework -> new version (T-095)",
+    status_code=202,
+    dependencies=[require_role("platform_admin")],
+)
+async def refresh_framework(
+    framework_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ExamFrameworkService(db)
+    job = await svc.trigger_refresh(framework_id, actor_id=str(claims.get("sub", "")))
+    return success(FrameworkResearchJobRead.model_validate(job).model_dump())
+
+
+@router.post(
+    "/{framework_id}/deprecate",
+    response_model=SuccessEnvelope[ExamFrameworkRead],
+    operation_id="exam_frameworks_deprecate",
+    summary="Deprecate a PUBLISHED framework (no new selections; existing grandfathered)",
+    dependencies=[require_role("platform_admin")],
+)
+async def deprecate_framework(
+    framework_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ExamFrameworkService(db)
+    framework = await svc.deprecate_framework(framework_id, actor_id=str(claims.get("sub", "")))
+    return success(ExamFrameworkRead.model_validate(framework).model_dump())
+
+
+@router.get(
+    "/{framework_id}/versions",
+    response_model=SuccessEnvelope[list[FrameworkStudyPlanRead]],
+    operation_id="exam_frameworks_versions",
+    summary="List a framework's study-plan version history (newest first)",
+    dependencies=[require_role("platform_admin")],
+)
+async def list_versions(
+    framework_id: str,
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = ExamFrameworkService(db)
+    plans = await svc.list_plan_versions(framework_id)
+    return success([FrameworkStudyPlanRead.model_validate(p).model_dump() for p in plans])

@@ -36,4 +36,10 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "framework.approval_sla_sweep",
         "schedule": crontab(hour=7, minute=0),  # daily: reminder@7d, escalation@14d
     },
+    # Runs daily; the task re-researches PUBLISHED frameworks whose last run is older
+    # than FRAMEWORK_REFRESH_DAYS (default 90) — cadence enforced in the task (T-095).
+    "refresh-exam-frameworks": {
+        "task": "framework.refresh_quarterly",
+        "schedule": crontab(hour=22, minute=0),  # 03:00 PKT
+    },
 }
