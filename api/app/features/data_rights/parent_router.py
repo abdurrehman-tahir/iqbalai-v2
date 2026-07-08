@@ -60,6 +60,7 @@ async def request_export(
 
 @router.get(
     "/export/{request_id}/download",
+    response_model=None,  # binary file download — no Pydantic response model
     operation_id="parent_download_data_export",
     summary="Download a ready personal data export",
     dependencies=[require_role("parent")],

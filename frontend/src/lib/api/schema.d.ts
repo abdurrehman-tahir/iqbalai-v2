@@ -493,6 +493,60 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/forgot-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Trigger a password-reset email (always 200 — no account enumeration) */
+        post: operations["forgot_password"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * BFF login — validate credentials server-side, set session cookies
+         * @description Validates email + password against Authentik server-side (never in the browser), sets HttpOnly session cookies, and runs post-login (User upsert + ToS status) so the frontend can redirect by role. M-07b / ARCH §6.4 (A-003).
+         */
+        post: operations["login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Revoke the refresh token and clear session cookies */
+        post: operations["logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/post-login": {
         parameters: {
             query?: never;
@@ -507,6 +561,40 @@ export interface paths {
          * @description Called by the frontend after every successful Authentik OIDC callback. Creates a User row on first login. Returns ToS acceptance status so the frontend can show the acceptance modal if needed.
          */
         post: operations["post_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Rotate the access cookie using the refresh cookie */
+        post: operations["refresh_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/reset-password": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete a password reset with the token from the recovery email */
+        post: operations["reset_password"];
         delete?: never;
         options?: never;
         head?: never;
@@ -2766,6 +2854,14 @@ export interface components {
             region?: string | null;
         };
         /**
+         * ForgotPasswordRequest
+         * @description Email for POST /api/v1/auth/forgot-password (always returns 200).
+         */
+        ForgotPasswordRequest: {
+            /** Email */
+            email: string;
+        };
+        /**
          * FrameworkRejectRequest
          * @description Payload to reject a pending plan back to DRAFT with reviewer notes (T-094).
          */
@@ -3192,6 +3288,50 @@ export interface components {
             upload_id: string;
         };
         /**
+         * LoginRequest
+         * @description Credentials for POST /api/v1/auth/login (BFF — M-07b T-240).
+         */
+        LoginRequest: {
+            /** Email */
+            email: string;
+            /** Password */
+            password: string;
+        };
+        /**
+         * LoginResponse
+         * @description Login result — session is carried by HttpOnly cookies (M-07b T-244).
+         */
+        LoginResponse: {
+            /**
+             * Account Status
+             * @default active
+             */
+            account_status: string;
+            /** Current Tos Version Id */
+            current_tos_version_id: string | null;
+            /** District Id */
+            district_id?: string | null;
+            /** Email */
+            email: string;
+            /** Is First Login */
+            is_first_login: boolean;
+            /** Parent State */
+            parent_state?: string | null;
+            /** Role */
+            role: string;
+            /** School Id */
+            school_id?: string | null;
+            /**
+             * Tenant Type
+             * @default school
+             */
+            tenant_type: string;
+            /** Tos Acceptance Required */
+            tos_acceptance_required: boolean;
+            /** User Id */
+            user_id: string;
+        };
+        /**
          * NotificationListResponse
          * @description Paginated notification list with unread counter for the bell badge.
          */
@@ -3468,6 +3608,16 @@ export interface components {
          * @enum {string}
          */
         ResearchJobStatus: "running" | "succeeded" | "partial" | "research_failed";
+        /**
+         * ResetPasswordRequest
+         * @description Token + new password for POST /api/v1/auth/reset-password (M-07b T-243).
+         */
+        ResetPasswordRequest: {
+            /** New Password */
+            new_password: string;
+            /** Token */
+            token: string;
+        };
         /**
          * SchoolCreate
          * @description Payload for creating a new School within a district.
@@ -4161,6 +4311,25 @@ export interface components {
         /** SuccessEnvelope[LibraryBookRead] */
         SuccessEnvelope_LibraryBookRead_: {
             data: components["schemas"]["LibraryBookRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[LoginResponse] */
+        SuccessEnvelope_LoginResponse_: {
+            data: components["schemas"]["LoginResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[NoneType] */
+        SuccessEnvelope_NoneType_: {
+            /** Data */
+            data: null;
             /**
              * Message
              * @default ok
@@ -6296,6 +6465,92 @@ export interface operations {
             };
         };
     };
+    forgot_password: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ForgotPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    login: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LoginRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LoginResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_NoneType_"];
+                };
+            };
+        };
+    };
     post_login: {
         parameters: {
             query?: never;
@@ -6312,6 +6567,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_PostLoginResponse_"];
+                };
+            };
+        };
+    };
+    refresh_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_NoneType_"];
+                };
+            };
+        };
+    };
+    reset_password: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ResetPasswordRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_NoneType_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

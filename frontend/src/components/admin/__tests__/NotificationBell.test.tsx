@@ -10,6 +10,9 @@ vi.mock("next-intl", () => import("@/test/mocks/next-intl"));
 
 vi.mock("@/lib/auth", () => ({
   getToken: vi.fn(() => "mock-token"),
+  // useClientAuth (via NotificationBell) reads getAuthCredential; provide it so
+  // the mocked module is complete under coverage-instrumented runs.
+  getAuthCredential: vi.fn(() => "mock-token"),
 }));
 
 const mockList = vi.fn();
@@ -24,9 +27,15 @@ vi.mock("@/lib/api", () => ({
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-function makeNotification(overrides: Partial<{
-  id: string; is_read: boolean; title: string; body: string; feature_namespace: string;
-}> = {}) {
+function makeNotification(
+  overrides: Partial<{
+    id: string;
+    is_read: boolean;
+    title: string;
+    body: string;
+    feature_namespace: string;
+  }> = {}
+) {
   return {
     id: "n1",
     feature_namespace: "tos",
@@ -45,7 +54,7 @@ function renderBell() {
   return render(
     <QueryClientProvider client={qc}>
       <NotificationBell />
-    </QueryClientProvider>,
+    </QueryClientProvider>
   );
 }
 
@@ -86,7 +95,7 @@ describe("NotificationBell — unread count badge", () => {
 
   it("caps badge at 99+", async () => {
     const many = Array.from({ length: 100 }, (_, i) =>
-      makeNotification({ id: `n${i}`, is_read: false }),
+      makeNotification({ id: `n${i}`, is_read: false })
     );
     mockList.mockResolvedValue(many);
     renderBell();
@@ -106,9 +115,7 @@ describe("NotificationBell — panel open/close", () => {
     mockList.mockResolvedValue([]);
     renderBell();
     await userEvent.click(screen.getByRole("button", { name: "aria_label" }));
-    await waitFor(() =>
-      expect(screen.getByText("empty")).toBeInTheDocument(),
-    );
+    await waitFor(() => expect(screen.getByText("empty")).toBeInTheDocument());
   });
 
   it("lists notification titles in the panel", async () => {

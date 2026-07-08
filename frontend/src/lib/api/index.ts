@@ -43,6 +43,7 @@ import type {
   TeacherCapacityUpdate,
   TeacherCapacityUpdateRead,
   TeacherProfileComplete,
+  IndependentStudentProfileComplete,
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
@@ -455,7 +456,7 @@ export const independentStudentOnboardingApi = {
     request<ExamFrameworkOption[]>("/independent/students/me/exam-frameworks"),
   getOnboarding: (token: string) =>
     request<IndependentStudentOnboardingRead>("/independent/students/me/onboarding", {}, token),
-  completeProfile: (token: string, data: { exam_date: string }) =>
+  completeProfile: (token: string, data: IndependentStudentProfileComplete) =>
     request<IndependentStudentOnboardingRead>(
       "/independent/students/me/profile",
       { method: "PUT", body: JSON.stringify(data) },

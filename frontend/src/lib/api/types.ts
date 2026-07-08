@@ -47,6 +47,7 @@ export type TeacherOnboardingRead = Schemas["TeacherOnboardingRead"];
 export type TeacherCapacityUpdate = Schemas["TeacherCapacityUpdate"];
 export type TeacherCapacityUpdateRead = Schemas["TeacherCapacityUpdateRead"];
 export type TeacherProfileComplete = Schemas["TeacherProfileComplete"];
+export type IndependentStudentProfileComplete = Schemas["IndependentStudentProfileComplete"];
 export type TeacherProfileRead = Schemas["TeacherProfileRead"];
 export type TeacherOnboardingState = Schemas["TeacherOnboardingState"];
 export type SchoolLibraryItemRead = Schemas["SchoolLibraryItemRead"];

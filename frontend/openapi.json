@@ -1415,6 +1415,23 @@
         "title": "ExamSyllabusUpdate",
         "type": "object"
       },
+      "ForgotPasswordRequest": {
+        "description": "Email for POST /api/v1/auth/forgot-password (always returns 200).",
+        "properties": {
+          "email": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email"
+        ],
+        "title": "ForgotPasswordRequest",
+        "type": "object"
+      },
       "FrameworkRejectRequest": {
         "description": "Payload to reject a pending plan back to DRAFT with reviewer notes (T-094).",
         "properties": {
@@ -2485,6 +2502,118 @@
         "title": "LibraryUploadResponse",
         "type": "object"
       },
+      "LoginRequest": {
+        "description": "Credentials for POST /api/v1/auth/login (BFF \u2014 M-07b T-240).",
+        "properties": {
+          "email": {
+            "maxLength": 255,
+            "minLength": 3,
+            "pattern": "^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$",
+            "title": "Email",
+            "type": "string"
+          },
+          "password": {
+            "minLength": 1,
+            "title": "Password",
+            "type": "string"
+          }
+        },
+        "required": [
+          "email",
+          "password"
+        ],
+        "title": "LoginRequest",
+        "type": "object"
+      },
+      "LoginResponse": {
+        "description": "Login result \u2014 session is carried by HttpOnly cookies (M-07b T-244).",
+        "properties": {
+          "account_status": {
+            "default": "active",
+            "title": "Account Status",
+            "type": "string"
+          },
+          "current_tos_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Tos Version Id"
+          },
+          "district_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District Id"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "is_first_login": {
+            "title": "Is First Login",
+            "type": "boolean"
+          },
+          "parent_state": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent State"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
+          },
+          "tenant_type": {
+            "default": "school",
+            "title": "Tenant Type",
+            "type": "string"
+          },
+          "tos_acceptance_required": {
+            "title": "Tos Acceptance Required",
+            "type": "boolean"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "role",
+          "is_first_login",
+          "tos_acceptance_required",
+          "current_tos_version_id"
+        ],
+        "title": "LoginResponse",
+        "type": "object"
+      },
       "NotificationListResponse": {
         "description": "Paginated notification list with unread counter for the bell badge.",
         "properties": {
@@ -3191,6 +3320,29 @@
         ],
         "title": "ResearchJobStatus",
         "type": "string"
+      },
+      "ResetPasswordRequest": {
+        "description": "Token + new password for POST /api/v1/auth/reset-password (M-07b T-243).",
+        "properties": {
+          "new_password": {
+            "maxLength": 128,
+            "minLength": 8,
+            "title": "New Password",
+            "type": "string"
+          },
+          "token": {
+            "maxLength": 512,
+            "minLength": 1,
+            "title": "Token",
+            "type": "string"
+          }
+        },
+        "required": [
+          "token",
+          "new_password"
+        ],
+        "title": "ResetPasswordRequest",
+        "type": "object"
       },
       "SchoolCreate": {
         "description": "Payload for creating a new School within a district.",
@@ -4730,6 +4882,41 @@
           "data"
         ],
         "title": "SuccessEnvelope[LibraryBookRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LoginResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LoginResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LoginResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_NoneType_": {
+        "properties": {
+          "data": {
+            "title": "Data",
+            "type": "null"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[NoneType]",
         "type": "object"
       },
       "SuccessEnvelope_OfferingRead_": {
@@ -8170,6 +8357,110 @@
         ]
       }
     },
+    "/api/v1/auth/forgot-password": {
+      "post": {
+        "operationId": "forgot_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ForgotPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Trigger a password-reset email (always 200 \u2014 no account enumeration)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "post": {
+        "description": "Validates email + password against Authentik server-side (never in the browser), sets HttpOnly session cookies, and runs post-login (User upsert + ToS status) so the frontend can redirect by role. M-07b / ARCH \u00a76.4 (A-003).",
+        "operationId": "login",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LoginResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "BFF login \u2014 validate credentials server-side, set session cookies",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "operationId": "logout",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Revoke the refresh token and clear session cookies",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/auth/post-login": {
       "post": {
         "description": "Called by the frontend after every successful Authentik OIDC callback. Creates a User row on first login. Returns ToS acceptance status so the frontend can show the acceptance modal if needed.",
@@ -8187,6 +8478,68 @@
           }
         },
         "summary": "Post-OIDC-login handler",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "operationId": "refresh_session",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Rotate the access cookie using the refresh cookie",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/reset-password": {
+      "post": {
+        "operationId": "reset_password",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResetPasswordRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_NoneType_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete a password reset with the token from the recovery email",
         "tags": [
           "auth"
         ]
