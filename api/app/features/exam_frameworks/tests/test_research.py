@@ -184,5 +184,5 @@ async def test_run_research_bad_json_raises(monkeypatch: pytest.MonkeyPatch) -> 
         synthesis_text="not json at all",
     )
 
-    with pytest.raises(ResearchError, match="non-JSON"):
+    with pytest.raises(ResearchError, match="no parseable JSON"):
         await run_research(_framework(), max_sources=15, ceiling_usd=10.0, usd_per_1k=0.001)

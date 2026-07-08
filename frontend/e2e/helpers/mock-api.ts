@@ -206,6 +206,27 @@ async function handleApiRoute(state: MockState, route: Route) {
   }
   const method = request.method();
 
+  if (method === "POST" && path === "/auth/login") {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      headers: {
+        "Set-Cookie": "iqbalai_access=e2e-test-access-token; Path=/; HttpOnly; SameSite=Lax",
+      },
+      body: envelope({
+        user_id: state.userId,
+        email: state.email,
+        role: "platform_admin",
+        tenant_type: "school",
+        is_first_login: !state.tosAccepted,
+        tos_acceptance_required: !state.tosAccepted,
+        current_tos_version_id: state.tosVersionId,
+        account_status: "active",
+      }),
+    });
+    return;
+  }
+
   if (method === "POST" && path === "/auth/post-login") {
     await route.fulfill({
       status: 200,

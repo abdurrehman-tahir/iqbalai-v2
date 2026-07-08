@@ -315,7 +315,6 @@ async function installM04Mocks(page: Page, state: MilestoneState) {
 
 function seedTeacherSession(page: Page) {
   return page.addInitScript(() => {
-    sessionStorage.setItem("iqbalai_access_token", "e2e-m04-teacher-token");
     sessionStorage.setItem(
       "iqbalai_user",
       JSON.stringify({
@@ -381,7 +380,9 @@ test.describe("M-04 teacher onboarding milestone @smoke", () => {
       mimeType: "application/pdf",
       buffer: pdfBuffer,
     });
-    await page.getByRole("button", { name: /Upload reference book/i }).click();
+    const uploadButton = page.getByRole("button", { name: /Upload reference book/i });
+    await expect(uploadButton).toBeEnabled({ timeout: 10_000 });
+    await uploadButton.click();
     await expect(page).toHaveURL(/\/teacher\/library\/reference\/reference-item-1$/);
     await expect(page.getByText("Private — only you")).toBeVisible({ timeout: 15_000 });
     await page.getByRole("button", { name: /Make available to school/i }).click();

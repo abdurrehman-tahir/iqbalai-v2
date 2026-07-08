@@ -12,7 +12,10 @@ import { installPlatformAdminMocks } from "./helpers/mock-api";
 async function bootstrapAdmin(page: Page) {
   const state = await installPlatformAdminMocks(page);
   state.tosAccepted = false;
-  await page.goto("/auth/callback?code=e2e-test-code");
+  await page.goto("/login");
+  await page.getByLabel(/email/i).fill(state.email);
+  await page.getByLabel(/^password$/i).fill("devpassword");
+  await page.getByRole("button", { name: /sign in/i }).click();
   return state;
 }
 

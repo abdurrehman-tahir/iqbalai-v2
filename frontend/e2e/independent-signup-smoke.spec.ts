@@ -43,6 +43,17 @@ async function installIndependentSignupMocks(page: Page) {
       await route.continue();
     },
   );
+
+  await page.route(
+    (url) => url.pathname.includes("/api/v1/independent/students/me/exam-frameworks"),
+    async (route: Route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope([]),
+      });
+    },
+  );
 }
 
 test.describe("@smoke independent signup", () => {
@@ -51,10 +62,10 @@ test.describe("@smoke independent signup", () => {
     await page.goto(`${BASE_URL}/independent/signup`);
 
     await expect(page.getByRole("heading", { name: /Create your independent account/i })).toBeVisible();
-    await page.getByLabel(/Full name/i).fill("Indie Teacher");
-    await page.getByLabel(/^Email$/i).fill("teacher@example.com");
-    await page.getByLabel(/^Password$/i).fill("securepass1");
-    await page.getByLabel(/Confirm password/i).fill("securepass1");
+    await page.locator("#display-name").fill("Indie Teacher");
+    await page.locator("#email").fill("teacher@example.com");
+    await page.locator("#password").fill("securepass1");
+    await page.locator("#confirm-password").fill("securepass1");
     await page.getByRole("button", { name: /Create account/i }).click();
 
     await expect(page.getByText(/Your account is ready/i)).toBeVisible();

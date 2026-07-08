@@ -149,7 +149,9 @@ test.describe("Coordinator curriculum upload @smoke", () => {
     await page.getByRole("button", { name: /Upload curriculum/i }).click();
 
     await expect(page).toHaveURL(/\/coordinator\/library\/curriculum\/curriculum-item-1$/);
-    await expect(page.getByRole("status")).toHaveText(/Available|Ingesting/i, {
+    await expect(
+      page.getByRole("status").filter({ hasText: /Available|Ingesting/i }),
+    ).toHaveText(/Available|Ingesting/i, {
       timeout: 15_000,
     });
     await expect(page.getByText("Mechanics")).toBeVisible({ timeout: 15_000 });

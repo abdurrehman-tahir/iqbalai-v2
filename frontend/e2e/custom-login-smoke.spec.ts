@@ -29,10 +29,9 @@ test.describe("Custom login smoke (M-07b) @smoke @mock", () => {
     await expect(page.getByLabel(/^password$/i)).toBeVisible();
     await expect(page.getByRole("button", { name: /sign in/i })).toBeVisible();
     await expect(page.getByRole("link", { name: /forgot password/i })).toBeVisible();
-    await expect(page.getByRole("link", { name: /create account/i })).toHaveAttribute(
-      "href",
-      "/signup",
-    );
+    await expect(
+      page.locator("section").first().getByRole("link", { name: /create account/i }),
+    ).toHaveAttribute("href", "/signup");
     await expect(page.getByRole("button", { name: /sign in with authentik/i })).toHaveCount(
       0,
     );
@@ -107,10 +106,10 @@ test.describe("Custom login smoke (M-07b) @smoke @mock", () => {
     });
 
     await page.goto("/independent/signup");
-    await page.getByLabel(/full name/i).fill("Indie User");
-    await page.getByLabel(/^email$/i).fill("indie@example.com");
-    await page.getByLabel(/^password$/i).fill("securepass1");
-    await page.getByLabel(/confirm password/i).fill("securepass1");
+    await page.locator("#display-name").fill("Indie User");
+    await page.locator("#email").fill("indie@example.com");
+    await page.locator("#password").fill("securepass1");
+    await page.locator("#confirm-password").fill("securepass1");
     await page.getByRole("button", { name: /create account/i }).click();
 
     await expect(page.getByText(/account is ready/i)).toBeVisible();
@@ -147,10 +146,10 @@ test.describe("Custom login smoke (M-07b) @smoke @mock", () => {
     });
 
     await page.goto("/parent/signup");
-    await page.getByLabel(/full name/i).fill("Parent User");
-    await page.getByLabel(/^email$/i).fill("parent@example.com");
-    await page.getByLabel(/^password$/i).fill("securepass1");
-    await page.getByLabel(/confirm password/i).fill("securepass1");
+    await page.locator("#display-name").fill("Parent User");
+    await page.locator("#email").fill("parent@example.com");
+    await page.locator("#password").fill("securepass1");
+    await page.locator("#confirm-password").fill("securepass1");
     await page.getByRole("button", { name: /create account/i }).click();
 
     await expect(page.getByText(/account is ready/i)).toBeVisible();
@@ -171,7 +170,7 @@ test.describe("Custom login smoke (M-07b) @smoke @mock", () => {
     await page.getByLabel(/email/i).fill("ghost@iqbalai.dev");
     await page.getByRole("button", { name: /send reset link/i }).click();
     await expect(
-      page.getByText(/if an account exists/i),
+      page.getByRole("status").getByText(/if an account exists for that email/i),
     ).toBeVisible({ timeout: 5_000 });
   });
 });

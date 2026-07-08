@@ -135,7 +135,6 @@ async function installTeacherReferenceMocks(page: Page) {
 test.describe("Teacher reference upload @smoke", () => {
   test.beforeEach(async ({ page }) => {
     await page.addInitScript(() => {
-      sessionStorage.setItem("iqbalai_access_token", "e2e-teacher-token");
       sessionStorage.setItem(
         "iqbalai_user",
         JSON.stringify({
@@ -143,6 +142,8 @@ test.describe("Teacher reference upload @smoke", () => {
           email: "teacher@test.com",
           role: "teacher",
           school_id: "school-1",
+          tos_acceptance_required: false,
+          current_tos_version_id: null,
         }),
       );
     });
@@ -162,7 +163,9 @@ test.describe("Teacher reference upload @smoke", () => {
       buffer: Buffer.from("%PDF-1.4 test"),
     });
 
-    await page.getByRole("button", { name: /Upload reference book/i }).click();
+    const uploadButton = page.getByRole("button", { name: /Upload reference book/i });
+    await expect(uploadButton).toBeEnabled({ timeout: 10_000 });
+    await uploadButton.click();
 
     await expect(page).toHaveURL(/\/teacher\/library\/reference\/reference-item-1$/);
     await expect(page.getByText("Private — only you")).toBeVisible({ timeout: 15_000 });
@@ -184,7 +187,9 @@ test.describe("Teacher reference upload @smoke", () => {
       buffer: Buffer.from("%PDF-1.4 test"),
     });
 
-    await page.getByRole("button", { name: /Upload reference book/i }).click();
+    const uploadButton = page.getByRole("button", { name: /Upload reference book/i });
+    await expect(uploadButton).toBeEnabled({ timeout: 10_000 });
+    await uploadButton.click();
 
     await expect(page).toHaveURL(/\/teacher\/library\/reference\/reference-item-1$/);
     await expect(page.getByText("School public")).toBeVisible({ timeout: 15_000 });

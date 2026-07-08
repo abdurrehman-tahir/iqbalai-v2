@@ -61,32 +61,34 @@ export async function installBffLoginMocks(
 ) {
   const accessCookie = `dev-access-${loginUser.user_id}`;
 
-  await page.route(`${API_BASE}/auth/login`, async (route: Route) => {
-    if (route.request().method() !== "POST") {
-      await route.continue();
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: "application/json",
-      headers: {
-        "Set-Cookie": `iqbalai_access=${accessCookie}; Path=/; HttpOnly; SameSite=Lax`,
-      },
-      body: envelope(loginUser),
-    });
-  });
-
+  // Single handler — Playwright uses the most recently registered route, so a
+  // catch-all registered after /auth/login would swallow the login POST.
   await page.route(`${API_BASE}/**`, async (route: Route) => {
     const req = route.request();
-    if (req.url().includes("/auth/login")) {
+    const url = new URL(req.url());
+
+    if (url.pathname.endsWith("/auth/login") && req.method() === "POST") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        headers: {
+          "Set-Cookie": `iqbalai_access=${accessCookie}; Path=/; HttpOnly; SameSite=Lax`,
+        },
+        body: envelope(loginUser),
+      });
+      return;
+    }
+
+    if (url.pathname.includes("/auth/forgot-password")) {
       await route.continue();
       return;
     }
+
     const cookie = req.headers()["cookie"] ?? "";
     const hasSession =
       cookie.includes("iqbalai_access=") ||
       (req.headers()["authorization"] ?? "").startsWith("Bearer ");
-    if (!hasSession && !req.url().includes("/auth/forgot-password")) {
+    if (!hasSession) {
       await route.fulfill({
         status: 401,
         contentType: "application/json",

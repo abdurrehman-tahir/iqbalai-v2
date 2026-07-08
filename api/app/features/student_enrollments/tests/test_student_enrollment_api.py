@@ -221,6 +221,9 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     monkeypatch.setattr("app.features.student_enrollments.service.send_invite_email", AsyncMock())
     monkeypatch.setattr("app.features.student_enrollments.service.audit", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.student_enrollments.service.notify_account_event", AsyncMock()
+    )
 
 
 def _build_client(scope: str = "Grade 9") -> AsyncClient:
