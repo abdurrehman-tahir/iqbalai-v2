@@ -75,6 +75,47 @@ Copy this block for every new amendment:
 
 (Append below this line. Newest at the top.)
 
+## A-003 — Primary login is a server-side BFF credential exchange, not a browser redirect to the Authentik UI
+
+- **Date:** 2026-07-08
+- **Author:** @shaabii
+- **Affects:** `ARCHITECTURE.md` §6.4 (OIDC flow), §6.6 (AuthMiddleware)
+- **Status:** approved
+
+### What changed
+
+§6.4 locked the login path as an **OIDC Authorization-Code + PKCE browser redirect**: the user clicks "Sign in", the browser is sent to Authentik's hosted login UI, and comes back with a code. We now make the **primary** login path a **BFF (backend-for-frontend) credential exchange**: the user types email + password on IqbalAI's own `/login`, the FastAPI backend validates those credentials against Authentik **server-side** (OAuth password grant on the confidential `OIDC_CLIENT_ID`), sets HttpOnly `iqbalai_access` / `iqbalai_refresh` cookies (§6.4 cookie contract unchanged), and runs the existing `POST /auth/post-login`. The browser never sees the Authentik screen in the normal path. The OIDC redirect is **demoted to a fallback** behind `AUTH_LOGIN_MODE=oidc_redirect` (dev/SSO escape hatch).
+
+Five locked decisions (M-07b T-238):
+1. **Login identifier = email** (Authentik `username=email`); display name is profile metadata, never a login field.
+2. **BFF flow:** `POST /api/v1/auth/login {email,password}` → FastAPI → Authentik token endpoint → access+refresh tokens → HttpOnly cookies → `post-login` → role redirect.
+3. **Authentik stays the IdP.** No passwords in the app DB; rate-limiting, lockout, MFA, and email verification stay in Authentik. Credentials hit only the backend (never the public SPA client — no ROPC on a public client).
+4. **OIDC redirect** demoted to `AUTH_LOGIN_MODE=oidc_redirect`; default `bff`.
+5. **Session storage migration:** retire the `sessionStorage` JWT (current frontend) in favour of the §6.4 HttpOnly cookies. (Cookie foundation lands now; full removal is M-07b T-244.)
+
+### Why
+
+The redirect flow bounces users to Authentik's unbranded hosted UI (a raw `:9000` screen in dev), which is jarring and off-brand, and it pushed the token into browser-readable `sessionStorage` — both a UX problem and a divergence from §6.4's "tokens never in JS-accessible storage" (§6.17). A BFF keeps Authentik as the IdP while giving IqbalAI a branded, cookie-based session.
+
+### What we considered before deciding
+
+Theming the Authentik hosted UI (rejected — still a redirect, still off-domain, doesn't fix sessionStorage); a public-client ROPC grant (rejected — password grant on a public SPA client is unsafe); staying on the redirect (rejected — the product wants a single branded surface once core features exist). Chose the confidential-client BFF: standard, keeps credentials server-side.
+
+### Migration
+
+Additive and flag-guarded. `AUTH_LOGIN_MODE=bff` (default) renders the new form; `oidc_redirect` restores the old button. The BFF login sets HttpOnly cookies **and** (transitionally) returns the access token so the current sessionStorage-based frontend keeps working; T-244 removes the token-in-body once every authenticated call reads the cookie. `AuthMiddleware` now reads the `iqbalai_access` cookie first, then falls back to the `Authorization: Bearer` header (API clients + transition).
+
+### What this DOES NOT change
+
+Authentik remains the sole identity provider (§6.1) — no passwords in the app DB. The §6.4 cookie contract (names, HttpOnly/Secure/SameSite=Lax, lifetimes), the JWT-validation rules (§6.5), `post-login` (T-016), and the ToS gate are unchanged. School users stay invite-only. The OIDC redirect path is kept, not deleted.
+
+### Related
+
+- Original section: `ARCHITECTURE.md` §6.4, §6.6
+- Milestone: `docs/backlog/M-07b-login-custom.md` (T-238–T-247)
+
+---
+
 ## A-002 — TS API types generated from OpenAPI (brought forward from Phase 2)
 
 - **Date:** 2026-05-29

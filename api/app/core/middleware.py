@@ -9,6 +9,7 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from app.config import get_settings
 from app.core.security import decode_jwt
 from app.core.tenant import get_tenant_type
 from app.db.session import async_session_factory
@@ -19,6 +20,8 @@ from app.features.users.repository import UserRepository
 from app.features.users.service import _ROLE_LOGIN_PRIORITY
 
 logger = structlog.get_logger(__name__)
+
+_DEV_TOKEN_PREFIX = "dev-access-"
 
 # Paths that skip JWT validation entirely
 PUBLIC_PATHS: frozenset[str] = frozenset(
@@ -32,10 +35,20 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/openapi.json",
         "/api/v1/auth/callback",
         "/api/v1/auth/login",
+        # BFF session endpoints (M-07b T-240) — they validate the refresh cookie
+        # themselves, so they run without a prior access token.
+        "/api/v1/auth/refresh",
+        "/api/v1/auth/logout",
+        "/api/v1/auth/forgot-password",
+        "/api/v1/auth/reset-password",
         "/api/v1/auth/accept-invite",
         "/api/v1/independent/signup",
         "/api/v1/parents/signup",
         "/api/v1/independent/students/me/exam-frameworks",
+        # Public ToS/Disclaimer reads (router has no auth dependency).
+        "/api/v1/tos/current",
+        "/api/v1/tos/versions",
+        "/api/v1/disclaimer/current",
         "/metrics",
     }
 )
@@ -180,20 +193,32 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path in PUBLIC_PATHS:
             return await call_next(request)
 
-        authorization = request.headers.get("Authorization", "")
-        if not authorization.startswith("Bearer "):
+        # Prefer the HttpOnly access cookie (BFF, M-07b/§6.4); fall back to the
+        # Authorization header for API clients + the transitional sessionStorage path.
+        token = request.cookies.get("iqbalai_access")
+        if not token:
+            authorization = request.headers.get("Authorization", "")
+            if authorization.startswith("Bearer "):
+                token = authorization.removeprefix("Bearer ")
+        if not token:
             return JSONResponse(
                 status_code=401,
                 content={
                     "error": {
                         "code": "AUTHENTICATION_REQUIRED",
-                        "message": "Bearer token required",
+                        "message": "Authentication required",
                     }
                 },
             )
-
-        token = authorization.removeprefix("Bearer ")
         claims = await decode_jwt(token)
+        if claims is None and token.startswith(_DEV_TOKEN_PREFIX):
+            # Local-dev fallback: DevAuthBackend returns opaque tokens (`dev-access-<sub>`),
+            # not signed JWTs. Accept them only when Authentik API token is unset.
+            settings = get_settings()
+            if not settings.AUTHENTIK_API_TOKEN:
+                sub = token.removeprefix(_DEV_TOKEN_PREFIX).strip()
+                if sub:
+                    claims = {"sub": sub, "tenant_type": "school"}
         if claims is None:
             return JSONResponse(
                 status_code=401,

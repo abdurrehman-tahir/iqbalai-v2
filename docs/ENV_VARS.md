@@ -80,6 +80,19 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 | `STRIPE_API_KEY` | (placeholder; empty at launch) | Stripe Secret Key for the subscription module. At launch: env var EXISTS as placeholder; NOT used (no Stripe SDK installed). Phase 2: real Stripe key required. | Flow 13 + ARCH §3.17 + §11.20 |
 | `STRIPE_WEBHOOK_SECRET` | (placeholder; empty at launch) | Stripe webhook signing secret. At launch: env var EXISTS as placeholder. Phase 2: required for webhook signature verification per ARCH §11.20. | Flow 13 + ARCH §11.20 |
 
+### Custom login / BFF auth (M-07b, AMENDMENTS A-003)
+
+| Variable | Default | Purpose | Source |
+|---|---|---|---|
+| `AUTH_LOGIN_MODE` | `bff` | `bff` = branded in-app email/password form; credentials exchanged server-side against Authentik. `oidc_redirect` = legacy browser redirect to the Authentik hosted UI (dev/SSO escape hatch). | M-07b T-238/T-245 + ARCH §6.4 (A-003) |
+| `AUTHENTIK_RECOVERY_FLOW_SLUG` | `default-recovery-flow` | Authentik recovery flow slug used by `POST /auth/reset-password` (M-07b T-243). Configure the flow's email template to link to `{APP_URL}/login/reset-password?token=...`. | M-07b T-243 |
+| `NEXT_PUBLIC_AUTH_LOGIN_MODE` | `bff` | Frontend mirror of `AUTH_LOGIN_MODE` — selects the `/login` surface (form vs redirect button). Browser-facing, so `NEXT_PUBLIC_`. | M-07b T-241/T-245 |
+| `OIDC_TOKEN_URL` | `http://authentik-server:9000/application/o/token/` | Authentik OAuth token endpoint used by the BFF for the server-side password/refresh grant. Not under the app slug. | M-07b T-239 + ARCH §6.4 |
+| `COOKIE_SECURE` | `false` | Set `true` in production (HTTPS) so session cookies carry `Secure`. Left `false` for local http dev. | ARCH §6.4 |
+| `COOKIE_DOMAIN` | (empty) | Cookie `Domain`. Empty = host-only cookie (correct for localhost + single-host deploys); set to the apex domain for multi-subdomain. | ARCH §6.4 |
+| `ACCESS_COOKIE_MAX_AGE` | `86400` | Access-cookie lifetime (seconds); matches the 24h access-token lifetime. | ARCH §6.4 |
+| `REFRESH_COOKIE_MAX_AGE` | `2592000` | Refresh-cookie lifetime (seconds); matches the 30d refresh-token lifetime. | ARCH §6.4 |
+
 ---
 
 ## Validation rules
@@ -106,3 +119,4 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 | Date | Change | Author |
 |---|---|---|
 | 2026-05-14 | Initial file created during T0 batch. Lists 9 spec-set additions (Custom Persona, Exam Framework engine, Graduation, AI adaptation, Vision-LLM, Stripe placeholders). | @abdurrehman (with Claude) |
+| 2026-07-08 | M-07b custom-login BFF (A-003): `AUTH_LOGIN_MODE`, `NEXT_PUBLIC_AUTH_LOGIN_MODE`, `OIDC_TOKEN_URL`, and the session-cookie vars (`COOKIE_SECURE`, `COOKIE_DOMAIN`, `ACCESS_COOKIE_MAX_AGE`, `REFRESH_COOKIE_MAX_AGE`). | @shaabii (with Claude) |

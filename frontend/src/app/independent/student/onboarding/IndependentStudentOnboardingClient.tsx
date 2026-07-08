@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -50,12 +50,15 @@ export function IndependentStudentOnboardingClient() {
         <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>
       </div>
 
-      <p className="text-sm text-gray-600 rounded-md bg-blue-50 border border-blue-100 p-3">
+      <p className="text-sm text-gray-600 rounded-md bg-brand-50 border border-brand-100 p-3">
         {t("diagnostic_deferred")}
       </p>
 
       {formError && (
-        <p className="text-sm text-red-600 rounded-md bg-red-50 border border-red-200 p-3" role="alert">
+        <p
+          className="text-sm text-red-600 rounded-md bg-red-50 border border-red-200 p-3"
+          role="alert"
+        >
           {formError}
         </p>
       )}

@@ -21,8 +21,9 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/admin/NotificationBell";
-import { clearToken, getUser, getLogoutUrl, type StoredUser } from "@/lib/auth";
+import { performLogout, getUser, type StoredUser } from "@/lib/auth";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { IqbalLogo } from "@/components/IqbalLogo";
 // useRouter import removed — logout uses window.location directly
 
 // Role-aware nav (T-227). Each entry declares the roles permitted to see it,
@@ -116,8 +117,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   function handleLogout() {
-    clearToken();
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   return (
@@ -129,7 +129,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
       >
         {/* Logo */}
         <div className="flex h-16 items-center px-6 border-b border-gray-100">
-          <span className="text-xl font-bold text-brand-700">IqbalAI</span>
+          <IqbalLogo size="sm" />
           <span className="ms-2 text-xs text-gray-400 font-medium">{t("admin_badge")}</span>
         </div>
 
@@ -172,7 +172,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
         aria-hidden={!drawerOpen}
       >
         <div className="flex h-16 items-center justify-between px-6 border-b border-gray-100">
-          <span className="text-xl font-bold text-brand-700">IqbalAI</span>
+          <IqbalLogo size="sm" />
           <Button
             variant="ghost"
             size="icon"

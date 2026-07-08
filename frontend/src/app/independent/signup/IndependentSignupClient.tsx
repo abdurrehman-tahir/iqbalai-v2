@@ -7,7 +7,8 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { independentSignupApi, independentStudentOnboardingApi } from "@/lib/api";
-import { clearToken, getLoginUrl } from "@/lib/auth";
+import { AuthNavLinks } from "@/components/auth/AuthNavLinks";
+import { clearSession, buildAppLoginUrl } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,7 +89,7 @@ export function IndependentSignupClient() {
         exam_syllabus_id:
           values.role === "independent_student" ? values.exam_syllabus_id : undefined,
       });
-      clearToken();
+      clearSession();
       setSignedUpEmail(result.email);
       setDone(true);
     } catch (err) {
@@ -106,10 +107,7 @@ export function IndependentSignupClient() {
           type="button"
           className="inline-flex h-10 items-center justify-center rounded-md bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700"
           onClick={() => {
-            window.location.href = getLoginUrl({
-              promptLogin: true,
-              loginHint: signedUpEmail ?? undefined,
-            });
+            window.location.href = buildAppLoginUrl(signedUpEmail ?? undefined);
           }}
         >
           {t("go_login")}
@@ -120,6 +118,7 @@ export function IndependentSignupClient() {
 
   return (
     <div className="space-y-6">
+      <AuthNavLinks showSignupOptions />
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
         <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>

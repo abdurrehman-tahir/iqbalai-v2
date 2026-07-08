@@ -24,8 +24,10 @@ vi.mock("@/lib/api", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
-  clearToken: vi.fn(),
-  getLoginUrl: vi.fn(() => "/login"),
+  clearSession: vi.fn(),
+  buildAppLoginUrl: vi.fn((email?: string) =>
+    email ? `/login?email=${encodeURIComponent(email)}` : "/login",
+  ),
 }));
 
 function renderSignup() {

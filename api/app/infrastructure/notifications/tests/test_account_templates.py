@@ -72,9 +72,7 @@ def test_templates_render_in_all_locales(template_key: str, locale: str) -> None
             assert rendered["body"]
         return
 
-    rendered = render_account_template(
-        template_key, locale=locale, variant=variant, params=params
-    )
+    rendered = render_account_template(template_key, locale=locale, variant=variant, params=params)
     assert rendered["title"]
     assert rendered["body"]
     if template_key in {"account.invite_sent", "account.reactivated", "account.deactivated"}:

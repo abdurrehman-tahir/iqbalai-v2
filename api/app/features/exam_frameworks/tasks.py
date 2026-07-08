@@ -10,10 +10,9 @@ up to 3×; on exhaustion the framework is reverted to DRAFT and the job flagged
 
 from __future__ import annotations
 
-import asyncio
-
 import structlog
 from celery import shared_task
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.exam_frameworks.research import ResearchError
 
@@ -34,50 +33,54 @@ logger = structlog.get_logger(__name__)
 def research_framework(self: object, framework_id: str, job_id: str) -> str:
     """Run the AI research pipeline for a framework, retrying transient failures."""
     try:
-        return asyncio.run(_run_research_async(framework_id, job_id))
-    except ResearchError as exc:
+        from app.db.celery_async import run_db
+
+        return run_db(lambda session: _run_research_async(session, framework_id, job_id))
+    except Exception as exc:
         retries = self.request.retries  # type: ignore[attr-defined]
         max_retries = self.max_retries  # type: ignore[attr-defined]
         if retries >= max_retries:
             # Retries exhausted — flag the job and revert the framework to DRAFT.
-            asyncio.run(_fail_research_async(framework_id, job_id, str(exc)))
+            from app.db.celery_async import run_db
+
+            run_db(lambda session: _fail_research_async(session, framework_id, job_id, str(exc)))
             return "research_failed"
+        # Retry all transient/runtime failures (network, provider availability, etc).
+        # The final failure path above guarantees the framework won't stay "running" forever.
         raise self.retry(exc=exc)  # type: ignore[attr-defined]
 
 
-async def _run_research_async(framework_id: str, job_id: str) -> str:
-    from app.db.session import async_session_factory
+async def _run_research_async(session: AsyncSession, framework_id: str, job_id: str) -> str:
     from app.features.exam_frameworks.service import ExamFrameworkService
 
-    async with async_session_factory() as session:
-        svc = ExamFrameworkService(session)
-        status = await svc.run_and_persist_research(framework_id, job_id)
+    svc = ExamFrameworkService(session)
+    status = await svc.run_and_persist_research(framework_id, job_id)
     logger.info("framework_research_task_complete", framework_id=framework_id, status=status.value)
     return status.value
 
 
-async def _fail_research_async(framework_id: str, job_id: str, error: str) -> None:
-    from app.db.session import async_session_factory
+async def _fail_research_async(
+    session: AsyncSession, framework_id: str, job_id: str, error: str
+) -> None:
     from app.features.exam_frameworks.service import ExamFrameworkService
 
-    async with async_session_factory() as session:
-        svc = ExamFrameworkService(session)
-        await svc.mark_research_failed(framework_id, job_id, error)
+    svc = ExamFrameworkService(session)
+    await svc.mark_research_failed(framework_id, job_id, error)
 
 
 @shared_task(name="framework.approval_sla_sweep", queue="notifications")  # type: ignore[misc]
 def approval_sla_sweep() -> int:
     """Daily beat: fire reminder/escalation for plans stuck in PENDING_APPROVAL (T-094)."""
-    return asyncio.run(_approval_sla_sweep_async())
+    from app.db.celery_async import run_db
+
+    return run_db(_approval_sla_sweep_async)
 
 
-async def _approval_sla_sweep_async() -> int:
-    from app.db.session import async_session_factory
+async def _approval_sla_sweep_async(session: AsyncSession) -> int:
     from app.features.exam_frameworks.service import ExamFrameworkService
 
-    async with async_session_factory() as session:
-        svc = ExamFrameworkService(session)
-        fired = await svc.sweep_approval_sla()
+    svc = ExamFrameworkService(session)
+    fired = await svc.sweep_approval_sla()
     logger.info("framework_approval_sla_sweep_complete", fired=fired)
     return fired
 
@@ -89,15 +92,15 @@ def refresh_quarterly() -> int:
     The 90-day cadence (``FRAMEWORK_REFRESH_DAYS``) is enforced in the service, not the
     beat — the beat wakes daily and lets the service pick what is due (ARCH §10.6).
     """
-    return asyncio.run(_refresh_quarterly_async())
+    from app.db.celery_async import run_db
+
+    return run_db(_refresh_quarterly_async)
 
 
-async def _refresh_quarterly_async() -> int:
-    from app.db.session import async_session_factory
+async def _refresh_quarterly_async(session: AsyncSession) -> int:
     from app.features.exam_frameworks.service import ExamFrameworkService
 
-    async with async_session_factory() as session:
-        svc = ExamFrameworkService(session)
-        triggered = await svc.sweep_quarterly_refresh()
+    svc = ExamFrameworkService(session)
+    triggered = await svc.sweep_quarterly_refresh()
     logger.info("framework_refresh_quarterly_complete", triggered=triggered)
     return triggered

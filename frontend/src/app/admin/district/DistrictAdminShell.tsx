@@ -7,8 +7,9 @@ import { usePathname } from "next/navigation";
 import { School, Menu, X, LogOut, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser, type StoredUser } from "@/lib/auth";
+import { performLogout, getUser, type StoredUser } from "@/lib/auth";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { IqbalLogo } from "@/components/IqbalLogo";
 
 const NAV_ITEMS = [
   { key: "schools", href: "/admin/district/schools", icon: School },
@@ -27,8 +28,7 @@ export function DistrictAdminShell({ children }: { children: React.ReactNode }) 
   }, []);
 
   function handleLogout() {
-    clearToken();
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -47,7 +47,7 @@ export function DistrictAdminShell({ children }: { children: React.ReactNode }) 
                     "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors",
                     active
                       ? "bg-brand-50 text-brand-700"
-                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900",
+                      : "text-gray-600 hover:bg-gray-100 hover:text-gray-900"
                   )}
                 >
                   <Icon className="size-5 shrink-0" aria-hidden="true" />
@@ -65,7 +65,7 @@ export function DistrictAdminShell({ children }: { children: React.ReactNode }) 
     <div className="flex min-h-screen bg-gray-50">
       <aside className="hidden md:flex md:w-64 md:flex-col border-e border-gray-200 bg-white">
         <div className="flex h-16 items-center px-6 border-b border-gray-100">
-          <span className="text-xl font-bold text-brand-700">IqbalAI</span>
+          <IqbalLogo size="sm" />
           <span className="ms-2 text-xs text-gray-400 font-medium">{t("badge")}</span>
         </div>
         <div className="flex flex-1 flex-col justify-between overflow-y-auto">
@@ -96,12 +96,12 @@ export function DistrictAdminShell({ children }: { children: React.ReactNode }) 
       <aside
         className={cn(
           "fixed inset-y-0 start-0 z-50 w-64 bg-white border-e border-gray-200 flex flex-col md:hidden transition-transform",
-          drawerOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full",
+          drawerOpen ? "translate-x-0" : "-translate-x-full rtl:translate-x-full"
         )}
         aria-hidden={!drawerOpen}
       >
         <div className="flex h-16 items-center justify-between px-6 border-b border-gray-100">
-          <span className="text-xl font-bold text-brand-700">IqbalAI</span>
+          <IqbalLogo size="sm" />
           <Button variant="ghost" size="icon" onClick={() => setDrawerOpen(false)}>
             <X className="size-5" aria-hidden="true" />
           </Button>

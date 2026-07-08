@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
@@ -44,6 +44,12 @@ export function StudentOnboardingClient() {
     queryFn: () => studentOnboardingApi.getOnboarding(token!),
     enabled: mounted && !!token,
   });
+
+  useEffect(() => {
+    if (onboarding?.ready_to_study) {
+      router.replace("/student");
+    }
+  }, [onboarding?.ready_to_study, router]);
 
   const { data: tos } = useQuery({
     queryKey: ["tos", "current"],
@@ -97,7 +103,6 @@ export function StudentOnboardingClient() {
   }
 
   if (onboarding.ready_to_study) {
-    router.replace("/student");
     return null;
   }
 

@@ -18,6 +18,7 @@ web fetch / the LLM) are the seams mocked in unit tests.
 from __future__ import annotations
 
 import json
+import re
 from dataclasses import dataclass, field
 from decimal import Decimal
 
@@ -82,20 +83,69 @@ def _estimate_cost(total_tokens: int, usd_per_1k: float) -> Decimal:
 
 
 def _extract_json(text: str) -> dict[str, object]:
-    """Parse a JSON object from an LLM response, tolerating ```json fences."""
+    """Parse a JSON object from an LLM response, tolerating ```json fences and a
+    leading ``<think>...</think>`` reasoning block.
+
+    Reasoning models (e.g. Groq's ``qwen/qwen3-32b``) emit their chain-of-thought in
+    a ``<think>...</think>`` block before the answer; left in place it makes the
+    payload invalid JSON. Strip any such blocks before parsing.
+    """
     stripped = text.strip()
+    stripped = re.sub(r"<think>.*?</think>", "", stripped, flags=re.DOTALL).strip()
     if stripped.startswith("```"):
         # Drop the opening fence line and any closing fence.
         stripped = stripped.split("\n", 1)[-1]
         if stripped.rstrip().endswith("```"):
             stripped = stripped.rsplit("```", 1)[0]
+    stripped = stripped.strip()
     try:
         parsed = json.loads(stripped)
-    except (ValueError, json.JSONDecodeError) as exc:
-        raise ResearchError(f"synthesis returned non-JSON output: {exc}") from exc
+    except (ValueError, json.JSONDecodeError):
+        # Reasoning may still bracket the JSON (e.g. an unclosed <think> prefix or a
+        # trailing note). Fall back to the first balanced top-level {...} object.
+        candidate = _first_json_object(stripped)
+        if candidate is None:
+            raise ResearchError("synthesis returned no parseable JSON object")
+        try:
+            parsed = json.loads(candidate)
+        except (ValueError, json.JSONDecodeError) as exc:
+            raise ResearchError(f"synthesis returned non-JSON output: {exc}") from exc
     if not isinstance(parsed, dict):
         raise ResearchError("synthesis JSON was not an object")
     return parsed
+
+
+def _first_json_object(text: str) -> str | None:
+    """Return the first balanced ``{...}`` substring, or ``None`` if none is complete.
+
+    A brace counter that ignores braces inside JSON strings — used to recover the
+    study-plan object when the model brackets it with stray reasoning/prose.
+    """
+    start = text.find("{")
+    if start == -1:
+        return None
+    depth = 0
+    in_str = False
+    escaped = False
+    for i in range(start, len(text)):
+        ch = text[i]
+        if in_str:
+            if escaped:
+                escaped = False
+            elif ch == "\\":
+                escaped = True
+            elif ch == '"':
+                in_str = False
+            continue
+        if ch == '"':
+            in_str = True
+        elif ch == "{":
+            depth += 1
+        elif ch == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : i + 1]
+    return None
 
 
 async def _gather_sources(
@@ -189,18 +239,27 @@ async def run_research(
                     f"Exam: {framework.exam_target}\nRegion: {framework.region}\n"
                     f"Grade range: {framework.target_grade_range}\n\n"
                     "Source notes:\n" + "\n---\n".join(notes) + "\n\n"
-                    "Return JSON with keys: topics (list of "
-                    "{topic_name, priority_weight 0-1, exam_frequency, recommended_hours, "
-                    "key_concepts, common_pitfalls, past_paper_patterns, "
-                    "practice_problems_generated, expert_tips}), weekly_pacing (list of "
-                    "{week_from_exam, focus_topics, hours_estimated}), and exam_strategy "
-                    "({time_allocation, scoring_strategy, common_mistakes})."
+                    "Return ONLY a JSON object (no markdown fences, no commentary) with "
+                    "EXACTLY these keys and value types:\n"
+                    "- topics: array of objects, each with topic_name (string), "
+                    "priority_weight (number between 0 and 1), exam_frequency (string), "
+                    "recommended_hours (integer), key_concepts (array of strings), "
+                    "common_pitfalls (array of strings), past_paper_patterns (string), "
+                    "practice_problems_generated (array of strings), expert_tips "
+                    "(array of strings).\n"
+                    "- weekly_pacing: array of objects, each with week_from_exam "
+                    "(integer), focus_topics (array of strings), hours_estimated "
+                    "(integer).\n"
+                    "- exam_strategy: object with time_allocation (string), "
+                    "scoring_strategy (string), common_mistakes (array of strings)."
                 ),
             },
         ],
         task=_RESEARCH_TASK,
         temperature=0.4,
-        max_tokens=4096,
+        # Reasoning models (qwen3) spend part of the budget on a <think> block, so
+        # give headroom or the study-plan JSON gets truncated mid-object.
+        max_tokens=8192,
     )
     cost += _estimate_cost(synthesis.total_tokens, usd_per_1k)
     if cost >= ceiling:

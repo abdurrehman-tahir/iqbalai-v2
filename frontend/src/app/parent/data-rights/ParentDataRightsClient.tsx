@@ -51,8 +51,7 @@ export function ParentDataRightsClient() {
   });
 
   const cancelDeletionMutation = useMutation({
-    mutationFn: (requestId: string) =>
-      dataRightsApi.cancelParentDeletion(token ?? "", requestId),
+    mutationFn: (requestId: string) => dataRightsApi.cancelParentDeletion(token ?? "", requestId),
     onSuccess: () => {
       setError(null);
       setSuccess(t("deletion_cancelled"));
@@ -86,7 +85,7 @@ export function ParentDataRightsClient() {
   return (
     <div className="mx-auto max-w-2xl space-y-8">
       <div>
-        <Link href="/parent" className="text-sm text-blue-600 hover:underline">
+        <Link href="/parent" className="text-sm text-brand-600 hover:underline">
           {t("back_to_dashboard")}
         </Link>
         <h2 className="mt-2 text-2xl font-semibold text-gray-900">{t("title")}</h2>
@@ -98,7 +97,9 @@ export function ParentDataRightsClient() {
 
       <section className="rounded-lg border border-gray-200 bg-white p-4 space-y-4">
         <h3 className="text-lg font-medium text-gray-900">{t("export_title")}</h3>
-        <p className="text-sm text-gray-600">{status?.export_policy_message ?? t("export_policy")}</p>
+        <p className="text-sm text-gray-600">
+          {status?.export_policy_message ?? t("export_policy")}
+        </p>
         {exportRequest && (
           <p className="text-sm text-gray-700">
             {t("export_status", { status: exportRequest.status })}
@@ -128,7 +129,9 @@ export function ParentDataRightsClient() {
 
       <section className="rounded-lg border border-gray-200 bg-white p-4 space-y-4">
         <h3 className="text-lg font-medium text-gray-900">{t("deletion_title")}</h3>
-        <p className="text-sm text-gray-600">{status?.deletion_policy_message ?? t("deletion_policy")}</p>
+        <p className="text-sm text-gray-600">
+          {status?.deletion_policy_message ?? t("deletion_policy")}
+        </p>
         {deletionRequest?.status === "grace_period" && (
           <p className="text-sm text-amber-800">
             {t("deletion_grace_active", {

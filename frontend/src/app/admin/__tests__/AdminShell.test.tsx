@@ -16,9 +16,8 @@ vi.mock("next/link", () => ({
 
 const mockGetUser = vi.fn();
 vi.mock("@/lib/auth", () => ({
+  performLogout: vi.fn(),
   getUser: (...args: unknown[]) => mockGetUser(...args),
-  clearToken: vi.fn(),
-  getLogoutUrl: vi.fn(() => "http://localhost:9000/logout"),
 }));
 
 // NotificationBell fetches data — stub it out to keep tests focused on AdminShell

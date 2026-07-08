@@ -44,8 +44,26 @@ class Settings(BaseSettings):
     OIDC_CLIENT_ID: str = "iqbalai-api"
     OIDC_CLIENT_SECRET: str = "change_me"
     OIDC_JWKS_URL: str = "http://localhost:9000/application/o/iqbalai/jwks/"
+    # Authentik OAuth token endpoint — used by the BFF login (M-07b T-239/T-240) for
+    # server-side credential exchange. NOT under the app slug (Authentik serves it at
+    # /application/o/token/). The confidential OIDC_CLIENT_ID/SECRET above authenticate.
+    OIDC_TOKEN_URL: str = "http://localhost:9000/application/o/token/"
     AUTHENTIK_API_URL: str = "http://localhost:9000/api/v3"
     AUTHENTIK_API_TOKEN: str = ""
+    # Slug of the Authentik recovery flow used by confirm_password_reset (M-07b T-243).
+    AUTHENTIK_RECOVERY_FLOW_SLUG: str = "default-recovery-flow"
+
+    # Auth login mode (M-07b, AMENDMENTS A-003). `bff` = branded in-app email/password
+    # form that exchanges credentials server-side against Authentik; `oidc_redirect` =
+    # legacy browser redirect to the Authentik hosted UI (dev/SSO escape hatch).
+    AUTH_LOGIN_MODE: str = "bff"
+    # Session cookie attributes (ARCH §6.4 — HttpOnly/Secure/SameSite=Lax). COOKIE_SECURE
+    # must be true in production (HTTPS); left false for local http dev. Empty domain =
+    # host-only cookie (correct for localhost + single-host deploys).
+    COOKIE_SECURE: bool = False
+    COOKIE_DOMAIN: str = ""
+    ACCESS_COOKIE_MAX_AGE: int = 60 * 60 * 24  # 24h, matches access-token lifetime (§6.4)
+    REFRESH_COOKIE_MAX_AGE: int = 60 * 60 * 24 * 30  # 30d, matches refresh-token lifetime
 
     # App URLs + email (T-030 invite flow)
     APP_URL: str = "http://localhost:3000"
@@ -85,6 +103,11 @@ class Settings(BaseSettings):
     # Web search — self-hosted SearXNG (RAG tier-3 fallback + framework research,
     # STACK_LOCK §Web-search; ARCH §7.12/§8.21).
     WEBSEARCH_URL: str = "http://localhost:8888"
+    # Comma-separated SearXNG engines to query. The default general engines
+    # (Google/DuckDuckGo/Startpage/Brave) CAPTCHA or rate-limit automated server-side
+    # queries and return nothing; Mojeek/Bing/Qwant answer reliably. Empty = SearXNG
+    # defaults.
+    WEBSEARCH_ENGINES: str = "mojeek,bing,qwant"
 
     # Exam-framework AI research (T-093, ARCH §3.19/§8.21).
     # Hard USD cost ceiling per research run; agent halts + flags a partial result

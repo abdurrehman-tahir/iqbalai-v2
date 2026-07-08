@@ -6,10 +6,11 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
+import { performLogout, getUser } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import type { StoredUser } from "@/lib/auth";
 import { IndependentStudentOnboardingGate } from "./IndependentStudentOnboardingGate";
+import { IqbalLogo } from "@/components/IqbalLogo";
 
 const NAV = [{ key: "dashboard", href: "/independent/student", icon: LayoutDashboard }] as const;
 
@@ -28,7 +29,7 @@ export function IndependentStudentShell({ children }: { children: React.ReactNod
       {!onOnboardingPage && (
         <aside className="hidden md:flex md:w-64 md:flex-col border-e border-gray-200 bg-white">
           <div className="flex h-16 items-center px-6 border-b border-gray-100">
-            <span className="text-xl font-bold text-brand-700">IqbalAI</span>
+            <IqbalLogo size="sm" />
           </div>
           <nav className="px-3 py-4" aria-label={t("nav.aria_label")}>
             <ul className="space-y-1">
@@ -40,7 +41,7 @@ export function IndependentStudentShell({ children }: { children: React.ReactNod
                       "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium",
                       pathname === href
                         ? "bg-brand-50 text-brand-700"
-                        : "text-gray-600 hover:bg-gray-100",
+                        : "text-gray-600 hover:bg-gray-100"
                     )}
                   >
                     <Icon className="size-5" aria-hidden="true" />
@@ -56,8 +57,7 @@ export function IndependentStudentShell({ children }: { children: React.ReactNod
               size="md"
               className="w-full justify-start gap-3"
               onClick={() => {
-                clearToken();
-                window.location.href = getLogoutUrl();
+                void performLogout();
               }}
             >
               <LogOut className="size-5" aria-hidden="true" />

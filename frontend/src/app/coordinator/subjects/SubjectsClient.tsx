@@ -211,7 +211,7 @@ export function SubjectsClient() {
                         size="icon"
                         onClick={() => openEdit(subject)}
                         aria-label={t("actions.edit", { name: subject.name })}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        className="text-brand-600 hover:text-brand-800 hover:bg-brand-50"
                       >
                         <Pencil className="size-4" aria-hidden="true" />
                       </Button>

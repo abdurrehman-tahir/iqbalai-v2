@@ -134,6 +134,23 @@ def test_valid_token_passes_through(client: TestClient) -> None:
     assert response.status_code == 200
 
 
+def test_access_cookie_authenticates_without_bearer_header(client: TestClient) -> None:
+    fake_claims = {"sub": "user-123", "role": "teacher", "email": "t@school.pk"}
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            client.cookies.set("iqbalai_access", "valid.token.here")
+            response = client.get("/secret")
+    assert response.status_code == 200
+
+
+def test_public_paths_includes_reset_password() -> None:
+    assert "/api/v1/auth/reset-password" in PUBLIC_PATHS
+
+
 def test_valid_token_claims_enriched_from_database(client: TestClient) -> None:
     fake_claims = {"sub": "user-123", "role": "student", "email": "admin@district.edu"}
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):

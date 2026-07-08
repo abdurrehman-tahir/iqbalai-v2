@@ -7,6 +7,7 @@ from unittest.mock import AsyncMock
 
 import pytest
 
+from app.core.exceptions import ConflictError
 from app.features.student_onboarding.models import StudentProfile
 from app.features.student_onboarding.schemas import SchoolStudentOnboardingState
 from app.features.student_onboarding.service import StudentOnboardingService, derive_school_student_state
@@ -70,6 +71,35 @@ async def test_complete_profile_basic_creates_profile(monkeypatch: pytest.Monkey
     )
     svc._user_repo.update = AsyncMock()
     svc._tos.accept_tos = AsyncMock()
+    svc._active_enrollment_grade_id = AsyncMock(return_value="grade-9")
+    svc._session = AsyncMock()
+
+    from app.features.student_onboarding.schemas import StudentProfileBasicComplete
+
+    state = await svc.complete_profile_basic(
+        StudentProfileBasicComplete(
+            display_name="Ali Khan",
+            language_preference="en",
+            tos_version_id="tos-1",
+        ),
+        {"sub": "student-1"},
+        actor_id="student-1",
+    )
+    assert state.profile_basic_complete
+    assert state.state == SchoolStudentOnboardingState.MODE_SELECTION
+
+
+@pytest.mark.asyncio
+async def test_complete_profile_basic_ignores_already_accepted_tos(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("app.features.student_onboarding.service.audit", AsyncMock())
+    svc = StudentOnboardingService(AsyncMock())
+    svc._require_student = AsyncMock(return_value=_student())
+    svc._profile_repo.get_by_user_id = AsyncMock(return_value=None)
+    svc._profile_repo.create = AsyncMock(side_effect=lambda p: p)
+    svc._user_repo.update = AsyncMock()
+    svc._tos.accept_tos = AsyncMock(side_effect=ConflictError("ToS version already accepted"))
     svc._active_enrollment_grade_id = AsyncMock(return_value="grade-9")
     svc._session = AsyncMock()
 

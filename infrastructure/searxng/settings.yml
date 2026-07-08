@@ -1,0 +1,25 @@
+# SearXNG configuration for IqbalAI — self-hosted meta-search (STACK_LOCK §Web-search).
+# Docs: https://docs.searxng.org/admin/settings/
+#
+# This instance backs the Pattern-A exam-framework research pipeline (T-093), which
+# calls SearXNG's *JSON* API (app/infrastructure/rag/web_search.py). SearXNG disables
+# the JSON format by default and returns HTTP 403 — so `search.formats` MUST list
+# `json`, and `server.limiter` MUST be off so the app's server-to-server calls aren't
+# treated as bot traffic and blocked.
+
+use_default_settings: true
+
+server:
+  # Local instance signing key (not an external-service credential). Rotate freely.
+  secret_key: "ed68ea1e3f57d34ee725f8ef953d826e2099d0b0500dd8b24e61f634f75e413c"
+  image_proxy: true
+  # Off: this instance is reachable only on the internal Docker network and is called
+  # server-to-server by the research worker, not by browsers — the bot limiter would
+  # otherwise 403 those programmatic JSON requests.
+  limiter: false
+
+search:
+  # `json` is required by the research pipeline; `html` keeps the web UI usable.
+  formats:
+    - html
+    - json

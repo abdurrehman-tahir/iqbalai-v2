@@ -18,8 +18,17 @@ const NAV = [
 
 async function seedPlatformAdmin(page: Page) {
   await installPlatformAdminMocks(page);
+  await page.context().addCookies([
+    {
+      name: "iqbalai_access",
+      value: "dev-access-user-platform-admin-1",
+      domain: "localhost",
+      path: "/",
+      httpOnly: true,
+      sameSite: "Lax" as const,
+    },
+  ]);
   await page.addInitScript(() => {
-    sessionStorage.setItem("iqbalai_access_token", "e2e-test-access-token");
     sessionStorage.setItem(
       "iqbalai_user",
       JSON.stringify({

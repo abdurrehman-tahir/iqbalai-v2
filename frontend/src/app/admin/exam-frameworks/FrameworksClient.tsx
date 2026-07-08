@@ -315,7 +315,7 @@ export function FrameworksClient() {
                             researchMutation.variables === framework.id
                           }
                           aria-label={t("actions.research", { name: framework.name })}
-                          className="text-indigo-600 hover:text-indigo-800 hover:bg-indigo-50"
+                          className="text-brand-600 hover:text-brand-800 hover:bg-brand-50"
                         >
                           <FlaskConical className="size-4" aria-hidden="true" />
                         </Button>
@@ -604,8 +604,7 @@ function ReviewPlanPanel({
   const approveMutation = useMutation({
     mutationFn: () => frameworksApi.approve(token, frameworkId),
     onSuccess: onDecided,
-    onError: (err: Error) =>
-      setActionError(err instanceof ApiError ? err.message : err.message),
+    onError: (err: Error) => setActionError(err instanceof ApiError ? err.message : err.message),
   });
 
   const rejectForm = useForm<ReviewFormValues>({
@@ -617,8 +616,7 @@ function ReviewPlanPanel({
     mutationFn: (values: ReviewFormValues) =>
       frameworksApi.reject(token, frameworkId, { notes: values.notes }),
     onSuccess: onDecided,
-    onError: (err: Error) =>
-      setActionError(err instanceof ApiError ? err.message : err.message),
+    onError: (err: Error) => setActionError(err instanceof ApiError ? err.message : err.message),
   });
 
   if (isLoading) {
@@ -689,7 +687,7 @@ function ReviewPlanPanel({
                   href={source.url}
                   target="_blank"
                   rel="noreferrer noopener"
-                  className="text-indigo-600 hover:underline"
+                  className="text-brand-600 hover:underline"
                   dir="ltr"
                 >
                   {source.title || source.url}
@@ -728,12 +726,7 @@ function ReviewPlanPanel({
             )}
           </div>
           <div className="flex justify-end gap-3">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => setShowReject(false)}
-            >
+            <Button type="button" variant="outline" size="md" onClick={() => setShowReject(false)}>
               {t("review_modal.cancel")}
             </Button>
             <Button
@@ -821,7 +814,7 @@ function ResearchJobPanel({ frameworkId, token }: { frameworkId: string; token: 
       <dd className="font-medium text-gray-900">
         <span className="inline-flex items-center gap-2">
           {data.status === "running" && (
-            <Loader2 className="size-4 animate-spin text-indigo-600" aria-hidden="true" />
+            <Loader2 className="size-4 animate-spin text-brand-600" aria-hidden="true" />
           )}
           {t(`research_status.${data.status}`)}
         </span>

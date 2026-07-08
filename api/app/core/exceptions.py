@@ -102,6 +102,40 @@ class AuthentikApiError(IqbalAIError):
         super().__init__("AUTHENTIK_API_ERROR", message, status.HTTP_502_BAD_GATEWAY)
 
 
+class InvalidCredentialsError(IqbalAIError):
+    """BFF login: email/password rejected by Authentik (M-07b T-240).
+
+    Deliberately generic — never distinguishes "no such user" from "wrong password"
+    to avoid account enumeration (ARCH §6.17 threat model).
+    """
+
+    def __init__(self, message: str = "Invalid email or password") -> None:
+        super().__init__("INVALID_CREDENTIALS", message, status.HTTP_401_UNAUTHORIZED)
+
+
+class EmailNotVerifiedError(IqbalAIError):
+    """BFF login: the Authentik account exists but its email is not yet verified."""
+
+    def __init__(self, message: str = "Email not verified — check your inbox") -> None:
+        super().__init__("EMAIL_NOT_VERIFIED", message, status.HTTP_403_FORBIDDEN)
+
+
+class RateLimitedError(IqbalAIError):
+    """BFF login: Authentik rate-limited or locked out the account after retries."""
+
+    def __init__(self, message: str = "Too many attempts — try again later") -> None:
+        super().__init__("RATE_LIMITED", message, status.HTTP_429_TOO_MANY_REQUESTS)
+
+
+class InvalidResetTokenError(IqbalAIError):
+    """Password reset: recovery token expired, invalid, or already used (M-07b T-243)."""
+
+    def __init__(
+        self, message: str = "This reset link is invalid or has expired — request a new one"
+    ) -> None:
+        super().__init__("INVALID_RESET_TOKEN", message, status.HTTP_400_BAD_REQUEST)
+
+
 def _error_envelope(code: str, message: str) -> dict[str, object]:
     """Build the standard error envelope per ARCH §5.4."""
     return {"error": {"code": code, "message": message}}

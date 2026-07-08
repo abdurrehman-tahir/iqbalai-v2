@@ -44,7 +44,7 @@ function LanguageCard({
           className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-medium ${
             lang.rtl
               ? "bg-purple-50 text-purple-700 border-purple-200"
-              : "bg-blue-50 text-blue-700 border-blue-200"
+              : "bg-brand-50 text-brand-700 border-brand-200"
           }`}
         >
           {lang.rtl ? rtlLabel : ltrLabel}
@@ -74,8 +74,8 @@ export default function LanguagesPage() {
       </div>
 
       {/* Info banner */}
-      <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-        <p className="text-sm text-blue-800">{t("deployment_banner")}</p>
+      <div className="rounded-lg border border-brand-200 bg-brand-50 p-4">
+        <p className="text-sm text-brand-800">{t("deployment_banner")}</p>
       </div>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">

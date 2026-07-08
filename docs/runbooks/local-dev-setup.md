@@ -152,6 +152,21 @@ This is documented in detail in `docs/runbooks/authentik-bootstrap.md` (stub at 
 | MinIO console | `http://localhost:9001` |
 | Qdrant dashboard | `http://localhost:6333/dashboard` |
 
+### Login (M-07b — custom BFF auth)
+
+The default login path is the **branded in-app form** at `http://localhost:3000/login` (email + password). All roles use this single entry point. Authentik runs behind the scenes; users do not see the Authentik UI in normal dev.
+
+| Env var | Default | Purpose |
+|---|---|---|
+| `AUTH_LOGIN_MODE` | `bff` | Backend login mode |
+| `NEXT_PUBLIC_AUTH_LOGIN_MODE` | `bff` | Frontend login surface (`bff` = form, `oidc_redirect` = legacy Authentik button) |
+
+After `scripts/seed_dev.py`, sign in with seed emails (e.g. `admin@iqbalai.dev`) and password `devpassword`.
+
+To debug OIDC redirect login instead, set both vars to `oidc_redirect` and restart `api` + `frontend`.
+
+Account creation: `/signup` hub → invite, independent, or parent paths. Forgot password: `/login/forgot-password`.
+
 ---
 
 ## The 4 commands you'll use daily

@@ -7,7 +7,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { authApi } from "@/lib/api";
-import { clearToken, getLoginUrl } from "@/lib/auth";
+import { AuthNavLinks } from "@/components/auth/AuthNavLinks";
+import { clearSession, buildAppLoginUrl } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -56,11 +57,8 @@ function AcceptInviteForm() {
           type="button"
           className="inline-flex h-10 items-center justify-center rounded-md bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700"
           onClick={() => {
-            clearToken();
-            window.location.href = getLoginUrl({
-              promptLogin: true,
-              loginHint: acceptedEmail ?? undefined,
-            });
+            clearSession();
+            window.location.href = buildAppLoginUrl(acceptedEmail ?? undefined);
           }}
         >
           {t("go_login")}
@@ -79,7 +77,7 @@ function AcceptInviteForm() {
         password: values.password,
         display_name: values.display_name || undefined,
       });
-      clearToken();
+      clearSession();
       setAcceptedEmail(result.email ?? null);
       setDone(true);
     } catch (err) {
@@ -104,6 +102,7 @@ function AcceptInviteForm() {
 
   return (
     <div className="space-y-6">
+      <AuthNavLinks showSignupOptions />
       <div>
         <h1 className="text-2xl font-semibold text-gray-900">{t("title")}</h1>
         <p className="mt-1 text-sm text-gray-500">{t("subtitle")}</p>

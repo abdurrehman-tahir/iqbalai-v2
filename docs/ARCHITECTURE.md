@@ -3154,6 +3154,8 @@ We use OIDC's Authorization Code flow with PKCE. This is the modern, secure flow
 - Two cookies: `iqbalai_access` (JWT, 24h) and `iqbalai_refresh` (opaque refresh token reference, 30d). Both `Path=/`, `Domain=<our domain>`, `Secure`, `HttpOnly`, `SameSite=Lax`.
 - Cookie names prefixed `iqbalai_` to avoid collisions.
 
+> **Amended by [A-003] (2026-07-08) — see `docs/AMENDMENTS.md`.** The **primary** login path is now a **BFF credential exchange**, not the browser redirect drawn above: the user enters email + password on IqbalAI's own `/login`, and FastAPI validates them against Authentik **server-side** (`POST /api/v1/auth/login`, OAuth password grant on the confidential `OIDC_CLIENT_ID`), then sets the same HttpOnly cookies. The redirect flow above is retained as a fallback behind `AUTH_LOGIN_MODE=oidc_redirect`. Authentik remains the sole IdP; the cookie contract and §6.5 validation are unchanged. Full BFF sequence + rollout in M-07b (T-238–T-247).
+
 ### 6.5 Token validation
 
 **On every protected request:**

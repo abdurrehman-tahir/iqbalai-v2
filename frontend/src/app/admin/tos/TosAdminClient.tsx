@@ -54,10 +54,7 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: [type, "list"],
-    queryFn: () =>
-      type === "tos"
-        ? tosApi.list(token!)
-        : tosApi.listDisclaimer(token!),
+    queryFn: () => (type === "tos" ? tosApi.list(token!) : tosApi.listDisclaimer(token!)),
     enabled: mounted && !!token,
   });
 
@@ -103,11 +100,7 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
     return (
       <div className="space-y-6">
         <AdminPageHeader title={t("title")} subtitle={t("subtitle")} />
-        <ErrorState
-          description={t("error")}
-          onRetry={() => refetch()}
-          retryLabel={t("retry")}
-        />
+        <ErrorState description={t("error")} onRetry={() => refetch()} retryLabel={t("retry")} />
       </div>
     );
   }
@@ -126,8 +119,10 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
 
       {/* Disclaimer char limit info */}
       {type === "disclaimer" && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
-          <p className="text-sm text-blue-800">{t("char_limit_info", { limit: DISCLAIMER_CHAR_LIMIT })}</p>
+        <div className="rounded-lg border border-brand-200 bg-brand-50 p-4">
+          <p className="text-sm text-brand-800">
+            {t("char_limit_info", { limit: DISCLAIMER_CHAR_LIMIT })}
+          </p>
         </div>
       )}
 
@@ -153,9 +148,7 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
                     <span className="text-sm font-semibold text-gray-900">
                       {t("version_label", { version: v.version })}
                     </span>
-                    {idx === 0 && (
-                      <Badge variant="success">{t("current_badge")}</Badge>
-                    )}
+                    {idx === 0 && <Badge variant="success">{t("current_badge")}</Badge>}
                   </div>
                   <p className="text-xs text-gray-400 mt-1">
                     {format.dateTime(new Date(v.effective_at), {
@@ -215,20 +208,10 @@ export function TosAdminClient({ type }: TosAdminClientProps) {
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => setShowPublish(false)}
-            >
+            <Button type="button" variant="outline" size="md" onClick={() => setShowPublish(false)}>
               {t("modal.cancel")}
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              loading={publishMutation.isPending}
-            >
+            <Button type="submit" variant="primary" size="md" loading={publishMutation.isPending}>
               {t("modal.publish")}
             </Button>
           </div>

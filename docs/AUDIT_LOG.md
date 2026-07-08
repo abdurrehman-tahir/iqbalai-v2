@@ -122,3 +122,11 @@ Log a finding **only if all three hold**:
 - **Target carrier:** → frontend-master Rule 12 (create/update `@smoke` hits the real backend; mocks validated vs OpenAPI) + new CI `contract-test` + real-backend create smoke
 - **Status:** new — promote after the F-05 fix + the new gates land
 - **Promoted rule:** at least the create/update `@smoke` paths run against the real seeded backend (never mock the contract); a contract test asserts mock + client request shapes match the generated `*Create`/`*Update` schemas; CI fails on divergence.
+
+### [env-fallback] deploy-critical env var silently defaults to a dev/localhost value
+- **Class:** fe-state
+- **Occurrences:** 2026-07-08 (M-07 login audit) — `getLoginUrl`/`getLogoutUrl` resolved `NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000"` while the var was **absent from `.env.example`**, so any environment seeded from the example silently redirected users to a dev host (testers hit `localhost:9000` instead of the app's `/login` → Authentik). Same dev-correct/deployed-wrong shape as the `EMBEDDING_PROVIDER=local` default. Fixed in the same PR: fail-loud guard in prod + the three `NEXT_PUBLIC_*` auth vars added to `.env.example`.
+- **Existing rule when first seen?:** no (CLAUDE.md #9 says "every external URL is read from an env var" but nothing forbids a silent localhost fallback or requires `.env.example` parity)
+- **Target carrier:** → CI lint `env-example-parity` (every `process.env.NEXT_PUBLIC_*` referenced in `frontend/src` has a key in `.env.example`) + frontend-master rule (no silent localhost fallback for a deploy-critical URL — fail loud in production)
+- **Status:** new — promote at the M-07 boundary
+- **Promoted rule:** _(pending)_ a deploy-critical browser-facing URL never falls back to a dev host in production (throw/refuse render); every referenced `NEXT_PUBLIC_*` var is present in `.env.example`; CI `env-example-parity` fails on drift.

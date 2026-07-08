@@ -81,6 +81,10 @@ async def web_search(query: str, max_results: int = 15) -> list[SearchResult]:
     settings = get_settings()
     base = settings.WEBSEARCH_URL.rstrip("/")
     params = {"q": query, "format": "json"}
+    # Pin reliable engines — SearXNG's default general engines CAPTCHA/rate-limit
+    # automated queries and silently return zero results (see WEBSEARCH_ENGINES).
+    if settings.WEBSEARCH_ENGINES.strip():
+        params["engines"] = settings.WEBSEARCH_ENGINES.strip()
     async with httpx.AsyncClient(timeout=_HTTP_TIMEOUT_S) as client:
         response = await client.get(f"{base}/search", params=params)
         response.raise_for_status()

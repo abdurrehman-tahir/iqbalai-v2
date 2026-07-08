@@ -4,7 +4,8 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
+import { IqbalLogo } from "@/components/IqbalLogo";
+import { performLogout, getUser } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import type { StoredUser } from "@/lib/auth";
 
@@ -19,8 +20,7 @@ export function ParentShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   function handleLogout() {
-    clearToken();
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   if (onSignupPage) {
@@ -30,7 +30,10 @@ export function ParentShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
       <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-gray-900">{t("header_title")}</h1>
+        <div className="flex items-center gap-3">
+          <IqbalLogo size="sm" markOnly />
+          <h1 className="text-lg font-semibold text-gray-900">{t("header_title")}</h1>
+        </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-gray-500">{user?.email}</span>
           <Button variant="ghost" size="sm" onClick={handleLogout}>

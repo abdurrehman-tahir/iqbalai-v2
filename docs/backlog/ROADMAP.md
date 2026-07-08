@@ -21,6 +21,7 @@
 | M-05 | Independent Users: signup + Platform Library | 2 | T-069 to T-076 | ~2-3 days | drafted | Independent teacher self-signs up, accesses Platform Library |
 | M-06 | Student Onboarding (school) + Parent Linking | 2 | T-077 to T-090 | ~3-4 days | drafted | Coordinator enrolls students into Grade-Section; parents link to children |
 | M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | ~3-4 days | drafted | Platform Admin triggers AI research; approves; students can select framework |
+| M-07b | Custom Login + Unified Auth Hub (Authentik BFF) | 2 | T-238 to T-247 | ~1-1.5 weeks | drafted | Users log in on IqbalAI-branded `/login` (email+password); signup hub; no Authentik UI redirect |
 | M-08 | Student Mode + Diagnostic + Cognitive DNA seed | 3 | T-101 to T-112 | ~3-4 days | drafted | Student picks mode, takes diagnostic, cognitive DNA initialized |
 | M-09 | Lecture Wizard + AI Generation (Pattern S RAG) | 4 | T-113 to T-128 | ~1.5 weeks | drafted | Teacher generates first lecture; sees streaming output with source badges |
 | M-10 | Lecture Edit + Versions + 7-Dim Scoring | 4 | T-129 to T-140 | ~3-4 days | drafted | Teacher edits lecture; sees score timeline + Innovation Record suggestions |
@@ -134,3 +135,4 @@ If multiple milestones say `todo`, pick the lowest M-NN number unless blocked. N
 |---|---|---|
 | 2026-05-14 | Initial roadmap. 24 milestones defined; M-00 to M-15 + M-22 + M-23 ticket-ready; M-16 to M-21 blocked on flows 7-12. | @abdurrehman (with Claude) |
 | 2026-05-29 | Inserted M-01a (Foundation Remediation + FE/Integration Enforcement) after M-01; M-02 depends on M-01a. Closes the FE-test / typed-client / migration-model-first / UX-acceptance enforcement gap that let M-00/M-01 ship broken nav + ToS. Gates land in CLAUDE.md + CI (inherited by M-02→M-17 without rewrite). | @abdurrehman (with Claude) |
+| 2026-07-07 | Inserted M-07b (Custom Login + Unified Auth Hub) after M-07. Replaces Authentik UI redirect with BFF custom login, unified `/signup` hub, forgot-password, and HttpOnly cookie sessions. Tickets T-238–T-247. | @shaabii (with Claude) |

@@ -1,8 +1,3 @@
-/**
- * Typed API client for the IqbalAI FastAPI backend.
- * All fetch calls go through here — never use raw fetch() in components.
- */
-
 import type {
   AcceptInviteRequest,
   AdminUserInviteCreate,
@@ -62,6 +57,7 @@ import type {
   TosVersionCreate,
   TosVersionRead,
 } from "./types";
+import { COOKIE_AUTH } from "@/lib/auth";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -160,11 +156,16 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
     ...(options.headers as Record<string, string> | undefined),
   };
 
-  if (token) {
+  // BFF mode passes COOKIE_AUTH — HttpOnly cookies carry the session (M-07b T-244).
+  if (token && token !== COOKIE_AUTH) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 
   if (!res.ok) {
     let errorJson: {
@@ -195,7 +196,7 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 
 async function requestFormData<T>(path: string, formData: FormData, token?: string): Promise<T> {
   const headers: Record<string, string> = {};
-  if (token) {
+  if (token && token !== COOKIE_AUTH) {
     headers["Authorization"] = `Bearer ${token}`;
   }
 
@@ -203,6 +204,7 @@ async function requestFormData<T>(path: string, formData: FormData, token?: stri
     method: "POST",
     headers,
     body: formData,
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -220,9 +222,38 @@ async function requestFormData<T>(path: string, formData: FormData, token?: stri
   return (envelope.data ?? envelope) as T;
 }
 
+export interface LoginRequest {
+  email: string;
+  password: string;
+}
+
+// PostLoginResponse from BFF login (cookies carry the session — M-07b T-244).
+export type LoginResponse = PostLoginResponse;
+
 export const authApi = {
   postLogin: (token: string) =>
     request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
+
+  // BFF login — credentials go to our API only; cookies set by the browser.
+  login: (data: LoginRequest) =>
+    request<LoginResponse>("/auth/login", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+
+  logout: () => request<null>("/auth/logout", { method: "POST" }),
+
+  forgotPassword: (email: string) =>
+    request<null>("/auth/forgot-password", {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }),
+
+  resetPassword: (token: string, new_password: string) =>
+    request<null>("/auth/reset-password", {
+      method: "POST",
+      body: JSON.stringify({ token, new_password }),
+    }),
 
   acceptInvite: (data: AcceptInviteRequest) =>
     request<{ status: string; email?: string; message: string }>("/auth/accept-invite", {

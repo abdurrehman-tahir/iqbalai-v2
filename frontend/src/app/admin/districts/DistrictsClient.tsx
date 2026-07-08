@@ -49,8 +49,7 @@ export function DistrictsClient() {
   });
 
   const createMutation = useMutation({
-    mutationFn: (values: DistrictFormValues) =>
-      districtsApi.create(token ?? "", values),
+    mutationFn: (values: DistrictFormValues) => districtsApi.create(token ?? "", values),
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["districts"] });
       setShowCreate(false);
@@ -125,11 +124,7 @@ export function DistrictsClient() {
 
   if (isError) {
     return (
-      <ErrorState
-        description={t("error")}
-        onRetry={() => refetch()}
-        retryLabel={t("retry")}
-      />
+      <ErrorState description={t("error")} onRetry={() => refetch()} retryLabel={t("retry")} />
     );
   }
 
@@ -161,9 +156,7 @@ export function DistrictsClient() {
           <table className="w-full text-sm" role="table" aria-label={t("table_label")}>
             <thead>
               <tr className="border-b border-gray-100 bg-gray-50 text-start">
-                <th className="px-4 py-3 text-start font-medium text-gray-500">
-                  {t("col.name")}
-                </th>
+                <th className="px-4 py-3 text-start font-medium text-gray-500">{t("col.name")}</th>
                 <th className="px-4 py-3 text-start font-medium text-gray-500">
                   {t("col.region")}
                 </th>
@@ -173,17 +166,13 @@ export function DistrictsClient() {
                 <th className="px-4 py-3 text-start font-medium text-gray-500 hidden md:table-cell">
                   {t("col.created")}
                 </th>
-                <th className="px-4 py-3 text-end font-medium text-gray-500">
-                  {t("col.actions")}
-                </th>
+                <th className="px-4 py-3 text-end font-medium text-gray-500">{t("col.actions")}</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100">
               {data.map((district) => (
                 <tr key={district.id} className="hover:bg-gray-50 transition-colors">
-                  <td className="px-4 py-3 font-medium text-gray-900">
-                    {district.name}
-                  </td>
+                  <td className="px-4 py-3 font-medium text-gray-900">{district.name}</td>
                   <td className="px-4 py-3 text-gray-500">{district.region ?? "—"}</td>
                   <td className="px-4 py-3 text-gray-500 hidden md:table-cell">
                     {district.language_preference ?? "—"}
@@ -198,7 +187,7 @@ export function DistrictsClient() {
                         size="icon"
                         onClick={() => openInvite(district)}
                         aria-label={t("actions.invite", { name: district.name })}
-                        className="text-blue-600 hover:text-blue-800 hover:bg-blue-50"
+                        className="text-brand-600 hover:text-brand-800 hover:bg-brand-50"
                       >
                         <UserPlus className="size-4" aria-hidden="true" />
                       </Button>
@@ -264,20 +253,10 @@ export function DistrictsClient() {
           </div>
 
           <div className="flex justify-end gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="md"
-              onClick={() => setShowCreate(false)}
-            >
+            <Button type="button" variant="outline" size="md" onClick={() => setShowCreate(false)}>
               {t("modal.cancel")}
             </Button>
-            <Button
-              type="submit"
-              variant="primary"
-              size="md"
-              loading={createMutation.isPending}
-            >
+            <Button type="submit" variant="primary" size="md" loading={createMutation.isPending}>
               {t("modal.create")}
             </Button>
           </div>
@@ -357,12 +336,7 @@ export function DistrictsClient() {
               >
                 {t("invite_modal.cancel")}
               </Button>
-              <Button
-                type="submit"
-                variant="primary"
-                size="md"
-                loading={inviteMutation.isPending}
-              >
+              <Button type="submit" variant="primary" size="md" loading={inviteMutation.isPending}>
                 {t("invite_modal.send")}
               </Button>
             </div>

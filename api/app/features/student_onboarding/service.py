@@ -7,7 +7,13 @@ from datetime import date, datetime, timedelta, timezone
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError, PermissionDeniedError, PreconditionFailedError, ValidationError
+from app.core.exceptions import (
+    ConflictError,
+    NotFoundError,
+    PermissionDeniedError,
+    PreconditionFailedError,
+    ValidationError,
+)
 from app.features.student_enrollments.models import StudentEnrollment, StudentEnrollmentStatus
 from app.features.student_onboarding.models import StudentProfile
 from app.features.student_onboarding.repository import StudentProfileRepository
@@ -205,7 +211,13 @@ class StudentOnboardingService:
         if profile is not None and profile.profile_basic_completed_at is not None:
             raise PreconditionFailedError("Profile basics are already complete")
 
-        await self._tos.accept_tos(user.id, payload.tos_version_id, ip_address)
+        try:
+            await self._tos.accept_tos(user.id, payload.tos_version_id, ip_address)
+        except ConflictError as exc:
+            # Login flow may have already accepted this ToS version in the same session.
+            # Profile-basic completion should remain idempotent in that case.
+            if str(exc.message) != "ToS version already accepted":
+                raise
         now = datetime.now(timezone.utc)
 
         if profile is None:

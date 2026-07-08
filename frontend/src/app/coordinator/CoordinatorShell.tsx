@@ -6,13 +6,14 @@ import { usePathname } from "next/navigation";
 import { BookOpen, GraduationCap, LayoutDashboard, Library, LogOut, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
+import { performLogout, getUser } from "@/lib/auth";
 import { useEffect, useState } from "react";
 import type { StoredUser } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { AcademicSessionHeader } from "./AcademicSessionHeader";
+import { IqbalLogo } from "@/components/IqbalLogo";
 
 const NAV = [
   { key: "dashboard", href: "/coordinator", icon: LayoutDashboard },
@@ -39,8 +40,7 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
   }, []);
 
   function handleLogout() {
-    clearToken();
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   const scopeLabel = profile?.scoped_ids?.split(",").join(", ") ?? null;
@@ -49,7 +49,7 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-gray-50">
       <aside className="hidden md:flex md:w-64 md:flex-col border-e border-gray-200 bg-white">
         <div className="flex h-16 items-center px-6 border-b border-gray-100">
-          <span className="text-xl font-bold text-brand-700">IqbalAI</span>
+          <IqbalLogo size="sm" />
         </div>
         <nav className="px-3 py-4" aria-label={t("nav.aria_label")}>
           <ul className="space-y-1">
