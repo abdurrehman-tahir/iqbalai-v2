@@ -11,6 +11,7 @@ import { useClientAuth } from "@/hooks/use-client-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 
 const linkSchema = z.object({
   student_email: z.string().email(),
@@ -77,26 +78,32 @@ export function ParentHomeClient() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-8">
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900">{t("title")}</h2>
-        <p className="mt-2 text-sm text-gray-600">{t("subtitle")}</p>
-        <p className="mt-3">
-          <a href="/parent/data-rights" className="text-sm text-blue-600 hover:underline">
+      <DashboardHeader title={t("title")} subtitle={t("subtitle")}>
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-2">
+          <a
+            href="/parent/data-rights"
+            className="text-sm font-medium text-brand-700 hover:underline"
+          >
             {t("data_rights_link")}
           </a>
-        </p>
-        {connections && (
-          <p className="mt-3 text-sm font-medium text-brand-700">
-            {t("state_label")}: {stateLabel(connections.parent_state)}
-          </p>
-        )}
-      </div>
+          {connections && (
+            <span className="inline-flex items-center rounded-full border border-brand-200 bg-white px-3 py-1 text-xs font-medium text-brand-700">
+              {t("state_label")}: {stateLabel(connections.parent_state)}
+            </span>
+          )}
+        </div>
+      </DashboardHeader>
 
       {success && (
-        <p className="text-sm text-green-800 rounded-md bg-green-50 border border-green-200 p-3">{success}</p>
+        <p className="text-sm text-green-800 rounded-md bg-green-50 border border-green-200 p-3">
+          {success}
+        </p>
       )}
       {error && (
-        <p className="text-sm text-red-600 rounded-md bg-red-50 border border-red-200 p-3" role="alert">
+        <p
+          className="text-sm text-red-600 rounded-md bg-red-50 border border-red-200 p-3"
+          role="alert"
+        >
           {error}
         </p>
       )}
@@ -107,10 +114,12 @@ export function ParentHomeClient() {
           setError(null);
           linkMutation.mutate(values);
         })}
-        className="space-y-4 rounded-lg border border-gray-200 bg-white p-6"
+        className="space-y-4 rounded-2xl border border-brand-100 bg-white p-6 shadow-sm"
       >
         <div>
-          <Label htmlFor="student-email" required>{t("student_email_label")}</Label>
+          <Label htmlFor="student-email" required>
+            {t("student_email_label")}
+          </Label>
           <Input id="student-email" type="email" {...form.register("student_email")} />
         </div>
         <Button type="submit" variant="primary" loading={linkMutation.isPending}>
@@ -123,9 +132,12 @@ export function ParentHomeClient() {
         {!connections?.links.length ? (
           <p className="text-sm text-gray-500">{t("links_empty")}</p>
         ) : (
-          <ul className="divide-y divide-gray-200 rounded-lg border border-gray-200 bg-white">
+          <ul className="divide-y divide-gray-200 rounded-2xl border border-brand-100 bg-white shadow-sm">
             {connections.links.map((link) => (
-              <li key={link.id} className="px-4 py-3 text-sm flex justify-between gap-4 items-center">
+              <li
+                key={link.id}
+                className="px-4 py-3 text-sm flex justify-between gap-4 items-center"
+              >
                 <div>
                   <span>{link.student_name ?? link.student_email ?? link.student_user_id}</span>
                   {link.read_only_access && (

@@ -1,35 +1,40 @@
 import { useTranslations } from "next-intl";
-import { LoginButton } from "./LoginButton";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
+import { AuthTopBar } from "@/components/auth/AuthTopBar";
+import { LoginButton } from "./LoginButton";
+import { LoginForm } from "./LoginForm";
+import { JoinPanel } from "./JoinPanel";
 
 export default function LoginPage() {
   const t = useTranslations("auth.login");
-  const tApp = useTranslations("app");
+  // BFF branded form is the default (M-07b / A-003); `oidc_redirect` restores the
+  // legacy "Sign in with Authentik" button for dev/SSO debugging.
+  const mode = process.env.NEXT_PUBLIC_AUTH_LOGIN_MODE ?? "bff";
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center p-8">
-      <div className="w-full max-w-sm space-y-8">
-        {/* Brand */}
-        <div className="text-center">
-          <h1 className="text-3xl font-bold text-brand-700">{tApp("name")}</h1>
-          <p className="mt-2 text-sm text-gray-500">{tApp("tagline")}</p>
-        </div>
+    <div className="flex min-h-screen flex-col bg-gray-50">
+      <AuthTopBar />
 
-        {/* Login card */}
-        <div className="rounded-xl border border-gray-200 bg-white p-8 shadow-sm space-y-6">
-          <div className="text-center space-y-1">
-            <h2 className="text-xl font-semibold text-gray-900">{t("title")}</h2>
+      <main className="mx-auto grid w-full max-w-6xl flex-1 gap-6 px-4 py-10 sm:px-6 lg:grid-cols-2 lg:gap-8 lg:py-16">
+        {/* Left — branded sign-in card */}
+        <section className="rounded-3xl border border-brand-100 bg-gradient-to-b from-brand-50 to-white p-8 sm:p-10">
+          <div className="mb-8 space-y-1">
+            <h1 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              {t("title")}
+            </h1>
             <p className="text-sm text-gray-500">{t("subtitle")}</p>
           </div>
 
-          <LoginButton label={t("cta")} />
-        </div>
+          {mode === "oidc_redirect" ? <LoginButton label={t("cta")} /> : <LoginForm />}
+        </section>
 
-        {/* Language switcher */}
-        <div className="flex justify-center">
-          <LanguageSwitcher />
-        </div>
-      </div>
-    </main>
+        {/* Right — join / create-account promo */}
+        <JoinPanel />
+      </main>
+
+      <footer className="flex justify-center pb-8">
+        <LanguageSwitcher />
+      </footer>
+    </div>
   );
 }

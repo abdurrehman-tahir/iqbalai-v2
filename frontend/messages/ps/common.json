@@ -22,8 +22,8 @@
   },
   "auth": {
     "login": {
-      "title": "__TODO__ Welcome back",
-      "subtitle": "__TODO__ Sign in to access the IqbalAI platform",
+      "title": "__TODO__ Sign in to IqbalAI",
+      "subtitle": "__TODO__ Welcome back — access your learning platform",
       "cta": "__TODO__ Sign in with Authentik"
     },
     "callback": {
@@ -58,6 +58,121 @@
       "go_login": "__TODO__ Go to sign in",
       "declined": "__TODO__ Invitation declined.",
       "error_generic": "__TODO__ Could not process invitation. The link may be expired or invalid."
+    },
+    "login_form": {
+      "email_label": "Email",
+      "email_placeholder": "you@example.com",
+      "password_label": "Password",
+      "password_placeholder": "Enter your password",
+      "show_password": "Show",
+      "hide_password": "Hide",
+      "submit": "Sign in",
+      "submitting": "Signing in…",
+      "forgot_password": "Forgot password?",
+      "no_account": "Don't have an account?",
+      "create_account": "Create account",
+      "suspended_title": "Account suspended",
+      "suspended_message": "Your account has been suspended. Contact your administrator to regain access.",
+      "error": {
+        "invalid_credentials": "Invalid email or password.",
+        "account_suspended": "Your account has been suspended. Contact your administrator.",
+        "email_not_verified": "Please verify your email address before signing in.",
+        "rate_limited": "Too many attempts. Please try again in a few minutes.",
+        "generic": "Something went wrong. Please try again."
+      },
+      "or_email": "__TODO__ Or sign in with e-mail",
+      "remember_device": "__TODO__ Remember this device",
+      "secure_connection": "__TODO__ Secure connection"
+    },
+    "nav": {
+      "aria_label": "Account navigation",
+      "back_to_login": "Back to login",
+      "back_to_signup": "Back to signup options"
+    },
+    "signup_hub": {
+      "title": "Create your account",
+      "subtitle": "Choose how you want to join IqbalAI",
+      "have_account": "Already have an account?",
+      "sign_in": "Sign in",
+      "cards": {
+        "invite": {
+          "title": "I have a school invite",
+          "description": "Use the link from your invitation email or enter your invite token.",
+          "cta": "Accept invite"
+        },
+        "independent": {
+          "title": "Independent teacher or student",
+          "description": "Sign up on your own without a school invitation.",
+          "cta": "Independent signup"
+        },
+        "parent": {
+          "title": "Parent",
+          "description": "Create a parent account to monitor your child's progress.",
+          "cta": "Parent signup"
+        },
+        "school": {
+          "title": "School staff or student (no invite?)",
+          "description": "School accounts are invite-only at launch.",
+          "note": "Contact your school administrator to receive an invitation."
+        }
+      }
+    },
+    "forgot_password": {
+      "title": "Reset your password",
+      "subtitle": "Enter your email and we'll send reset instructions if an account exists.",
+      "email_label": "Email",
+      "email_placeholder": "you@example.com",
+      "submit": "Send reset link",
+      "submitting": "Sending…",
+      "success_message": "If an account exists for that email, we sent password-reset instructions.",
+      "back_to_login": "Back to login",
+      "error": {
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "reset_password": {
+      "title": "Choose a new password",
+      "subtitle": "Enter and confirm your new password below.",
+      "loading": "Loading…",
+      "password_label": "New password",
+      "password_placeholder": "At least 8 characters",
+      "confirm_password_label": "Confirm password",
+      "confirm_password_placeholder": "Re-enter your password",
+      "show_password": "Show",
+      "hide_password": "Hide",
+      "submit": "Update password",
+      "submitting": "Updating…",
+      "success_message": "Your password has been updated. You can now sign in.",
+      "go_login": "Sign in",
+      "missing_token": "Invalid reset link — no token provided.",
+      "request_new_link": "Request a new reset link",
+      "error": {
+        "password_too_short": "Password must be at least 8 characters.",
+        "passwords_must_match": "Passwords do not match.",
+        "invalid_token": "This reset link is invalid or has expired.",
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "top_bar": {
+      "aria_label": "__TODO__ Account",
+      "home_aria": "__TODO__ IqbalAI home",
+      "tagline": "__TODO__ Intelligent Learning Platform",
+      "login": "__TODO__ Login in",
+      "create_account": "__TODO__ Create an account"
+    },
+    "social": {
+      "google": "Google",
+      "linkedin": "LinkedIn",
+      "github": "GitHub",
+      "coming_soon": "__TODO__ Coming soon"
+    },
+    "join": {
+      "tagline": "__TODO__ Intelligent Learning Platform",
+      "title": "__TODO__ Join us for free",
+      "subtitle": "__TODO__ Create account with",
+      "or": "or",
+      "cta": "__TODO__ Create account",
+      "trial": "__TODO__ Enjoy 14-day trial with premium content for free"
     }
   },
   "admin": {

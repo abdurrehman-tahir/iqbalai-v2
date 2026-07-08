@@ -8,6 +8,7 @@ import { useClientAuth } from "@/hooks/use-client-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 
 export function StudentHomeClient() {
   const t = useTranslations("student.dashboard");
@@ -68,25 +69,29 @@ export function StudentHomeClient() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
-      <div>
-        <h2 className="text-2xl font-semibold text-gray-900">{t("title")}</h2>
-        <p className="mt-2 text-sm text-gray-600">{t("subtitle")}</p>
-        <p className="mt-3 flex flex-wrap gap-4">
-          <a href="/student/exam-frameworks" className="text-sm text-blue-600 hover:underline">
+      <DashboardHeader title={t("title")} subtitle={t("subtitle")}>
+        <div className="flex flex-wrap gap-4">
+          <a
+            href="/student/exam-frameworks"
+            className="text-sm font-medium text-brand-700 hover:underline"
+          >
             {t("exam_frameworks_link")}
           </a>
-          <a href="/student/data-rights" className="text-sm text-blue-600 hover:underline">
+          <a
+            href="/student/data-rights"
+            className="text-sm font-medium text-brand-700 hover:underline"
+          >
             {t("data_rights_link")}
           </a>
-        </p>
-      </div>
+        </div>
+      </DashboardHeader>
 
       {onboarding?.school_read_only && onboarding.graduation_message && (
-        <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-2">
-          <h3 className="text-sm font-semibold text-blue-900">{t("graduation_banner_title")}</h3>
-          <p className="text-sm text-blue-800">{onboarding.graduation_message}</p>
+        <div className="rounded-lg border border-brand-200 bg-brand-50 p-4 space-y-2">
+          <h3 className="text-sm font-semibold text-brand-900">{t("graduation_banner_title")}</h3>
+          <p className="text-sm text-brand-800">{onboarding.graduation_message}</p>
           {onboarding.migration_scheduled_at && (
-            <p className="text-sm text-blue-700">
+            <p className="text-sm text-brand-700">
               {t("graduation_migration_date", {
                 date: onboarding.migration_scheduled_at.slice(0, 10),
               })}
@@ -109,7 +114,9 @@ export function StudentHomeClient() {
           </div>
           {examDateError && <p className="text-sm text-red-600">{examDateError}</p>}
           {examDateSuccess && <p className="text-sm text-green-800">{examDateSuccess}</p>}
-          {futureWarning && <p className="text-sm text-amber-800">{t("exam_date_future_warning")}</p>}
+          {futureWarning && (
+            <p className="text-sm text-amber-800">{t("exam_date_future_warning")}</p>
+          )}
           <div className="flex flex-wrap gap-3">
             <Button
               variant="primary"
@@ -138,7 +145,7 @@ export function StudentHomeClient() {
         </p>
       )}
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
+      <section className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm space-y-3">
         <h3 className="text-lg font-medium text-gray-900">{t("link_requests_title")}</h3>
         {!linkRequests?.pending.length ? (
           <p className="text-sm text-gray-500">{t("link_requests_empty")}</p>
@@ -169,7 +176,7 @@ export function StudentHomeClient() {
         )}
       </section>
 
-      <section className="rounded-lg border border-gray-200 bg-white p-4 space-y-3">
+      <section className="rounded-2xl border border-brand-100 bg-white p-5 shadow-sm space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <h3 className="text-lg font-medium text-gray-900">{t("linked_parents_title")}</h3>
           {connections && (
