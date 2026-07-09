@@ -71,14 +71,10 @@ export function StudentHomeClient() {
       <div>
         <h2 className="text-2xl font-semibold text-gray-900">{t("title")}</h2>
         <p className="mt-2 text-sm text-gray-600">{t("subtitle")}</p>
-<<<<<<< HEAD
         <p className="mt-3 flex flex-wrap gap-4">
           <a href="/student/exam-frameworks" className="text-sm text-blue-600 hover:underline">
             {t("exam_frameworks_link")}
           </a>
-=======
-        <p className="mt-3">
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
           <a href="/student/data-rights" className="text-sm text-blue-600 hover:underline">
             {t("data_rights_link")}
           </a>

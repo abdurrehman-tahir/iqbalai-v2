@@ -1635,7 +1635,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-<<<<<<< HEAD
     "/api/v1/student/exam-frameworks/available": {
         parameters: {
             query?: never;
@@ -1738,8 +1737,6 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
     "/api/v1/students/me/connections": {
         parameters: {
             query?: never;
@@ -2626,7 +2623,6 @@ export interface components {
             status: components["schemas"]["UserAccountStatus"];
         };
         /**
-<<<<<<< HEAD
          * ExamFrameworkCreate
          * @description Payload to create a DRAFT framework definition (Platform Admin).
          */
@@ -2646,8 +2642,6 @@ export interface components {
             target_grade_range: number[];
         };
         /**
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
          * ExamFrameworkOption
          * @description Public exam framework option — backed by exam syllabi until M-07.
          */
@@ -2661,7 +2655,6 @@ export interface components {
             /** Name */
             name: string;
         };
-<<<<<<< HEAD
         /**
          * ExamFrameworkRead
          * @description Response schema for a single exam-framework definition.
@@ -2704,8 +2697,6 @@ export interface components {
             /** Target Grade Range */
             target_grade_range?: number[] | null;
         };
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
         /**
          * ExamSyllabusCreate
          * @description Payload for creating a new ExamSyllabus.
@@ -3640,158 +3631,6 @@ export interface components {
          * @enum {string}
          */
         SectionStatus: "active" | "archived";
-        /** StudentBannerDismiss */
-        StudentBannerDismiss: {
-            /**
-             * Dismissed
-             * @default true
-             */
-            dismissed: boolean;
-        };
-        /** StudentConnectionsRead */
-        StudentConnectionsRead: {
-            /** Access State */
-            access_state: string;
-            /** Link History */
-            link_history: components["schemas"]["ParentChildLinkRead"][];
-            /** Linked Parents */
-            linked_parents: components["schemas"]["ParentChildLinkRead"][];
-        };
-        /**
-         * StudentEnrollmentCreate
-         * @description Coordinator enrolls a student into a grade (optional section).
-         */
-        StudentEnrollmentCreate: {
-            /** Display Name */
-            display_name: string;
-            /** Email */
-            email: string;
-            /**
-             * Section Id
-             * @description Target section; omit to use the grade default-internal section
-             */
-            section_id?: string | null;
-        };
-        /** StudentEnrollmentRead */
-        StudentEnrollmentRead: {
-            /** Academic Session */
-            academic_session: string;
-            /**
-             * Enrolled At
-             * Format: date-time
-             */
-            enrolled_at: string;
-            /** Grade Id */
-            grade_id: string;
-            /** Id */
-            id: string;
-            /** School Id */
-            school_id: string;
-            /** Section Id */
-            section_id: string;
-            status: components["schemas"]["StudentEnrollmentStatus"];
-            student: components["schemas"]["EnrolledStudentRead"];
-            /** Student User Id */
-            student_user_id: string;
-        };
-        /**
-         * StudentEnrollmentStatus
-         * @description Lifecycle status for a student's grade-section enrollment.
-         * @enum {string}
-         */
-        StudentEnrollmentStatus: "active" | "withdrawn" | "graduated";
-        /** StudentExamDateUpdate */
-        StudentExamDateUpdate: {
-            /**
-             * Exam Date
-             * Format: date
-             * @description Target exam date
-             */
-            exam_date: string;
-        };
-        /** StudentGraduationStatusRead */
-        StudentGraduationStatusRead: {
-            /** Graduated At */
-            graduated_at?: string | null;
-            /** Graduation Message */
-            graduation_message?: string | null;
-            /**
-             * Is Graduated
-             * @default false
-             */
-            is_graduated: boolean;
-            /**
-             * Lecture Read Only
-             * @default false
-             */
-            lecture_read_only: boolean;
-            /**
-             * Migrated Out
-             * @default false
-             */
-            migrated_out: boolean;
-            /** Migration Scheduled At */
-            migration_scheduled_at?: string | null;
-            pending_graduation_request?: components["schemas"]["GraduationRequestRead"] | null;
-            /**
-             * School Read Only
-             * @default false
-             */
-            school_read_only: boolean;
-            /**
-             * Self Study Enabled
-             * @default true
-             */
-            self_study_enabled: boolean;
-        };
-        /** StudentLinkRequestList */
-        StudentLinkRequestList: {
-            /** Pending */
-            pending: components["schemas"]["ParentChildLinkRead"][];
-        };
-        /** StudentModeSelect */
-        StudentModeSelect: {
-            /**
-             * Lecture Mode
-             * @default false
-             */
-            lecture_mode: boolean;
-            /**
-             * Self Study Mode
-             * @default false
-             */
-            self_study_mode: boolean;
-        };
-        /** StudentProfileBasicComplete */
-        StudentProfileBasicComplete: {
-            /** Display Name */
-            display_name: string;
-            /** Language Preference */
-            language_preference: string;
-            /** Tos Version Id */
-            tos_version_id: string;
-        };
-        /** StudentProfileRead */
-        StudentProfileRead: {
-            /** Deferrable Banner Dismissed */
-            deferrable_banner_dismissed: boolean;
-            /** Display Name */
-            display_name: string;
-            /** Exam Date */
-            exam_date?: string | null;
-            /** Language Preference */
-            language_preference: string;
-            /** Lecture Mode Enabled */
-            lecture_mode_enabled: boolean;
-            /** Profile Basic Completed At */
-            profile_basic_completed_at: string | null;
-            /** Self Study Mode Enabled */
-            self_study_mode_enabled: boolean;
-            /** Tos Accepted At */
-            tos_accepted_at: string | null;
-            /** User Id */
-            user_id: string;
-        };
         /**
          * SelectionStatus
          * @description Student framework-selection lifecycle (Flow 4 §3.5.3).
@@ -4481,7 +4320,6 @@ export interface components {
              */
             message: string;
         };
-<<<<<<< HEAD
         /** SuccessEnvelope[StudentSelectionRead] */
         SuccessEnvelope_StudentSelectionRead_: {
             data: components["schemas"]["StudentSelectionRead"];
@@ -4500,8 +4338,6 @@ export interface components {
              */
             message: string;
         };
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
         /** SuccessEnvelope[SubjectRead] */
         SuccessEnvelope_SubjectRead_: {
             data: components["schemas"]["SubjectRead"];
@@ -4633,7 +4469,6 @@ export interface components {
              */
             message: string;
         };
-<<<<<<< HEAD
         /** SuccessEnvelope[list[ExamFrameworkRead]] */
         SuccessEnvelope_list_ExamFrameworkRead__: {
             /** Data */
@@ -4644,8 +4479,6 @@ export interface components {
              */
             message: string;
         };
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
         /** SuccessEnvelope[list[ExamSyllabusRead]] */
         SuccessEnvelope_list_ExamSyllabusRead__: {
             /** Data */
@@ -8091,11 +7924,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-<<<<<<< HEAD
                     "application/json": unknown;
-=======
-                    "application/zip": unknown;
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
                 };
             };
             /** @description Validation Error */
@@ -8791,7 +8620,6 @@ export interface operations {
             };
         };
     };
-<<<<<<< HEAD
     student_frameworks_available: {
         parameters: {
             query: {
@@ -8970,8 +8798,6 @@ export interface operations {
             };
         };
     };
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
     student_get_connections: {
         parameters: {
             query?: never;
@@ -9113,11 +8939,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-<<<<<<< HEAD
                     "application/json": unknown;
-=======
-                    "application/zip": unknown;
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
                 };
             };
             /** @description Validation Error */

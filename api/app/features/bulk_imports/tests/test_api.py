@@ -91,13 +91,9 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         def __init__(self, session: Any) -> None:
             pass
 
-<<<<<<< HEAD
-        async def get_by_name_session(self, school_id: str, name: str, academic_session: str) -> Grade | None:
-=======
         async def get_by_name_session(
             self, school_id: str, name: str, academic_session: str
         ) -> Grade | None:
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
             if name == "Grade 9":
                 return Grade(
                     id="grade-9",
@@ -116,13 +112,9 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         async def get_by_name(self, grade_id: str, name: str) -> Section | None:
             return None
 
-<<<<<<< HEAD
-        async def list_by_grade(self, grade_id: str, include_archived: bool = False) -> list[Section]:
-=======
         async def list_by_grade(
             self, grade_id: str, include_archived: bool = False
         ) -> list[Section]:
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
             return [
                 Section(
                     id="default-9",
@@ -147,13 +139,6 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         async def get_by_email(self, email: str) -> None:
             return None
 
-<<<<<<< HEAD
-    monkeypatch.setattr("app.features.bulk_imports.service.AcademicSessionRepository", _FakeSessionRepo)
-    monkeypatch.setattr("app.features.bulk_imports.service.GradeRepository", _FakeGradeRepo)
-    monkeypatch.setattr("app.features.bulk_imports.service.SectionRepository", _FakeSectionRepo)
-    monkeypatch.setattr("app.features.bulk_imports.service.UserInviteRepository", _FakeInviteRepo)
-    monkeypatch.setattr("app.features.bulk_imports.service.IndependentUserRepository", _FakeIndependentRepo)
-=======
     monkeypatch.setattr(
         "app.features.bulk_imports.service.AcademicSessionRepository", _FakeSessionRepo
     )
@@ -163,7 +148,6 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "app.features.bulk_imports.service.IndependentUserRepository", _FakeIndependentRepo
     )
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
     monkeypatch.setattr(
         "app.features.bulk_imports.service.run_upload_pipeline",
         AsyncMock(

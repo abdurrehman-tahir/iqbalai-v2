@@ -7,14 +7,8 @@ from unittest.mock import AsyncMock, patch
 
 import pytest
 
-<<<<<<< HEAD
-from app.core.exceptions import PreconditionFailedError
-from app.features.bulk_imports.models import BulkImport, BulkImportStatus
-from app.core.exceptions import ValidationError
-=======
 from app.core.exceptions import PreconditionFailedError, ValidationError
 from app.features.bulk_imports.models import BulkImport, BulkImportStatus
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
 from app.features.bulk_imports.service import BulkImportService, _parse_csv
 from app.features.files.schemas import UploadInitiated, UploadStatus
 from app.features.grades.models import Grade, GradeStatus
@@ -60,12 +54,6 @@ def _default_section() -> Section:
 
 
 def _patch_dry_run_deps(svc: BulkImportService, monkeypatch: pytest.MonkeyPatch) -> None:
-<<<<<<< HEAD
-    monkeypatch.setattr(svc._sessions, "get_school_active_label", AsyncMock(return_value="2025-2026"))
-    monkeypatch.setattr(svc._grades, "get_by_name_session", AsyncMock(return_value=_grade()))
-    monkeypatch.setattr(svc._sections, "get_by_name", AsyncMock(return_value=None))
-    monkeypatch.setattr(svc._sections, "list_by_grade", AsyncMock(return_value=[_default_section()]))
-=======
     monkeypatch.setattr(
         svc._sessions, "get_school_active_label", AsyncMock(return_value="2025-2026")
     )
@@ -74,7 +62,6 @@ def _patch_dry_run_deps(svc: BulkImportService, monkeypatch: pytest.MonkeyPatch)
     monkeypatch.setattr(
         svc._sections, "list_by_grade", AsyncMock(return_value=[_default_section()])
     )
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
     monkeypatch.setattr(svc._invites, "get_pending_by_email", AsyncMock(return_value=None))
     monkeypatch.setattr(svc._independent_users, "get_by_email", AsyncMock(return_value=None))
 
@@ -147,15 +134,7 @@ async def test_dry_run_detects_duplicate_email_in_file() -> None:
     mock_session = AsyncMock()
     svc = BulkImportService(mock_session)
 
-<<<<<<< HEAD
-    csv = _csv_bytes(
-        "name,email,grade\n"
-        "One,dup@test.com,Grade 9\n"
-        "Two,dup@test.com,Grade 9\n"
-    )
-=======
     csv = _csv_bytes("name,email,grade\n" "One,dup@test.com,Grade 9\n" "Two,dup@test.com,Grade 9\n")
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
     upload_result = UploadInitiated(
         upload_id="upload-1",
         status=UploadStatus.READY,

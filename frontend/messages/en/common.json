@@ -467,12 +467,8 @@
       "data_rights_link": "Data & privacy",
       "graduation_banner_title": "You've graduated",
       "graduation_banner_body": "Lecture mode is read-only. Self-Study stays fully available until your account moves to Independent mode.",
-<<<<<<< HEAD
       "graduation_migration_date": "Independent migration scheduled: {date}",
       "exam_frameworks_link": "Exam frameworks"
-=======
-      "graduation_migration_date": "Independent migration scheduled: {date}"
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
     },
     "data_rights": {
       "title": "Data & privacy",
@@ -494,7 +490,6 @@
       "deletion_cancelled": "Deletion request cancelled.",
       "download_started": "Download started.",
       "error_generic": "Something went wrong. Please try again."
-<<<<<<< HEAD
     },
     "frameworks": {
       "title": "Exam Frameworks",
@@ -533,8 +528,6 @@
         "topics_heading": "Topics (by past-paper weight)",
         "no_topics": "No topics in this plan yet."
       }
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
     }
   },
   "teacher": {

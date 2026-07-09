@@ -996,7 +996,6 @@
         "title": "EnrolledStudentRead",
         "type": "object"
       },
-<<<<<<< HEAD
       "ExamFrameworkCreate": {
         "description": "Payload to create a DRAFT framework definition (Platform Admin).",
         "properties": {
@@ -1043,8 +1042,6 @@
         "title": "ExamFrameworkCreate",
         "type": "object"
       },
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
       "ExamFrameworkOption": {
         "description": "Public exam framework option \u2014 backed by exam syllabi until M-07.",
         "properties": {
@@ -1074,7 +1071,6 @@
         "title": "ExamFrameworkOption",
         "type": "object"
       },
-<<<<<<< HEAD
       "ExamFrameworkRead": {
         "description": "Response schema for a single exam-framework definition.",
         "properties": {
@@ -1206,8 +1202,6 @@
         "title": "ExamFrameworkUpdate",
         "type": "object"
       },
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
       "ExamSyllabusCreate": {
         "description": "Payload for creating a new ExamSyllabus.",
         "properties": {
@@ -3588,7 +3582,6 @@
         "title": "SectionStatus",
         "type": "string"
       },
-<<<<<<< HEAD
       "SelectionStatus": {
         "description": "Student framework-selection lifecycle (Flow 4 \u00a73.5.3).",
         "enum": [
@@ -3598,8 +3591,6 @@
         "title": "SelectionStatus",
         "type": "string"
       },
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
       "StudentBannerDismiss": {
         "properties": {
           "dismissed": {
@@ -3966,7 +3957,6 @@
         "title": "StudentProfileRead",
         "type": "object"
       },
-<<<<<<< HEAD
       "StudentSelectionRead": {
         "description": "A student's framework selection (T-096).\n\n``latest_version`` + ``update_available`` power the opt-in \"v2 available \u2014 switch?\"\nbanner (T-095): a refreshed, approved version exists beyond the pinned one.",
         "properties": {
@@ -4073,8 +4063,6 @@
         "title": "StudyPlanStatus",
         "type": "string"
       },
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
       "SubjectCreate": {
         "description": "Payload for creating a new Subject in the caller's school catalogue.",
         "properties": {
@@ -5033,7 +5021,6 @@
         "title": "SuccessEnvelope[StudentLinkRequestList]",
         "type": "object"
       },
-<<<<<<< HEAD
       "SuccessEnvelope_StudentSelectionRead_": {
         "properties": {
           "data": {
@@ -5068,8 +5055,6 @@
         "title": "SuccessEnvelope[StudentStudyPlanRead]",
         "type": "object"
       },
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
       "SuccessEnvelope_SubjectRead_": {
         "properties": {
           "data": {
@@ -5328,7 +5313,6 @@
         "title": "SuccessEnvelope[list[ExamFrameworkOption]]",
         "type": "object"
       },
-<<<<<<< HEAD
       "SuccessEnvelope_list_ExamFrameworkRead__": {
         "properties": {
           "data": {
@@ -5350,8 +5334,6 @@
         "title": "SuccessEnvelope[list[ExamFrameworkRead]]",
         "type": "object"
       },
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
       "SuccessEnvelope_list_ExamSyllabusRead__": {
         "properties": {
           "data": {
@@ -10462,13 +10444,9 @@
         "responses": {
           "200": {
             "content": {
-<<<<<<< HEAD
               "application/json": {
                 "schema": {}
               }
-=======
-              "application/zip": {}
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
             },
             "description": "Successful Response"
           },
@@ -11637,7 +11615,6 @@
         ]
       }
     },
-<<<<<<< HEAD
     "/api/v1/student/exam-frameworks/available": {
       "get": {
         "operationId": "student_frameworks_available",
@@ -11885,8 +11862,6 @@
         ]
       }
     },
-=======
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
     "/api/v1/students/me/connections": {
       "get": {
         "operationId": "student_get_connections",
@@ -12050,13 +12025,9 @@
         "responses": {
           "200": {
             "content": {
-<<<<<<< HEAD
               "application/json": {
                 "schema": {}
               }
-=======
-              "application/zip": {}
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
             },
             "description": "Successful Response"
           },

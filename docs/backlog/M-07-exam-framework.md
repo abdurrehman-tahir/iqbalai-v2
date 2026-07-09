@@ -360,7 +360,7 @@ notifications reuse existing namespaces — `system` for Platform-Admin alerts,
 **Layer:** 6
 **Milestone:** M-07
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-4-student-onboarding.md` v3 §3.5

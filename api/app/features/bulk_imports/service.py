@@ -294,13 +294,9 @@ class BulkImportService:
             elif not session_label:
                 errors.append("grade_not_found")
             else:
-<<<<<<< HEAD
                 grade_row = await self._grades.get_by_name_session(
                     school_id, grade, session_label
                 )
-=======
-                grade_row = await self._grades.get_by_name_session(school_id, grade, session_label)
->>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
                 if grade_row is None:
                     errors.append("grade_not_found")
                 else:
