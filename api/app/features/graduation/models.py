@@ -41,6 +41,7 @@ class GraduationRequest(AuditMixin, SoftDeleteMixin, Base):
         String(36),
         ForeignKey("school.schools.id", ondelete="RESTRICT"),
         nullable=False,
+        index=True,
     )
     requested_by_user_id: Mapped[str] = mapped_column(String(36), nullable=False)
     approved_by_user_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
