@@ -38,7 +38,9 @@ class AcademicSession(AuditMixin, SoftDeleteMixin, Base):
         nullable=False,
     )
     label: Mapped[str] = mapped_column(String(50), nullable=False)
-    is_active: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, server_default="false")
+    is_active: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, default=False, server_default="false"
+    )
     start_date: Mapped[date | None] = mapped_column(Date, nullable=True)
     end_date: Mapped[date | None] = mapped_column(Date, nullable=True)
 

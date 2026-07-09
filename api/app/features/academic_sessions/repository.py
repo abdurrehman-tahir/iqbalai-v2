@@ -24,7 +24,9 @@ class AcademicSessionRepository:
         return list(result.scalars().all())
 
     async def get_by_id(self, id: str) -> AcademicSession | None:
-        result = await self._session.execute(select(AcademicSession).where(AcademicSession.id == id))
+        result = await self._session.execute(
+            select(AcademicSession).where(AcademicSession.id == id)
+        )
         return result.scalar_one_or_none()
 
     async def get_by_label(self, school_id: str, label: str) -> AcademicSession | None:
@@ -64,7 +66,9 @@ class AcademicSessionRepository:
             .values(is_active=False)
         )
 
-    async def set_active(self, session_row: AcademicSession, school_id: str, label: str) -> AcademicSession:
+    async def set_active(
+        self, session_row: AcademicSession, school_id: str, label: str
+    ) -> AcademicSession:
         await self.deactivate_all(school_id)
         session_row.is_active = True
         await self._session.execute(

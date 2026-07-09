@@ -13,7 +13,9 @@ from app.features.independent_signup.schemas import (
     IndependentSignupResponse,
 )
 from app.features.independent_student_onboarding.models import IndependentStudentProfile
-from app.features.independent_student_onboarding.repository import IndependentStudentProfileRepository
+from app.features.independent_student_onboarding.repository import (
+    IndependentStudentProfileRepository,
+)
 from app.features.independent_users.models import (
     IndependentUser,
     IndependentUserAccountStatus,

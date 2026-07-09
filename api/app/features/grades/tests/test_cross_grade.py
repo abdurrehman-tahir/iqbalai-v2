@@ -73,7 +73,9 @@ def test_assert_cross_grade_access_by_ordinal_matches_grade_guard() -> None:
         (9, None, True),
     ],
 )
-def test_library_item_visible_for_grade_context(context: int, item_grade: int | None, visible: bool) -> None:
+def test_library_item_visible_for_grade_context(
+    context: int, item_grade: int | None, visible: bool
+) -> None:
     assert (
         library_item_visible_for_grade_context(
             context_ordinal=context,

@@ -13,7 +13,6 @@ from app.core.exceptions import (
     NotFoundError,
     PermissionDeniedError,
     PreconditionFailedError,
-    ValidationError,
 )
 from app.features.grades.service import GradeService
 from app.features.offerings.models import GradeSubjectOffering, OfferingStatus
@@ -67,7 +66,9 @@ class OfferingService:
         self._subject_repo = SubjectRepository(session)
         self._user_repo = UserRepository(session)
 
-    async def list_offerings(self, grade_id: str, claims: dict[str, object]) -> list[GradeSubjectOffering]:
+    async def list_offerings(
+        self, grade_id: str, claims: dict[str, object]
+    ) -> list[GradeSubjectOffering]:
         await self._grade_svc.get_grade(grade_id, claims)
         return await self._repo.list_by_grade(grade_id)
 
@@ -122,11 +123,7 @@ class OfferingService:
     ) -> GradeSubjectOffering:
         await self._grade_svc.get_grade(grade_id, claims)
         offering = await self._repo.get_by_id(offering_id)
-        if (
-            offering is None
-            or offering.deleted_at is not None
-            or offering.grade_id != grade_id
-        ):
+        if offering is None or offering.deleted_at is not None or offering.grade_id != grade_id:
             raise NotFoundError(f"Offering '{offering_id}' not found")
         offering.status = OfferingStatus.ARCHIVED
         updated = await self._repo.update(offering)
@@ -307,11 +304,7 @@ class OfferingService:
     ) -> GradeSubjectOffering:
         await self._grade_svc.get_grade(grade_id, claims)
         offering = await self._repo.get_by_id(offering_id)
-        if (
-            offering is None
-            or offering.deleted_at is not None
-            or offering.grade_id != grade_id
-        ):
+        if offering is None or offering.deleted_at is not None or offering.grade_id != grade_id:
             raise NotFoundError(f"Offering '{offering_id}' not found")
 
         _parse_if_match(if_match, offering)

@@ -17,7 +17,10 @@ class IndependentUserRepository:
 
     async def get_by_id(self, user_id: str) -> IndependentUser | None:
         result = await self._session.execute(
-            select(IndependentUser).where(IndependentUser.id == user_id, not_deleted(IndependentUser))
+            select(IndependentUser).where(
+                IndependentUser.id == user_id,
+                not_deleted(IndependentUser),
+            )
         )
         return result.scalar_one_or_none()
 

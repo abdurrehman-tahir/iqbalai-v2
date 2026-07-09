@@ -195,10 +195,11 @@ def ingest_platform_book(
         return {"book_id": book_id, "chunk_count": chunk_count, "status": "available"}
 
     except Exception as exc:
-        logger.error("ingestion_failed", book_id=book_id, error=str(exc))
+        error_msg = str(exc)
+        logger.error("ingestion_failed", book_id=book_id, error=error_msg)
         # Mark book as failed in DB
         run_db(lambda session: _update_book_status(session, book_id, "ingestion_failed"))
         # Notify Platform Admin
-        run_db(lambda session: _notify_failure(session, book_id, actor_id=None, error=str(exc)))
+        run_db(lambda session: _notify_failure(session, book_id, actor_id=None, error=error_msg))
         # Retry up to max_retries
         raise self.retry(exc=exc)

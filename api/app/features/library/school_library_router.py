@@ -203,9 +203,7 @@ async def set_school_library_reference_visibility(
     response_model=SuccessEnvelope[SchoolLibraryItemRead],
     operation_id="school_library_remove_selection",
     summary="Remove your selection of a library item",
-    description=(
-        "Removes the caller's selection record. Public items remain available to others."
-    ),
+    description=("Removes the caller's selection record. Public items remain available to others."),
     dependencies=[require_role("teacher")],
 )
 async def remove_school_library_selection(

@@ -23,7 +23,10 @@ from app.features.library.school_models import (
 )
 from app.features.library.tests.test_school_library_service import _item, _teacher
 from app.features.teacher_onboarding.schemas import TeacherCapacityUpdate, TeacherOnboardingState
-from app.features.teacher_onboarding.service import TeacherOnboardingService, derive_onboarding_state
+from app.features.teacher_onboarding.service import (
+    TeacherOnboardingService,
+    derive_onboarding_state,
+)
 from app.features.users.models import UserAccountStatus
 
 FIXTURE_PDF = Path(__file__).resolve().parent / "fixtures" / "sample.pdf"
@@ -130,14 +133,18 @@ async def test_m04_library_publish_and_capacity_audit_flow() -> None:
     teacher.teacher_capacity = 5
     onboarding_svc = TeacherOnboardingService(session)
     with (
-        patch.object(onboarding_svc._user_repo, "get_by_authentik_id", AsyncMock(return_value=teacher)),
+        patch.object(
+            onboarding_svc._user_repo, "get_by_authentik_id", AsyncMock(return_value=teacher)
+        ),
         patch.object(
             onboarding_svc._offering_repo,
             "count_active_assignments_for_teacher",
             AsyncMock(return_value=3),
         ),
         patch.object(onboarding_svc._user_repo, "update", AsyncMock(return_value=teacher)),
-        patch.object(onboarding_svc._user_repo, "list_by_school_and_role", AsyncMock(return_value=[])),
+        patch.object(
+            onboarding_svc._user_repo, "list_by_school_and_role", AsyncMock(return_value=[])
+        ),
         patch("app.features.teacher_onboarding.service.audit", _audit),
         patch("app.features.teacher_onboarding.service.notify_account_event", _notify),
     ):

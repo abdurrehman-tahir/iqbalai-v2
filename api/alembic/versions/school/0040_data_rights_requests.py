@@ -34,9 +34,7 @@ def upgrade() -> None:
     ).scalar():
         return
 
-    op.execute(
-        "CREATE TYPE school.data_rights_request_type AS ENUM ('export', 'deletion')"
-    )
+    op.execute("CREATE TYPE school.data_rights_request_type AS ENUM ('export', 'deletion')")
     op.execute(
         "CREATE TYPE school.data_rights_request_status AS ENUM ("
         "'requested', 'processing', 'ready', 'expired', "
@@ -102,8 +100,12 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_data_rights_requests_status", table_name="data_rights_requests", schema="school")
-    op.drop_index("ix_data_rights_requests_user_id", table_name="data_rights_requests", schema="school")
+    op.drop_index(
+        "ix_data_rights_requests_status", table_name="data_rights_requests", schema="school"
+    )
+    op.drop_index(
+        "ix_data_rights_requests_user_id", table_name="data_rights_requests", schema="school"
+    )
     op.drop_table("data_rights_requests", schema="school")
     op.execute("DROP TYPE IF EXISTS school.data_rights_request_status")
     op.execute("DROP TYPE IF EXISTS school.data_rights_request_type")

@@ -112,9 +112,13 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         )
     }
 
-    monkeypatch.setattr("app.features.data_rights.service.DataRightsRequestRepository", _FakeRequestRepo)
+    monkeypatch.setattr(
+        "app.features.data_rights.service.DataRightsRequestRepository", _FakeRequestRepo
+    )
     monkeypatch.setattr("app.features.data_rights.service.UserRepository", _FakeUserRepo)
-    monkeypatch.setattr("app.features.data_rights.service.StudentProfileRepository", _FakeStudentProfileRepo)
+    monkeypatch.setattr(
+        "app.features.data_rights.service.StudentProfileRepository", _FakeStudentProfileRepo
+    )
     monkeypatch.setattr("app.features.data_rights.service.ParentProfileRepository", MagicMock())
     monkeypatch.setattr("app.features.data_rights.service.ParentChildLinkRepository", MagicMock())
     monkeypatch.setattr("app.features.data_rights.service.StudentEnrollmentRepository", MagicMock())

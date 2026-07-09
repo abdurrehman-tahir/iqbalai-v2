@@ -24,7 +24,12 @@ depends_on: str | None = None
 def upgrade() -> None:
     op.create_table(
         "independent_teacher_profiles",
-        sa.Column("user_id", sa.String(36), sa.ForeignKey("independent.users.id", ondelete="RESTRICT"), primary_key=True),
+        sa.Column(
+            "user_id",
+            sa.String(36),
+            sa.ForeignKey("independent.users.id", ondelete="RESTRICT"),
+            primary_key=True,
+        ),
         sa.Column("name", sa.String(255), nullable=False),
         sa.Column("language_preference", sa.String(10), nullable=False),
         sa.Column("profile_completed_at", sa.DateTime(timezone=True), nullable=True),

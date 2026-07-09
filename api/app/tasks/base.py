@@ -45,9 +45,7 @@ def tenant_task(**celery_kwargs: Any) -> Callable[[Callable[P, R]], Callable[P, 
 
     def decorator(fn: Callable[P, R]) -> Callable[P, R]:
         if "school_id" not in inspect.signature(fn).parameters:
-            raise TypeError(
-                f"@tenant_task requires `school_id` in {fn.__name__!r}'s signature."
-            )
+            raise TypeError(f"@tenant_task requires `school_id` in {fn.__name__!r}'s signature.")
 
         task_name = celery_kwargs.get("name", fn.__name__)
 

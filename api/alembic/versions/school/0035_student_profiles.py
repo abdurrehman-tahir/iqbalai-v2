@@ -47,7 +47,9 @@ def upgrade() -> None:
         sa.Column("profile_basic_completed_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("lecture_mode_enabled", sa.Boolean(), nullable=False, server_default="false"),
         sa.Column("self_study_mode_enabled", sa.Boolean(), nullable=False, server_default="false"),
-        sa.Column("deferrable_banner_dismissed", sa.Boolean(), nullable=False, server_default="false"),
+        sa.Column(
+            "deferrable_banner_dismissed", sa.Boolean(), nullable=False, server_default="false"
+        ),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),

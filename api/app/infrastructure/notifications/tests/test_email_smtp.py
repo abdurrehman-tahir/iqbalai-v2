@@ -48,7 +48,9 @@ def test_send_smtp_sync_uses_ssl_login() -> None:
     )
 
     smtp_instance = MagicMock()
-    smtp_cls = MagicMock(return_value=MagicMock(__enter__=lambda s: smtp_instance, __exit__=lambda *a: None))
+    smtp_cls = MagicMock(
+        return_value=MagicMock(__enter__=lambda s: smtp_instance, __exit__=lambda *a: None)
+    )
 
     with patch.object(email_module.smtplib, "SMTP_SSL", smtp_cls):
         email_module._send_smtp_sync(

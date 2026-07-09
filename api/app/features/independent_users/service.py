@@ -34,7 +34,9 @@ class IndependentUserService:
     async def get_by_authentik_id_any(self, authentik_id: str) -> IndependentUser | None:
         return await self._repo.get_by_authentik_id_any(authentik_id)
 
-    async def get_or_create_from_jwt(self, claims: dict[str, object]) -> tuple[IndependentUser, bool]:
+    async def get_or_create_from_jwt(
+        self, claims: dict[str, object]
+    ) -> tuple[IndependentUser, bool]:
         authentik_id = str(claims.get("sub", ""))
         email = str(claims.get("email", "")).strip().lower()
 

@@ -14,11 +14,7 @@ from app.features.parent_signup.service import (
     ParentSignupService,
 )
 from app.features.tos.repository import TosRepository
-from app.features.parent_signup.service import (
-    PARENT_STATE_ACTIVE_UNLINKED,
-    ParentSignupService,
-)
-from app.features.users.models import User, UserAccountStatus, UserRole
+from app.features.users.models import UserAccountStatus, UserRole
 from app.features.users.service import UserService
 
 logger = structlog.get_logger(__name__)

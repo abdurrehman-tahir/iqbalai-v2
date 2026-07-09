@@ -26,7 +26,9 @@ class _FakeOfferingRepo:
     def __init__(self, session: Any) -> None:
         pass
 
-    async def list_by_grade(self, grade_id: str, include_archived: bool = False) -> list[GradeSubjectOffering]:
+    async def list_by_grade(
+        self, grade_id: str, include_archived: bool = False
+    ) -> list[GradeSubjectOffering]:
         rows = [o for o in self.store.values() if o.grade_id == grade_id and o.deleted_at is None]
         if not include_archived:
             rows = [o for o in rows if o.status == OfferingStatus.ACTIVE]
@@ -35,14 +37,14 @@ class _FakeOfferingRepo:
     async def get_by_id(self, id: str) -> GradeSubjectOffering | None:
         return self.store.get(id)
 
-    async def get_by_grade_subject(self, grade_id: str, subject_id: str) -> GradeSubjectOffering | None:
+    async def get_by_grade_subject(
+        self, grade_id: str, subject_id: str
+    ) -> GradeSubjectOffering | None:
         return next(
             (
                 o
                 for o in self.store.values()
-                if o.grade_id == grade_id
-                and o.subject_id == subject_id
-                and o.deleted_at is None
+                if o.grade_id == grade_id and o.subject_id == subject_id and o.deleted_at is None
             ),
             None,
         )
@@ -116,13 +118,17 @@ class _FakeGradeRepo:
     def __init__(self, session: Any) -> None:
         pass
 
-    async def list_by_school_session(self, school_id: str, academic_session: str, include_archived: bool = False) -> list[Grade]:
+    async def list_by_school_session(
+        self, school_id: str, academic_session: str, include_archived: bool = False
+    ) -> list[Grade]:
         return list(self.store.values())
 
     async def get_by_id(self, id: str) -> Grade | None:
         return self.store.get(id)
 
-    async def get_by_name_session(self, school_id: str, name: str, academic_session: str) -> Grade | None:
+    async def get_by_name_session(
+        self, school_id: str, name: str, academic_session: str
+    ) -> Grade | None:
         return None
 
     async def create(self, grade: Grade) -> Grade:

@@ -13,7 +13,12 @@ from __future__ import annotations
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ConflictError, NotFoundError, PermissionDeniedError, PreconditionFailedError
+from app.core.exceptions import (
+    ConflictError,
+    NotFoundError,
+    PermissionDeniedError,
+    PreconditionFailedError,
+)
 from app.features.offerings.repository import OfferingRepository
 from app.features.subjects.models import Subject, SubjectStatus
 from app.features.subjects.repository import SubjectRepository

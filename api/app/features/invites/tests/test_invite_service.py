@@ -341,9 +341,7 @@ async def test_accept_coordinator_invite_sets_scoped_ids() -> None:
         caller_role="school_admin",
         claims=_claims("school_admin", district_id="dist-1") | {"school_id": "school-1"},
     )
-    await svc.accept_invite(
-        AcceptInviteRequest(token=raw, action="accept", password="securepass1")
-    )
+    await svc.accept_invite(AcceptInviteRequest(token=raw, action="accept", password="securepass1"))
     user = next(u for u in _FakeUserRepo.users.values() if u.email == "coord-accept@test.com")
     assert user.role == UserRole.COORDINATOR
     assert user.scoped_ids == "Grade 9,Grade 10"
@@ -400,9 +398,7 @@ async def test_accept_school_admin_invite_sets_school_id() -> None:
         caller_role="district_admin",
         claims=_claims("district_admin", district_id="dist-1"),
     )
-    await svc.accept_invite(
-        AcceptInviteRequest(token=raw, action="accept", password="securepass1")
-    )
+    await svc.accept_invite(AcceptInviteRequest(token=raw, action="accept", password="securepass1"))
     user = next(iter(_FakeUserRepo.users.values()))
     assert user.school_id == "school-1"
     assert user.role == UserRole.SCHOOL_ADMIN

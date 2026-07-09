@@ -7,12 +7,21 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from app.features.independent_users.models import IndependentUserRole
-from app.features.independent_users.service import IndependentUserService, parse_independent_user_role
+from app.features.independent_users.service import (
+    IndependentUserService,
+    parse_independent_user_role,
+)
 
 
 def test_parse_independent_user_role() -> None:
-    assert parse_independent_user_role("independent_teacher") == IndependentUserRole.INDEPENDENT_TEACHER
-    assert parse_independent_user_role("INDEPENDENT_STUDENT") == IndependentUserRole.INDEPENDENT_STUDENT
+    assert (
+        parse_independent_user_role("independent_teacher")
+        == IndependentUserRole.INDEPENDENT_TEACHER
+    )
+    assert (
+        parse_independent_user_role("INDEPENDENT_STUDENT")
+        == IndependentUserRole.INDEPENDENT_STUDENT
+    )
 
 
 @pytest.mark.asyncio

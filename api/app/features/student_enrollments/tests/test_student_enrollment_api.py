@@ -16,7 +16,7 @@ from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import setup_exception_handlers
 from app.features.grades.models import Grade, GradeStatus
 from app.features.sections.models import DEFAULT_INTERNAL_NAME, Section, SectionStatus
-from app.features.student_enrollments.models import StudentEnrollment, StudentEnrollmentStatus
+from app.features.student_enrollments.models import StudentEnrollment
 from app.features.users.models import User, UserAccountStatus, UserRole
 
 

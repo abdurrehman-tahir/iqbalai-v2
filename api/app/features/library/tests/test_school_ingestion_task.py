@@ -153,7 +153,10 @@ def test_ingest_marks_failed_with_error_and_dlq_on_terminal_failure() -> None:
 
     with (
         patch("app.features.library.school_tasks.run_db") as mock_run_db,
-        patch("app.features.library.school_tasks.download_bytes", side_effect=RuntimeError("MinIO down")),
+        patch(
+            "app.features.library.school_tasks.download_bytes",
+            side_effect=RuntimeError("MinIO down"),
+        ),
         patch("app.infrastructure.celery.dlq.push_task_dlq") as mock_dlq,
         patch.object(task, "retry", side_effect=RuntimeError("stop retry")),
     ):

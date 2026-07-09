@@ -64,11 +64,7 @@ def downgrade() -> None:
         return
 
     op.execute("DROP VIEW IF EXISTS independent.users_readonly")
-    op.execute(
-        "ALTER TABLE school.users "
-        "ALTER COLUMN role TYPE text "
-        "USING role::text"
-    )
+    op.execute("ALTER TABLE school.users " "ALTER COLUMN role TYPE text " "USING role::text")
     op.execute(
         """
         CREATE VIEW independent.users_readonly AS

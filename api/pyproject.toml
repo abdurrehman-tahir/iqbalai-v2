@@ -55,6 +55,11 @@ select = ["E", "F", "I"]
 # These bodies cannot be line-wrapped without harming readability or changing the text,
 # so E501 is not meaningful here (the formatter still governs code line length elsewhere).
 "app/infrastructure/notifications/templates/*.py" = ["E501"]
+# Alembic migrations often contain long SQL / constraint names that should not be wrapped.
+"alembic/versions/**/*.py" = ["E501"]
+# Test fakes and monkeypatch strings are intentionally verbose for readability.
+"**/tests/**/*.py" = ["E501"]
+"tests/**/*.py" = ["E501"]
 
 [tool.ruff.lint.isort]
 known-first-party = ["app"]

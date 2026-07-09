@@ -507,9 +507,7 @@ async def test_cross_district_school_get_returns_404() -> None:
 
 async def test_cross_school_suspend_returns_404() -> None:
     """School Admin from school-2 cannot suspend user in school-1."""
-    async with _build_client(
-        "school_admin", district_id="dist-2", school_id="school-2"
-    ) as client:
+    async with _build_client("school_admin", district_id="dist-2", school_id="school-2") as client:
         resp = await client.post("/api/v1/admin/users/teacher-1/suspend")
     assert resp.status_code == 404
 

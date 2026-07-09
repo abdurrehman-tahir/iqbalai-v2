@@ -52,7 +52,9 @@ def upgrade() -> None:
             server_default=sa.text("(now() AT TIME ZONE 'UTC')"),
             nullable=False,
         ),
-        sa.ForeignKeyConstraint(["library_item_id"], ["school.library_items.id"], ondelete="CASCADE"),
+        sa.ForeignKeyConstraint(
+            ["library_item_id"], ["school.library_items.id"], ondelete="CASCADE"
+        ),
         sa.ForeignKeyConstraint(["school_id"], ["school.schools.id"], ondelete="RESTRICT"),
         schema="school",
     )
@@ -91,8 +93,12 @@ def upgrade() -> None:
 
 def downgrade() -> None:
     op.execute("DROP POLICY IF EXISTS library_item_chunks_isolation ON school.library_item_chunks")
-    op.drop_index("library_item_chunks_item_index_uq", table_name="library_item_chunks", schema="school")
-    op.drop_index("ix_library_item_chunks_school_id", table_name="library_item_chunks", schema="school")
+    op.drop_index(
+        "library_item_chunks_item_index_uq", table_name="library_item_chunks", schema="school"
+    )
+    op.drop_index(
+        "ix_library_item_chunks_school_id", table_name="library_item_chunks", schema="school"
+    )
     op.drop_index(
         "ix_library_item_chunks_library_item_id",
         table_name="library_item_chunks",

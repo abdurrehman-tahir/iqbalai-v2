@@ -5,7 +5,8 @@ from __future__ import annotations
 import enum
 from datetime import datetime
 
-from sqlalchemy import DateTime, Enum as SAEnum, ForeignKey, String
+from sqlalchemy import DateTime, ForeignKey, String
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7

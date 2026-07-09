@@ -23,9 +23,7 @@ depends_on: str | None = None
 
 def upgrade() -> None:
     op.execute("ALTER TYPE school.bulkimportstatus ADD VALUE IF NOT EXISTS 'committed'")
-    op.execute(
-        "ALTER TYPE school.bulkimportstatus ADD VALUE IF NOT EXISTS 'committed_with_errors'"
-    )
+    op.execute("ALTER TYPE school.bulkimportstatus ADD VALUE IF NOT EXISTS 'committed_with_errors'")
 
 
 def downgrade() -> None:

@@ -146,7 +146,10 @@ def build_export_zip(
         archive.writestr("account.json", _dump_json(account))
 
         if user.role == UserRole.STUDENT:
-            archive.writestr("student_profile.json", _dump_json(_student_profile_payload(student_profile)))
+            archive.writestr(
+                "student_profile.json",
+                _dump_json(_student_profile_payload(student_profile)),
+            )
             archive.writestr(
                 "parent_links.json",
                 _dump_json(_student_links_payload(student_links or [])),
@@ -157,7 +160,9 @@ def build_export_zip(
             )
             csv_buffer = io.StringIO()
             writer = csv.writer(csv_buffer)
-            writer.writerow(["enrollment_id", "grade_id", "section_id", "academic_session", "status"])
+            writer.writerow(
+                ["enrollment_id", "grade_id", "section_id", "academic_session", "status"]
+            )
             for row in _enrollments_payload(enrollments or []):
                 writer.writerow(
                     [
@@ -171,7 +176,10 @@ def build_export_zip(
             archive.writestr("enrollments.csv", csv_buffer.getvalue())
 
         if user.role == UserRole.PARENT:
-            archive.writestr("parent_profile.json", _dump_json(_parent_profile_payload(parent_profile)))
+            archive.writestr(
+                "parent_profile.json",
+                _dump_json(_parent_profile_payload(parent_profile)),
+            )
             archive.writestr(
                 "child_links.json",
                 _dump_json(_parent_links_payload(parent_links or [])),

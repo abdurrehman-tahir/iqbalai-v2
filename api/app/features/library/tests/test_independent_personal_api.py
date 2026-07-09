@@ -40,7 +40,9 @@ class _FakeIndependentPersonalService:
         )
         return IndependentPersonalUploadResponse(item=item, storage_deduplicated=False)
 
-    async def list_items(self, claims: dict[str, object], **kwargs: Any) -> IndependentPersonalListResponse:
+    async def list_items(
+        self, claims: dict[str, object], **kwargs: Any
+    ) -> IndependentPersonalListResponse:
         return IndependentPersonalListResponse(items=[], total=0)
 
 

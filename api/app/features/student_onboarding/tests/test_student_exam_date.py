@@ -78,7 +78,9 @@ READY_PROFILE = StudentProfile(
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeProfileRepo.store = {STUDENT.id: READY_PROFILE}
     _FakeUserRepo.store = {STUDENT.id: STUDENT}
-    monkeypatch.setattr("app.features.student_onboarding.service.StudentProfileRepository", _FakeProfileRepo)
+    monkeypatch.setattr(
+        "app.features.student_onboarding.service.StudentProfileRepository", _FakeProfileRepo
+    )
     monkeypatch.setattr("app.features.student_onboarding.service.UserRepository", _FakeUserRepo)
     monkeypatch.setattr("app.features.student_onboarding.service.audit", AsyncMock())
     monkeypatch.setattr(
@@ -110,7 +112,9 @@ def _build_client() -> AsyncClient:
 async def test_set_exam_date_persists() -> None:
     future = (date.today() + timedelta(days=60)).isoformat()
     async with _build_client() as client:
-        resp = await client.put("/api/v1/students/me/onboarding/exam-date", json={"exam_date": future})
+        resp = await client.put(
+            "/api/v1/students/me/onboarding/exam-date", json={"exam_date": future}
+        )
     assert resp.status_code == 200
     data = resp.json()["data"]
     assert data["exam_date_set"] is True
@@ -122,7 +126,9 @@ async def test_set_exam_date_persists() -> None:
 async def test_set_exam_date_rejects_past_date() -> None:
     past = (date.today() - timedelta(days=1)).isoformat()
     async with _build_client() as client:
-        resp = await client.put("/api/v1/students/me/onboarding/exam-date", json={"exam_date": past})
+        resp = await client.put(
+            "/api/v1/students/me/onboarding/exam-date", json={"exam_date": past}
+        )
     assert resp.status_code == 422
 
 
@@ -132,7 +138,9 @@ async def test_update_exam_date_is_editable() -> None:
     second = (date.today() + timedelta(days=45)).isoformat()
     async with _build_client() as client:
         await client.put("/api/v1/students/me/onboarding/exam-date", json={"exam_date": first})
-        resp = await client.put("/api/v1/students/me/onboarding/exam-date", json={"exam_date": second})
+        resp = await client.put(
+            "/api/v1/students/me/onboarding/exam-date", json={"exam_date": second}
+        )
     assert resp.status_code == 200
     assert _FakeProfileRepo.store[STUDENT.id].exam_date == date.fromisoformat(second)
     assert _FakeProfileRepo.store[STUDENT.id].exam_countdown_sent_days is None
@@ -149,13 +157,17 @@ def test_banner_hidden_when_exam_date_set() -> None:
         self_study_mode_enabled=False,
         exam_date=date.today() + timedelta(days=30),
     )
-    state = derive_school_student_state(user=STUDENT, profile=profile, enrollment_grade_id="grade-9")
+    state = derive_school_student_state(
+        user=STUDENT, profile=profile, enrollment_grade_id="grade-9"
+    )
     assert state.exam_date_set
     assert not state.show_complete_profile_banner
 
 
 @pytest.mark.asyncio
-async def test_exam_countdown_notifications_for_registered_days(monkeypatch: pytest.MonkeyPatch) -> None:
+async def test_exam_countdown_notifications_for_registered_days(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     profile = _FakeProfileRepo.store[STUDENT.id]
     profile.exam_date = date.today() + timedelta(days=30)
     profile.exam_countdown_sent_days = None

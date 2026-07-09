@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from collections.abc import AsyncGenerator
-from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -19,11 +18,11 @@ from app.features.data_rights.models import (
     DataRightsRequestType,
 )
 from app.features.data_rights.tests.test_data_rights_service import (
+    CLAIMS,
+    STUDENT,
     _FakeRequestRepo,
     _FakeStudentProfileRepo,
     _FakeUserRepo,
-    CLAIMS,
-    STUDENT,
 )
 
 
@@ -52,9 +51,13 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeUserRepo.store = {STUDENT.id: STUDENT}
     _FakeStudentProfileRepo.store = {}
 
-    monkeypatch.setattr("app.features.data_rights.service.DataRightsRequestRepository", _FakeRequestRepo)
+    monkeypatch.setattr(
+        "app.features.data_rights.service.DataRightsRequestRepository", _FakeRequestRepo
+    )
     monkeypatch.setattr("app.features.data_rights.service.UserRepository", _FakeUserRepo)
-    monkeypatch.setattr("app.features.data_rights.service.StudentProfileRepository", _FakeStudentProfileRepo)
+    monkeypatch.setattr(
+        "app.features.data_rights.service.StudentProfileRepository", _FakeStudentProfileRepo
+    )
     monkeypatch.setattr("app.features.data_rights.service.ParentProfileRepository", MagicMock())
     monkeypatch.setattr("app.features.data_rights.service.ParentChildLinkRepository", MagicMock())
     monkeypatch.setattr("app.features.data_rights.service.StudentEnrollmentRepository", MagicMock())

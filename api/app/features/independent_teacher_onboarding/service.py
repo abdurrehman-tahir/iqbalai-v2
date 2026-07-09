@@ -9,14 +9,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, PreconditionFailedError
 from app.features.independent_teacher_onboarding.models import IndependentTeacherProfile
-from app.features.independent_teacher_onboarding.repository import IndependentTeacherProfileRepository
+from app.features.independent_teacher_onboarding.repository import (
+    IndependentTeacherProfileRepository,
+)
 from app.features.independent_teacher_onboarding.schemas import (
     IndependentTeacherOnboardingRead,
     IndependentTeacherOnboardingState,
     IndependentTeacherProfileComplete,
     IndependentTeacherProfileRead,
 )
-from app.features.independent_users.models import IndependentUser, IndependentUserAccountStatus, IndependentUserRole
+from app.features.independent_users.models import (
+    IndependentUser,
+    IndependentUserAccountStatus,
+    IndependentUserRole,
+)
 from app.features.independent_users.repository import IndependentUserRepository
 
 logger = structlog.get_logger(__name__)
@@ -58,7 +64,9 @@ class IndependentTeacherOnboardingService:
         if user is None or user.deleted_at is not None:
             raise NotFoundError("User profile not found")
         if user.role != IndependentUserRole.INDEPENDENT_TEACHER:
-            raise PermissionDeniedError("Independent teacher onboarding only for independent teachers")
+            raise PermissionDeniedError(
+                "Independent teacher onboarding only for independent teachers"
+            )
         return user
 
     async def get_onboarding_state(

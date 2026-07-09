@@ -13,7 +13,9 @@ class OfferingRepository:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
 
-    async def list_by_grade(self, grade_id: str, include_archived: bool = False) -> list[GradeSubjectOffering]:
+    async def list_by_grade(
+        self, grade_id: str, include_archived: bool = False
+    ) -> list[GradeSubjectOffering]:
         stmt = select(GradeSubjectOffering).where(
             GradeSubjectOffering.grade_id == grade_id,
             not_deleted(GradeSubjectOffering),
@@ -30,7 +32,9 @@ class OfferingRepository:
         )
         return result.scalar_one_or_none()
 
-    async def get_by_grade_subject(self, grade_id: str, subject_id: str) -> GradeSubjectOffering | None:
+    async def get_by_grade_subject(
+        self, grade_id: str, subject_id: str
+    ) -> GradeSubjectOffering | None:
         result = await self._session.execute(
             select(GradeSubjectOffering).where(
                 GradeSubjectOffering.grade_id == grade_id,

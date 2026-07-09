@@ -72,7 +72,12 @@ class AcademicSessionService:
             school_id=school_id,
             metadata={"label": created.label, "is_active": created.is_active},
         )
-        logger.info("academic_session_created", session_id=created.id, school_id=school_id, by=actor_id)
+        logger.info(
+            "academic_session_created",
+            session_id=created.id,
+            school_id=school_id,
+            by=actor_id,
+        )
         return created
 
     async def activate_session(

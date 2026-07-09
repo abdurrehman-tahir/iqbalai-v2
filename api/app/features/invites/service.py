@@ -386,7 +386,9 @@ class InviteService:
         if invite.invited_role == UserRole.STUDENT:
             existing = await self._users.get_by_email(invite.email)
             if existing is None or existing.deleted_at is not None:
-                raise ValidationError("Student enrollment record missing — contact your coordinator")
+                raise ValidationError(
+                    "Student enrollment record missing — contact your coordinator"
+                )
             if existing.status != UserAccountStatus.INVITED:
                 raise ConflictError("Student account is not pending invite acceptance")
             existing.authentik_id = invite.authentik_id

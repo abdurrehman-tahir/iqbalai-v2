@@ -7,16 +7,21 @@ from datetime import date, datetime, timedelta, timezone
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError, PermissionDeniedError, PreconditionFailedError, ValidationError
+from app.core.exceptions import (
+    NotFoundError,
+    PermissionDeniedError,
+    PreconditionFailedError,
+    ValidationError,
+)
 from app.features.student_enrollments.models import StudentEnrollment, StudentEnrollmentStatus
 from app.features.student_onboarding.models import StudentProfile
 from app.features.student_onboarding.repository import StudentProfileRepository
 from app.features.student_onboarding.schemas import (
     SchoolStudentOnboardingRead,
     SchoolStudentOnboardingState,
+    StudentExamDateUpdate,
     StudentModeSelect,
     StudentProfileBasicComplete,
-    StudentExamDateUpdate,
     StudentProfileRead,
 )
 from app.features.tos.service import TosService
@@ -96,9 +101,7 @@ def derive_school_student_state(
             migration_scheduled_at=migration_scheduled_at,
         )
 
-    profile_basic_complete = (
-        profile is not None and profile.profile_basic_completed_at is not None
-    )
+    profile_basic_complete = profile is not None and profile.profile_basic_completed_at is not None
     mode_selected = (
         profile is not None
         and profile.profile_basic_completed_at is not None
@@ -115,8 +118,10 @@ def derive_school_student_state(
 
     profile_read = StudentProfileRead.model_validate(profile) if profile else None
     exam_date_set = profile is not None and profile.exam_date is not None
-    show_banner = ready_to_study and profile is not None and (
-        not profile.deferrable_banner_dismissed and not exam_date_set
+    show_banner = (
+        ready_to_study
+        and profile is not None
+        and (not profile.deferrable_banner_dismissed and not exam_date_set)
     )
 
     return SchoolStudentOnboardingRead(
@@ -152,7 +157,6 @@ class StudentOnboardingService:
         # Latest active enrollment — grade is auto-satisfied from T-077 enrollment.
         from sqlalchemy import select
 
-        from app.features.student_enrollments.models import StudentEnrollment
         from app.db.base import not_deleted
 
         result = await self._session.execute(
@@ -278,9 +282,7 @@ class StudentOnboardingService:
     ) -> SchoolStudentOnboardingRead:
         user = await self._require_student(claims)
         profile = await self._profile_repo.get_by_user_id(user.id)
-        if profile is None or not (
-            profile.lecture_mode_enabled or profile.self_study_mode_enabled
-        ):
+        if profile is None or not (profile.lecture_mode_enabled or profile.self_study_mode_enabled):
             raise PreconditionFailedError("Complete onboarding before dismissing the banner")
 
         profile.deferrable_banner_dismissed = True
@@ -296,9 +298,7 @@ class StudentOnboardingService:
     ) -> SchoolStudentOnboardingRead:
         user = await self._require_student(claims)
         profile = await self._profile_repo.get_by_user_id(user.id)
-        if profile is None or not (
-            profile.lecture_mode_enabled or profile.self_study_mode_enabled
-        ):
+        if profile is None or not (profile.lecture_mode_enabled or profile.self_study_mode_enabled):
             raise PreconditionFailedError("Complete onboarding before setting an exam date")
 
         warning = _future_date_warning(payload.exam_date)

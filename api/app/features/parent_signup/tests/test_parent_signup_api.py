@@ -95,7 +95,9 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeUserRepo.by_email = {}
     _FakeParentProfileRepo.store = {}
     monkeypatch.setattr("app.features.parent_signup.service.UserRepository", _FakeUserRepo)
-    monkeypatch.setattr("app.features.parent_signup.service.ParentProfileRepository", _FakeParentProfileRepo)
+    monkeypatch.setattr(
+        "app.features.parent_signup.service.ParentProfileRepository", _FakeParentProfileRepo
+    )
     monkeypatch.setattr(
         "app.features.parent_signup.service.IndependentUserRepository",
         _FakeIndependentUserRepo,

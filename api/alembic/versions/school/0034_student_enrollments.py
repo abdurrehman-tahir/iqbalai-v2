@@ -120,9 +120,7 @@ def upgrade() -> None:
         ["student_user_id", "academic_session"],
         unique=True,
         schema="school",
-        postgresql_where=sa.text(
-            "deleted_at IS NULL AND status = 'active'"
-        ),
+        postgresql_where=sa.text("deleted_at IS NULL AND status = 'active'"),
     )
 
 
@@ -132,10 +130,20 @@ def downgrade() -> None:
         table_name="student_enrollments",
         schema="school",
     )
-    op.drop_index("ix_student_enrollments_deleted_at", table_name="student_enrollments", schema="school")
-    op.drop_index("ix_student_enrollments_section_id", table_name="student_enrollments", schema="school")
-    op.drop_index("ix_student_enrollments_grade_id", table_name="student_enrollments", schema="school")
-    op.drop_index("ix_student_enrollments_student_user_id", table_name="student_enrollments", schema="school")
-    op.drop_index("ix_student_enrollments_school_id", table_name="student_enrollments", schema="school")
+    op.drop_index(
+        "ix_student_enrollments_deleted_at", table_name="student_enrollments", schema="school"
+    )
+    op.drop_index(
+        "ix_student_enrollments_section_id", table_name="student_enrollments", schema="school"
+    )
+    op.drop_index(
+        "ix_student_enrollments_grade_id", table_name="student_enrollments", schema="school"
+    )
+    op.drop_index(
+        "ix_student_enrollments_student_user_id", table_name="student_enrollments", schema="school"
+    )
+    op.drop_index(
+        "ix_student_enrollments_school_id", table_name="student_enrollments", schema="school"
+    )
     op.drop_table("student_enrollments", schema="school")
     op.execute("DROP TYPE IF EXISTS school.student_enrollment_status")

@@ -62,7 +62,9 @@ class _FakeSessionRepo:
             if s.school_id == school_id and s.is_active:
                 s.is_active = False
 
-    async def set_active(self, session_row: AcademicSession, school_id: str, label: str) -> AcademicSession:
+    async def set_active(
+        self, session_row: AcademicSession, school_id: str, label: str
+    ) -> AcademicSession:
         await self.deactivate_all(school_id)
         session_row.is_active = True
         self.school_active_label[school_id] = label
@@ -155,7 +157,9 @@ async def test_activate_session_deactivates_prior() -> None:
         s2 = await client.post(
             "/api/v1/academic-sessions/", json={"label": "2025-2026", "set_active": False}
         )
-        activate = await client.post(f"/api/v1/academic-sessions/{s2.json()['data']['id']}/activate")
+        activate = await client.post(
+            f"/api/v1/academic-sessions/{s2.json()['data']['id']}/activate"
+        )
     assert activate.status_code == 200
     assert activate.json()["data"]["is_active"] is True
     get_s1 = _FakeSessionRepo.store[s1.json()["data"]["id"]]

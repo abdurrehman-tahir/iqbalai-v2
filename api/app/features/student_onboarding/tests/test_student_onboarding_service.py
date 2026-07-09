@@ -9,7 +9,10 @@ import pytest
 
 from app.features.student_onboarding.models import StudentProfile
 from app.features.student_onboarding.schemas import SchoolStudentOnboardingState
-from app.features.student_onboarding.service import StudentOnboardingService, derive_school_student_state
+from app.features.student_onboarding.service import (
+    StudentOnboardingService,
+    derive_school_student_state,
+)
 from app.features.users.models import User, UserAccountStatus, UserRole
 
 
@@ -36,7 +39,9 @@ def test_derive_invited_state() -> None:
 
 
 def test_derive_profile_basic_state() -> None:
-    state = derive_school_student_state(user=_student(), profile=None, enrollment_grade_id="grade-9")
+    state = derive_school_student_state(
+        user=_student(), profile=None, enrollment_grade_id="grade-9"
+    )
     assert state.state == SchoolStudentOnboardingState.PROFILE_BASIC
 
 

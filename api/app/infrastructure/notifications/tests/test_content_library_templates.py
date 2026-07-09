@@ -44,8 +44,6 @@ def test_templates_render_in_all_locales(template_key: str, locale: str) -> None
             assert rendered["body"]
         return
 
-    rendered = render_content_library_template(
-        template_key, locale=locale, params=params
-    )
+    rendered = render_content_library_template(template_key, locale=locale, params=params)
     assert rendered["title"]
     assert rendered["body"]

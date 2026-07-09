@@ -85,7 +85,9 @@ class DataRightsService:
             download_available=download_available,
         )
 
-    async def get_status(self, claims: dict[str, object], *, role: UserRole) -> DataRightsStatusRead:
+    async def get_status(
+        self, claims: dict[str, object], *, role: UserRole
+    ) -> DataRightsStatusRead:
         user = await self._require_user(claims, role=role)
         await self._expire_stale_exports(user.id)
         requests = await self._requests.list_for_user(user.id)
@@ -94,7 +96,11 @@ class DataRightsService:
             None,
         )
         deletion_request = next(
-            (self._to_read(r) for r in requests if r.request_type == DataRightsRequestType.DELETION),
+            (
+                self._to_read(r)
+                for r in requests
+                if r.request_type == DataRightsRequestType.DELETION
+            ),
             None,
         )
         return DataRightsStatusRead(

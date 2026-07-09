@@ -11,6 +11,12 @@ from app.core.exceptions import (
     PreconditionFailedError,
     ValidationError,
 )
+from app.features.audit.actions import (
+    SCHOOL_LIBRARY_ITEM_DELETED,
+    SCHOOL_LIBRARY_ITEM_PUBLISHED,
+    SCHOOL_LIBRARY_ITEM_SELECTION_REMOVED,
+    SCHOOL_LIBRARY_ITEM_UPLOADED,
+)
 from app.features.files.models import UploadRecord
 from app.features.files.pipeline import run_upload_pipeline
 from app.features.files.profiles import get_profile
@@ -32,12 +38,6 @@ from app.features.library.school_models import (
 )
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
-from app.features.audit.actions import (
-    SCHOOL_LIBRARY_ITEM_DELETED,
-    SCHOOL_LIBRARY_ITEM_PUBLISHED,
-    SCHOOL_LIBRARY_ITEM_SELECTION_REMOVED,
-    SCHOOL_LIBRARY_ITEM_UPLOADED,
-)
 from app.infrastructure.audit.log import audit
 from app.infrastructure.storage.client import sha256_of_bytes
 

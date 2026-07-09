@@ -10,7 +10,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import NotFoundError, PermissionDeniedError, PreconditionFailedError
 from app.features.exam_syllabi.repository import ExamSyllabiRepository
 from app.features.independent_student_onboarding.models import IndependentStudentProfile
-from app.features.independent_student_onboarding.repository import IndependentStudentProfileRepository
+from app.features.independent_student_onboarding.repository import (
+    IndependentStudentProfileRepository,
+)
 from app.features.independent_student_onboarding.schemas import (
     ExamFrameworkOption,
     IndependentStudentOnboardingRead,
@@ -18,7 +20,11 @@ from app.features.independent_student_onboarding.schemas import (
     IndependentStudentProfileComplete,
     IndependentStudentProfileRead,
 )
-from app.features.independent_users.models import IndependentUser, IndependentUserAccountStatus, IndependentUserRole
+from app.features.independent_users.models import (
+    IndependentUser,
+    IndependentUserAccountStatus,
+    IndependentUserRole,
+)
 from app.features.independent_users.repository import IndependentUserRepository
 
 logger = structlog.get_logger(__name__)
@@ -78,7 +84,9 @@ class IndependentStudentOnboardingService:
         if user is None or user.deleted_at is not None:
             raise NotFoundError("User profile not found")
         if user.role != IndependentUserRole.INDEPENDENT_STUDENT:
-            raise PermissionDeniedError("Independent student onboarding only for independent students")
+            raise PermissionDeniedError(
+                "Independent student onboarding only for independent students"
+            )
         return user
 
     async def get_onboarding_state(

@@ -6,7 +6,7 @@ from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict
 
-from app.features.graduation.models import GraduationMigrationStatus, GraduationRequestStatus
+from app.features.graduation.models import GraduationRequestStatus
 
 
 class GraduationRequestRead(BaseModel):
