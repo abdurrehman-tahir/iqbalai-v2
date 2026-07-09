@@ -61,6 +61,14 @@ import type {
   TosVersion,
   TosVersionCreate,
   TosVersionRead,
+  IndependentSignupCreate,
+  IndependentSignupInfo,
+  IndependentSignupResponse,
+  IndependentTeacherOnboardingRead,
+  IndependentTeacherProfileComplete,
+  IndependentStudentOnboardingRead,
+  IndependentStudentProfileComplete,
+  ExamFrameworkOption,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -233,28 +241,11 @@ export const authApi = {
 
 // ── Independent signup ────────────────────────────────────────────────────────
 
-export interface IndependentSignupInfo {
-  roles: string[];
-  languages: string[];
-}
-
-export interface IndependentSignupCreate {
-  email: string;
-  password: string;
-  display_name: string;
-  role: "independent_teacher" | "independent_student";
-  language_preference: "en" | "ur" | "sd" | "ps";
-  grade_level?: number;
-  exam_syllabus_id?: string;
-}
-
-export interface IndependentSignupResponse {
-  user_id: string;
-  email: string;
-  role: string;
-  tenant_type: string;
-  message: string;
-}
+export type {
+  IndependentSignupInfo,
+  IndependentSignupCreate,
+  IndependentSignupResponse,
+} from "./types";
 
 export const independentSignupApi = {
   getInfo: () => request<IndependentSignupInfo>("/independent/signup"),
@@ -266,6 +257,7 @@ export const independentSignupApi = {
 };
 
 // ── Parent signup ─────────────────────────────────────────────────────────────
+<<<<<<< HEAD
 
 export interface ParentSignupInfo {
   languages: string[];
@@ -365,24 +357,117 @@ export const parentChildLinksApi = {
 };
 
 // ── Independent teacher onboarding ────────────────────────────────────────────
+=======
+>>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
 
-export interface IndependentTeacherOnboardingRead {
-  state: "profile_incomplete" | "ready_to_use";
-  profile_complete: boolean;
-  ready_to_use: boolean;
-  can_create_content: boolean;
-  profile: {
-    user_id: string;
-    name: string;
-    language_preference: string;
-    profile_completed_at: string | null;
-  } | null;
+export interface ParentSignupInfo {
+  languages: string[];
 }
 
-export interface IndependentTeacherProfileComplete {
-  name: string;
+export interface ParentSignupCreate {
+  email: string;
+  password: string;
+  display_name: string;
   language_preference: "en" | "ur" | "sd" | "ps";
 }
+
+export interface ParentSignupResponse {
+  user_id: string;
+  email: string;
+  role: string;
+  tenant_type: string;
+  parent_state: string;
+  message: string;
+}
+
+export const parentSignupApi = {
+  getInfo: () => request<ParentSignupInfo>("/parents/signup"),
+  signup: (data: ParentSignupCreate) =>
+    request<ParentSignupResponse>("/parents/signup", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }),
+};
+
+// ── Parent-child links ────────────────────────────────────────────────────────
+
+export interface ParentChildLinkRead {
+  id: string;
+  parent_user_id: string;
+  student_user_id: string;
+  status: "pending" | "approved" | "revoked";
+  parent_name?: string | null;
+  student_name?: string | null;
+  student_email?: string | null;
+  approved_at?: string | null;
+  revoked_at?: string | null;
+  read_only_access: boolean;
+  created_at: string;
+}
+
+export interface ParentConnectionsRead {
+  parent_state: string;
+  links: ParentChildLinkRead[];
+}
+
+export interface StudentLinkRequestList {
+  pending: ParentChildLinkRead[];
+}
+
+export interface StudentConnectionsRead {
+  access_state: string;
+  linked_parents: ParentChildLinkRead[];
+  link_history: ParentChildLinkRead[];
+}
+
+export interface ParentStudentAccessStateRead {
+  student_user_id: string;
+  access_state: string;
+  read_only_access: boolean;
+}
+
+export const parentChildLinksApi = {
+  getConnections: (token: string) =>
+    request<ParentConnectionsRead>("/parents/me/connections", {}, token),
+  createLinkRequest: (token: string, student_email: string) =>
+    request<ParentChildLinkRead>(
+      "/parents/me/link-requests",
+      { method: "POST", body: JSON.stringify({ student_email }) },
+      token,
+    ),
+  revokeLink: (token: string, linkId: string) =>
+    request<ParentChildLinkRead>(
+      `/parents/me/links/${linkId}/revoke`,
+      { method: "POST" },
+      token,
+    ),
+  getStudentAccessState: (token: string, studentUserId: string) =>
+    request<ParentStudentAccessStateRead>(
+      `/parents/me/students/${studentUserId}/access-state`,
+      {},
+      token,
+    ),
+  listStudentPending: (token: string) =>
+    request<StudentLinkRequestList>("/students/me/link-requests", {}, token),
+  getStudentConnections: (token: string) =>
+    request<StudentConnectionsRead>("/students/me/connections", {}, token),
+  approveLinkRequest: (token: string, linkId: string) =>
+    request<ParentChildLinkRead>(
+      `/students/me/link-requests/${linkId}/approve`,
+      { method: "POST" },
+      token,
+    ),
+  revokeParentLink: (token: string, linkId: string) =>
+    request<ParentChildLinkRead>(
+      `/students/me/links/${linkId}/revoke`,
+      { method: "POST" },
+      token,
+    ),
+};
+
+// ── Independent teacher onboarding ────────────────────────────────────────────
+
+export type { IndependentTeacherOnboardingRead, IndependentTeacherProfileComplete } from "./types";
 
 export const independentTeacherOnboardingApi = {
   getOnboarding: (token: string) =>
@@ -395,36 +480,27 @@ export const independentTeacherOnboardingApi = {
     ),
 };
 
-export interface ExamFrameworkOption {
-  id: string;
-  name: string;
-  exam_board: string;
-  language: string;
-}
-
-export interface IndependentStudentOnboardingRead {
-  state: "profile_incomplete" | "ready_to_study";
-  profile_complete: boolean;
-  ready_to_study: boolean;
-  self_study_only: boolean;
-  profile: {
-    user_id: string;
-    name: string;
-    language_preference: string;
-    grade_level: number;
-    exam_syllabus_id: string;
-    exam_date: string | null;
-    diagnostic_available: boolean;
-    diagnostic_deferred: boolean;
-  } | null;
-}
+export type {
+  ExamFrameworkOption,
+  IndependentStudentOnboardingRead,
+  IndependentStudentProfileComplete,
+} from "./types";
 
 export const independentStudentOnboardingApi = {
   listExamFrameworks: () =>
     request<ExamFrameworkOption[]>("/independent/students/me/exam-frameworks"),
   getOnboarding: (token: string) =>
+<<<<<<< HEAD
     request<IndependentStudentOnboardingRead>("/independent/students/me/onboarding", {}, token),
   completeProfile: (token: string, data: { exam_date: string }) =>
+=======
+    request<IndependentStudentOnboardingRead>(
+      "/independent/students/me/onboarding",
+      {},
+      token,
+    ),
+  completeProfile: (token: string, data: IndependentStudentProfileComplete) =>
+>>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
     request<IndependentStudentOnboardingRead>(
       "/independent/students/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
@@ -1158,6 +1234,119 @@ export const dataRightsApi = {
       `/parents/me/data-rights/deletion/${requestId}/cancel`,
       { method: "POST" },
       token
+    ),
+};
+
+export const studentOnboardingApi = {
+  getOnboarding: (token: string) =>
+    request<SchoolStudentOnboardingRead>("/students/me/onboarding", {}, token),
+  completeProfileBasic: (token: string, data: StudentProfileBasicComplete) =>
+    request<SchoolStudentOnboardingRead>(
+      "/students/me/onboarding/profile-basic",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+  selectModes: (token: string, data: StudentModeSelect) =>
+    request<SchoolStudentOnboardingRead>(
+      "/students/me/onboarding/modes",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+  dismissBanner: (token: string) =>
+    request<SchoolStudentOnboardingRead>(
+      "/students/me/onboarding/dismiss-banner",
+      { method: "POST", body: JSON.stringify({ dismissed: true }) },
+      token,
+    ),
+  setExamDate: (token: string, exam_date: string) =>
+    request<SchoolStudentOnboardingRead>(
+      "/students/me/onboarding/exam-date",
+      { method: "PUT", body: JSON.stringify({ exam_date }) },
+      token,
+    ),
+};
+
+export interface DataRightsRequestRead {
+  id: string;
+  request_type: "export" | "deletion";
+  status: string;
+  requested_at: string;
+  ready_at?: string | null;
+  expires_at?: string | null;
+  deletion_scheduled_at?: string | null;
+  completed_at?: string | null;
+  cancelled_at?: string | null;
+  download_available: boolean;
+}
+
+export interface DataRightsStatusRead {
+  export_request?: DataRightsRequestRead | null;
+  deletion_request?: DataRightsRequestRead | null;
+  export_policy_message: string;
+  deletion_policy_message: string;
+}
+
+async function downloadRequest(path: string, token: string): Promise<Blob> {
+  const res = await fetch(`${API_BASE}${path}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) {
+    let message = `Request failed with status ${res.status}`;
+    try {
+      const body = (await res.json()) as { error?: { message?: string } };
+      if (body.error?.message) message = body.error.message;
+    } catch {
+      // ignore parse errors
+    }
+    throw new Error(message);
+  }
+  return res.blob();
+}
+
+export const dataRightsApi = {
+  getStudentStatus: (token: string) =>
+    request<DataRightsStatusRead>("/students/me/data-rights", {}, token),
+  requestStudentExport: (token: string) =>
+    request<DataRightsRequestRead>(
+      "/students/me/data-rights/export",
+      { method: "POST" },
+      token,
+    ),
+  downloadStudentExport: (token: string, requestId: string) =>
+    downloadRequest(`/students/me/data-rights/export/${requestId}/download`, token),
+  requestStudentDeletion: (token: string, confirm: boolean) =>
+    request<DataRightsRequestRead>(
+      "/students/me/data-rights/deletion",
+      { method: "POST", body: JSON.stringify({ confirm }) },
+      token,
+    ),
+  cancelStudentDeletion: (token: string, requestId: string) =>
+    request<DataRightsRequestRead>(
+      `/students/me/data-rights/deletion/${requestId}/cancel`,
+      { method: "POST" },
+      token,
+    ),
+  getParentStatus: (token: string) =>
+    request<DataRightsStatusRead>("/parents/me/data-rights", {}, token),
+  requestParentExport: (token: string) =>
+    request<DataRightsRequestRead>(
+      "/parents/me/data-rights/export",
+      { method: "POST" },
+      token,
+    ),
+  downloadParentExport: (token: string, requestId: string) =>
+    downloadRequest(`/parents/me/data-rights/export/${requestId}/download`, token),
+  requestParentDeletion: (token: string, confirm: boolean) =>
+    request<DataRightsRequestRead>(
+      "/parents/me/data-rights/deletion",
+      { method: "POST", body: JSON.stringify({ confirm }) },
+      token,
+    ),
+  cancelParentDeletion: (token: string, requestId: string) =>
+    request<DataRightsRequestRead>(
+      `/parents/me/data-rights/deletion/${requestId}/cancel`,
+      { method: "POST" },
+      token,
     ),
 };
 

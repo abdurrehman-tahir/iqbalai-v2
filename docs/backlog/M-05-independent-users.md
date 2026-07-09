@@ -278,7 +278,8 @@ Independent Teachers and Independent Students self-sign-up via the public route,
 **Layer:** 6
 **Milestone:** M-05
 **Estimate:** 0.5 day
-**Status:** in-progress (PR pending)
+**Status:** done
+**Commit:** 8f26179 (PR branch)
 
 ### ARCH source
 - `ARCHITECTURE.md` §0 (section-tracking), per `WORKFLOW.md` §1.4 + §2.x

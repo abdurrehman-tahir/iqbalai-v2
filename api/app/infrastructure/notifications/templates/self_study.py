@@ -12,6 +12,7 @@ SELF_STUDY_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         "default": {
             "en": {
                 "title": "Exam approaching",
+<<<<<<< HEAD
                 "body": "Your exam is in {days_remaining} days ({exam_date}). Keep your study plan on track.",
             },
             "ur": {
@@ -25,6 +26,21 @@ SELF_STUDY_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             "ps": {
                 "title": "امتحان نږدې دی",
                 "body": "ستاسو امتحان په {days_remaining} ورځو کې دی ({exam_date}). خپل مطالعې پلان پر مخ وړئ۔",
+=======
+                "body": "Your exam is in {days_remaining} days ({exam_date}). Keep your study plan on track.",  # noqa: E501
+            },
+            "ur": {
+                "title": "امتحان قریب ہے",
+                "body": "آپ کا امتحان {days_remaining} دنوں میں ہے ({exam_date})۔ اپنے مطالعے کا شیڈول برقرار رکھیں۔",  # noqa: E501
+            },
+            "sd": {
+                "title": "امتحان ويجه آهي",
+                "body": "توهان جو امتحان {days_remaining} ڏينهنن ۾ آهي ({exam_date})۔ پنهنجي پڙهائي جو منصوبو جاري رکو۔",  # noqa: E501
+            },
+            "ps": {
+                "title": "امتحان نږدې دی",
+                "body": "ستاسو امتحان په {days_remaining} ورځو کې دی ({exam_date}). خپل مطالعې پلان پر مخ وړئ۔",  # noqa: E501
+>>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
             },
         }
     },

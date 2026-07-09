@@ -148,17 +148,13 @@ class InviteService:
         if payload.role == UserRole.SCHOOL_ADMIN:
             if not school_id:
                 raise ValidationError("school_id is required for school_admin invites")
-            district_id = await self._validate_school_for_invite(
-                school_id, claims, caller_role
-            )
+            district_id = await self._validate_school_for_invite(school_id, claims, caller_role)
         elif payload.role == UserRole.COORDINATOR:
             if caller_role == "school_admin":
                 school_id = str(claims.get("school_id", "") or "") or school_id
             if not school_id:
                 raise ValidationError("school_id is required for coordinator invites")
-            district_id = await self._validate_school_for_invite(
-                school_id, claims, caller_role
-            )
+            district_id = await self._validate_school_for_invite(school_id, claims, caller_role)
             grades = [g.strip() for g in (payload.grade_scope or []) if g.strip()]
             if not grades:
                 raise ValidationError("grade_scope must include at least one grade")
@@ -168,9 +164,7 @@ class InviteService:
                 school_id = str(claims.get("school_id", "") or "") or school_id
             if not school_id:
                 raise ValidationError("school_id is required for teacher invites")
-            district_id = await self._validate_school_for_invite(
-                school_id, claims, caller_role
-            )
+            district_id = await self._validate_school_for_invite(school_id, claims, caller_role)
         elif payload.district_id:
             district = await self._districts.get_by_id(payload.district_id)
             if district is None or district.deleted_at is not None:

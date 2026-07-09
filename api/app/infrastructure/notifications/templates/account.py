@@ -14,22 +14,22 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             "en": {
                 "subject": "You have been invited to IqbalAI",
                 "title": "Invitation sent",
-                "body": "{inviter_name} invited you to join IqbalAI. Accept within 7 days: {invite_url}",
+                "body": "{inviter_name} invited you to join IqbalAI. Accept within 7 days: {invite_url}",  # noqa: E501
             },
             "ur": {
                 "subject": "آپ کو IqbalAI میں مدعو کیا گیا ہے",
                 "title": "دعوت نامہ بھیجا گیا",
-                "body": "{inviter_name} نے آپ کو IqbalAI میں شامل ہونے کی دعوت دی ہے۔ 7 دنوں میں قبول کریں: {invite_url}",
+                "body": "{inviter_name} نے آپ کو IqbalAI میں شامل ہونے کی دعوت دی ہے۔ 7 دنوں میں قبول کریں: {invite_url}",  # noqa: E501
             },
             "sd": {
                 "subject": "توهان کي IqbalAI ۾ دعوت ڏني وئي آهي",
                 "title": "دعوت موڪلي وئي",
-                "body": "{inviter_name} توهان کي IqbalAI ۾ شامل ٿيڻ لاءِ دعوت ڏني آهي۔ 7 ڏينهن اندر قبول ڪريو: {invite_url}",
+                "body": "{inviter_name} توهان کي IqbalAI ۾ شامل ٿيڻ لاءِ دعوت ڏني آهي۔ 7 ڏينهن اندر قبول ڪريو: {invite_url}",  # noqa: E501
             },
             "ps": {
                 "subject": "تاسو IqbalAI ته بل شوي یاست",
                 "title": "بل ولېږل شو",
-                "body": "{inviter_name} تاسو IqbalAI ته د شاملېدو بل درکړی دی۔ په 7 ورځو کې ومنئ: {invite_url}",
+                "body": "{inviter_name} تاسو IqbalAI ته د شاملېدو بل درکړی دی۔ په 7 ورځو کې ومنئ: {invite_url}",  # noqa: E501
             },
         }
     },
@@ -77,7 +77,7 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         "target": {
             "en": {
                 "title": "Account suspended",
-                "body": "Your IqbalAI account has been suspended. Contact your school administrator.",
+                "body": "Your IqbalAI account has been suspended. Contact your school administrator.",  # noqa: E501
             },
             "ur": {
                 "title": "اکاؤنٹ معطل",
@@ -85,7 +85,7 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
             "sd": {
                 "title": "اکاؤنٽ معطل",
-                "body": "توهان جو IqbalAI اکاؤنٽ معطل ڪيو ويو آهي۔ پنهنجي اسڪول منتظم سان رابطو ڪريو۔",
+                "body": "توهان جو IqbalAI اکاؤنٽ معطل ڪيو ويو آهي۔ پنهنجي اسڪول منتظم سان رابطو ڪريو۔",  # noqa: E501
             },
             "ps": {
                 "title": "حساب ځنډول شو",
@@ -121,12 +121,12 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             "ur": {
                 "subject": "آپ کا IqbalAI اکاؤنٹ دوبارہ فعال ہے",
                 "title": "اکاؤنٹ بحال",
-                "body": "آپ کا IqbalAI اکاؤنٹ دوبارہ فعال کر دیا گیا ہے۔ آپ دوبارہ سائن ان کر سکتے ہیں۔",
+                "body": "آپ کا IqbalAI اکاؤنٹ دوبارہ فعال کر دیا گیا ہے۔ آپ دوبارہ سائن ان کر سکتے ہیں۔",  # noqa: E501
             },
             "sd": {
                 "subject": "توهان جو IqbalAI اکاؤنٽ ٻيهر فعال آهي",
                 "title": "اکاؤنٽ بحال",
-                "body": "توهان جو IqbalAI اکاؤنٽ ٻيهر فعال ڪيو ويو آهي۔ توهان ٻيهر سائن ان ٿي سگهو ٿا۔",
+                "body": "توهان جو IqbalAI اکاؤنٽ ٻيهر فعال ڪيو ويو آهي۔ توهان ٻيهر سائن ان ٿي سگهو ٿا۔",  # noqa: E501
             },
             "ps": {
                 "subject": "ستاسو IqbalAI حساب بیا فعال دی",
@@ -185,7 +185,7 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         "default": {
             "en": {
                 "title": "Bulk import validated",
-                "body": "Dry-run complete: {success_rows} valid, {failed_rows} invalid out of {total_rows} rows.",
+                "body": "Dry-run complete: {success_rows} valid, {failed_rows} invalid out of {total_rows} rows.",  # noqa: E501
             },
             "ur": {
                 "title": "بلک درآمد کی تصدیق",
@@ -225,19 +225,19 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         "default": {
             "en": {
                 "title": "Teaching capacity updated",
-                "body": "{teacher_name} changed capacity from {old_capacity} to {new_capacity} ({assignment_count} current assignments).",
+                "body": "{teacher_name} changed capacity from {old_capacity} to {new_capacity} ({assignment_count} current assignments).",  # noqa: E501
             },
             "ur": {
                 "title": "تدریسی گنجائش اپ ڈیٹ",
-                "body": "{teacher_name} نے گنجائش {old_capacity} سے {new_capacity} کر دی ({assignment_count} موجودہ تفویضات)۔",
+                "body": "{teacher_name} نے گنجائش {old_capacity} سے {new_capacity} کر دی ({assignment_count} موجودہ تفویضات)۔",  # noqa: E501
             },
             "sd": {
                 "title": "تدريسي گنجائش اپڊيٽ",
-                "body": "{teacher_name} گنجائش {old_capacity} کان {new_capacity} ڪئي ({assignment_count} موجوده تفويضون)۔",
+                "body": "{teacher_name} گنجائش {old_capacity} کان {new_capacity} ڪئي ({assignment_count} موجوده تفويضون)۔",  # noqa: E501
             },
             "ps": {
                 "title": "د تدریس ظرفیت تازه شوه",
-                "body": "{teacher_name} ظرفیت له {old_capacity} څخه {new_capacity} ته بدله کړه ({assignment_count} اوسنۍ ګمارنې)۔",
+                "body": "{teacher_name} ظرفیت له {old_capacity} څخه {new_capacity} ته بدله کړه ({assignment_count} اوسنۍ ګمارنې)۔",  # noqa: E501
             },
         }
     },
@@ -245,19 +245,235 @@ ACCOUNT_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         "default": {
             "en": {
                 "title": "Teacher capacity override",
-                "body": "{actor_name} overrode the capacity limit for {teacher_name} ({assignment_count}/{capacity}).",
+                "body": "{actor_name} overrode the capacity limit for {teacher_name} ({assignment_count}/{capacity}).",  # noqa: E501
             },
             "ur": {
                 "title": "استاد کی گنجائش سے تجاوز",
-                "body": "{actor_name} نے {teacher_name} کی گنجائش ({assignment_count}/{capacity}) سے تجاوز کیا۔",
+                "body": "{actor_name} نے {teacher_name} کی گنجائش ({assignment_count}/{capacity}) سے تجاوز کیا۔",  # noqa: E501
             },
             "sd": {
                 "title": "استاد جي گنجائش کان تجاوز",
-                "body": "{actor_name} {teacher_name} جي گنجائش ({assignment_count}/{capacity}) کان تجاوز ڪيو۔",
+                "body": "{actor_name} {teacher_name} جي گنجائش ({assignment_count}/{capacity}) کان تجاوز ڪيو۔",  # noqa: E501
             },
             "ps": {
                 "title": "د ښوونکي ظرفیت له پوره تیری",
-                "body": "{actor_name} د {teacher_name} ظرفیت ({assignment_count}/{capacity}) له پوره تیری وکړه۔",
+                "body": "{actor_name} د {teacher_name} ظرفیت ({assignment_count}/{capacity}) له پوره تیری وکړه۔",  # noqa: E501
+            },
+        }
+    },
+    "account.parent_welcome": {
+        "default": {
+            "en": {
+                "subject": "Welcome to IqbalAI — parent account created",
+                "title": "Parent account created",
+                "body": "Hi {name}, your IqbalAI parent account is ready. Verify your email and sign in to link to your child's account.",  # noqa: E501
+            },
+            "ur": {
+                "subject": "IqbalAI میں خوش آمدید — والدین کا اکاؤنٹ بن گیا",
+                "title": "والدین کا اکاؤنٹ بن گیا",
+                "body": "سلام {name}، آپ کا IqbalAI والدین اکاؤنٹ تیار ہے۔ اپنا ای میل تصدیق کریں اور اپنے بچے کے اکاؤنٹ سے لنک کرنے کے لیے سائن ان کریں۔",  # noqa: E501
+            },
+            "sd": {
+                "subject": "IqbalAI ۾ ڀليڪار — والدين جو اڪائونٽ ٺهي ويو",
+                "title": "والدين جو اڪائونٽ ٺهي ويو",
+                "body": "سلام {name}، توهان جو IqbalAI والدين اڪائونٽ تيار آهي۔ پنهنجي اي ميل جي تصديق ڪريو ۽ پنهنجي ٻار جي اڪائونٽ سان لنڪ ڪرڻ لاءِ سائن ان ٿيو۔",  # noqa: E501
+            },
+            "ps": {
+                "subject": "IqbalAI ته ښه راغلاست — د والدین حساب جوړ شو",
+                "title": "د والدین حساب جوړ شو",
+                "body": "سلام {name}، ستاسو IqbalAI والدین حساب چمتو دی۔ خپل بریښنالیک تایید کړئ او د خپل ماشوم حساب سره د نښلولو لپاره ننوځئ۔",  # noqa: E501
+            },
+        }
+    },
+    "account.parent_auto_suspended": {
+        "default": {
+            "en": {
+                "subject": "IqbalAI parent account suspended",
+                "title": "Parent account suspended",
+                "body": "Hi {name}, your parent account was suspended after 90 days without linking to a student. Sign in again to resume and link to your child.",  # noqa: E501
+            },
+            "ur": {
+                "subject": "IqbalAI والدین اکاؤنٹ معطل",
+                "title": "والدین اکاؤنٹ معطل",
+                "body": "سلام {name}، آپ کا والدین اکاؤنٹ 90 دن تک بچے سے لنک نہ ہونے کی وجہ سے معطل کر دیا گیا۔ دوبارہ سائن ان کریں تاکہ دوبارہ فعال ہو اور اپنے بچے سے لنک کریں۔",  # noqa: E501
+            },
+            "sd": {
+                "subject": "IqbalAI والدين اڪائونٽ معطل",
+                "title": "والدين اڪائونٽ معطل",
+                "body": "سلام {name}، توهان جو والدين اڪائونٽ 90 ڏينهن تائين ٻار سان لنڪ نہ ٿيڻ سبب معطل ڪيو ويو۔ ٻيهر سائن ان ٿي واپس فعال ڪريو ۽ پنهنجي ٻار سان لنڪ ڪريو۔",  # noqa: E501
+            },
+            "ps": {
+                "subject": "IqbalAI والدین حساب ځنډول شو",
+                "title": "والدین حساب ځنډول شو",
+                "body": "سلام {name}، ستاسو والدین حساب د 90 ورځو لپاره د زده کونکي سره د نښلولو پرته ځنډول شو۔ بیا ننوځئ ترڅو بیا فعال شي او خپل ماشوم سره ونښلوئ۔",  # noqa: E501
+            },
+        }
+    },
+    "account.export_ready": {
+        "default": {
+            "en": {
+                "subject": "Your IqbalAI data export is ready",
+                "title": "Data export ready",
+                "body": "Hi {name}, your personal data export is ready to download. It will remain available for 7 days from your Data & Privacy page.",  # noqa: E501
+            },
+            "ur": {
+                "subject": "آپ کا IqbalAI ڈیٹا ایکسپورٹ تیار ہے",
+                "title": "ڈیٹا ایکسپورٹ تیار",
+                "body": "سلام {name}، آپ کا ذاتی ڈیٹا ایکسپورٹ ڈاؤن لوڈ کے لیے تیار ہے۔ یہ 7 دنوں تک آپ کے ڈیٹا اور پرائیویسی صفحے سے دستیاب رہے گا۔",  # noqa: E501
+            },
+            "sd": {
+                "subject": "توهان جو IqbalAI ڊيٽا برآمد تيار آهي",
+                "title": "ڊيٽا برآمد تيار",
+                "body": "سلام {name}، توهان جو ذاتي ڊيٽا برآمد ڊائون لوڊ لاءِ تيار آهي۔ اهو 7 ڏينهن تائين توهان جي ڊيٽا ۽ پرائیویسي صفحي تان دستياب رهندو۔",  # noqa: E501
+            },
+            "ps": {
+                "subject": "ستاسو IqbalAI ډیټا صادرات چمتو دی",
+                "title": "ډیټا صادرات چمتو",
+                "body": "سلام {name}، ستاسو شخصي ډیټا صادرات د ډاونلوډ لپاره چمتو دی۔ دا به د 7 ورځو لپاره ستاسو د ډیټا او محرمیت پاڼې څخه شتون ولري۔",  # noqa: E501
+            },
+        }
+    },
+    "account.deletion_grace_started": {
+        "default": {
+            "en": {
+                "subject": "IqbalAI account deletion request received",
+                "title": "Deletion request queued",
+                "body": "Hi {name}, we received your account deletion request. It enters a 30-day grace period (scheduled review on {scheduled_date}). You may cancel anytime before then. We do not hard-delete immediately due to legal audit retention.",  # noqa: E501
+            },
+            "ur": {
+                "subject": "IqbalAI اکاؤنٹ حذف کی درخواست موصول",
+                "title": "حذف کی درخواست قطار میں",
+                "body": "سلام {name}، ہمیں آپ کی اکاؤنٹ حذف کی درخواست موصول ہوئی۔ 30 دن کی مہلت شروع ہو گئی (جائزہ {scheduled_date} کو)۔ آپ اس سے پہلے کسی بھی وقت منسوخ کر سکتے ہیں۔ قانونی آڈٹ برقراری کی وجہ سے فوری hard-delete نہیں ہوتا۔",  # noqa: E501
+            },
+            "sd": {
+                "subject": "IqbalAI اڪائونٽ حذف جي درخواست موصول",
+                "title": "حذف جي درخواست قطار ۾",
+                "body": "سلام {name}، اسان کي توهان جي اڪائونٽ حذف جي درخواست موصول ٿي۔ 30 ڏينهن جي مهلت شروع ٿي ({scheduled_date} تي جائزو)۔ توهان ان کان اڳ ڪنهن به وقت منسوخ ڪري سگهو ٿا۔ قانوني آڊٽ برقرار رکڻ سبب فوري hard-delete نه ٿيندو۔",  # noqa: E501
+            },
+            "ps": {
+                "subject": "د IqbalAI حساب د حذف غوښتنه ترلاسه شوه",
+                "title": "د حذف غوښتنه په قطار کې",
+                "body": "سلام {name}، موږ ستاسو د حساب د حذف غوښتنه ترلاسه کړه۔ 30 ورځې مهلت پیل شو (کتنه {scheduled_date})۔ تاسو کولی شئ مخکې له دې هر وخت لغوه کړئ۔ د قانوني آډیټ ساتنې له امله سمدستي hard-delete نه کیږي۔",  # noqa: E501
+            },
+        }
+    },
+    "account.student_invited": {
+        "default": {
+            "en": {
+                "subject": "You are invited to IqbalAI",
+                "title": "School enrollment invite",
+                "body": "Hi {name}, you have been enrolled at {school_name}. Accept your invite within 7 days: {invite_url}",  # noqa: E501
+            },
+            "ur": {
+                "subject": "آپ کو IqbalAI میں مدعو کیا گیا",
+                "title": "اسکول میں داخلہ دعوت",
+                "body": "سلام {name}، آپ {school_name} میں داخل ہوئے۔ 7 دنوں میں دعوت قبول کریں: {invite_url}",  # noqa: E501
+            },
+            "sd": {
+                "subject": "توهان کي IqbalAI ۾ دعوت",
+                "title": "اسڪول داخلہ دعوت",
+                "body": "سلام {name}، توهان {school_name} ۾ داخل ٿيا۔ 7 ڏينهن ۾ دعوت قبول ڪريو: {invite_url}",  # noqa: E501
+            },
+            "ps": {
+                "subject": "تاسو IqbalAI ته بل شوي",
+                "title": "د ښوونځي ننوتل",
+                "body": "سلام {name}، تاسو {school_name} کې شامل شوي۔ په 7 ورځو کې بل ومنئ: {invite_url}",  # noqa: E501
+            },
+        }
+    },
+    "account.graduated": {
+        "default": {
+            "en": {
+                "subject": "Congratulations — you've graduated!",
+                "title": "Graduation confirmed",
+                "body": "Hi {name}, you've graduated! For 6 months you can still use Self-Study in your school account. After that, your account moves to Independent mode with the same login.",  # noqa: E501
+            },
+            "ur": {
+                "subject": "مبارک ہو — آپ گریجویشن کر چکے ہیں!",
+                "title": "گریجویشن کی تصدیق",
+                "body": "سلام {name}، آپ گریجویٹ ہو گئے! 6 ماہ تک Self-Study اسکول اکاؤنٹ میں استعمال کر سکتے ہیں۔ اس کے بعد Independent موڈ میں منتقل ہوں گے — وہی لاگ ان۔",  # noqa: E501
+            },
+            "sd": {
+                "subject": "مبارڪون — توهان گريجوئيشن ڪري چuka!",
+                "title": "گريجوئيشن جي تصديق",
+                "body": "سلام {name}، توهان گريجوئيٽ ٿي ويا! 6 مهina Self-Study اسڪول اڪائونٽ ۾ استعمال ڪري سگهو ٿا۔ پوءِ Independent موڊ ۾ منتقل — ساڳيو لاگ ان۔",  # noqa: E501
+            },
+            "ps": {
+                "subject": "مبارک شه — تاسو فارغ شوي!",
+                "title": "د فارغتیا تایید",
+                "body": "سلام {name}، تاسو فارغ شوي! د 6 میاشتو لپاره Self-Study په ښوونځي حساب کې کارولی شئ۔ وروسته Independent حالت ته — ورته ننوتل۔",  # noqa: E501
+            },
+        }
+    },
+    "account.migration_reminder_30": {
+        "default": {
+            "en": {
+                "subject": "IqbalAI account migration in 30 days",
+                "title": "Migration reminder (30 days)",
+                "body": "Hi {name}, your school account moves to Independent mode on {migration_date} ({days_remaining} days). Export your data from Data & Privacy if needed.",  # noqa: E501
+            },
+            "ur": {
+                "subject": "30 دن میں اکاؤنٹ منتقلی",
+                "title": "منتقلی یاد دہانی",
+                "body": "سلام {name}، {migration_date} کو Independent موڈ ({days_remaining} دن)۔ ضرورت ہو تو ڈیٹا ایکسپورٹ کریں۔",  # noqa: E501
+            },
+            "sd": {
+                "subject": "30 ڏينهن ۾ منتقلي",
+                "title": "منتقلي ياد",
+                "body": "سلام {name}، {migration_date} تي Independent ({days_remaining} ڏينهن)۔ ضرورت هجي ته ڊيٽا برآمد ڪريو۔",  # noqa: E501
+            },
+            "ps": {
+                "subject": "په 30 ورځو کې انتقال",
+                "title": "د انتقال یادونه",
+                "body": "سلام {name}، {migration_date} Independent ({days_remaining} ورځې)۔ اړتیا وي ډیټا صادر کړئ۔",  # noqa: E501
+            },
+        }
+    },
+    "account.migration_reminder_7": {
+        "default": {
+            "en": {
+                "subject": "IqbalAI account migration in 7 days",
+                "title": "Migration reminder (7 days)",
+                "body": "Hi {name}, your account moves to Independent mode on {migration_date}. Parent links will be removed. Export data now if you need a copy.",  # noqa: E501
+            },
+            "ur": {
+                "subject": "7 دن میں منتقلی",
+                "title": "منتقلی یاد دہانی",
+                "body": "سلام {name}، {migration_date} کو Independent۔ والدین لنک ختم۔ ابھی ڈیٹا ایکسپورٹ کریں۔",  # noqa: E501
+            },
+            "sd": {
+                "subject": "7 ڏينهن ۾ منتقلي",
+                "title": "منتقلي ياد",
+                "body": "سلام {name}، {migration_date} Independent۔ والدين لنڪ ختم۔ هاڻي ڊيٽا برآمد ڪريو۔",  # noqa: E501
+            },
+            "ps": {
+                "subject": "په 7 ورځو کې انتقال",
+                "title": "د انتقال یادونه",
+                "body": "سلام {name}، {migration_date} Independent۔ د والدین اړیکې لرې۔ اوس ډیټا صادر کړئ۔",  # noqa: E501
+            },
+        }
+    },
+    "account.migration_complete": {
+        "default": {
+            "en": {
+                "subject": "Your IqbalAI account has moved to Independent mode",
+                "title": "Migration complete",
+                "body": "Hi {name}, your account has moved to Independent mode. Sign in with the same email and password — Self-Study continues; school Lecture mode is no longer available.",  # noqa: E501
+            },
+            "ur": {
+                "subject": "آپ کا اکاؤنٹ Independent موڈ میں",
+                "title": "منتقلی مکمل",
+                "body": "سلام {name}، Independent موڈ — وہی ای میل/پاس ورڈ۔ Self-Study جاری؛ Lecture نہیں۔",  # noqa: E501
+            },
+            "sd": {
+                "subject": "توهان جو اڪائونٽ Independent",
+                "title": "منتقلي مڪمل",
+                "body": "سلام {name}، Independent — ساڳي اي ميل/پاسورڊ۔ Self-Study جاري؛ Lecture نه۔",  # noqa: E501
+            },
+            "ps": {
+                "subject": "ستاسو حساب Independent شو",
+                "title": "انتقال بشپړ",
+                "body": "سلام {name}، Independent — ورته بریښنالیک/پټنوم۔ Self-Study دوام لري؛ Lecture نشته۔",  # noqa: E501
             },
         }
     },

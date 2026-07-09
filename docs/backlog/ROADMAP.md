@@ -18,8 +18,8 @@
 | M-02 | School Onboarding: District + School + role hierarchy | 1 | T-028 to T-040 | ~3-4 days | done | Platform Admin creates a District, then School, then School Admin who logs in |
 | M-03 | Subjects + Grade/Section/Subject offerings | 2 | T-041 to T-052 | ~2-3 days | done | School Admin creates Coordinator, Coordinator creates Grade/Section/Subjects, assigns Teacher |
 | M-04 | Teacher Onboarding + Content Library (school-tier) | 2 | T-053 to T-068 | ~3-4 days | in-progress | Teacher logs in, uploads curriculum, sees it ingest + appear in their library |
-| M-05 | Independent Users: signup + Platform Library | 2 | T-069 to T-076 | ~2-3 days | drafted | Independent teacher self-signs up, accesses Platform Library |
-| M-06 | Student Onboarding (school) + Parent Linking | 2 | T-077 to T-090 | ~3-4 days | drafted | Coordinator enrolls students into Grade-Section; parents link to children |
+| M-05 | Independent Users: signup + Platform Library | 2 | T-069 to T-076 | ~2-3 days | done | Independent teacher self-signs up, accesses Platform Library |
+| M-06 | Student Onboarding (school) + Parent Linking | 2 | T-077 to T-090 | ~3-4 days | in-progress | Coordinator enrolls students into Grade-Section; parents link to children |
 | M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | ~3-4 days | drafted | Platform Admin triggers AI research; approves; students can select framework |
 | M-08 | Student Mode + Diagnostic + Cognitive DNA seed | 3 | T-101 to T-112 | ~3-4 days | drafted | Student picks mode, takes diagnostic, cognitive DNA initialized |
 | M-09 | Lecture Wizard + AI Generation (Pattern S RAG) | 4 | T-113 to T-128 | ~1.5 weeks | drafted | Teacher generates first lecture; sees streaming output with source badges |

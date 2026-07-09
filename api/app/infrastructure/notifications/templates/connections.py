@@ -12,6 +12,7 @@ CONNECTIONS_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         "default": {
             "en": {
                 "title": "Parent link request",
+<<<<<<< HEAD
                 "body": "{parent_name} requested to link to your account. Review and approve if you know this person.",
             },
             "ur": {
@@ -25,6 +26,21 @@ CONNECTIONS_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             "ps": {
                 "title": "د والدین د نښلولو غوښتنه",
                 "body": "{parent_name} ستاسو حساب سره د نښلولو غوښتنه کړې ده۔ که تاسو دا کس پیژنئ، تصویب یې کړئ۔",
+=======
+                "body": "{parent_name} requested to link to your account. Review and approve if you know this person.",  # noqa: E501
+            },
+            "ur": {
+                "title": "والدین لنک کی درخواست",
+                "body": "{parent_name} نے آپ کے اکاؤنٹ سے لنک کرنے کی درخواست کی ہے۔ اگر آپ اس شخص کو جانتے ہیں تو منظور کریں۔",  # noqa: E501
+            },
+            "sd": {
+                "title": "والدين لنڪ درخواست",
+                "body": "{parent_name} توهان جي اڪائونٽ سان لنڪ ڪرڻ جي درخواست ڪئي آهي۔ جيڪڏهن توهان هن شخص کي ڃاڻو ٿا ته منظور ڪريو۔",  # noqa: E501
+            },
+            "ps": {
+                "title": "د والدین د نښلولو غوښتنه",
+                "body": "{parent_name} ستاسو حساب سره د نښلولو غوښتنه کړې ده۔ که تاسو دا کس پیژنئ، تصویب یې کړئ۔",  # noqa: E501
+>>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
             },
         }
     },
@@ -32,6 +48,7 @@ CONNECTIONS_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         "default": {
             "en": {
                 "title": "Parent link approved",
+<<<<<<< HEAD
                 "body": "{student_name} approved your link request. You now have read-only access to their account.",
             },
             "ur": {
@@ -45,6 +62,21 @@ CONNECTIONS_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             "ps": {
                 "title": "د والدین نښلول تصویب شول",
                 "body": "{student_name} ستاسو د نښلولو غوښتنه تصویب کړه۔ اوس تاسو یوازې د دوی حساب لوستلای شئ۔",
+=======
+                "body": "{student_name} approved your link request. You now have read-only access to their account.",  # noqa: E501
+            },
+            "ur": {
+                "title": "والدین لنک منظور",
+                "body": "{student_name} نے آپ کی لنک درخواست منظور کر لی ہے۔ اب آپ کے پاس ان کے اکاؤنٹ تک صرف پڑھنے کی رسائی ہے۔",  # noqa: E501
+            },
+            "sd": {
+                "title": "والدين لنڪ منظور",
+                "body": "{student_name} توهان جي لنڪ درخواست منظور ڪئي آهي۔ هاڻي توهان کي ان جي اڪائونٽ تائين صرف پڙهڻ جي رسائي آهي۔",  # noqa: E501
+            },
+            "ps": {
+                "title": "د والدین نښلول تصویب شول",
+                "body": "{student_name} ستاسو د نښلولو غوښتنه تصویب کړه۔ اوس تاسو یوازې د دوی حساب لوستلای شئ۔",  # noqa: E501
+>>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
             },
         }
     },
@@ -52,6 +84,7 @@ CONNECTIONS_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         "default": {
             "en": {
                 "title": "Parent link revoked",
+<<<<<<< HEAD
                 "body": "{parent_name} revoked their link to your account. Their read-only access has been removed.",
             },
             "ur": {
@@ -65,6 +98,21 @@ CONNECTIONS_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             "ps": {
                 "title": "د والدین نښلول لغوه شو",
                 "body": "{parent_name} ستاسو حساب سره خپل نښلول لغوه کړل۔ د دوی یوازې لوستلو لاسرسی لرې شو۔",
+=======
+                "body": "{parent_name} revoked their link to your account. Their read-only access has been removed.",  # noqa: E501
+            },
+            "ur": {
+                "title": "والدین لنک منسوخ",
+                "body": "{parent_name} نے آپ کے اکاؤنٹ سے اپنا لنک منسوخ کر دیا ہے۔ ان کی صرف پڑھنے کی رسائی ہٹا دی گئی ہے۔",  # noqa: E501
+            },
+            "sd": {
+                "title": "والدين لنڪ منسوخ",
+                "body": "{parent_name} توهان جي اڪائونٽ سان پنهنجو لنڪ منسوخ ڪيو آهي۔ ان جي صرف پڙهڻ جي رسائي هٽائي وئي آهي۔",  # noqa: E501
+            },
+            "ps": {
+                "title": "د والدین نښلول لغوه شو",
+                "body": "{parent_name} ستاسو حساب سره خپل نښلول لغوه کړل۔ د دوی یوازې لوستلو لاسرسی لرې شو۔",  # noqa: E501
+>>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
             },
         }
     },
@@ -72,6 +120,7 @@ CONNECTIONS_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         "default": {
             "en": {
                 "title": "Parent link revoked",
+<<<<<<< HEAD
                 "body": "{student_name} revoked your link. Your read-only access to their account has been removed.",
             },
             "ur": {
@@ -85,6 +134,21 @@ CONNECTIONS_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             "ps": {
                 "title": "د والدین نښلول لغوه شو",
                 "body": "{student_name} ستاسو نښلول لغوه کړ۔ د دوی حساب ته ستاسو یوازې لوستلو لاسرسی لرې شو۔",
+=======
+                "body": "{student_name} revoked your link. Your read-only access to their account has been removed.",  # noqa: E501
+            },
+            "ur": {
+                "title": "والدین لنک منسوخ",
+                "body": "{student_name} نے آپ کا لنک منسوخ کر دیا ہے۔ ان کے اکاؤنٹ تک آپ کی صرف پڑھنے کی رسائی ہٹا دی گئی ہے۔",  # noqa: E501
+            },
+            "sd": {
+                "title": "والدين لنڪ منسوخ",
+                "body": "{student_name} توهان جو لنڪ منسوخ ڪيو آهي۔ ان جي اڪائونٽ تائين توهان جي صرف پڙهڻ جي رسائي هٽائي وئي آهي۔",  # noqa: E501
+            },
+            "ps": {
+                "title": "د والدین نښلول لغوه شو",
+                "body": "{student_name} ستاسو نښلول لغوه کړ۔ د دوی حساب ته ستاسو یوازې لوستلو لاسرسی لرې شو۔",  # noqa: E501
+>>>>>>> 872bfebac25c1b798eeccac9cc8292192b39ad43
             },
         }
     },

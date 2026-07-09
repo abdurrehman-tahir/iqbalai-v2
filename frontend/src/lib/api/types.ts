@@ -61,6 +61,9 @@ export type SchoolUpdate = Schemas["SchoolUpdate"];
 export type AdminUserInviteCreate = Schemas["AdminUserInviteCreate"];
 export type AcceptInviteRequest = Schemas["AcceptInviteRequest"];
 export type DisclaimerVersionCreate = Schemas["DisclaimerVersionCreate"];
+export type IndependentSignupCreate = Schemas["IndependentSignupCreate"];
+export type IndependentTeacherProfileComplete = Schemas["IndependentTeacherProfileComplete"];
+export type IndependentStudentProfileComplete = Schemas["IndependentStudentProfileComplete"];
 
 // ── Read / response types (SuccessEnvelope `data` shapes) ─────────────────────
 export type PersonaRead = Schemas["PersonaRead"];
@@ -80,6 +83,14 @@ export type DisclaimerVersionRead = Schemas["DisclaimerVersionRead"];
 export type LibraryBookRead = Schemas["LibraryBookRead"];
 export type LibraryBookListResponse = Schemas["LibraryBookListResponse"];
 export type LibraryUploadResponse = Schemas["LibraryUploadResponse"];
+export type IndependentSignupInfo = Schemas["IndependentSignupInfo"];
+export type IndependentSignupResponse = Schemas["IndependentSignupResponse"];
+export type IndependentTeacherOnboardingRead = Schemas["IndependentTeacherOnboardingRead"];
+export type IndependentStudentOnboardingRead = Schemas["IndependentStudentOnboardingRead"];
+export type ExamFrameworkOption = Schemas["ExamFrameworkOption"];
+export type IndependentPersonalContentRead = Schemas["IndependentPersonalContentRead"];
+export type IndependentPersonalListResponse = Schemas["IndependentPersonalListResponse"];
+export type IndependentPersonalUploadResponse = Schemas["IndependentPersonalUploadResponse"];
 
 /** Multipart upload metadata (query params; file is sent as FormData). */
 export interface LibraryUploadParams {
