@@ -48,15 +48,15 @@ def mock_session() -> AsyncMock:
 @pytest.fixture
 def svc(mock_session: AsyncMock) -> StudentEnrollmentService:
     service = StudentEnrollmentService(mock_session, authentik=AsyncMock())
-    service._authentik.create_user = AsyncMock(return_value="auth-student-1")
-    service._authentik.add_to_group = AsyncMock()
-    service._grade_svc.get_grade = AsyncMock(return_value=_grade())
-    service._grade_svc._load_actor = AsyncMock(return_value=_coordinator())
-    service._ensure_email_available = AsyncMock()
-    service._invites.create = AsyncMock()
-    service._repo.get_active_by_student_session = AsyncMock(return_value=None)
-    service._repo.create = AsyncMock(side_effect=lambda row: row)
-    service._users.create = AsyncMock(side_effect=lambda user: user)
+    service._authentik.create_user = AsyncMock(return_value="auth-student-1")  # type: ignore[method-assign]
+    service._authentik.add_to_group = AsyncMock()  # type: ignore[method-assign]
+    service._grade_svc.get_grade = AsyncMock(return_value=_grade())  # type: ignore[method-assign]
+    service._grade_svc._load_actor = AsyncMock(return_value=_coordinator())  # type: ignore[method-assign]
+    service._ensure_email_available = AsyncMock()  # type: ignore[method-assign]
+    service._invites.create = AsyncMock()  # type: ignore[method-assign]
+    service._repo.get_active_by_student_session = AsyncMock(return_value=None)  # type: ignore[method-assign]
+    service._repo.create = AsyncMock(side_effect=lambda row: row)  # type: ignore[method-assign]
+    service._users.create = AsyncMock(side_effect=lambda user: user)  # type: ignore[method-assign]
     return service
 
 
@@ -69,7 +69,7 @@ async def test_enroll_uses_named_section(svc: StudentEnrollmentService) -> None:
         is_default_internal=False,
         status=SectionStatus.ACTIVE,
     )
-    svc._resolve_section = AsyncMock(return_value=section)
+    svc._resolve_section = AsyncMock(return_value=section)  # type: ignore[method-assign]
 
     enrollment, student = await svc.enroll_student(
         "grade-9",
@@ -97,7 +97,7 @@ async def test_enroll_defaults_to_internal_section(svc: StudentEnrollmentService
         is_default_internal=True,
         status=SectionStatus.ACTIVE,
     )
-    svc._resolve_section = AsyncMock(return_value=default)
+    svc._resolve_section = AsyncMock(return_value=default)  # type: ignore[method-assign]
 
     enrollment, _student = await svc.enroll_student(
         "grade-9",
@@ -111,7 +111,7 @@ async def test_enroll_defaults_to_internal_section(svc: StudentEnrollmentService
 
 @pytest.mark.asyncio
 async def test_enroll_out_of_scope_raises(svc: StudentEnrollmentService) -> None:
-    svc._grade_svc._load_actor = AsyncMock(return_value=_coordinator(scope="Grade 10"))
+    svc._grade_svc._load_actor = AsyncMock(return_value=_coordinator(scope="Grade 10"))  # type: ignore[method-assign]
 
     with pytest.raises(PermissionDeniedError):
         await svc.enroll_student(
@@ -124,7 +124,7 @@ async def test_enroll_out_of_scope_raises(svc: StudentEnrollmentService) -> None
 
 @pytest.mark.asyncio
 async def test_enroll_duplicate_active_session_raises(svc: StudentEnrollmentService) -> None:
-    svc._resolve_section = AsyncMock(
+    svc._resolve_section = AsyncMock(  # type: ignore[method-assign]
         return_value=Section(
             id="section-a",
             grade_id="grade-9",
@@ -133,7 +133,7 @@ async def test_enroll_duplicate_active_session_raises(svc: StudentEnrollmentServ
             status=SectionStatus.ACTIVE,
         )
     )
-    svc._repo.get_active_by_student_session = AsyncMock(
+    svc._repo.get_active_by_student_session = AsyncMock(  # type: ignore[method-assign]
         return_value=StudentEnrollment(
             id="existing",
             school_id="school-1",

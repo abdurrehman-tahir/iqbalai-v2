@@ -13,6 +13,7 @@ from app.features.grades.schemas import GradeCreate, GradeUpdate
 from app.features.grades.scope import assert_grade_in_scope, derive_level_ordinal
 from app.features.offerings.repository import OfferingRepository
 from app.features.sections.repository import SectionRepository
+from app.features.users.models import User
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
 
@@ -35,7 +36,7 @@ class GradeService:
         self._section_repo = SectionRepository(session)
         self._offering_repo = OfferingRepository(session)
 
-    async def _load_actor(self, claims: dict[str, object]):
+    async def _load_actor(self, claims: dict[str, object]) -> User:
         # Auth claims use the Authentik user identifier as `sub` (used by /users/me).
         # The internal `users.id` is a different UUID, so we must fetch by authentik_id.
         authentik_id = str(claims.get("sub", ""))

@@ -52,7 +52,7 @@ def test_send_smtp_sync_uses_ssl_login() -> None:
         return_value=MagicMock(__enter__=lambda s: smtp_instance, __exit__=lambda *a: None)
     )
 
-    with patch.object(email_module.smtplib, "SMTP_SSL", smtp_cls):
+    with patch("smtplib.SMTP_SSL", smtp_cls):
         email_module._send_smtp_sync(
             settings=settings,
             to="admin@example.com",

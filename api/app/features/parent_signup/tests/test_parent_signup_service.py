@@ -81,7 +81,7 @@ async def test_activate_on_login_sets_parent_active_unlinked(
     profile_repo = _FakeProfileRepo()
     profile_repo.profiles["parent-1"] = profile
 
-    svc = ParentSignupService(session=AsyncMock())  # type: ignore[arg-type]
+    svc = ParentSignupService(session=AsyncMock())
     svc._profiles = profile_repo  # type: ignore[assignment]
 
     result = await svc.activate_on_login(user)
@@ -102,15 +102,16 @@ async def test_try_resume_unlinked_parent_reactivates_suspended_parent() -> None
     profile_repo = _FakeProfileRepo()
     profile_repo.profiles[user.id] = profile
 
-    svc = ParentSignupService(session=AsyncMock())  # type: ignore[arg-type]
+    svc = ParentSignupService(session=AsyncMock())
     svc._users = user_repo  # type: ignore[assignment]
     svc._profiles = profile_repo  # type: ignore[assignment]
 
     resumed = await svc.try_resume_unlinked_parent(user)
     assert resumed is not None
     assert resumed.status == UserAccountStatus.ACTIVE
-    assert profile_repo.profiles[user.id].unlinked_since is not None
-    assert profile_repo.profiles[user.id].unlinked_since > old_unlinked
+    updated_unlinked_since = profile_repo.profiles[user.id].unlinked_since
+    assert updated_unlinked_since is not None
+    assert updated_unlinked_since > old_unlinked
 
 
 @pytest.mark.asyncio
@@ -129,7 +130,7 @@ async def test_suspend_stale_unlinked_parents(monkeypatch: pytest.MonkeyPatch) -
     profile_repo = _FakeProfileRepo()
     profile_repo.list_stale_unlinked = _list_stale  # type: ignore[method-assign]
 
-    svc = ParentSignupService(session=AsyncMock())  # type: ignore[arg-type]
+    svc = ParentSignupService(session=AsyncMock())
     svc._users = user_repo  # type: ignore[assignment]
     svc._profiles = profile_repo  # type: ignore[assignment]
     monkeypatch.setattr("app.features.parent_signup.service.send_account_email", AsyncMock())

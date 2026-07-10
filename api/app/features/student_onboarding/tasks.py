@@ -10,7 +10,7 @@ from celery import shared_task
 logger = structlog.get_logger(__name__)
 
 
-@shared_task(name="self_study.exam_countdown_sweep", queue="notifications")
+@shared_task(name="self_study.exam_countdown_sweep", queue="notifications")  # type: ignore[misc]
 def exam_countdown_sweep() -> int:
     """Send 30/14/7/1-day exam countdown notifications to school students."""
     return asyncio.run(_exam_countdown_sweep_async())

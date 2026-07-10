@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,9 +27,9 @@ def _caller_role(claims: dict[str, object]) -> str:
     dependencies=[require_role("school_admin")],
 )
 async def list_users(
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = UserLifecycleService(db)
     users = await svc.list_users(claims, _caller_role(claims))
     return success([UserRead.model_validate(u).model_dump() for u in users])
@@ -42,9 +44,9 @@ async def list_users(
 )
 async def suspend_user(
     user_id: str,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = UserLifecycleService(db)
     user = await svc.suspend_user(
         user_id,
@@ -63,9 +65,9 @@ async def suspend_user(
 )
 async def reactivate_user(
     user_id: str,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = UserLifecycleService(db)
     user = await svc.reactivate_user(
         user_id,
@@ -84,9 +86,9 @@ async def reactivate_user(
 )
 async def deactivate_user(
     user_id: str,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = UserLifecycleService(db)
     user = await svc.deactivate_user(
         user_id,

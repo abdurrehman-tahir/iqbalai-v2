@@ -277,6 +277,7 @@ async def test_curriculum_forces_school_public_visibility() -> None:
             authentik_id="auth-teacher-1",
         )
 
+    assert save_item.await_args is not None
     created = save_item.await_args.args[0]
     assert created.visibility is LibraryVisibility.SCHOOL_PUBLIC
 
@@ -503,6 +504,7 @@ async def test_coordinator_reference_upload_forces_public() -> None:
             authentik_id="auth-teacher-1",
         )
 
+    assert save_item.await_args is not None
     created = save_item.await_args.args[0]
     assert created.visibility is LibraryVisibility.SCHOOL_PUBLIC
 

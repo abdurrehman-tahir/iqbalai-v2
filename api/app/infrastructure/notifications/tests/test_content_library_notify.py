@@ -25,5 +25,6 @@ async def test_notify_content_library_event_in_app() -> None:
         )
 
     publish.assert_awaited_once()
+    assert publish.await_args is not None
     assert publish.await_args.kwargs["feature_namespace"] == "content_library"
     assert publish.await_args.kwargs["template_key"] == "content_library.item_available"

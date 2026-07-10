@@ -434,21 +434,21 @@ class GraduationService:
             return True
         except Exception as exc:
             await self._session.rollback()
-            log = await self._migration_logs.get_by_student(log.student_user_id)
-            if log is None:
+            migration_log = await self._migration_logs.get_by_student(log.student_user_id)
+            if migration_log is None:
                 return False
-            log.migration_status = GraduationMigrationStatus.FAILED
-            log.last_error = str(exc)[:2000]
-            await self._migration_logs.update(log)
+            migration_log.migration_status = GraduationMigrationStatus.FAILED
+            migration_log.last_error = str(exc)[:2000]
+            await self._migration_logs.update(migration_log)
             await self._session.commit()
 
-            if log.migration_attempts >= settings.GRADUATION_MIGRATION_MAX_ATTEMPTS:
+            if migration_log.migration_attempts >= settings.GRADUATION_MIGRATION_MAX_ATTEMPTS:
                 from app.infrastructure.celery.dlq import push_task_dlq
 
                 push_task_dlq(
                     "graduation.migrate_eligible_students",
-                    {"student_user_id": log.student_user_id},
-                    log.last_error or "max attempts exceeded",
+                    {"student_user_id": migration_log.student_user_id},
+                    migration_log.last_error or "max attempts exceeded",
                 )
                 await audit(
                     session=self._session,
@@ -456,14 +456,14 @@ class GraduationService:
                     actor_id="system",
                     actor_role="system",
                     target_type="graduation_migration_log",
-                    target_id=log.id,
-                    metadata={"flagged": True, "attempts": log.migration_attempts},
+                    target_id=migration_log.id,
+                    metadata={"flagged": True, "attempts": migration_log.migration_attempts},
                 )
             logger.error(
                 "student_migration_failed",
-                student_user_id=log.student_user_id,
+                student_user_id=migration_log.student_user_id,
                 error=str(exc),
-                attempts=log.migration_attempts,
+                attempts=migration_log.migration_attempts,
             )
             return False
 

@@ -20,7 +20,7 @@ from app.features.offerings.repository import OfferingRepository
 from app.features.offerings.schemas import OfferingCreate
 from app.features.subjects.models import SubjectStatus
 from app.features.subjects.repository import SubjectRepository
-from app.features.users.models import UserAccountStatus, UserRole
+from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
 from app.infrastructure.events.structure import publish_structure_mutation
@@ -51,7 +51,7 @@ def _parse_if_match(if_match: str | None, offering: GradeSubjectOffering) -> Non
         )
 
 
-def _teacher_capacity(user) -> int:
+def _teacher_capacity(user: User) -> int:
     raw = getattr(user, "teacher_capacity", None)
     if raw is None:
         return DEFAULT_TEACHER_CAPACITY

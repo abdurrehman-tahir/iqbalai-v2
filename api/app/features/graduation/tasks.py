@@ -10,13 +10,13 @@ from celery import shared_task
 logger = structlog.get_logger(__name__)
 
 
-@shared_task(name="graduation.migrate_eligible_students", queue="default")
+@shared_task(name="graduation.migrate_eligible_students", queue="default")  # type: ignore[misc]
 def migrate_eligible_students() -> int:
     """Auto-migrate students past the graduation grace window."""
     return asyncio.run(_migrate_eligible_students_async())
 
 
-@shared_task(name="graduation.migration_reminder_sweep", queue="notifications")
+@shared_task(name="graduation.migration_reminder_sweep", queue="notifications")  # type: ignore[misc]
 def migration_reminder_sweep() -> int:
     """Send 30/7-day pre-migration reminders."""
     return asyncio.run(_migration_reminder_sweep_async())

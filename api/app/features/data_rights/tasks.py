@@ -10,7 +10,7 @@ from celery import shared_task
 logger = structlog.get_logger(__name__)
 
 
-@shared_task(name="data_rights.process_export", queue="default")
+@shared_task(name="data_rights.process_export", queue="default")  # type: ignore[misc]
 def process_data_export(request_id: str) -> None:
     """Build and store a personal data export bundle."""
     asyncio.run(_process_data_export_async(request_id))

@@ -39,7 +39,7 @@ def _extract_school_id(
     return str(school_id)
 
 
-def tenant_task(**celery_kwargs: Any) -> Callable[[Callable[P, R]], Callable[P, R]]:
+def tenant_task(**celery_kwargs: Any) -> Callable[[Callable[P, R]], Any]:
     """Wrap a Celery task with tenant context validation and structured logging."""
     bind = bool(celery_kwargs.get("bind", False))
 
@@ -81,6 +81,6 @@ def tenant_task(**celery_kwargs: Any) -> Callable[[Callable[P, R]], Callable[P, 
                 finally:
                     structlog.contextvars.unbind_contextvars("school_id", "task_name")
 
-        return wrapper  # type: ignore[return-value]
+        return wrapper  # type: ignore[no-any-return]
 
     return decorator

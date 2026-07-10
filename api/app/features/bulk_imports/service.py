@@ -84,6 +84,9 @@ class BulkImportService:
     ) -> BulkImportRead:
         """Validate rows and persist a dry-run job (no user creation)."""
         actor = await self._require_coordinator(actor_authentik_id)
+        school_id = actor.school_id
+        if not school_id:
+            raise ValidationError("Coordinator must belong to a school")
         grade_scope = _parse_grade_scope(actor.scoped_ids)
 
         rows_raw = _parse_file(data, filename)
@@ -92,10 +95,8 @@ class BulkImportService:
         if len(rows_raw) > MAX_ROWS:
             raise ValidationError(f"File exceeds maximum of {MAX_ROWS} rows")
 
-        session_label = await self._active_session_label(actor.school_id)
-        row_results = await self._validate_rows(
-            rows_raw, grade_scope, actor.school_id, session_label
-        )
+        session_label = await self._active_session_label(school_id)
+        row_results = await self._validate_rows(rows_raw, grade_scope, school_id, session_label)
         success_rows = sum(1 for r in row_results if r.status == "valid")
         failed_rows = len(row_results) - success_rows
 
@@ -155,14 +156,20 @@ class BulkImportService:
     ) -> BulkImportRead:
         """Enroll all dry-run-valid rows; partial success allowed."""
         actor = await self._require_coordinator(actor_authentik_id)
-        job = await self._repo.get_by_id_for_school(import_id, actor.school_id)
+        school_id = actor.school_id
+        if not school_id:
+            raise ValidationError("Coordinator must belong to a school")
+        job = await self._repo.get_by_id_for_school(import_id, school_id)
         if job is None:
             raise NotFoundError("Bulk import not found")
         if job.status != BulkImportStatus.DRY_RUN_COMPLETE:
             raise PreconditionFailedError("Bulk import is not ready to commit")
 
         report = job.error_report_jsonb or {}
-        row_results = [BulkImportRowResult.model_validate(r) for r in report.get("rows", [])]
+        rows_raw = report.get("rows", [])
+        if not isinstance(rows_raw, list):
+            rows_raw = []
+        row_results = [BulkImportRowResult.model_validate(r) for r in rows_raw]
         enrollment_svc = StudentEnrollmentService(self._session)
         actor_id = str(claims.get("sub", ""))
 
@@ -241,7 +248,10 @@ class BulkImportService:
     async def get_job(self, import_id: str, actor_authentik_id: str) -> BulkImportRead:
         """Return a bulk import job scoped to the coordinator's school."""
         actor = await self._require_coordinator(actor_authentik_id)
-        job = await self._repo.get_by_id_for_school(import_id, actor.school_id)
+        school_id = actor.school_id
+        if not school_id:
+            raise ValidationError("Coordinator must belong to a school")
+        job = await self._repo.get_by_id_for_school(import_id, school_id)
         if job is None:
             raise NotFoundError("Bulk import not found")
         return _to_read(job)
@@ -416,6 +426,8 @@ def _parse_xlsx(data: bytes) -> list[dict[str, str]]:
 def _to_read(job: BulkImport) -> BulkImportRead:
     report = job.error_report_jsonb or {}
     raw_rows = report.get("rows", [])
+    if not isinstance(raw_rows, list):
+        raw_rows = []
     rows = [BulkImportRowResult.model_validate(r) for r in raw_rows]
     return BulkImportRead(
         id=job.id,
@@ -428,5 +440,5 @@ def _to_read(job: BulkImport) -> BulkImportRead:
         status=job.status.value,
         rows=rows,
         created_at=job.created_at,
-        completed_at=job.completed_at,  # type: ignore[arg-type]
+        completed_at=job.completed_at,
     )

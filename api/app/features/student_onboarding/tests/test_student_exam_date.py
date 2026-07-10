@@ -90,7 +90,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
-    yield None  # type: ignore[misc]
+    yield None
 
 
 def _build_client() -> AsyncClient:

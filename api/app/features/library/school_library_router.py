@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import structlog
 from fastapi import APIRouter, Depends, Query, UploadFile
 from fastapi.responses import JSONResponse
@@ -87,7 +89,7 @@ async def list_school_library_items(
     offset: int = Query(default=0, ge=0),
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[SchoolLibraryListResponse]:
+) -> dict[str, Any]:
     svc = SchoolLibraryService(db)
     result = await svc.list_items(
         authentik_id=str(claims.get("sub", "")),
@@ -118,7 +120,7 @@ async def get_school_library_item(
     grade_level_ordinal: int | None = Query(default=None, ge=1, le=16),
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[SchoolLibraryItemRead]:
+) -> dict[str, Any]:
     svc = SchoolLibraryService(db)
     item = await svc.get_item(
         item_id,
@@ -143,7 +145,7 @@ async def delete_school_library_item(
     item_id: str,
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[SchoolLibraryItemRead]:
+) -> dict[str, Any]:
     svc = SchoolLibraryService(db)
     item = await svc.soft_delete_item(item_id, authentik_id=str(claims.get("sub", "")))
     logger.info("school_library_delete_endpoint", item_id=item.id)
@@ -165,7 +167,7 @@ async def publish_school_library_reference(
     item_id: str,
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[SchoolLibraryItemRead]:
+) -> dict[str, Any]:
     svc = SchoolLibraryService(db)
     item = await svc.publish_reference(item_id, authentik_id=str(claims.get("sub", "")))
     logger.info("school_library_publish_endpoint", item_id=item.id)
@@ -188,7 +190,7 @@ async def set_school_library_reference_visibility(
     visibility: str = Query(..., pattern="^(private|school_public)$"),
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[SchoolLibraryItemRead]:
+) -> dict[str, Any]:
     svc = SchoolLibraryService(db)
     item = await svc.set_reference_visibility(
         item_id,
@@ -210,7 +212,7 @@ async def remove_school_library_selection(
     item_id: str,
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[SchoolLibraryItemRead]:
+) -> dict[str, Any]:
     svc = SchoolLibraryService(db)
     item = await svc.remove_selection(item_id, authentik_id=str(claims.get("sub", "")))
     logger.info("school_library_remove_selection_endpoint", item_id=item.id)
@@ -232,7 +234,7 @@ async def retry_school_library_ingestion(
     item_id: str,
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[SchoolLibraryItemRead]:
+) -> dict[str, Any]:
     svc = SchoolLibraryService(db)
     item = await svc.retry_ingestion(item_id, authentik_id=str(claims.get("sub", "")))
     logger.info("school_library_retry_ingestion_endpoint", item_id=item.id)

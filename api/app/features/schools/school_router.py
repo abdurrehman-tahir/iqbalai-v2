@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -26,10 +28,10 @@ def _caller_role(claims: dict[str, object]) -> str:
     dependencies=[require_role("district_admin")],
 )
 async def list_schools(
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     district_id: str | None = Query(default=None),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SchoolService(db)
     schools = await svc.list_schools(claims, _caller_role(claims), district_id=district_id)
     return success([SchoolRead.model_validate(s).model_dump() for s in schools])
@@ -45,10 +47,10 @@ async def list_schools(
 )
 async def create_school(
     payload: SchoolCreate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     idem: IdempotencyContext | None = Depends(idempotency_key),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     if idem is not None:
         cached = await idem.cached_response()
         if cached is not None:
@@ -77,9 +79,9 @@ async def create_school(
 )
 async def get_school(
     school_id: str,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SchoolService(db)
     school = await svc.get_school(school_id, claims, _caller_role(claims))
     return success(SchoolRead.model_validate(school).model_dump())
@@ -95,9 +97,9 @@ async def get_school(
 async def update_school(
     school_id: str,
     payload: SchoolUpdate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SchoolService(db)
     school = await svc.update_school(
         school_id,
@@ -118,9 +120,9 @@ async def update_school(
 )
 async def delete_school(
     school_id: str,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SchoolService(db)
     await svc.delete_school(
         school_id,

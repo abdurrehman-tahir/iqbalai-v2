@@ -68,7 +68,9 @@ def test_school_district_id_not_nullable() -> None:
 
 def test_district_name_unique_among_active_rows() -> None:
     """District names are globally unique among non-deleted rows."""
-    indexes = {idx.name: idx for idx in DISTRICTS.indexes if isinstance(idx, Index)}
+    indexes = {
+        str(idx.name): idx for idx in DISTRICTS.indexes if isinstance(idx, Index) and idx.name
+    }
     districts_name_uq = indexes["districts_name_uq"]
     assert districts_name_uq.unique is True
     assert tuple(col.name for col in districts_name_uq.columns) == ("name",)
@@ -77,7 +79,7 @@ def test_district_name_unique_among_active_rows() -> None:
 
 def test_school_name_unique_within_district_among_active_rows() -> None:
     """School names are unique within a district for non-deleted rows."""
-    indexes = {idx.name: idx for idx in SCHOOLS.indexes if isinstance(idx, Index)}
+    indexes = {str(idx.name): idx for idx in SCHOOLS.indexes if isinstance(idx, Index) and idx.name}
     schools_district_name_uq = indexes["schools_district_name_uq"]
     assert schools_district_name_uq.unique is True
     assert tuple(col.name for col in schools_district_name_uq.columns) == (

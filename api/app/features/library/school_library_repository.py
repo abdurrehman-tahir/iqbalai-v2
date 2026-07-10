@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Any
 
 from sqlalchemy import func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -80,7 +81,7 @@ class SchoolLibraryRepository:
         await self._session.refresh(item)
         return item
 
-    def _visible_to_user(self, school_id: str, user_id: str):
+    def _visible_to_user(self, school_id: str, user_id: str) -> Any:
         selection_exists = (
             select(SchoolLibraryItemSelection.id)
             .where(
@@ -99,14 +100,14 @@ class SchoolLibraryRepository:
 
     def _apply_list_filters(
         self,
-        stmt,
+        stmt: Any,
         *,
         subject_id: str | None,
         grade_level_ordinal: int | None,
         language: str | None,
         content_type: str | None,
         title: str | None,
-    ):
+    ) -> Any:
         if subject_id:
             stmt = stmt.where(SchoolLibraryItem.subject_id == subject_id)
         if grade_level_ordinal is not None:
