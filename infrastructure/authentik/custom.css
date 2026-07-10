@@ -1,0 +1,214 @@
+/* =========================================================================
+   IQBAL AI — Authentik login/flow branding
+   Restyles the PatternFly 4 flow executor (login + enrollment) to match the
+   IqbalAI product design: green accent, rounded light-green card, pill button.
+
+   Where this loads:
+   - Mounted at /web/dist/custom.css (see docker-compose.yml), OR
+   - Pasted into Admin > System > Brands > <brand> > Branding > Custom CSS
+
+   Authentik controls the form HTML; this file only skins it. Logo, favicon,
+   title and background are set in Brand settings (see README.md).
+
+   Tested against authentik 2024.12 (PatternFly 4).
+   ========================================================================= */
+
+:root {
+  /* Brand palette (edit these to retune the whole page) */
+  --iqbal-green:        #2e8b34;   /* primary accent: labels, links, icons  */
+  --iqbal-green-600:    #2e7d32;   /* button gradient end                    */
+  --iqbal-green-500:    #4caf50;   /* button gradient start                  */
+  --iqbal-green-700:    #1b5e20;   /* hover / active                         */
+  --iqbal-card:         #e9f7ec;   /* light-green card background            */
+  --iqbal-field:        #ffffff;   /* input background                       */
+  --iqbal-field-border: #cdeccd;   /* input border                          */
+  --iqbal-ink:          #16341a;   /* headings / body text                  */
+  --iqbal-muted:        #4b6b50;   /* secondary text                        */
+  --iqbal-radius:       18px;      /* card corner radius                    */
+
+  /* Map authentik / PatternFly design tokens onto the brand palette */
+  --ak-accent:                              var(--iqbal-green);
+  --ak-global--Color--100:                  var(--iqbal-ink);
+  --pf-global--primary-color--100:          var(--iqbal-green);
+  --pf-global--primary-color--200:          var(--iqbal-green-700);
+  --pf-global--active-color--100:           var(--iqbal-green);
+  --pf-global--link--Color:                 var(--iqbal-green);
+  --pf-global--link--Color--hover:          var(--iqbal-green-700);
+  --pf-global--BackgroundColor--100:        var(--iqbal-field);
+  --pf-global--FontFamily--sans-serif:
+      "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+}
+
+/* ---- Page background: the flow's two-panel background image ------------
+   The flow's `background` (login-bg.png) fills the viewport; content_left
+   layout floats the form over the empty LEFT panel of that image. */
+.pf-c-background-image {
+  background-size: cover !important;
+  background-position: center !important;
+}
+
+/* ---- The login card: blend onto the image's left panel ----------------
+   Transparent + borderless so the form sits directly on the frosted left
+   panel of the background art instead of showing a second card on top. */
+.pf-c-login__main {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  overflow: visible;
+}
+
+.pf-c-login__main-header,
+.pf-c-login__main-body,
+.pf-c-login__main-footer {
+  background: transparent !important;
+}
+
+/* Heading: "Sign In to Iqbal Ai" */
+.pf-c-login__main-header .pf-c-title,
+.pf-c-login__main-body .pf-c-title,
+h1.pf-c-title {
+  color: var(--iqbal-ink) !important;
+  font-weight: 700 !important;
+  letter-spacing: -0.01em;
+}
+
+/* Logo */
+.pf-c-brand,
+img.pf-c-brand {
+  max-height: 56px !important;
+  margin-bottom: 0.5rem;
+}
+
+/* ---- Form labels + inputs --------------------------------------------- */
+.pf-c-form__label,
+.pf-c-form__label-text {
+  color: var(--iqbal-green) !important;
+  font-weight: 600 !important;
+}
+
+.pf-c-form-control {
+  background: var(--iqbal-field) !important;
+  color: var(--iqbal-ink) !important;
+  border: 1.5px solid var(--iqbal-field-border) !important;
+  border-radius: 12px !important;
+  padding: 0.7rem 0.9rem !important;
+  min-height: 46px;
+  box-shadow: none !important;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+.pf-c-form-control:hover {
+  border-color: #a9dcac !important;
+}
+.pf-c-form-control:focus {
+  border-color: var(--iqbal-green) !important;
+  box-shadow: 0 0 0 3px rgba(46, 139, 52, 0.18) !important;
+  outline: none !important;
+}
+.pf-c-form-control::placeholder {
+  color: #9bb59f !important;
+}
+
+/* ---- Primary button: green gradient pill ("Sign In") ------------------ */
+.pf-c-button.pf-m-primary,
+button[type="submit"].pf-c-button {
+  background: linear-gradient(135deg, var(--iqbal-green-500) 0%, var(--iqbal-green-600) 100%) !important;
+  border: none !important;
+  border-radius: 999px !important;
+  color: #fff !important;
+  font-weight: 700 !important;
+  letter-spacing: .01em;
+  padding: 0.85rem 1.25rem !important;
+  min-height: 50px;
+  box-shadow: 0 10px 22px rgba(46, 125, 50, 0.28) !important;
+  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+}
+.pf-c-button.pf-m-primary:hover,
+button[type="submit"].pf-c-button:hover {
+  filter: brightness(1.05);
+  transform: translateY(-1px);
+  box-shadow: 0 14px 28px rgba(46, 125, 50, 0.34) !important;
+}
+.pf-c-button.pf-m-primary:active {
+  transform: translateY(0);
+}
+
+/* ---- Social source buttons (Google, LinkedIn, GitHub) -----------------
+   Rendered by the identification stage when OAuth sources are configured.
+   Laid out as a horizontal row of rounded pills to match the mockup. */
+.pf-c-login__main-footer-links {
+  display: flex !important;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.5rem !important;
+  padding: 0 !important;
+}
+.pf-c-login__main-footer-links-item {
+  flex: 1 1 0;
+  min-width: 96px;
+}
+.pf-c-login__main-footer-links-item a,
+.pf-c-button.pf-m-secondary {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  background: #ffffff !important;
+  border: 1px solid #d6efd9 !important;
+  border-radius: 12px !important;
+  color: var(--iqbal-ink) !important;
+  padding: 0.55rem 0.75rem !important;
+  font-weight: 600;
+}
+.pf-c-login__main-footer-links-item a img,
+.pf-c-login__main-footer-links-item a i {
+  width: 20px;
+  height: 20px;
+}
+.pf-c-login__main-footer-links-item a:hover,
+.pf-c-button.pf-m-secondary:hover {
+  border-color: var(--iqbal-green) !important;
+  background: #f4faf5 !important;
+}
+
+/* ---- Links: "Forgot password?", enrollment, recovery ------------------ */
+a,
+.pf-c-button.pf-m-link {
+  color: var(--iqbal-green) !important;
+}
+a:hover,
+.pf-c-button.pf-m-link:hover {
+  color: var(--iqbal-green-700) !important;
+}
+
+/* ---- Checkbox accent ("Remember this device") ------------------------- */
+.pf-c-check__input {
+  accent-color: var(--iqbal-green);
+}
+
+/* ---- Divider "OR SIGN IN WITH E-MAIL" --------------------------------- */
+.pf-c-divider,
+.pf-c-login__main-footer-band {
+  color: var(--iqbal-muted) !important;
+}
+
+/* ---- Footer text ------------------------------------------------------- */
+.pf-c-login__footer,
+.pf-c-login__footer a {
+  color: var(--iqbal-muted) !important;
+}
+
+/* ---- Kill Authentik chrome that breaks the two-panel illusion ---------- */
+/* "Powered by authentik" — overlaps the right panel art, hide it. */
+.pf-c-login__footer {
+  display: none !important;
+}
+/* Grey band behind the "Forgot password?" link — make it blend. */
+.pf-c-login__main-footer,
+.pf-c-login__main-footer-band,
+.pf-c-login__main-footer-links,
+.pf-c-login__main-body + * {
+  background: transparent !important;
+  box-shadow: none !important;
+  border: none !important;
+}
