@@ -15,7 +15,8 @@ jobs:
     name: Deploy to staging server
     runs-on: ubuntu-latest
     timeout-minutes: 45
-    environment: staging
+    # Uses repository Actions secrets (STAGING_HOST / STAGING_USER / STAGING_SSH_KEY).
+    # No GitHub Environment required — collaborators without Settings → Environments access can still deploy.
     steps:
       - name: Checkout
         uses: actions/checkout@v4

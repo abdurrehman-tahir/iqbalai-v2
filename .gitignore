@@ -83,10 +83,34 @@ yarn.lock
 .env.development.local
 .env.test.local
 .env.production.local
+.env.production
+.env.prod
 .env.*.local
+frontend/.env
 # Keep examples committed
 !.env.example
 !.env.*.example
+!.env.prod.example
+
+# ---------- Production deploy (server-managed) ----------
+# These live on the server after deploy. Ignoring them locally means milestone
+# pushes will not overwrite /root/iqbalai-v2 production config on `git pull`.
+docker-compose.prod.yml
+docker-compose.prod.override.yml
+api/Dockerfile.prod
+frontend/Dockerfile.prod
+nginx/nginx.prod.conf
+nginx/proxy_common.inc
+nginx/conf.d.prod/
+scripts/deploy.sh
+infrastructure/postgres/00-init.sh
+
+# Deploy backups / machine-local patches created on the server
+*.bak-*
+*.backup-*
+deploy-backups-*/
+docker-compose.prod.yml.bak*
+.env.prod.bak*
 
 # ---------- Docker ----------
 # Override file is dev-only; never deploy

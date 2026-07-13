@@ -1,0 +1,20 @@
+# The API build context is ~680 MB without this file (.venv alone is 442 MB).
+.venv
+venv
+__pycache__
+**/__pycache__
+*.pyc
+*.pyo
+.mypy_cache
+.pytest_cache
+.ruff_cache
+htmlcov
+.coverage
+coverage.xml
+celerybeat-schedule
+.env
+.env.*
+tests
+**/tests
+.git
+.DS_Store

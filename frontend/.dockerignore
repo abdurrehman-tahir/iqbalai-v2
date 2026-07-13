@@ -1,3 +1,16 @@
 node_modules
 .next
-.env*.local
+.pnpm-store
+coverage
+test-results
+playwright-report
+e2e
+.git
+.DS_Store
+tsconfig.tsbuildinfo
+*.png
+# Never bake a local env file into the image. NEXT_PUBLIC_* are inlined into the client
+# bundle at build time and come from build args — a stray .env holding localhost URLs
+# would ship a browser bundle that calls localhost from the user's machine.
+.env
+.env.*
