@@ -7,8 +7,6 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field, field_validator
 
-from app.features.teacher_onboarding.constants import PLATFORM_LANGUAGES
-
 
 class IndependentStudentOnboardingState(StrEnum):
     PROFILE_INCOMPLETE = "profile_incomplete"

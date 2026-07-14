@@ -42,7 +42,9 @@ def upgrade() -> None:
         sa.Column("invited_by_user_id", sa.String(255), nullable=False),
         # users.role is plain text in this schema; avoid re-creating school.userrole here.
         sa.Column("invited_role", sa.Text(), nullable=False),
-        sa.Column("district_id", sa.String(36), sa.ForeignKey("school.districts.id"), nullable=True),
+        sa.Column(
+            "district_id", sa.String(36), sa.ForeignKey("school.districts.id"), nullable=True
+        ),
         sa.Column("school_id", sa.String(36), sa.ForeignKey("school.schools.id"), nullable=True),
         sa.Column("scope_ids_json", sa.JSON(), nullable=True),
         sa.Column("token_hash", sa.String(64), nullable=False),

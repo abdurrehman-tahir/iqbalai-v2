@@ -147,7 +147,8 @@ def build_export_zip(
 
         if user.role == UserRole.STUDENT:
             archive.writestr(
-                "student_profile.json", _dump_json(_student_profile_payload(student_profile))
+                "student_profile.json",
+                _dump_json(_student_profile_payload(student_profile)),
             )
             archive.writestr(
                 "parent_links.json",
@@ -176,7 +177,8 @@ def build_export_zip(
 
         if user.role == UserRole.PARENT:
             archive.writestr(
-                "parent_profile.json", _dump_json(_parent_profile_payload(parent_profile))
+                "parent_profile.json",
+                _dump_json(_parent_profile_payload(parent_profile)),
             )
             archive.writestr(
                 "child_links.json",

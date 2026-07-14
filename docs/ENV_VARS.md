@@ -51,6 +51,8 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 |---|---|---|---|
 | `FRAMEWORK_REFRESH_DAYS` | `90` | Cadence (in days) for the Pattern-A exam framework refresh agent. The Celery beat `framework.refresh_quarterly` runs daily and picks up frameworks whose `last_research_run_at` is older than this. | Flow 4 v3 §3.5 + ARCH §8.21 + §10.6 |
 | `FRAMEWORK_RESEARCH_COST_CEILING_USD` | `10` | Hard cap (in USD) per framework research run. Agent halts and preserves partial results if exceeded. Platform Admin alerted. | Flow 4 v3 §3.5.2 + ARCH §8.21 |
+| `FRAMEWORK_RESEARCH_USD_PER_1K_TOKENS` | `0.001` | Blended token price used to estimate a research run's USD spend from LLM usage (a safety knob for the ceiling above, not billing-grade). | T-093 + ARCH §8.21 |
+| `FRAMEWORK_RESEARCH_MAX_SOURCES` | `15` | Number of top search results the Pattern-A run fetches + synthesises per framework (§8.21 target 10–20). | T-093 + ARCH §8.21 |
 | `FRAMEWORK_APPROVAL_SLA_HOURS` | `72` | Target SLA for Platform Admin to approve AI-generated framework plans. 7-day reminder; 14-day escalation. | Flow 4 v3 Q-EF7 + ARCH §8.21 |
 
 ### Graduation lifecycle (Flow 4 v3 §3.9)

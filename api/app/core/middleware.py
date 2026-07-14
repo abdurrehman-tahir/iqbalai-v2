@@ -72,25 +72,25 @@ async def _resolve_active_user(claims: dict[str, object]) -> User | IndependentU
 
     async with async_session_factory() as session:
         if tenant_type == "independent":
-            repo = IndependentUserRepository(session)
-            user = await repo.get_by_authentik_id(authentik_id)
+            indep_repo = IndependentUserRepository(session)
+            user = await indep_repo.get_by_authentik_id(authentik_id)
             if user is not None:
                 return user
             email = str(claims.get("email", "")).strip().lower()
             if email:
-                return await repo.get_by_email(email)
+                return await indep_repo.get_by_email(email)
             return None
 
-        repo = UserRepository(session)
-        user = await repo.get_by_authentik_id(authentik_id)
-        if user is not None:
-            return user
+        user_repo = UserRepository(session)
+        school_user = await user_repo.get_by_authentik_id(authentik_id)
+        if school_user is not None:
+            return school_user
 
         email = str(claims.get("email", "")).strip().lower()
         if not email:
             return None
 
-        matches = await repo.list_by_email(email)
+        matches = await user_repo.list_by_email(email)
         if not matches:
             return None
 

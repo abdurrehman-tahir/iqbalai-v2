@@ -20,7 +20,7 @@
 | M-04 | Teacher Onboarding + Content Library (school-tier) | 2 | T-053 to T-068 | ~3-4 days | in-progress | Teacher logs in, uploads curriculum, sees it ingest + appear in their library |
 | M-05 | Independent Users: signup + Platform Library | 2 | T-069 to T-076 | ~2-3 days | done | Independent teacher self-signs up, accesses Platform Library |
 | M-06 | Student Onboarding (school) + Parent Linking | 2 | T-077 to T-090 | ~3-4 days | in-progress | Coordinator enrolls students into Grade-Section; parents link to children |
-| M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | ~3-4 days | drafted | Platform Admin triggers AI research; approves; students can select framework |
+| M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | ~3-4 days | done | Platform Admin triggers AI research; approves; students can select framework |
 | M-08 | Student Mode + Diagnostic + Cognitive DNA seed | 3 | T-101 to T-112 | ~3-4 days | drafted | Student picks mode, takes diagnostic, cognitive DNA initialized |
 | M-09 | Lecture Wizard + AI Generation (Pattern S RAG) | 4 | T-113 to T-128 | ~1.5 weeks | drafted | Teacher generates first lecture; sees streaming output with source badges |
 | M-10 | Lecture Edit + Versions + 7-Dim Scoring | 4 | T-129 to T-140 | ~3-4 days | drafted | Teacher edits lecture; sees score timeline + Innovation Record suggestions |

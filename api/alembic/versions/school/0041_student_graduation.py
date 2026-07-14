@@ -119,12 +119,6 @@ def upgrade() -> None:
         ["student_user_id"],
         schema="school",
     )
-    op.create_index(
-        "ix_graduation_requests_school_id",
-        "graduation_requests",
-        ["school_id"],
-        schema="school",
-    )
 
     op.create_table(
         "graduation_migration_log",
@@ -170,9 +164,6 @@ def downgrade() -> None:
         schema="school",
     )
     op.drop_table("graduation_migration_log", schema="school")
-    op.drop_index(
-        "ix_graduation_requests_school_id", table_name="graduation_requests", schema="school"
-    )
     op.drop_index(
         "ix_graduation_requests_student_user_id", table_name="graduation_requests", schema="school"
     )

@@ -25,13 +25,17 @@ class _FakeGradeRepo:
     def __init__(self, session: Any) -> None:
         pass
 
-    async def list_by_school_session(self, school_id: str, academic_session: str, include_archived: bool = False) -> list[Grade]:
+    async def list_by_school_session(
+        self, school_id: str, academic_session: str, include_archived: bool = False
+    ) -> list[Grade]:
         return list(self.store.values())
 
     async def get_by_id(self, id: str) -> Grade | None:
         return self.store.get(id)
 
-    async def get_by_name_session(self, school_id: str, name: str, academic_session: str) -> Grade | None:
+    async def get_by_name_session(
+        self, school_id: str, name: str, academic_session: str
+    ) -> Grade | None:
         return None
 
     async def create(self, grade: Grade) -> Grade:
@@ -270,7 +274,9 @@ def _client() -> AsyncClient:
         ("POST", "/api/v1/grades/grade-11/offerings/", {"subject_id": "sub-1"}),
     ],
 )
-async def test_out_of_scope_coordinator_forbidden(method: str, path: str, json_body: dict | None) -> None:
+async def test_out_of_scope_coordinator_forbidden(
+    method: str, path: str, json_body: dict | None
+) -> None:
     async with _client() as client:
         if method == "GET":
             resp = await client.get(path)

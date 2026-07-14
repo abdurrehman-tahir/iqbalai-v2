@@ -72,6 +72,7 @@
       "languages": "__TODO__ Languages",
       "personas": "__TODO__ Teaching Personas",
       "exam_syllabi": "__TODO__ Exam Syllabi",
+      "exam_frameworks": "__TODO__ Exam Frameworks",
       "subscription_tiers": "__TODO__ Subscription Tiers",
       "tos": "__TODO__ ToS & Disclaimer",
       "library": "__TODO__ Platform Library",
@@ -219,6 +220,114 @@
         "description": "__TODO__ Are you sure you want to delete \"{name}\"?",
         "cancel": "__TODO__ Cancel",
         "confirm": "__TODO__ Delete"
+      }
+    },
+    "exam_frameworks": {
+      "title": "__TODO__ Exam Frameworks",
+      "subtitle": "__TODO__ Platform-managed exam framework definitions. New definitions start as drafts; only drafts can be edited or deleted.",
+      "error": "__TODO__ Failed to load frameworks",
+      "retry": "__TODO__ Retry",
+      "add_button": "__TODO__ Add framework",
+      "table_label": "__TODO__ Exam frameworks table",
+      "empty": {
+        "title": "__TODO__ No frameworks yet",
+        "description": "__TODO__ Create the first exam framework definition — e.g. Matric Punjab Board — Physics.",
+        "cta": "__TODO__ Add first framework"
+      },
+      "col": {
+        "name": "__TODO__ Name",
+        "exam_target": "__TODO__ Exam target",
+        "region": "__TODO__ Region",
+        "grades": "__TODO__ Grades",
+        "status": "__TODO__ Status",
+        "actions": "__TODO__ Actions"
+      },
+      "status": {
+        "draft": "__TODO__ Draft",
+        "researching": "__TODO__ Researching",
+        "pending_approval": "__TODO__ Pending approval",
+        "published": "__TODO__ Published",
+        "refreshing": "__TODO__ Refreshing",
+        "deprecated": "__TODO__ Deprecated"
+      },
+      "actions": {
+        "edit": "__TODO__ Edit {name}",
+        "delete": "__TODO__ Delete {name}",
+        "research": "__TODO__ Run AI research for {name}",
+        "view_research": "__TODO__ View research for {name}",
+        "review": "__TODO__ Review study plan for {name}",
+        "refresh": "__TODO__ Refresh (re-run AI research) for {name}",
+        "deprecate": "__TODO__ Deprecate {name}"
+      },
+      "modal": {
+        "edit_title": "__TODO__ Edit framework",
+        "create_title": "__TODO__ New framework",
+        "name_label": "__TODO__ Name",
+        "name_placeholder": "__TODO__ e.g. Matric Punjab — Physics",
+        "exam_target_label": "__TODO__ Exam target",
+        "exam_target_placeholder": "__TODO__ e.g. Matric Punjab Board — Physics",
+        "region_label": "__TODO__ Region",
+        "region_placeholder": "__TODO__ e.g. Punjab, Sindh, any",
+        "grades_label": "__TODO__ Target grades",
+        "grades_placeholder": "__TODO__ e.g. 9, 10",
+        "grades_hint": "__TODO__ Comma-separated grade numbers (1–14).",
+        "grades_error": "__TODO__ Enter comma-separated grade numbers between 1 and 14.",
+        "cancel": "__TODO__ Cancel",
+        "save": "__TODO__ Save changes",
+        "create": "__TODO__ Create",
+        "close": "__TODO__ Close"
+      },
+      "delete_modal": {
+        "title": "__TODO__ Delete framework?",
+        "description": "__TODO__ Are you sure you want to delete \"{name}\"? Only draft frameworks can be deleted.",
+        "cancel": "__TODO__ Cancel",
+        "confirm": "__TODO__ Delete"
+      },
+      "research_status": {
+        "running": "__TODO__ Running",
+        "succeeded": "__TODO__ Succeeded",
+        "partial": "__TODO__ Partial (cost ceiling reached)",
+        "research_failed": "__TODO__ Failed"
+      },
+      "research_modal": {
+        "title": "__TODO__ AI research run",
+        "description": "__TODO__ Latest research job for {name}.",
+        "close": "__TODO__ Close",
+        "status": "__TODO__ Status",
+        "cost": "__TODO__ Estimated cost",
+        "sources": "__TODO__ Sources cited",
+        "error": "__TODO__ Details",
+        "refresh": "__TODO__ Refresh",
+        "empty_title": "__TODO__ No research run yet",
+        "empty_description": "__TODO__ Trigger AI research from a DRAFT framework to generate a study plan."
+      },
+      "review_modal": {
+        "title": "__TODO__ Review study plan",
+        "description": "__TODO__ Review the generated study plan for {name} before publishing.",
+        "close": "__TODO__ Close",
+        "version": "__TODO__ Plan version",
+        "topics": "__TODO__ Topics",
+        "weeks": "__TODO__ Weeks of pacing",
+        "topics_heading": "__TODO__ Topics",
+        "no_topics": "__TODO__ No topics in this plan.",
+        "sources_heading": "__TODO__ Cited sources",
+        "no_sources": "__TODO__ No sources cited.",
+        "empty_title": "__TODO__ No plan pending approval",
+        "empty_description": "__TODO__ This framework has no study plan awaiting review.",
+        "notes_label": "__TODO__ Reviewer notes",
+        "notes_placeholder": "__TODO__ Explain what needs to change before this can be published.",
+        "notes_error": "__TODO__ Notes are required to reject a plan (max 4000 characters).",
+        "cancel": "__TODO__ Cancel",
+        "confirm_reject": "__TODO__ Reject plan",
+        "refresh": "__TODO__ Refresh",
+        "reject": "__TODO__ Reject",
+        "approve": "__TODO__ Approve & publish"
+      },
+      "deprecate_modal": {
+        "title": "__TODO__ Deprecate framework?",
+        "description": "__TODO__ Deprecate \"{name}\"? It won't be offered to new students; existing students keep their current version.",
+        "cancel": "__TODO__ Cancel",
+        "confirm": "__TODO__ Deprecate"
       }
     },
     "subscription_tiers": {

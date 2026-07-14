@@ -10,7 +10,7 @@ from celery import shared_task
 logger = structlog.get_logger(__name__)
 
 
-@shared_task(name="unlinked_parent.auto_suspend_sweep", queue="notifications")
+@shared_task(name="unlinked_parent.auto_suspend_sweep", queue="notifications")  # type: ignore[misc]
 def auto_suspend_unlinked_parents() -> int:
     """Suspend parents who remain unlinked for 90+ days."""
     return asyncio.run(_auto_suspend_unlinked_parents_async())

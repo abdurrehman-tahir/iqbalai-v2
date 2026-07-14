@@ -584,6 +584,163 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/exam-frameworks/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List exam-framework definitions */
+        get: operations["exam_frameworks_list"];
+        put?: never;
+        /** Create a DRAFT exam-framework definition */
+        post: operations["exam_frameworks_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a single exam-framework definition */
+        get: operations["exam_frameworks_get"];
+        /** Edit a DRAFT exam-framework definition */
+        put: operations["exam_frameworks_update"];
+        post?: never;
+        /** Soft-delete a DRAFT exam-framework definition */
+        delete: operations["exam_frameworks_delete"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/approve": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Approve the pending plan -> PUBLISHED (selectable by students) */
+        post: operations["exam_frameworks_approve"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/deprecate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Deprecate a PUBLISHED framework (no new selections; existing grandfathered) */
+        post: operations["exam_frameworks_deprecate"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read the study plan pending approval for review (content + sources) */
+        get: operations["exam_frameworks_review_plan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Re-run research on a PUBLISHED framework -> new version (T-095) */
+        post: operations["exam_frameworks_refresh"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/reject": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Reject the pending plan -> DRAFT with reviewer notes */
+        post: operations["exam_frameworks_reject"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/research": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the latest AI research job for a framework (progress/result) */
+        get: operations["exam_frameworks_latest_research"];
+        put?: never;
+        /** Trigger the Pattern-A AI research run for a DRAFT framework */
+        post: operations["exam_frameworks_trigger_research"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/exam-frameworks/{framework_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a framework's study-plan version history (newest first) */
+        get: operations["exam_frameworks_versions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/grades/": {
         parameters: {
             query?: never;
@@ -1478,6 +1635,108 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/student/exam-frameworks/available": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Browse selectable frameworks (region + grade scoped) */
+        get: operations["student_frameworks_available"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/selections": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List my framework selections (with opt-in update flag) */
+        get: operations["student_frameworks_selections"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/selections/{selection_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Drop a selection (-> ABANDONED; history retained) */
+        delete: operations["student_frameworks_drop"];
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/selections/{selection_id}/study-plan": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Render the pinned study plan for a selection (self-study hook) */
+        get: operations["student_frameworks_study_plan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/selections/{selection_id}/switch": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Opt in to the latest published version for a selection */
+        post: operations["student_frameworks_switch"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/student/exam-frameworks/{framework_id}/select": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Select a framework (ACTIVE, pinned to the current version) */
+        post: operations["student_frameworks_select"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/connections": {
         parameters: {
             query?: never;
@@ -2122,6 +2381,26 @@ export interface components {
             /** Target Type */
             target_type: string | null;
         };
+        /**
+         * AvailableFrameworkRead
+         * @description A published framework a student may select (T-096), with its current version.
+         */
+        AvailableFrameworkRead: {
+            /** Current Version */
+            current_version: number;
+            /** Exam Target */
+            exam_target: string;
+            /** Id */
+            id: string;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** Region */
+            region: string;
+            /** Target Grade Range */
+            target_grade_range: number[];
+        };
         /** Body_create_bulk_import_dry_run */
         Body_create_bulk_import_dry_run: {
             /** File */
@@ -2344,6 +2623,25 @@ export interface components {
             status: components["schemas"]["UserAccountStatus"];
         };
         /**
+         * ExamFrameworkCreate
+         * @description Payload to create a DRAFT framework definition (Platform Admin).
+         */
+        ExamFrameworkCreate: {
+            /** Exam Target */
+            exam_target: string;
+            /**
+             * Language
+             * @default en
+             */
+            language: string;
+            /** Name */
+            name: string;
+            /** Region */
+            region: string;
+            /** Target Grade Range */
+            target_grade_range: number[];
+        };
+        /**
          * ExamFrameworkOption
          * @description Public exam framework option — backed by exam syllabi until M-07.
          */
@@ -2356,6 +2654,48 @@ export interface components {
             language: string;
             /** Name */
             name: string;
+        };
+        /**
+         * ExamFrameworkRead
+         * @description Response schema for a single exam-framework definition.
+         */
+        ExamFrameworkRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Created By */
+            created_by: string;
+            /** Exam Target */
+            exam_target: string;
+            /** Id */
+            id: string;
+            /** Language */
+            language: string;
+            /** Name */
+            name: string;
+            /** Region */
+            region: string;
+            status: components["schemas"]["FrameworkStatus"];
+            /** Target Grade Range */
+            target_grade_range: number[];
+        };
+        /**
+         * ExamFrameworkUpdate
+         * @description Payload to edit a DRAFT framework (all fields optional — merge).
+         */
+        ExamFrameworkUpdate: {
+            /** Exam Target */
+            exam_target?: string | null;
+            /** Language */
+            language?: string | null;
+            /** Name */
+            name?: string | null;
+            /** Region */
+            region?: string | null;
+            /** Target Grade Range */
+            target_grade_range?: number[] | null;
         };
         /**
          * ExamSyllabusCreate
@@ -2424,6 +2764,93 @@ export interface components {
             name?: string | null;
             /** Region */
             region?: string | null;
+        };
+        /**
+         * FrameworkRejectRequest
+         * @description Payload to reject a pending plan back to DRAFT with reviewer notes (T-094).
+         */
+        FrameworkRejectRequest: {
+            /** Notes */
+            notes: string;
+        };
+        /**
+         * FrameworkResearchJobRead
+         * @description Response schema for a Pattern-A research run (T-093).
+         */
+        FrameworkResearchJobRead: {
+            /** Cost Usd */
+            cost_usd: number;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Error */
+            error: string | null;
+            /** Finished At */
+            finished_at: string | null;
+            /** Framework Id */
+            framework_id: string;
+            /** Id */
+            id: string;
+            /** Sources Count */
+            sources_count: number;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+            status: components["schemas"]["ResearchJobStatus"];
+            /** Study Plan Id */
+            study_plan_id: string | null;
+        };
+        /**
+         * FrameworkStatus
+         * @description Exam-framework definition lifecycle (Flow 4 §3.5.1).
+         *
+         *     draft -> researching -> pending_approval -> published -> refreshing ->
+         *     (published new version) ; published/any -> deprecated (existing students
+         *     grandfathered). Additive-only per ARCH §4.9.
+         * @enum {string}
+         */
+        FrameworkStatus: "draft" | "researching" | "pending_approval" | "published" | "refreshing" | "deprecated";
+        /**
+         * FrameworkStudyPlanRead
+         * @description Response schema for a versioned study plan under Platform-Admin review (T-094).
+         *
+         *     Surfaces the full generated ``content_jsonb`` + cited sources so the reviewer can
+         *     read the plan before approving/rejecting (Acceptance #1).
+         */
+        FrameworkStudyPlanRead: {
+            /** Approved At */
+            approved_at: string | null;
+            /** Approved By */
+            approved_by: string | null;
+            /** Content Jsonb */
+            content_jsonb: {
+                [key: string]: unknown;
+            };
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Framework Id */
+            framework_id: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Id */
+            id: string;
+            /** Reviewer Notes */
+            reviewer_notes: string | null;
+            /** Sources Cited Jsonb */
+            sources_cited_jsonb: unknown[];
+            status: components["schemas"]["StudyPlanStatus"];
+            /** Version */
+            version: number;
         };
         /** GradeCreate */
         GradeCreate: {
@@ -3031,6 +3458,17 @@ export interface components {
             user_id: string;
         };
         /**
+         * ResearchJobStatus
+         * @description Pattern-A research-run lifecycle (Flow 4 §3.5.1, ARCH §8.21, T-093).
+         *
+         *     running -> succeeded (plan produced, pending approval)
+         *             -> partial   (cost ceiling hit; partial result preserved + flagged)
+         *             -> research_failed (retries exhausted; framework reverts to draft).
+         *     Additive-only per ARCH §4.9.
+         * @enum {string}
+         */
+        ResearchJobStatus: "running" | "succeeded" | "partial" | "research_failed";
+        /**
          * SchoolCreate
          * @description Payload for creating a new School within a district.
          */
@@ -3193,6 +3631,12 @@ export interface components {
          * @enum {string}
          */
         SectionStatus: "active" | "archived";
+        /**
+         * SelectionStatus
+         * @description Student framework-selection lifecycle (Flow 4 §3.5.3).
+         * @enum {string}
+         */
+        SelectionStatus: "active" | "abandoned";
         /** StudentBannerDismiss */
         StudentBannerDismiss: {
             /**
@@ -3345,6 +3789,67 @@ export interface components {
             /** User Id */
             user_id: string;
         };
+        /**
+         * StudentSelectionRead
+         * @description A student's framework selection (T-096).
+         *
+         *     ``latest_version`` + ``update_available`` power the opt-in "v2 available — switch?"
+         *     banner (T-095): a refreshed, approved version exists beyond the pinned one.
+         */
+        StudentSelectionRead: {
+            /** Exam Target */
+            exam_target: string;
+            /** Framework Id */
+            framework_id: string;
+            /** Framework Name */
+            framework_name: string;
+            /** Id */
+            id: string;
+            /** Latest Version */
+            latest_version: number;
+            /** Pinned Version */
+            pinned_version: number;
+            /**
+             * Selected At
+             * Format: date-time
+             */
+            selected_at: string;
+            status: components["schemas"]["SelectionStatus"];
+            /** Update Available */
+            update_available: boolean;
+        };
+        /**
+         * StudentStudyPlanRead
+         * @description The pinned study-plan version a student sees rendered (T-096, §3.5.2).
+         *
+         *     This is also the self-study integration hook: the structured plan (topics, weekly
+         *     pacing, exam strategy) is exposed here for the future Flow 8 planner (M-08+).
+         */
+        StudentStudyPlanRead: {
+            /** Content Jsonb */
+            content_jsonb: {
+                [key: string]: unknown;
+            };
+            /** Exam Target */
+            exam_target: string;
+            /** Framework Id */
+            framework_id: string;
+            /** Framework Name */
+            framework_name: string;
+            /**
+             * Generated At
+             * Format: date-time
+             */
+            generated_at: string;
+            /** Version */
+            version: number;
+        };
+        /**
+         * StudyPlanStatus
+         * @description Per-version study-plan lifecycle. Independent view exposes ``approved`` only.
+         * @enum {string}
+         */
+        StudyPlanStatus: "draft" | "pending_approval" | "approved" | "superseded";
         /**
          * SubjectCreate
          * @description Payload for creating a new Subject in the caller's school catalogue.
@@ -3527,9 +4032,36 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[ExamFrameworkRead] */
+        SuccessEnvelope_ExamFrameworkRead_: {
+            data: components["schemas"]["ExamFrameworkRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[ExamSyllabusRead] */
         SuccessEnvelope_ExamSyllabusRead_: {
             data: components["schemas"]["ExamSyllabusRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[FrameworkResearchJobRead] */
+        SuccessEnvelope_FrameworkResearchJobRead_: {
+            data: components["schemas"]["FrameworkResearchJobRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[FrameworkStudyPlanRead] */
+        SuccessEnvelope_FrameworkStudyPlanRead_: {
+            data: components["schemas"]["FrameworkStudyPlanRead"];
             /**
              * Message
              * @default ok
@@ -3788,6 +4320,24 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[StudentSelectionRead] */
+        SuccessEnvelope_StudentSelectionRead_: {
+            data: components["schemas"]["StudentSelectionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentStudyPlanRead] */
+        SuccessEnvelope_StudentStudyPlanRead_: {
+            data: components["schemas"]["StudentStudyPlanRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[SubjectRead] */
         SuccessEnvelope_SubjectRead_: {
             data: components["schemas"]["SubjectRead"];
@@ -3879,6 +4429,16 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[list[AvailableFrameworkRead]] */
+        SuccessEnvelope_list_AvailableFrameworkRead__: {
+            /** Data */
+            data: components["schemas"]["AvailableFrameworkRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[DisclaimerVersionRead]] */
         SuccessEnvelope_list_DisclaimerVersionRead__: {
             /** Data */
@@ -3909,10 +4469,30 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[list[ExamFrameworkRead]] */
+        SuccessEnvelope_list_ExamFrameworkRead__: {
+            /** Data */
+            data: components["schemas"]["ExamFrameworkRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[ExamSyllabusRead]] */
         SuccessEnvelope_list_ExamSyllabusRead__: {
             /** Data */
             data: components["schemas"]["ExamSyllabusRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[FrameworkStudyPlanRead]] */
+        SuccessEnvelope_list_FrameworkStudyPlanRead__: {
+            /** Data */
+            data: components["schemas"]["FrameworkStudyPlanRead"][];
             /**
              * Message
              * @default ok
@@ -3963,6 +4543,16 @@ export interface components {
         SuccessEnvelope_list_SectionRead__: {
             /** Data */
             data: components["schemas"]["SectionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[StudentSelectionRead]] */
+        SuccessEnvelope_list_StudentSelectionRead__: {
+            /** Data */
+            data: components["schemas"]["StudentSelectionRead"][];
             /**
              * Message
              * @default ok
@@ -5841,6 +6431,422 @@ export interface operations {
             };
         };
     };
+    exam_frameworks_list: {
+        parameters: {
+            query?: {
+                /** @description Filter by status */
+                status?: components["schemas"]["FrameworkStatus"] | null;
+                /** @description Include soft-deleted definitions */
+                include_deleted?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_ExamFrameworkRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamFrameworkCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ExamFrameworkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_get: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ExamFrameworkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_update: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ExamFrameworkUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ExamFrameworkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_delete: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ExamFrameworkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_approve: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkStudyPlanRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_deprecate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ExamFrameworkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_review_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkStudyPlanRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkResearchJobRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_reject: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FrameworkRejectRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkStudyPlanRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_latest_research: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkResearchJobRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_trigger_research: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            202: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_FrameworkResearchJobRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    exam_frameworks_versions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_FrameworkStudyPlanRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     grades_list: {
         parameters: {
             query?: {
@@ -6918,7 +7924,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/zip": unknown;
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -7614,6 +8620,184 @@ export interface operations {
             };
         };
     };
+    student_frameworks_available: {
+        parameters: {
+            query: {
+                /** @description Student's region (matches region or 'any') */
+                region: string;
+                /** @description Student's grade level */
+                grade: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_AvailableFrameworkRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_frameworks_selections: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_StudentSelectionRead__"];
+                };
+            };
+        };
+    };
+    student_frameworks_drop: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentSelectionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_frameworks_study_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentStudyPlanRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_frameworks_switch: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                selection_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentSelectionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_frameworks_select: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                framework_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentSelectionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     student_get_connections: {
         parameters: {
             query?: never;
@@ -7755,7 +8939,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/zip": unknown;
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

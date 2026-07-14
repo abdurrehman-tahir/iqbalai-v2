@@ -467,7 +467,8 @@
       "data_rights_link": "Data & privacy",
       "graduation_banner_title": "You've graduated",
       "graduation_banner_body": "Lecture mode is read-only. Self-Study stays fully available until your account moves to Independent mode.",
-      "graduation_migration_date": "Independent migration scheduled: {date}"
+      "graduation_migration_date": "Independent migration scheduled: {date}",
+      "exam_frameworks_link": "Exam frameworks"
     },
     "data_rights": {
       "title": "Data & privacy",
@@ -489,6 +490,44 @@
       "deletion_cancelled": "Deletion request cancelled.",
       "download_started": "Download started.",
       "error_generic": "Something went wrong. Please try again."
+    },
+    "frameworks": {
+      "title": "Exam Frameworks",
+      "subtitle": "Pick an exam target to get an AI-built study plan — topics, weekly pacing, and exam strategy.",
+      "error": "Couldn't load your frameworks.",
+      "retry": "Retry",
+      "my_title": "My frameworks",
+      "my_empty_title": "No frameworks selected yet",
+      "my_empty_description": "Browse below and select an exam target to start a study plan.",
+      "status": {
+        "active": "Active",
+        "abandoned": "Dropped"
+      },
+      "version_label": "Study plan v{version}",
+      "update_available": "An updated plan (v{version}) is available.",
+      "switch": "Switch to new version",
+      "view_plan": "View study plan",
+      "drop": "Drop",
+      "browse_title": "Browse frameworks",
+      "region_label": "Region",
+      "region_placeholder": "e.g. Punjab",
+      "grade_label": "Grade",
+      "browse_button": "Browse",
+      "browse_hint": "Enter your region and grade to see matching exam frameworks.",
+      "browse_empty_title": "No frameworks match",
+      "browse_empty_description": "No published frameworks for that region and grade yet.",
+      "select": "Select",
+      "selected": "Selected",
+      "plan_modal": {
+        "title": "{name} — study plan",
+        "close": "Close",
+        "error": "Couldn't load the study plan.",
+        "version": "Version",
+        "topics": "Topics",
+        "weeks": "Weeks planned",
+        "topics_heading": "Topics (by past-paper weight)",
+        "no_topics": "No topics in this plan yet."
+      }
     }
   },
   "teacher": {
@@ -839,6 +878,7 @@
       "languages": "Languages",
       "personas": "Teaching Personas",
       "exam_syllabi": "Exam Syllabi",
+      "exam_frameworks": "Exam Frameworks",
       "subscription_tiers": "Subscription Tiers",
       "tos": "ToS & Disclaimer",
       "library": "Platform Library",
@@ -1041,6 +1081,114 @@
         "description": "Are you sure you want to delete \"{name}\"? Students with this syllabus selected will retain their selection.",
         "cancel": "Cancel",
         "confirm": "Delete"
+      }
+    },
+    "exam_frameworks": {
+      "title": "Exam Frameworks",
+      "subtitle": "Platform-managed exam framework definitions. New definitions start as drafts; only drafts can be edited or deleted.",
+      "error": "Failed to load frameworks",
+      "retry": "Retry",
+      "add_button": "Add framework",
+      "table_label": "Exam frameworks table",
+      "empty": {
+        "title": "No frameworks yet",
+        "description": "Create the first exam framework definition — e.g. Matric Punjab Board — Physics.",
+        "cta": "Add first framework"
+      },
+      "col": {
+        "name": "Name",
+        "exam_target": "Exam target",
+        "region": "Region",
+        "grades": "Grades",
+        "status": "Status",
+        "actions": "Actions"
+      },
+      "status": {
+        "draft": "Draft",
+        "researching": "Researching",
+        "pending_approval": "Pending approval",
+        "published": "Published",
+        "refreshing": "Refreshing",
+        "deprecated": "Deprecated"
+      },
+      "actions": {
+        "edit": "Edit {name}",
+        "delete": "Delete {name}",
+        "research": "Run AI research for {name}",
+        "view_research": "View research for {name}",
+        "review": "Review study plan for {name}",
+        "refresh": "Refresh (re-run AI research) for {name}",
+        "deprecate": "Deprecate {name}"
+      },
+      "modal": {
+        "edit_title": "Edit framework",
+        "create_title": "New framework",
+        "name_label": "Name",
+        "name_placeholder": "e.g. Matric Punjab — Physics",
+        "exam_target_label": "Exam target",
+        "exam_target_placeholder": "e.g. Matric Punjab Board — Physics",
+        "region_label": "Region",
+        "region_placeholder": "e.g. Punjab, Sindh, any",
+        "grades_label": "Target grades",
+        "grades_placeholder": "e.g. 9, 10",
+        "grades_hint": "Comma-separated grade numbers (1–14).",
+        "grades_error": "Enter comma-separated grade numbers between 1 and 14.",
+        "cancel": "Cancel",
+        "save": "Save changes",
+        "create": "Create",
+        "close": "Close"
+      },
+      "delete_modal": {
+        "title": "Delete framework?",
+        "description": "Are you sure you want to delete \"{name}\"? Only draft frameworks can be deleted.",
+        "cancel": "Cancel",
+        "confirm": "Delete"
+      },
+      "research_status": {
+        "running": "Running",
+        "succeeded": "Succeeded",
+        "partial": "Partial (cost ceiling reached)",
+        "research_failed": "Failed"
+      },
+      "research_modal": {
+        "title": "AI research run",
+        "description": "Latest research job for {name}.",
+        "close": "Close",
+        "status": "Status",
+        "cost": "Estimated cost",
+        "sources": "Sources cited",
+        "error": "Details",
+        "refresh": "Refresh",
+        "empty_title": "No research run yet",
+        "empty_description": "Trigger AI research from a DRAFT framework to generate a study plan."
+      },
+      "review_modal": {
+        "title": "Review study plan",
+        "description": "Review the generated study plan for {name} before publishing.",
+        "close": "Close",
+        "version": "Plan version",
+        "topics": "Topics",
+        "weeks": "Weeks of pacing",
+        "topics_heading": "Topics",
+        "no_topics": "No topics in this plan.",
+        "sources_heading": "Cited sources",
+        "no_sources": "No sources cited.",
+        "empty_title": "No plan pending approval",
+        "empty_description": "This framework has no study plan awaiting review.",
+        "notes_label": "Reviewer notes",
+        "notes_placeholder": "Explain what needs to change before this can be published.",
+        "notes_error": "Notes are required to reject a plan (max 4000 characters).",
+        "cancel": "Cancel",
+        "confirm_reject": "Reject plan",
+        "refresh": "Refresh",
+        "reject": "Reject",
+        "approve": "Approve & publish"
+      },
+      "deprecate_modal": {
+        "title": "Deprecate framework?",
+        "description": "Deprecate \"{name}\"? It won't be offered to new students; existing students keep their current version.",
+        "cancel": "Cancel",
+        "confirm": "Deprecate"
       }
     },
     "subscription_tiers": {

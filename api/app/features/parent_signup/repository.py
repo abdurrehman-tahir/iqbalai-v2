@@ -51,4 +51,4 @@ class ParentProfileRepository:
                 ParentProfile.unlinked_since <= cutoff,
             )
         )
-        return list(result.all())
+        return [(row[0], row[1]) for row in result.all()]

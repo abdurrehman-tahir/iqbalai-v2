@@ -15,6 +15,7 @@ Reversible: yes
 from __future__ import annotations
 
 import sqlalchemy as sa
+
 from alembic import op
 
 revision: str = "school_0022"
@@ -74,7 +75,9 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index("ix_academic_sessions_deleted_at", table_name="academic_sessions", schema="school")
+    op.drop_index(
+        "ix_academic_sessions_deleted_at", table_name="academic_sessions", schema="school"
+    )
     op.drop_index("ix_academic_sessions_school_id", table_name="academic_sessions", schema="school")
     op.drop_index(
         "academic_sessions_school_label_uq", table_name="academic_sessions", schema="school"

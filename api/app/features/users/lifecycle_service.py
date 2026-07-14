@@ -22,9 +22,7 @@ from app.infrastructure.notifications.account import notify_account_event
 
 logger = structlog.get_logger(__name__)
 
-_ADMIN_ROLES = frozenset(
-    {UserRole.PLATFORM_ADMIN, UserRole.DISTRICT_ADMIN, UserRole.SCHOOL_ADMIN}
-)
+_ADMIN_ROLES = frozenset({UserRole.PLATFORM_ADMIN, UserRole.DISTRICT_ADMIN, UserRole.SCHOOL_ADMIN})
 
 
 def _caller_role(claims: dict[str, object]) -> str:
@@ -89,9 +87,7 @@ class UserLifecycleService:
             return
         raise PermissionDeniedError("Insufficient role")
 
-    def _assert_can_manage(
-        self, target: User, claims: dict[str, object], caller_role: str
-    ) -> None:
+    def _assert_can_manage(self, target: User, claims: dict[str, object], caller_role: str) -> None:
         self._assert_target_in_scope(target, claims, caller_role)
         caller_level = ROLE_HIERARCHY.get(caller_role, 0)
         target_level = ROLE_HIERARCHY.get(target.role.value, 0)
@@ -127,13 +123,9 @@ class UserLifecycleService:
 
         if count <= 1:
             if action == "deactivate" and target.authentik_id == actor_authentik_id:
-                raise PreconditionFailedError(
-                    "Last active admin in scope cannot self-deactivate"
-                )
+                raise PreconditionFailedError("Last active admin in scope cannot self-deactivate")
             if action in ("deactivate", "suspend"):
-                raise PreconditionFailedError(
-                    "Cannot remove the last active admin in this scope"
-                )
+                raise PreconditionFailedError("Cannot remove the last active admin in this scope")
 
     async def suspend_user(
         self,
@@ -151,9 +143,7 @@ class UserLifecycleService:
         if target.status == UserAccountStatus.SUSPENDED:
             raise ValidationError("User is already suspended")
 
-        await self._assert_admin_floor(
-            target, actor_authentik_id=actor_id, action="suspend"
-        )
+        await self._assert_admin_floor(target, actor_authentik_id=actor_id, action="suspend")
 
         target.status = UserAccountStatus.SUSPENDED
         await self._authentik.deactivate_user(target.authentik_id)
@@ -261,9 +251,7 @@ class UserLifecycleService:
         if target.status == UserAccountStatus.DEACTIVATED:
             raise ValidationError("User is already deactivated")
 
-        await self._assert_admin_floor(
-            target, actor_authentik_id=actor_id, action="deactivate"
-        )
+        await self._assert_admin_floor(target, actor_authentik_id=actor_id, action="deactivate")
 
         target.status = UserAccountStatus.DEACTIVATED
         target.deleted_at = datetime.now(timezone.utc)

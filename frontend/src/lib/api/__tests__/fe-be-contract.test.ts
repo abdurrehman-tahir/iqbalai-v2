@@ -8,6 +8,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import {
+  EXAM_FRAMEWORK_CREATE_FROM_UI,
   EXAM_SYLLABUS_CREATE_FROM_UI,
   SUBJECT_CREATE_FROM_UI,
   SUBSCRIPTION_TIER_CREATE_FROM_UI,
@@ -33,6 +34,14 @@ describe("Phase 1 — FE↔BE create payload contract", () => {
 
   it("subject UI payload satisfies SubjectCreate", () => {
     const violation = checkOpenApiCreateContract("SubjectCreate", SUBJECT_CREATE_FROM_UI);
+    expect(violation, violation ? formatContractViolation(violation) : undefined).toBeNull();
+  });
+
+  it("exam framework UI payload satisfies ExamFrameworkCreate", () => {
+    const violation = checkOpenApiCreateContract(
+      "ExamFrameworkCreate",
+      EXAM_FRAMEWORK_CREATE_FROM_UI
+    );
     expect(violation, violation ? formatContractViolation(violation) : undefined).toBeNull();
   });
 });

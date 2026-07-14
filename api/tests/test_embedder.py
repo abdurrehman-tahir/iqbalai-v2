@@ -19,7 +19,9 @@ def test_local_provider_uses_separate_collection() -> None:
         mock_settings.return_value.EMBEDDING_VECTOR_DIM = 0
         assert platform_chunks_collection() == "platform_chunks_local"
         assert embedding_vector_dim() == 384
-        assert embedding_model_name() == "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+        assert (
+            embedding_model_name() == "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+        )
 
 
 def test_infinity_provider_defaults() -> None:

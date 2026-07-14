@@ -8,8 +8,9 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, PreconditionFailedError
-from app.features.offerings.service import DEFAULT_TEACHER_CAPACITY
+from app.features.audit.actions import CAPACITY_UPDATED
 from app.features.offerings.repository import OfferingRepository
+from app.features.offerings.service import DEFAULT_TEACHER_CAPACITY
 from app.features.subjects.models import Subject, SubjectStatus
 from app.features.subjects.repository import SubjectRepository
 from app.features.teacher_onboarding.models import TeacherProfile
@@ -24,7 +25,6 @@ from app.features.teacher_onboarding.schemas import (
 )
 from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
-from app.features.audit.actions import CAPACITY_UPDATED
 from app.infrastructure.audit.log import audit
 from app.infrastructure.notifications.account import notify_account_event
 

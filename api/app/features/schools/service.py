@@ -176,9 +176,7 @@ class SchoolService:
         if caller_school != school_id:
             raise NotFoundError("School not found")
 
-    async def get_my_school(
-        self, claims: dict[str, object], caller_role: str
-    ) -> School:
+    async def get_my_school(self, claims: dict[str, object], caller_role: str) -> School:
         """Return the school scoped to a School Admin caller."""
         school_id = _caller_school_id(claims)
         if school_id is None:

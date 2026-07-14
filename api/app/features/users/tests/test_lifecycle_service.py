@@ -126,7 +126,7 @@ def _svc() -> UserLifecycleService:
 
 async def test_suspend_teacher() -> None:
     svc = _svc()
-    claims = {"sub": "ak-sa-1", "role": "school_admin", "school_id": "school-1"}
+    claims: dict[str, object] = {"sub": "ak-sa-1", "role": "school_admin", "school_id": "school-1"}
     updated = await svc.suspend_user("teacher-1", claims=claims, actor_id="ak-sa-1")
     assert updated.status == UserAccountStatus.SUSPENDED
 
@@ -134,7 +134,7 @@ async def test_suspend_teacher() -> None:
 async def test_reactivate_suspended_user() -> None:
     svc = _svc()
     _FakeUserRepo.users["teacher-1"].status = UserAccountStatus.SUSPENDED
-    claims = {"sub": "ak-sa-1", "role": "school_admin", "school_id": "school-1"}
+    claims: dict[str, object] = {"sub": "ak-sa-1", "role": "school_admin", "school_id": "school-1"}
     updated = await svc.reactivate_user("teacher-1", claims=claims, actor_id="ak-sa-1")
     assert updated.status == UserAccountStatus.ACTIVE
 
@@ -142,20 +142,24 @@ async def test_reactivate_suspended_user() -> None:
 async def test_cannot_reactivate_deactivated_user() -> None:
     svc = _svc()
     _FakeUserRepo.users["teacher-1"].status = UserAccountStatus.DEACTIVATED
-    claims = {"sub": "ak-sa-1", "role": "school_admin", "school_id": "school-1"}
+    claims: dict[str, object] = {"sub": "ak-sa-1", "role": "school_admin", "school_id": "school-1"}
     with pytest.raises(ValidationError, match="Deactivated"):
         await svc.reactivate_user("teacher-1", claims=claims, actor_id="ak-sa-1")
 
 
 async def test_last_platform_admin_cannot_self_deactivate() -> None:
     svc = _svc()
-    claims = {"sub": "ak-pa-1", "role": "platform_admin"}
+    claims: dict[str, object] = {"sub": "ak-pa-1", "role": "platform_admin"}
     with pytest.raises(PreconditionFailedError, match="self-deactivate"):
         await svc.deactivate_user("pa-1", claims=claims, actor_id="ak-pa-1")
 
 
 async def test_cross_school_suspend_returns_404() -> None:
     svc = _svc()
-    claims = {"sub": "ak-sa-2", "role": "school_admin", "school_id": "school-other"}
+    claims: dict[str, object] = {
+        "sub": "ak-sa-2",
+        "role": "school_admin",
+        "school_id": "school-other",
+    }
     with pytest.raises(NotFoundError):
         await svc.suspend_user("teacher-1", claims=claims, actor_id="ak-sa-2")

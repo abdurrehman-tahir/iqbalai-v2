@@ -24,7 +24,7 @@ SELF_STUDY_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
             "ps": {
                 "title": "امتحان نږدې دی",
-                "body": "ستاسو امتحان په {days_remaining} ورځو کې دی ({exam_date}). خپل مطالعې پلان پر مخ وړئ۔",  # noqa: E501
+                "body": "ستاسو امتحان په {days_remaining} ورځو کې دی ({exam_date})۔ خپل مطالعې پلان پر مخ وړئ۔",  # noqa: E501
             },
         }
     },

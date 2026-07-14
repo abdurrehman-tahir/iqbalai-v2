@@ -107,7 +107,10 @@ async def test_upload_creates_content_and_queues_ingestion() -> None:
         patch.object(svc._users, "get_by_authentik_id", return_value=user),
         patch.object(svc._repo, "get_by_user_sha256", return_value=None),
         patch.object(svc._repo, "save", return_value=saved),
-        patch("app.features.library.independent_personal_service.sha256_of_bytes", return_value="b" * 64),
+        patch(
+            "app.features.library.independent_personal_service.sha256_of_bytes",
+            return_value="b" * 64,
+        ),
         patch(
             "app.features.library.independent_personal_service.run_upload_pipeline",
             return_value=upload_result,

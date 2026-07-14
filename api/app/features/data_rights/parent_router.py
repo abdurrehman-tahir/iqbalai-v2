@@ -60,9 +60,7 @@ async def request_export(
 
 @router.get(
     "/export/{request_id}/download",
-    response_model=None,  # binary ZIP stream — no Pydantic body (FastAPI opt-out)
-    response_class=Response,
-    responses={200: {"content": {"application/zip": {}}}},
+    response_model=None,
     operation_id="parent_download_data_export",
     summary="Download a ready personal data export",
     dependencies=[require_role("parent")],

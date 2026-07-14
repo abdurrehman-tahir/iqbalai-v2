@@ -13,7 +13,10 @@ from httpx import ASGITransport, AsyncClient
 from app.api.v1.router import router as v1_router
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import setup_exception_handlers
-from app.features.library.school_library_schemas import SchoolLibraryItemRead, SchoolLibraryListResponse
+from app.features.library.school_library_schemas import (
+    SchoolLibraryItemRead,
+    SchoolLibraryListResponse,
+)
 from app.features.library.school_models import (
     LibraryContentType,
     LibraryIngestionStatus,

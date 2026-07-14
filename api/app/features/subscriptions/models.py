@@ -7,10 +7,9 @@ Per ARCH §3.17: all payment processing is deferred to Phase 2.
 
 from __future__ import annotations
 
-from typing import Any
-
 from datetime import datetime
 from enum import StrEnum
+from typing import Any
 
 from sqlalchemy import Boolean, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy import Enum as SAEnum

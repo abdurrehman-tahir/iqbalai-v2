@@ -23,7 +23,14 @@ from typing import Any
 
 import structlog
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchValue,
+    PointStruct,
+    VectorParams,
+)
 from sqlalchemy import delete, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -296,7 +303,9 @@ def ingest_school_library_item(
         return {"library_item_id": library_item_id, "status": "ingesting", "skipped": True}
 
     content_type = item.content_type.value
-    source_type = "curriculum" if content_type == LibraryContentType.CURRICULUM.value else "reference"
+    source_type = (
+        "curriculum" if content_type == LibraryContentType.CURRICULUM.value else "reference"
+    )
     collection = school_library_collection(content_type)
 
     try:
@@ -388,12 +397,8 @@ def ingest_school_library_item(
             )
         )
 
-        run_db(
-            lambda session: _audit_ingestion_complete(session, library_item_id, school_id)
-        )
-        run_db(
-            lambda session: _notify_ingestion_available(session, library_item_id, school_id)
-        )
+        run_db(lambda session: _audit_ingestion_complete(session, library_item_id, school_id))
+        run_db(lambda session: _notify_ingestion_available(session, library_item_id, school_id))
 
         chunk_count = len(points)
         logger.info(

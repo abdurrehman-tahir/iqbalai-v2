@@ -82,12 +82,37 @@ class Settings(BaseSettings):
     EMBEDDING_VECTOR_DIM: int = 0  # 0 = provider default (1024 or 384)
     INFINITY_URL: str = "http://localhost:7997"
 
+    # Web search — self-hosted SearXNG (RAG tier-3 fallback + framework research,
+    # STACK_LOCK §Web-search; ARCH §7.12/§8.21).
+    WEBSEARCH_URL: str = "http://localhost:8888"
+
+    # Exam-framework AI research (T-093, ARCH §3.19/§8.21).
+    # Hard USD cost ceiling per research run; agent halts + flags a partial result
+    # if the estimated LLM spend crosses it.
+    FRAMEWORK_RESEARCH_COST_CEILING_USD: float = 10.0
+    # Blended token price used to estimate a run's USD cost from LLM usage. A safety
+    # knob for the ceiling above — not billing-grade; tune per provider.
+    FRAMEWORK_RESEARCH_USD_PER_1K_TOKENS: float = 0.001
+    # How many top search results to fetch + synthesise per run (§8.21: 10-20).
+    FRAMEWORK_RESEARCH_MAX_SOURCES: int = 15
+
     # Browser origins allowed for cross-origin API calls (comma-separated).
     CORS_ALLOWED_ORIGINS: str = "http://localhost:3000,http://127.0.0.1:3000"
 
     GRADUATION_GRACE_DAYS: int = 180
     FINAL_GRADE_LEVEL_ORDINAL: int = 12
     GRADUATION_MIGRATION_MAX_ATTEMPTS: int = 5
+
+    # Exam-framework approval SLA (T-094, Flow 4 §3.5.1, ARCH §3.19/§10.6). The
+    # Platform-Admin approval target is 72h; a reminder fires after REMINDER_DAYS and
+    # an escalation after ESCALATION_DAYS for any plan still in PENDING_APPROVAL.
+    FRAMEWORK_APPROVAL_SLA_HOURS: int = 72
+    FRAMEWORK_APPROVAL_REMINDER_DAYS: int = 7
+    FRAMEWORK_APPROVAL_ESCALATION_DAYS: int = 14
+    # Refresh cadence (days) for the quarterly Pattern-A re-research (T-095, ARCH
+    # §8.21/§10.6). The beat runs daily and picks PUBLISHED frameworks whose last
+    # research run is older than this — cadence is enforced in the task, not the beat.
+    FRAMEWORK_REFRESH_DAYS: int = 90
 
     @property
     def cors_allowed_origins(self) -> list[str]:

@@ -268,9 +268,7 @@ async def test_curriculum_forces_school_public_visibility() -> None:
             ),
         ),
         patch("app.features.library.school_library_service.sha256_of_bytes", return_value="d" * 64),
-        patch(
-            "app.features.library.school_tasks.ingest_school_library_item.apply_async"
-        ),
+        patch("app.features.library.school_tasks.ingest_school_library_item.apply_async"),
     ):
         await svc.upload(
             data=b"%PDF-curriculum",
@@ -279,6 +277,7 @@ async def test_curriculum_forces_school_public_visibility() -> None:
             authentik_id="auth-teacher-1",
         )
 
+    assert save_item.await_args is not None
     created = save_item.await_args.args[0]
     assert created.visibility is LibraryVisibility.SCHOOL_PUBLIC
 
@@ -496,9 +495,7 @@ async def test_coordinator_reference_upload_forces_public() -> None:
             ),
         ),
         patch("app.features.library.school_library_service.sha256_of_bytes", return_value="e" * 64),
-        patch(
-            "app.features.library.school_tasks.ingest_school_library_item.apply_async"
-        ),
+        patch("app.features.library.school_tasks.ingest_school_library_item.apply_async"),
     ):
         await svc.upload(
             data=b"%PDF-reference",
@@ -507,6 +504,7 @@ async def test_coordinator_reference_upload_forces_public() -> None:
             authentik_id="auth-teacher-1",
         )
 
+    assert save_item.await_args is not None
     created = save_item.await_args.args[0]
     assert created.visibility is LibraryVisibility.SCHOOL_PUBLIC
 

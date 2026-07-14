@@ -7,8 +7,9 @@ deployment environment, swap `extract_text_from_pdf` to call MinerU and fall bac
 
 from __future__ import annotations
 
-import structlog
 from io import BytesIO
+
+import structlog
 
 logger = structlog.get_logger(__name__)
 

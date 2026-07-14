@@ -8,7 +8,7 @@ from app.features.library.repository import _read_model
 
 
 def test_independent_tenant_uses_cross_schema_view_model() -> None:
-    assert _read_model("independent") is PlatformReferenceBookReadonly
+    assert _read_model("independent") is PlatformReferenceBookReadonly  # type: ignore[comparison-overlap]
 
 
 def test_school_tenant_uses_platform_table_model() -> None:

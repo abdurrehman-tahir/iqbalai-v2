@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import structlog
 from fastapi import APIRouter, Depends, Query, UploadFile
 from fastapi.responses import JSONResponse
@@ -71,7 +73,7 @@ async def list_independent_personal_content(
     offset: int = Query(default=0, ge=0),
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[IndependentPersonalListResponse]:
+) -> dict[str, Any]:
     svc = IndependentPersonalContentService(db)
     result = await svc.list_items(
         claims,
@@ -93,7 +95,7 @@ async def get_independent_personal_content(
     content_id: str,
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[IndependentPersonalContentRead]:
+) -> dict[str, Any]:
     svc = IndependentPersonalContentService(db)
     item = await svc.get_item(content_id, claims)
     return success(item.model_dump(mode="json"))

@@ -1,0 +1,96 @@
+name: Deploy Staging
+
+# Deploys when code is pushed/merged to staging.
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    name: Deploy to staging server
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # Uses repository Actions secrets (STAGING_HOST / STAGING_USER / STAGING_SSH_KEY).
+    # No GitHub Environment required — collaborators without Settings → Environments access can still deploy.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.STAGING_SSH_KEY }}
+
+      - name: Trust server host key
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+        run: |
+          set -euo pipefail
+          mkdir -p ~/.ssh
+          chmod 700 ~/.ssh
+          ssh-keyscan -H "$STAGING_HOST" >> ~/.ssh/known_hosts
+
+      - name: Sync application code (preserve server prod files)
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+        run: |
+          set -euo pipefail
+          REMOTE="${STAGING_USER}@${STAGING_HOST}"
+          # Sync app source only. Leave server-managed deploy/secrets alone.
+          rsync -az --delete \
+            --exclude '.git/' \
+            --exclude '.env' \
+            --exclude '.env.prod' \
+            --exclude '.env.prod.*' \
+            --exclude 'frontend/.env' \
+            --exclude 'docker-compose.prod.yml' \
+            --exclude 'docker-compose.prod.override.yml' \
+            --exclude 'api/Dockerfile.prod' \
+            --exclude 'frontend/Dockerfile.prod' \
+            --exclude 'nginx/nginx.prod.conf' \
+            --exclude 'nginx/proxy_common.inc' \
+            --exclude 'nginx/conf.d.prod/' \
+            --exclude 'scripts/deploy.sh' \
+            --exclude 'infrastructure/postgres/00-init.sh' \
+            --exclude 'deploy-backups-*/' \
+            --exclude '*.bak-*' \
+            --exclude 'node_modules/' \
+            --exclude 'frontend/node_modules/' \
+            --exclude 'frontend/.next/' \
+            --exclude 'api/.venv/' \
+            --exclude '.venv/' \
+            --exclude '__pycache__/' \
+            ./ "${REMOTE}:/root/iqbalai-v2/"
+
+      - name: Run remote rebuild + migrate + restart
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+        run: |
+          set -euo pipefail
+          REMOTE="${STAGING_USER}@${STAGING_HOST}"
+          ssh -o StrictHostKeyChecking=yes "$REMOTE" \
+            'chmod +x /root/iqbalai-v2/scripts/ci-deploy-remote.sh &&
+             APP_DIR=/root/iqbalai-v2 \
+             HEALTH_URL=https://abcdef.iqbalai.com/api/v1/health \
+             /root/iqbalai-v2/scripts/ci-deploy-remote.sh'
+
+      - name: Verify public health endpoint
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 20); do
+            if curl -fsS https://abcdef.iqbalai.com/api/v1/health | grep -q '"status"'; then
+              echo "Public health OK"
+              curl -fsS https://abcdef.iqbalai.com/api/v1/health
+              exit 0
+            fi
+            sleep 3
+          done
+          echo "Public health check failed" >&2
+          exit 1

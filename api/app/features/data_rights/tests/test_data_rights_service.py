@@ -97,7 +97,7 @@ STUDENT = User(
     status=UserAccountStatus.ACTIVE,
     school_id="school-1",
 )
-CLAIMS = {"sub": "auth-student", "role": "student"}
+CLAIMS: dict[str, object] = {"sub": "auth-student", "role": "student"}
 
 
 @pytest.fixture(autouse=True)

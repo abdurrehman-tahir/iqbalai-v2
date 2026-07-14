@@ -8,7 +8,14 @@ from typing import Any
 
 import structlog
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, FieldCondition, Filter, MatchValue, PointStruct, VectorParams
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchValue,
+    PointStruct,
+    VectorParams,
+)
 from sqlalchemy import select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -201,14 +208,19 @@ def ingest_independent_personal_content(
         }
 
     except Exception as exc:
-        logger.error("independent_personal_ingestion_failed", content_id=content_id, error=str(exc))
+        error_msg = str(exc)
+        logger.error(
+            "independent_personal_ingestion_failed",
+            content_id=content_id,
+            error=error_msg,
+        )
         run_db(
             lambda session: _mark_status(
                 session,
                 content_id,
                 user_id,
                 PersonalContentStatus.FAILED,
-                ingestion_error=str(exc),
+                ingestion_error=error_msg,
             )
         )
         raise self.retry(exc=exc)

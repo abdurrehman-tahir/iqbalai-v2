@@ -12,6 +12,8 @@ type Schemas = components["schemas"];
 // ── Request / create types ────────────────────────────────────────────────────
 export type ExamSyllabusCreate = Schemas["ExamSyllabusCreate"];
 export type ExamSyllabusUpdate = Schemas["ExamSyllabusUpdate"];
+export type ExamFrameworkCreate = Schemas["ExamFrameworkCreate"];
+export type ExamFrameworkUpdate = Schemas["ExamFrameworkUpdate"];
 export type PersonaUpdate = Schemas["PersonaUpdate"];
 export type SubscriptionTierCreate = Schemas["SubscriptionTierCreate"];
 export type SubscriptionTierUpdate = Schemas["SubscriptionTierUpdate"];
@@ -66,6 +68,13 @@ export type IndependentStudentProfileComplete = Schemas["IndependentStudentProfi
 // ── Read / response types (SuccessEnvelope `data` shapes) ─────────────────────
 export type PersonaRead = Schemas["PersonaRead"];
 export type ExamSyllabusRead = Schemas["ExamSyllabusRead"];
+export type ExamFrameworkRead = Schemas["ExamFrameworkRead"];
+export type FrameworkResearchJobRead = Schemas["FrameworkResearchJobRead"];
+export type FrameworkStudyPlanRead = Schemas["FrameworkStudyPlanRead"];
+export type FrameworkRejectRequest = Schemas["FrameworkRejectRequest"];
+export type AvailableFrameworkRead = Schemas["AvailableFrameworkRead"];
+export type StudentSelectionRead = Schemas["StudentSelectionRead"];
+export type StudentStudyPlanRead = Schemas["StudentStudyPlanRead"];
 export type SubscriptionTierRead = Schemas["SubscriptionTierRead"];
 export type SubjectRead = Schemas["SubjectRead"];
 export type SubjectStatus = Schemas["SubjectStatus"];
@@ -103,6 +112,7 @@ export type TosDeclineResponse = Schemas["TosDeclineResponse"];
 /** View-model aliases used by admin components (maps API field names). */
 export type Persona = PersonaRead;
 export type Syllabus = ExamSyllabusRead;
+export type Framework = ExamFrameworkRead;
 export type SubscriptionTier = SubscriptionTierRead;
 export type AuditEntry = AuditLogEntryRead;
 export type Notification = NotificationRead;

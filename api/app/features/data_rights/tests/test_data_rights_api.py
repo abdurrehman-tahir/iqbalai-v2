@@ -32,7 +32,7 @@ def app() -> FastAPI:
     application.include_router(v1_router, prefix="/api/v1")
     setup_exception_handlers(application)
 
-    async def _override_user() -> dict[str, str]:
+    async def _override_user() -> dict[str, object]:
         return CLAIMS
 
     async def _override_db() -> AsyncGenerator[AsyncMock, None]:

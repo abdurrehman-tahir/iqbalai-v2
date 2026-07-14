@@ -31,9 +31,7 @@ class SectionService:
         await self._grade_svc.get_grade(grade_id, claims)
         existing = await self._repo.get_by_name(grade_id, payload.name)
         if existing is not None:
-            raise ConflictError(
-                f"A section named '{payload.name}' already exists under this grade"
-            )
+            raise ConflictError(f"A section named '{payload.name}' already exists under this grade")
 
         section = Section(
             grade_id=grade_id,

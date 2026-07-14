@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from sqlalchemy import Boolean, Enum as SAEnum, ForeignKey, Index, String, text
+from sqlalchemy import Boolean, ForeignKey, Index, String, text
+from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7

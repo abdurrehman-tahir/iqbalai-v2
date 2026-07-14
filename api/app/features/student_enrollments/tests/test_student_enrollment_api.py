@@ -82,7 +82,7 @@ class _FakeInviteRepo:
     def __init__(self, session: Any) -> None:
         pass
 
-    async def get_pending_by_email(self, email: str) -> Any:
+    async def get_pending_by_email(self, email: str) -> Any | None:
         return self.pending.get(email.lower())
 
     async def create(self, invite: Any) -> Any:

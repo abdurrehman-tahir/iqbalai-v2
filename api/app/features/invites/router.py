@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -29,10 +31,10 @@ router = APIRouter(tags=["invites"])
 )
 async def invite_admin_user(
     payload: AdminUserInviteCreate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     idem: IdempotencyContext | None = Depends(idempotency_key),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     if idem is not None:
         cached = await idem.cached_response()
         if cached is not None:
@@ -61,9 +63,9 @@ async def invite_admin_user(
 )
 async def resend_invite(
     invite_id: str,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = InviteService(db)
     invite, _raw_token = await svc.resend_invite(invite_id, actor_id=str(claims.get("sub", "")))
     return success(UserInviteRead.model_validate(invite).model_dump(mode="json"))
@@ -78,7 +80,7 @@ async def resend_invite(
 async def accept_invite(
     payload: AcceptInviteRequest,
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = InviteService(db)
     result = await svc.accept_invite(payload)
     return success(AcceptInviteResponse(**result).model_dump())

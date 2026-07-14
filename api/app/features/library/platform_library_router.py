@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 import structlog
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -35,7 +37,7 @@ async def list_platform_library_books(
     offset: int = Query(default=0, ge=0),
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[LibraryBookListResponse]:
+) -> dict[str, Any]:
     svc = PlatformLibraryReadService(db)
     result = await svc.list_books(
         claims,
@@ -59,7 +61,7 @@ async def get_platform_library_book(
     book_id: str,
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[LibraryBookRead]:
+) -> dict[str, Any]:
     svc = PlatformLibraryReadService(db)
     book = await svc.get_book(book_id, claims)
     return success(book.model_dump())

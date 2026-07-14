@@ -69,10 +69,29 @@ services:
       AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL}
       AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD}
       AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
+      # SMTP for Authentik-sent mail (password recovery). Values from .env.
+      # Port 465 = implicit SSL → USE_SSL=true / USE_TLS=false.
+      AUTHENTIK_EMAIL__HOST: ${SMTP_HOST}
+      AUTHENTIK_EMAIL__PORT: ${SMTP_PORT}
+      AUTHENTIK_EMAIL__USERNAME: ${SMTP_USERNAME}
+      AUTHENTIK_EMAIL__PASSWORD: ${SMTP_PASSWORD}
+      AUTHENTIK_EMAIL__USE_SSL: ${SMTP_USE_SSL}
+      AUTHENTIK_EMAIL__USE_TLS: ${SMTP_USE_TLS}
+      AUTHENTIK_EMAIL__TIMEOUT: ${SMTP_TIMEOUT}
+      AUTHENTIK_EMAIL__FROM: ${EMAIL_FROM}
     volumes:
       - authentik_media:/media
       - authentik_certs:/certs
       - authentik_templates:/templates
+      # IqbalAI login/flow branding — restyles the PatternFly flow executor.
+      # Loaded globally by authentik at /web/dist/custom.css (2024.12).
+      - ./infrastructure/authentik/custom.css:/web/dist/custom.css:ro
+      # IqbalAI logo — served at /static/dist/assets/icons/iqbal-logo.png.
+      # Reference this path in System > Brands > Branding logo.
+      - ./infrastructure/authentik/logo.png:/web/dist/assets/icons/iqbal-logo.png:ro
+      # Login flow background (two-panel "Join us for free" art). Bind-mounted into
+      # the media volume so the flow's background field can point at it.
+      - ./infrastructure/authentik/login-bg.png:/media/public/login-bg.png:ro
     ports:
       - "9000:9000"
       - "9443:9443"
@@ -103,6 +122,15 @@ services:
       AUTHENTIK_POSTGRESQL__PASSWORD: ${POSTGRES_PASSWORD}
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      # The worker sends the mail — it needs the same SMTP config as the server.
+      AUTHENTIK_EMAIL__HOST: ${SMTP_HOST}
+      AUTHENTIK_EMAIL__PORT: ${SMTP_PORT}
+      AUTHENTIK_EMAIL__USERNAME: ${SMTP_USERNAME}
+      AUTHENTIK_EMAIL__PASSWORD: ${SMTP_PASSWORD}
+      AUTHENTIK_EMAIL__USE_SSL: ${SMTP_USE_SSL}
+      AUTHENTIK_EMAIL__USE_TLS: ${SMTP_USE_TLS}
+      AUTHENTIK_EMAIL__TIMEOUT: ${SMTP_TIMEOUT}
+      AUTHENTIK_EMAIL__FROM: ${EMAIL_FROM}
     volumes:
       - authentik_media:/media
       - authentik_certs:/certs

@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -25,9 +27,9 @@ def _caller_role(claims: dict[str, object]) -> str:
     dependencies=[require_role("school_admin")],
 )
 async def get_my_school(
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SchoolService(db)
     school = await svc.get_my_school(claims, _caller_role(claims))
     return success(SchoolRead.model_validate(school).model_dump())
@@ -42,9 +44,9 @@ async def get_my_school(
 )
 async def get_school_by_id(
     school_id: str,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = SchoolService(db)
     school = await svc.get_school(school_id, claims, _caller_role(claims))
     return success(SchoolRead.model_validate(school).model_dump())

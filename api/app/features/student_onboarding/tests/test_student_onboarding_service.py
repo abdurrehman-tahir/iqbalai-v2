@@ -68,14 +68,14 @@ def test_derive_ready_to_study() -> None:
 async def test_complete_profile_basic_creates_profile(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.student_onboarding.service.audit", AsyncMock())
     svc = StudentOnboardingService(AsyncMock())
-    svc._require_student = AsyncMock(return_value=_student())
-    svc._profile_repo.get_by_user_id = AsyncMock(return_value=None)
-    svc._profile_repo.create = AsyncMock(
+    svc._require_student = AsyncMock(return_value=_student())  # type: ignore[method-assign]
+    svc._profile_repo.get_by_user_id = AsyncMock(return_value=None)  # type: ignore[method-assign]
+    svc._profile_repo.create = AsyncMock(  # type: ignore[method-assign]
         side_effect=lambda p: p,
     )
-    svc._user_repo.update = AsyncMock()
-    svc._tos.accept_tos = AsyncMock()
-    svc._active_enrollment_grade_id = AsyncMock(return_value="grade-9")
+    svc._user_repo.update = AsyncMock()  # type: ignore[method-assign]
+    svc._tos.accept_tos = AsyncMock()  # type: ignore[method-assign]
+    svc._active_enrollment_grade_id = AsyncMock(return_value="grade-9")  # type: ignore[method-assign]
     svc._session = AsyncMock()
 
     from app.features.student_onboarding.schemas import StudentProfileBasicComplete

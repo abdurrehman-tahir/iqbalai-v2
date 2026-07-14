@@ -10,7 +10,7 @@ from celery import shared_task
 logger = structlog.get_logger(__name__)
 
 
-@shared_task(name="account.expire_stale_invites", queue="notifications")
+@shared_task(name="account.expire_stale_invites", queue="notifications")  # type: ignore[misc]
 def expire_stale_invites() -> int:
     """Mark expired pending invites and notify inviting admins."""
     return asyncio.run(_expire_stale_invites_async())

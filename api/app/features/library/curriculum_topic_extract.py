@@ -5,7 +5,7 @@ from __future__ import annotations
 import asyncio
 import json
 import re
-from typing import Any
+from typing import Any, cast
 
 import structlog
 
@@ -24,7 +24,7 @@ _JSON_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
 def _parse_json_payload(raw: str) -> dict[str, Any]:
     text = _JSON_FENCE_RE.sub("", raw.strip()).strip()
-    return json.loads(text)
+    return cast(dict[str, Any], json.loads(text))
 
 
 def _degraded_tree(error: str) -> dict[str, object]:
@@ -50,7 +50,7 @@ async def extract_curriculum_topic_tree(
     document_text: str,
     title: str,
     language: str = "en",
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Run LLM structured parse; never raises — returns degraded tree on failure."""
     if not document_text.strip():
         return _degraded_tree("No document text available for topic extraction")
@@ -100,7 +100,7 @@ def extract_curriculum_topic_tree_sync(
     document_text: str,
     title: str,
     language: str = "en",
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Sync wrapper for Celery ingestion tasks."""
     return asyncio.run(
         extract_curriculum_topic_tree(

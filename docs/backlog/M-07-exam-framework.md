@@ -34,7 +34,7 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5.1, §3.5.2, §3.5.3
@@ -69,7 +69,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 6986b64
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5.1 (DRAFT creation)
@@ -102,7 +103,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 4 days
-**Status:** todo
+**Status:** done
+**Commit:** f930079
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5.1 (AI research workflow), §3.5.2 (output structure)
@@ -145,7 +147,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 9625fb5
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5.1 (manual approval gate; 72hr SLA, 7-day reminder, 14-day escalation)
@@ -179,7 +182,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 863f5ed
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5.1 (REFRESHING, versioning, deprecation)
@@ -212,7 +216,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** d0d7eb4
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5.2 (render structure), §3.5.3 (selection), §3.5.4 (mode interaction)
@@ -249,7 +254,11 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3
 **Milestone:** M-07
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 51284d0
+**Note:** `framework` is not a locked §9.21 namespace; per product decision, framework
+notifications reuse existing namespaces — `system` for Platform-Admin alerts,
+`self_study` for the student version-available notice (no new namespace, no amendment).
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5 (framework events)
@@ -282,7 +291,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 3 / 6
 **Milestone:** M-07
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** dab0089
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5 (audit-logged actions)
@@ -313,7 +323,8 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 6
 **Milestone:** M-07
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 247edc8
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.5 (full framework flow)
@@ -349,7 +360,7 @@ Platform Admin defines an Exam Framework (e.g., "Matric Punjab Board — Physics
 **Layer:** 6
 **Milestone:** M-07
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-4-student-onboarding.md` v3 §3.5

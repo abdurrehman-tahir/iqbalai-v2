@@ -13,6 +13,15 @@ import type {
   ExamSyllabusCreate,
   ExamSyllabusRead,
   ExamSyllabusUpdate,
+  ExamFrameworkCreate,
+  ExamFrameworkRead,
+  ExamFrameworkUpdate,
+  FrameworkResearchJobRead,
+  FrameworkStudyPlanRead,
+  FrameworkRejectRequest,
+  AvailableFrameworkRead,
+  StudentSelectionRead,
+  StudentStudyPlanRead,
   LibraryUploadParams,
   LibraryUploadResponse,
   Notification,
@@ -68,6 +77,8 @@ export type {
   Notification,
   PersonaRead as Persona,
   ExamSyllabusRead as Syllabus,
+  ExamFrameworkRead as Framework,
+  FrameworkResearchJobRead as FrameworkResearchJob,
   SubscriptionTierRead as SubscriptionTier,
   SubjectRead as Subject,
   SubjectCreate,
@@ -358,16 +369,12 @@ export type { IndependentTeacherOnboardingRead, IndependentTeacherProfileComplet
 
 export const independentTeacherOnboardingApi = {
   getOnboarding: (token: string) =>
-    request<IndependentTeacherOnboardingRead>(
-      "/independent/teachers/me/onboarding",
-      {},
-      token,
-    ),
+    request<IndependentTeacherOnboardingRead>("/independent/teachers/me/onboarding", {}, token),
   completeProfile: (token: string, data: IndependentTeacherProfileComplete) =>
     request<IndependentTeacherOnboardingRead>(
       "/independent/teachers/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
 };
 
@@ -390,7 +397,7 @@ export const independentStudentOnboardingApi = {
     request<IndependentStudentOnboardingRead>(
       "/independent/students/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
 };
 
@@ -489,6 +496,93 @@ export const syllabiApi = {
     ),
   delete: (token: string, id: string) =>
     request<void>(`/admin/exam-syllabi/${id}`, { method: "DELETE" }, token),
+};
+
+// ── Exam Frameworks (T-092, Platform Admin) ───────────────────────────────────
+
+export const frameworksApi = {
+  list: (token: string) => request<ExamFrameworkRead[]>("/exam-frameworks/", {}, token),
+  create: (token: string, data: ExamFrameworkCreate) =>
+    request<ExamFrameworkRead>(
+      "/exam-frameworks/",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  update: (token: string, id: string, data: ExamFrameworkUpdate) =>
+    request<ExamFrameworkRead>(
+      `/exam-frameworks/${id}`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  delete: (token: string, id: string) =>
+    request<ExamFrameworkRead>(`/exam-frameworks/${id}`, { method: "DELETE" }, token),
+  // T-093: kick off the Pattern-A AI research run for a DRAFT framework (202).
+  triggerResearch: (token: string, id: string) =>
+    request<FrameworkResearchJobRead>(`/exam-frameworks/${id}/research`, { method: "POST" }, token),
+  // Latest research job for a framework (progress / result); 404 if none yet.
+  latestResearch: (token: string, id: string) =>
+    request<FrameworkResearchJobRead>(`/exam-frameworks/${id}/research`, {}, token),
+  // T-094: read the plan pending approval (content + cited sources) for review.
+  reviewPlan: (token: string, id: string) =>
+    request<FrameworkStudyPlanRead>(`/exam-frameworks/${id}/plan`, {}, token),
+  // T-094: approve the pending plan -> PUBLISHED (selectable by students).
+  approve: (token: string, id: string) =>
+    request<FrameworkStudyPlanRead>(`/exam-frameworks/${id}/approve`, { method: "POST" }, token),
+  // T-094: reject the pending plan -> DRAFT with reviewer notes.
+  reject: (token: string, id: string, data: FrameworkRejectRequest) =>
+    request<FrameworkStudyPlanRead>(
+      `/exam-frameworks/${id}/reject`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  // T-095: re-run research on a PUBLISHED framework -> new version (202).
+  refresh: (token: string, id: string) =>
+    request<FrameworkResearchJobRead>(`/exam-frameworks/${id}/refresh`, { method: "POST" }, token),
+  // T-095: deprecate a PUBLISHED framework (no new selections; existing grandfathered).
+  deprecate: (token: string, id: string) =>
+    request<ExamFrameworkRead>(`/exam-frameworks/${id}/deprecate`, { method: "POST" }, token),
+  // T-095: full study-plan version history for a framework (newest first).
+  listVersions: (token: string, id: string) =>
+    request<FrameworkStudyPlanRead[]>(`/exam-frameworks/${id}/versions`, {}, token),
+};
+
+// ── Student exam frameworks (T-096) ────────────────────────────────────────────
+// Both tenant types (school + independent students). Region + grade are supplied by
+// the caller; selections pin to the current published version.
+export const studentFrameworksApi = {
+  available: (token: string, region: string, grade: number) =>
+    request<AvailableFrameworkRead[]>(
+      `/student/exam-frameworks/available?region=${encodeURIComponent(region)}&grade=${grade}`,
+      {},
+      token
+    ),
+  select: (token: string, frameworkId: string) =>
+    request<StudentSelectionRead>(
+      `/student/exam-frameworks/${frameworkId}/select`,
+      { method: "POST" },
+      token
+    ),
+  selections: (token: string) =>
+    request<StudentSelectionRead[]>("/student/exam-frameworks/selections", {}, token),
+  studyPlan: (token: string, selectionId: string) =>
+    request<StudentStudyPlanRead>(
+      `/student/exam-frameworks/selections/${selectionId}/study-plan`,
+      {},
+      token
+    ),
+  // T-095/T-096: opt in to the latest published version (never auto-switched).
+  switchVersion: (token: string, selectionId: string) =>
+    request<StudentSelectionRead>(
+      `/student/exam-frameworks/selections/${selectionId}/switch`,
+      { method: "POST" },
+      token
+    ),
+  drop: (token: string, selectionId: string) =>
+    request<StudentSelectionRead>(
+      `/student/exam-frameworks/selections/${selectionId}`,
+      { method: "DELETE" },
+      token
+    ),
 };
 
 // ── Districts ─────────────────────────────────────────────────────────────────
@@ -726,7 +820,7 @@ export const schoolLibraryApi = {
     return request<import("./types").SchoolLibraryListResponse>(
       `/school/library${query ? `?${query}` : ""}`,
       {},
-      token,
+      token
     );
   },
   upload: (token: string, params: SchoolLibraryUploadParams) => {
@@ -748,7 +842,7 @@ export const schoolLibraryApi = {
     return requestFormData<import("./types").SchoolLibraryUploadResponse>(
       `/school/library?${qs.toString()}`,
       formData,
-      token,
+      token
     );
   },
   get: (token: string, itemId: string) =>
@@ -757,25 +851,25 @@ export const schoolLibraryApi = {
     request<import("./types").SchoolLibraryItemRead>(
       `/school/library/${itemId}/publish`,
       { method: "POST" },
-      token,
+      token
     ),
   removeSelection: (token: string, itemId: string) =>
     request<import("./types").SchoolLibraryItemRead>(
       `/school/library/${itemId}/selection`,
       { method: "DELETE" },
-      token,
+      token
     ),
   deleteItem: (token: string, itemId: string) =>
     request<import("./types").SchoolLibraryItemRead>(
       `/school/library/${itemId}`,
       { method: "DELETE" },
-      token,
+      token
     ),
   retryIngestion: (token: string, itemId: string) =>
     request<import("./types").SchoolLibraryItemRead>(
       `/school/library/${itemId}/retry-ingestion`,
       { method: "POST" },
-      token,
+      token
     ),
 };
 
@@ -845,7 +939,11 @@ async function uploadRequest<T>(path: string, formData: FormData, token: string)
   });
 
   if (!res.ok) {
-    let errorJson: { error?: { code?: string; message?: string }; code?: string; message?: string } = {};
+    let errorJson: {
+      error?: { code?: string; message?: string };
+      code?: string;
+      message?: string;
+    } = {};
     try {
       errorJson = await res.json();
     } catch {
@@ -915,7 +1013,7 @@ export const teacherOnboardingApi = {
     request<TeacherOnboardingRead>(
       "/teachers/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   listSubjectOptions: (token: string) =>
     request<SubjectRead[]>("/teachers/me/subject-options", {}, token),
@@ -923,7 +1021,7 @@ export const teacherOnboardingApi = {
     request<TeacherCapacityUpdateRead>(
       "/teachers/me/capacity",
       { method: "PATCH", body: JSON.stringify(data) },
-      token,
+      token
     ),
 };
 
@@ -934,25 +1032,25 @@ export const studentOnboardingApi = {
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/profile-basic",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   selectModes: (token: string, data: StudentModeSelect) =>
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/modes",
       { method: "PUT", body: JSON.stringify(data) },
-      token,
+      token
     ),
   dismissBanner: (token: string) =>
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/dismiss-banner",
       { method: "POST", body: JSON.stringify({ dismissed: true }) },
-      token,
+      token
     ),
   setExamDate: (token: string, exam_date: string) =>
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/exam-date",
       { method: "PUT", body: JSON.stringify({ exam_date }) },
-      token,
+      token
     ),
 };
 
@@ -997,46 +1095,38 @@ export const dataRightsApi = {
   getStudentStatus: (token: string) =>
     request<DataRightsStatusRead>("/students/me/data-rights", {}, token),
   requestStudentExport: (token: string) =>
-    request<DataRightsRequestRead>(
-      "/students/me/data-rights/export",
-      { method: "POST" },
-      token,
-    ),
+    request<DataRightsRequestRead>("/students/me/data-rights/export", { method: "POST" }, token),
   downloadStudentExport: (token: string, requestId: string) =>
     downloadRequest(`/students/me/data-rights/export/${requestId}/download`, token),
   requestStudentDeletion: (token: string, confirm: boolean) =>
     request<DataRightsRequestRead>(
       "/students/me/data-rights/deletion",
       { method: "POST", body: JSON.stringify({ confirm }) },
-      token,
+      token
     ),
   cancelStudentDeletion: (token: string, requestId: string) =>
     request<DataRightsRequestRead>(
       `/students/me/data-rights/deletion/${requestId}/cancel`,
       { method: "POST" },
-      token,
+      token
     ),
   getParentStatus: (token: string) =>
     request<DataRightsStatusRead>("/parents/me/data-rights", {}, token),
   requestParentExport: (token: string) =>
-    request<DataRightsRequestRead>(
-      "/parents/me/data-rights/export",
-      { method: "POST" },
-      token,
-    ),
+    request<DataRightsRequestRead>("/parents/me/data-rights/export", { method: "POST" }, token),
   downloadParentExport: (token: string, requestId: string) =>
     downloadRequest(`/parents/me/data-rights/export/${requestId}/download`, token),
   requestParentDeletion: (token: string, confirm: boolean) =>
     request<DataRightsRequestRead>(
       "/parents/me/data-rights/deletion",
       { method: "POST", body: JSON.stringify({ confirm }) },
-      token,
+      token
     ),
   cancelParentDeletion: (token: string, requestId: string) =>
     request<DataRightsRequestRead>(
       `/parents/me/data-rights/deletion/${requestId}/cancel`,
       { method: "POST" },
-      token,
+      token
     ),
 };
 
@@ -1044,8 +1134,7 @@ export const dataRightsApi = {
 
 export const academicSessionsApi = {
   list: (token: string) => request<AcademicSessionRead[]>("/academic-sessions/", {}, token),
-  getActive: (token: string) =>
-    request<ActiveSessionRead>("/academic-sessions/active", {}, token),
+  getActive: (token: string) => request<ActiveSessionRead>("/academic-sessions/active", {}, token),
   create: (token: string, data: AcademicSessionCreate) =>
     request<AcademicSessionRead>(
       "/academic-sessions/",
@@ -1092,11 +1181,19 @@ export const sectionsApi = {
   create: (token: string, gradeId: string, data: SectionCreate) =>
     request<SectionRead>(
       `/grades/${gradeId}/sections/`,
-      { method: "POST", body: JSON.stringify(data), headers: { "Idempotency-Key": crypto.randomUUID() } },
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
       token
     ),
   archive: (token: string, gradeId: string, sectionId: string) =>
-    request<SectionRead>(`/grades/${gradeId}/sections/${sectionId}/archive`, { method: "POST" }, token),
+    request<SectionRead>(
+      `/grades/${gradeId}/sections/${sectionId}/archive`,
+      { method: "POST" },
+      token
+    ),
 };
 
 // ── Offerings (Coordinator) — T-045/T-046 ───────────────────────────────────────
@@ -1107,14 +1204,28 @@ export const offeringsApi = {
   create: (token: string, gradeId: string, data: OfferingCreate) =>
     request<OfferingRead>(
       `/grades/${gradeId}/offerings/`,
-      { method: "POST", body: JSON.stringify(data), headers: { "Idempotency-Key": crypto.randomUUID() } },
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
       token
     ),
   archive: (token: string, gradeId: string, offeringId: string) =>
-    request<OfferingRead>(`/grades/${gradeId}/offerings/${offeringId}/archive`, { method: "POST" }, token),
+    request<OfferingRead>(
+      `/grades/${gradeId}/offerings/${offeringId}/archive`,
+      { method: "POST" },
+      token
+    ),
   eligibleTeachers: (token: string, gradeId: string) =>
     request<EligibleTeacherRead[]>(`/grades/${gradeId}/offerings/eligible-teachers`, {}, token),
-  assign: (token: string, gradeId: string, offeringId: string, data: OfferingAssign, ifMatch: string) =>
+  assign: (
+    token: string,
+    gradeId: string,
+    offeringId: string,
+    data: OfferingAssign,
+    ifMatch: string
+  ) =>
     request<OfferingRead>(
       `/grades/${gradeId}/offerings/${offeringId}/assign`,
       { method: "POST", body: JSON.stringify(data), headers: { "If-Match": ifMatch } },

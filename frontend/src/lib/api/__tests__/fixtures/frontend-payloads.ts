@@ -24,3 +24,12 @@ export const SUBJECT_CREATE_FROM_UI = {
   name: "Physics",
   language: "en",
 } as const;
+
+/** FrameworksClient createMutation → frameworksApi.create (T-092) */
+export const EXAM_FRAMEWORK_CREATE_FROM_UI = {
+  name: "Matric Punjab — Physics",
+  exam_target: "Matric Punjab Board — Physics",
+  region: "Punjab",
+  target_grade_range: [9, 10],
+  language: "en",
+} as const;

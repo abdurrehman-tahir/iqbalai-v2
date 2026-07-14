@@ -8,7 +8,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.features.grades.models import Grade, GradeStatus
 from app.features.library.school_models import SchoolLibraryItem
 from app.features.offerings.models import GradeSubjectOffering, OfferingStatus
-from app.features.teacher_onboarding.models import TeacherProfile
 from app.features.teacher_onboarding.repository import TeacherProfileRepository
 from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository

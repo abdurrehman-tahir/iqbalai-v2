@@ -5,7 +5,6 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
 from typing import Any
-from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import FastAPI
@@ -80,7 +79,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
-    yield None  # type: ignore[misc]
+    yield None
 
 
 def _claims() -> dict[str, object]:

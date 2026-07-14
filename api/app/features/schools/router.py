@@ -8,6 +8,8 @@ district.
 
 from __future__ import annotations
 
+from typing import Any
+
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -27,7 +29,7 @@ router = APIRouter(prefix="/admin/districts", tags=["districts"])
     operation_id="districts_list",
     dependencies=[require_role("platform_admin")],
 )
-async def list_districts(db: AsyncSession = Depends(get_db)) -> dict:
+async def list_districts(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = DistrictService(db)
     districts = await svc.list_districts()
     return success([DistrictRead.model_validate(d).model_dump() for d in districts])
@@ -43,10 +45,10 @@ async def list_districts(db: AsyncSession = Depends(get_db)) -> dict:
 )
 async def create_district(
     payload: DistrictCreate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     idem: IdempotencyContext | None = Depends(idempotency_key),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     # On an idempotent replay (same key + same body) return the cached response
     # without re-creating the district.
     if idem is not None:
@@ -73,7 +75,7 @@ async def create_district(
     operation_id="districts_get",
     dependencies=[require_role("platform_admin")],
 )
-async def get_district(district_id: str, db: AsyncSession = Depends(get_db)) -> dict:
+async def get_district(district_id: str, db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = DistrictService(db)
     district = await svc.get_district(district_id)
     return success(DistrictRead.model_validate(district).model_dump())
@@ -89,9 +91,9 @@ async def get_district(district_id: str, db: AsyncSession = Depends(get_db)) -> 
 async def update_district(
     district_id: str,
     payload: DistrictUpdate,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = DistrictService(db)
     district = await svc.update_district(district_id, payload, actor_id=str(claims.get("sub", "")))
     return success(DistrictRead.model_validate(district).model_dump())
@@ -106,9 +108,9 @@ async def update_district(
 )
 async def delete_district(
     district_id: str,
-    claims: dict = Depends(get_current_user),
+    claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> dict:
+) -> dict[str, Any]:
     svc = DistrictService(db)
     await svc.delete_district(district_id, actor_id=str(claims.get("sub", "")))
     return success({"deleted": True})
