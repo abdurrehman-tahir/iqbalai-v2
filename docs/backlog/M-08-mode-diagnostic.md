@@ -45,6 +45,7 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 - `ARCHITECTURE.md` §3.16 (independent tenant), §6.19, §6.20 (tenant_type)
 
 ### Depends on
+- M-07a (login-flow remediation merged — cookie auth + per-role E2E are the base every M-08 surface builds on)
 - T-078 (school student onboarding, M-06), T-071 (independent student, M-05)
 
 ### What this ticket builds
