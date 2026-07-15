@@ -5,6 +5,7 @@ from __future__ import annotations
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import NotFoundError
 from app.features.independent_users.models import (
     IndependentUser,
     IndependentUserAccountStatus,
@@ -33,6 +34,32 @@ class IndependentUserService:
 
     async def get_by_authentik_id_any(self, authentik_id: str) -> IndependentUser | None:
         return await self._repo.get_by_authentik_id_any(authentik_id)
+
+    async def get_me(self, authentik_id: str) -> IndependentUser | None:
+        """Return the IndependentUser for the currently authenticated user.
+
+        The independent-tenant twin of ``UserService.get_me`` — ToS acceptance resolves
+        the caller through whichever of the two applies (QA E10/E11).
+        """
+        return await self._repo.get_by_authentik_id(authentik_id)
+
+    async def suspend_for_tos_decline(self, user_id: str) -> IndependentUser:
+        """Mark the account SUSPENDED when the user declines ToS (Flow 1 §5.6)."""
+        user = await self._repo.get_by_id(user_id)
+        if user is None:
+            raise NotFoundError("User not found")
+        user.status = IndependentUserAccountStatus.SUSPENDED
+        return await self._repo.update(user)
+
+    async def reactivate_on_tos_accept(self, user_id: str) -> IndependentUser:
+        """Restore ACTIVE when a suspended user accepts the current ToS."""
+        user = await self._repo.get_by_id(user_id)
+        if user is None:
+            raise NotFoundError("User not found")
+        if user.status == IndependentUserAccountStatus.SUSPENDED:
+            user.status = IndependentUserAccountStatus.ACTIVE
+            return await self._repo.update(user)
+        return user
 
     async def get_or_create_from_jwt(
         self, claims: dict[str, object]

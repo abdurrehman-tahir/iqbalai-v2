@@ -65,7 +65,12 @@ class TosRepository:
             ip_address=ip_address,
         )
         self._session.add(acceptance)
-        await self._session.commit()
+        # Flush, don't commit: the acceptance must not survive on its own if a later step
+        # of accept_tos fails. Committing here dead-ended independent users — the row was
+        # written, the reactivate step then raised, the caller got "failed to record your
+        # acceptance", and every retry hit 409 already-accepted (QA E10/E11). The
+        # reactivate/audit steps that follow commit the whole transaction.
+        await self._session.flush()
         await self._session.refresh(acceptance)
         return acceptance
 
