@@ -71,3 +71,12 @@ This is the **only** place where exceptions to `STACK_LOCK.md` can be authorized
 |---|---|---|
 | 2026-05-11 | Initial deviations file. Pre-approved `langchain.text_splitter` for chunker. | @abdurrehman (with Claude) |
 | 2026-05-29 | Added `yjs` (CRDT) deviation for Flow 11 group collaborative notes (group_notes only; lecture editing stays non-CRDT TipTap). | @abdurrehman (with Claude) |
+
+### `fastembed` (dev-only local embedding provider)
+
+- **Date:** 2026-07-13 (**retroactive** — code shipped 2026-06-11 in `e403bb8` during library-upload debugging, without this entry; recorded per AUDIT_LOG `[ungoverned-change]`)
+- **Locked choice deviated from:** STACK_LOCK §4.3 — BGE-M3 via Infinity as the embedding provider
+- **What:** `EMBEDDING_PROVIDER=local` path in `api/app/infrastructure/rag/embedder.py` using **fastembed** (ONNX, `paraphrase-multilingual-MiniLM-L12-v2`, **384-dim**) inside the celery-worker, with a **separate** Qdrant collection `platform_chunks_local` (prod: `platform_chunks`, 1024-dim).
+- **Why:** Infinity (BGE-M3, ~2–4 GB RAM, amd64-emulation on Apple Silicon) is not viable on 8 GB dev machines; ingestion was undevelopable locally.
+- **Scope + guardrails (binding):** `local` is **dev-only**. Staging and production run `EMBEDDING_PROVIDER=infinity` — staging is the parity proof, since 384-dim local vectors and 1024-dim prod vectors are **not interchangeable** and dev RAG relevance does not predict prod. Collections stay strictly separated by provider (`*_local` suffix); vector dim comes from config, never hardcoded; any RAG-quality evaluation runs against the Infinity path.
+- **Exit:** revisit if a dev-viable BGE-M3 runtime appears; otherwise permanent as a dev convenience.

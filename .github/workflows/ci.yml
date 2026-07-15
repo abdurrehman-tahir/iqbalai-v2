@@ -470,3 +470,86 @@ jobs:
 # If branch protection lists required checks by name, add: "Frontend tests (Vitest + RTL)",
 # "Typed client up to date (openapi-typescript)", "Every endpoint declares response_model",
 # and "Playwright E2E (smoke, on PR)" to the required set (see BRANCHING.md).
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────────────
+# PASTE THESE JOBS into .github/workflows/ci.yml. They are the mechanical guards
+# promoted from AUDIT_LOG classes [merge-regression], [env-fallback], [ungoverned-change]
+# (distillation 2026-07-13). Conventions per CLAUDE.md CI invariants (amend, don't
+# regenerate; deps before tools; detect-guard where frontend-dependent).
+#
+# Delivered-by-implementation scripts referenced here:
+#   scripts/check_env_parity.py   — every process.env.NEXT_PUBLIC_* read in frontend/src
+#                                    and every required Pydantic Settings field has a
+#                                    documented key in .env.example; fails listing misses.
+# ─────────────────────────────────────────────────────────────────────────────
+
+  conflict-marker-gate:
+    name: No committed conflict markers
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Line-start markers only (avoids docs quoting them); code + config + workflows, not *.md
+      - name: Grep for merge conflict markers
+        run: |
+          ! grep -rEn '^(<{7} |={7}$|>{7} )' \
+              --include='*.py' --include='*.ts' --include='*.tsx' --include='*.json' \
+              --include='*.yml' --include='*.yaml' --include='*.toml' --include='*.css' \
+              api/ frontend/src/ frontend/e2e/ frontend/messages/ scripts/ .github/ \
+            || (echo "::error::Committed merge-conflict markers found (AUDIT_LOG merge-regression — the M-07 'comflict resolved' incident broke 16 suites)." && exit 1)
+
+  required-jobs-presence:
+    name: ci.yml still contains every required job
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # M-02 lost two gate jobs in a staging merge that overwrote ci.yml — this makes that loud.
+      # Keep this list in sync with branch-protection required checks.
+      - name: Assert required job keys exist
+        run: |
+          for j in backend-lint backend-tests alembic-check stack-check frontend-lint frontend-tests \
+                   frontend-unit typed-client-drift response-model-gate e2e-smoke \
+                   client-request-type-lint contract-test conflict-marker-gate required-jobs-presence; do
+            grep -qE "^  $j:" .github/workflows/ci.yml \
+              || (echo "::error::Required CI job '$j' missing from ci.yml — a merge likely regressed the workflow (AUDIT_LOG merge-regression)." && exit 1)
+          done
+
+  env-example-parity:
+    name: Env vars documented in .env.example
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Check env parity
+        run: |
+          python scripts/check_env_parity.py \
+            || (echo "::error::Env var read in code but undocumented in .env.example — silent dev-default fallbacks ship broken deploys (AUDIT_LOG env-fallback: localhost:9000 login, EMBEDDING_PROVIDER)." && exit 1)
+
+  governance-path-guard:
+    name: Governing files untouched without approval marker
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      # .claude/, docs/ (governing set), and the PUBLIC_PATHS block are drafting-side surfaces.
+      # A PR touching them must carry the literal marker "Approved-Governance-Change: yes"
+      # in its body (Abd. adds it when approving). [AUDIT_LOG ungoverned-change]
+      - name: Diff governed paths vs approval marker
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          CHANGED=$(git diff --name-only origin/${{ github.base_ref }}...HEAD -- \
+            '.claude/**' 'docs/ARCHITECTURE.md' 'docs/STACK_LOCK.md' 'docs/AMENDMENTS.md' \
+            'docs/DEVIATIONS.md' 'docs/WORKFLOW.md' 'api/app/core/middleware.py' || true)
+          if [ -n "$CHANGED" ] && ! echo "$PR_BODY" | grep -q "Approved-Governance-Change: yes"; then
+            echo "::error::This PR changes governed files without 'Approved-Governance-Change: yes' in the PR body:%0A$CHANGED"
+            exit 1
+          fi
+
+# Branch protection: add "No committed conflict markers", "ci.yml still contains every
+# required job", and "Governing files untouched without approval marker" once green.
+# "Env vars documented in .env.example" becomes required after scripts/check_env_parity.py lands.
+# Also planned (separate, low-cost): a commitlint job enforcing Conventional Commits
+# (type(scope): subject) on PR commits — pairs with WORKFLOW Branching rule 4.
