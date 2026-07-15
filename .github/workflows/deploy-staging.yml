@@ -35,6 +35,16 @@ jobs:
           chmod 700 ~/.ssh
           ssh-keyscan -H "$STAGING_HOST" >> ~/.ssh/known_hosts
 
+      - name: Ensure remote has rsync
+        env:
+          STAGING_HOST: ${{ secrets.STAGING_HOST }}
+          STAGING_USER: ${{ secrets.STAGING_USER }}
+        run: |
+          set -euo pipefail
+          REMOTE="${STAGING_USER}@${STAGING_HOST}"
+          ssh -o StrictHostKeyChecking=yes "$REMOTE" \
+            'command -v rsync >/dev/null || (export DEBIAN_FRONTEND=noninteractive; apt-get update -qq && apt-get install -y -qq rsync)'
+
       - name: Sync application code (preserve server prod files)
         env:
           STAGING_HOST: ${{ secrets.STAGING_HOST }}
