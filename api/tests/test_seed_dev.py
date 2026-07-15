@@ -68,6 +68,78 @@ async def test_rerun_is_idempotent_no_duplicates() -> None:
     assert len(store.by_authentik) == len(seed.SEED_USERS)
 
 
+class _FakeOrgStore:
+    """In-memory stand-in for the districts / schools / academic_sessions tables."""
+
+    def __init__(self) -> None:
+        self.rows: dict[str, object] = {}
+
+    async def get(self, row_id: str) -> object | None:
+        return self.rows.get(row_id)
+
+    async def persist(self, row: object) -> None:
+        self.rows[row.id] = row  # type: ignore[attr-defined]
+
+
+@pytest.mark.asyncio
+async def test_seed_creates_the_org_rows_the_users_point_at() -> None:
+    """QA E04/E06/E07/E08 — the demo IDs were stamped on users but never inserted.
+
+    District Admin "create school" and School Admin "invite coordinator" 404'd on a
+    district/school that did not exist, and the Coordinator had no active academic
+    session, which blocked grades + subjects (and, downstream, the Teacher's profile).
+    """
+    seed = _load_seed()
+    store = _FakeOrgStore()
+
+    result = await seed.seed_org(store.get, store.get, store.get, store.persist)
+
+    assert result.created == 3
+    assert result.updated == 0
+
+    district = store.rows[seed.DEMO_DISTRICT_ID]
+    school = store.rows[seed.DEMO_SCHOOL_ID]
+    session = store.rows[seed.DEMO_SESSION_ID]
+
+    # The chain the users reference actually exists, and is wired together.
+    assert school.district_id == seed.DEMO_DISTRICT_ID  # type: ignore[attr-defined]
+    assert session.school_id == seed.DEMO_SCHOOL_ID  # type: ignore[attr-defined]
+    assert district.name  # type: ignore[attr-defined]
+
+    # An ACTIVE session is what unblocks grade/subject creation (E07/E08), and the
+    # school's denormalized mirror must agree with it (T-042).
+    assert session.is_active is True  # type: ignore[attr-defined]
+    assert school.active_academic_session == session.label  # type: ignore[attr-defined]
+
+
+@pytest.mark.asyncio
+async def test_seed_org_rerun_is_idempotent() -> None:
+    seed = _load_seed()
+    store = _FakeOrgStore()
+
+    await seed.seed_org(store.get, store.get, store.get, store.persist)
+    second = await seed.seed_org(store.get, store.get, store.get, store.persist)
+
+    assert second.created == 0
+    assert second.updated == 3
+    assert len(store.rows) == 3
+
+
+@pytest.mark.asyncio
+async def test_seeded_users_point_at_the_seeded_org() -> None:
+    """The two halves must agree — a user stamped with an ID no org row carries is the bug."""
+    seed = _load_seed()
+    store = _FakeOrgStore()
+
+    await seed.seed_org(store.get, store.get, store.get, store.persist)
+
+    for user in seed.SEED_USERS:
+        if user.district_id is not None:
+            assert user.district_id in store.rows, f"{user.email} points at a missing district"
+        if user.school_id is not None:
+            assert user.school_id in store.rows, f"{user.email} points at a missing school"
+
+
 @pytest.mark.asyncio
 async def test_demo_set_covers_the_hierarchy() -> None:
     seed = _load_seed()
