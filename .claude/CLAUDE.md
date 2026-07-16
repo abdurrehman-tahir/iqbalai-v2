@@ -131,6 +131,11 @@ When the user asks for a feature:
 8. **Every visible string in the frontend** goes through `next-intl` translation keys. Never hardcode English in JSX.
 9. **Every secret or external URL** is read from an env var. Never hardcode.
 10. **Every database schema change is model-first:** edit/add the SQLAlchemy model → `alembic revision --autogenerate` → review the diff → one concern per migration, in the same PR (ARCH §4.12). A ticket's data-model shapes are **design intent, not literal DDL** — never hand-write a migration from a ticket sketch.
+11. **DB access outside the API process is disposable-engine.** Celery tasks, scripts, and async test harnesses use `run_db()` / a per-loop engine (`db/celery_async.py`) — never the API's module-level session factory. Async API tests use `httpx.AsyncClient + ASGITransport`, not `TestClient`. [AUDIT_LOG async-engine-loop]
+12. **New side effects ship with fixture mocks in the same commit.** When a service gains Celery/notification/NATS/email calls, update the affected test fixtures with autouse `AsyncMock`s — side effects never execute inside unit/API tests. [test-side-effect-isolation]
+13. **Backend contract change ⇒ regenerate before push.** Any commit touching routes/schemas runs `pnpm gen:api` and commits `openapi.json` + `schema.d.ts` — don't pay the CI round-trip. [stale-generated-client]
+14. **Switches over role/enum unions are exhaustive** (TS `never` guard; backend exhaustive match), and their tests derive the case list from the union — never hand-enumerated (frontend-master Rule 14). [enum-switch-drift]
+15. **HARD GOVERNANCE GATE:** changes to locked architecture, auth surfaces (including `PUBLIC_PATHS`), stack choices, or `.claude/`+`docs/` governing files require a drafting-side-approved `AMENDMENTS`/`DEVIATIONS` entry **before** implementation — mid-debug included, no exceptions. [ungoverned-change]
 
 ## CI invariants (non-negotiable)
 
@@ -172,6 +177,7 @@ Because `pyproject.toml`, `.pre-commit-config.yaml`, and CI all pin the **same**
 
 - Base branch: `staging` (see `docs/BRANCHING.md`).
 - Feature branches: `feature/phase<N>-<short-name>`.
+- **Branching rules (hard):** milestone/feature branches fork from `staging` only after the previous milestone has merged; **never rebase a pushed or parented branch** — sync by merging `staging` INTO your branch; after any staging merge, grep for conflict markers and diff `.github/workflows/` + `pyproject.toml` against `staging` before pushing; conventional commits only. Full rules: WORKFLOW "Branching rules". [merge-regression]
 - Commit format: Conventional Commits. Commits that touch files in `app/infrastructure/rag/`, `app/infrastructure/ml/`, `app/infrastructure/llm/`, or `app/infrastructure/voice/` MUST include a `## Stack-touching` block in the commit message listing the architecture decisions referenced.
 - One PR = one logical change. Don't bundle.
 - Open PRs with `gh pr create --base staging`.
@@ -245,6 +251,8 @@ At session start, this CLAUDE.md auto-loads and you read `docs/ARCHITECTURE.md` 
 After a context compaction, read `.claude/session-state.md` first to recover (do NOT re-fetch the milestone/spec/ARCH from scratch).
 
 ## Claude Code toolchain files (parity with `.cursor/`)
+
+> **Parity rule (hard):** `.cursor/` is either **tracked in git** or **generated from `.claude/` by a sync script** — never gitignored, never hand-maintained. `.claude/` is the single source of truth; a Cursor session re-syncs before starting. A stale invisible clone is how three weeks of rule-hardening silently stopped applying. [ungoverned-change]
 
 | Claude Code | Cursor | Purpose |
 |---|---|---|

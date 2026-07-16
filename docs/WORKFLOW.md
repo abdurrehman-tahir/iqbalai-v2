@@ -96,13 +96,20 @@ git checkout -b milestone/M-NN-short-name
 
 ### 0a. If a spec changes mid-milestone
 
+### Branching rules (hard — AUDIT_LOG `[merge-regression]`)
+
+1. **Fork from `staging` only, and only after the previous milestone has merged.** Never branch a milestone off another milestone's unmerged branch.
+2. **Never rebase a branch that has been pushed or has children.** History rewrites orphan every dependent branch into duplicate-commit conflict storms (the M-06→M-07 incident: 13 phantom commits, committed conflict markers, days lost).
+3. **Sync = merge `staging` INTO your branch.** After the merge, before pushing: `git grep -nE '^(<{7}|>{7}|={7})'` must return nothing, and diff `.github/workflows/` + `api/pyproject.toml` against `staging` to confirm no gate or pin regressed (M-02 silently lost two CI jobs in exactly such a merge).
+4. **Conventional commits only** (`type(scope): subject`) — "comflict resolved" is not a commit message; CI lints this.
+
 If you're already on a milestone branch and Abd. merges a flow spec change that affects your in-progress work:
 
 1. **Stop coding immediately.**
 2. **Ping Abd.** (WhatsApp / direct) — describe what you've already built on the milestone branch and what the spec change covers.
 3. Abd. decides one of:
    - **(a) Pin to old spec version** — your milestone uses the spec as-of-branch-creation; new spec applies to future milestones
-   - **(b) Rebase / partial redo** — you rebase the milestone branch and adapt affected tickets to the new spec
+   - **(b) Merge + partial redo** — merge the updated `staging` into the milestone branch (**never rebase a pushed/parented branch** — AUDIT_LOG `[merge-regression]`) and adapt affected tickets to the new spec
    - **(c) Abort milestone** — rare; only if the spec change invalidates the entire milestone direction
 4. Continue only after Abd. confirms which path.
 

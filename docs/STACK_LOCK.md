@@ -138,7 +138,7 @@ All LLM calls go through `app/services/llm/client.py`. The client speaks OpenAI-
 
 | Stage | Locked Choice | License | Notes |
 |---|---|---|---|
-| Embeddings (multilingual) | **BGE-M3** via **Infinity** server | MIT (model) / MIT (server) | ONNX-optimized, runs on CPU. Languages: Urdu, Sindhi, Pashto, English, 100+ others. |
+| Embeddings (multilingual) | **BGE-M3** via **Infinity** server | MIT (model) / MIT (server) | ONNX-optimized, runs on CPU. Languages: Urdu, Sindhi, Pashto, English, 100+ others. **Prod/staging: the ONLY provider.** Dev-only `local` fastembed path exists per DEVIATIONS (`fastembed`): 384-dim, separate `*_local` collections, forbidden outside dev. |
 | Reranker | **bge-reranker-v2-m3** via Infinity | MIT | Top-50 retrieval → rerank → top-5. CPU-acceptable. |
 | Sparse retrieval | **Qdrant hybrid mode** (BGE-M3 sparse output) | Apache-2.0 | No separate BM25 engine. |
 | Vector retrieval | **Qdrant hybrid mode** (BGE-M3 dense output) | Apache-2.0 | Same instance as sparse. |

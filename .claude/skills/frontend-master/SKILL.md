@@ -56,7 +56,7 @@ Apply whenever you're about to write or modify anything under `frontend/src/`:
 
 ## How to apply
 
-For each file you're about to write or modify, walk through Rules 1–13 in order. Stop at the first violation; explain it to the user; propose the fix. After passing all 13 rules, generate the code.
+For each file you're about to write or modify, walk through Rules 1–15 in order. Stop at the first violation; explain it to the user; propose the fix. After passing all 15 rules, generate the code.
 
 The rules are not optional. They're the difference between a frontend that ages well and one that needs a rewrite in 18 months.
 
@@ -732,12 +732,38 @@ A route that exists but isn't linked from the app navigation is an **orphan** �
 
 **Forbidden:** a new route with no nav entry; a page that renders an empty shell with no loading/empty/error/success content; a non-scrolling container that clips its content.
 
+## Rule 14 — Switches over role/enum unions are exhaustive; tests derive from the union
+
+When a backend enum/role union grows, every dependent switch and hand-enumerated test silently rots (M-06 added `student`/`parent`; `getPostLoginPath` defaulted both to `/admin` and its 5-role hand-listed test stayed green — AUDIT_LOG `[enum-switch-drift]`).
+
+```tsx
+// CORRECT — the never-guard turns a missing case into a compile error
+switch (role) {
+  case "student": return "/student";
+  /* …every union member, no silent default… */
+  default: { const _exhaustive: never = role; throw new Error(`unhandled role: ${role}`); }
+}
+// Tests enumerate the union programmatically (single source of truth), never a hand-list:
+for (const role of ALL_ROLES) expect(getPostLoginPath(role)).toBe(EXPECTED[role]);
+```
+
+**Forbidden:** a `default:` that silently routes unknown members to a real page; a test that hand-enumerates union members.
+
+## Rule 15 — Deploy-critical env vars: documented, required in prod, never silently defaulted
+
+`NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000"` shipped to staging and sent real users' browsers to a dead port (AUDIT_LOG `[env-fallback]`; same class as the `EMBEDDING_PROVIDER` incident).
+
+1. Every `process.env.NEXT_PUBLIC_*` you read has a documented key in `.env.example` (the `env-example-parity` CI guard enforces this).
+2. Deploy-critical URLs/IDs **fail the production build when unset** (prebuild assert); localhost defaults are dev-only and log a console warning even there.
+
+**Forbidden:** `?? "http://localhost:…"` on any URL a deployed user's browser will follow; reading an env var `.env.example` doesn't document.
+
 ## Workflow
 
 When writing a frontend file:
 
 1. **Identify the file type.** Page? Component? Form? Layout? List view?
-2. **Walk through Rules 1–13** in order. For each, ask: does the code I'm about to write comply?
+2. **Walk through Rules 1–15** in order. For each, ask: does the code I'm about to write comply?
 3. **If a rule would be violated:** state the rule, state the fix, then write the corrected code.
 4. **For NEW visible strings:** add the translation key + add it to all four `messages/*.json` files (en with real text, ur/sd/ps with `__TODO__` placeholder).
 5. **For NEW dependencies:** stop and ask. Don't add a package without explicit approval.

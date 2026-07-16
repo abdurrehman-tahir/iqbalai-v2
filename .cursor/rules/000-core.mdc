@@ -1,6 +1,14 @@
-# AGENTS.md
+---
+description: IqbalAI v2 core operating rules — stack locks, decision gates, workflow, CI invariants (generated from .claude/CLAUDE.md)
+alwaysApply: true
+---
+<!-- GENERATED from .claude/CLAUDE.md by scripts/sync_cursor.py — DO NOT EDIT. Edit the source and re-run the sync. -->
 
-**You are working on IqbalAI v2 in Cursor.** This file is the Cursor agent's project instructions. Claude Code users follow the parallel rules in `.claude/CLAUDE.md` — both toolchains coexist; do not remove or merge them.
+# CLAUDE.md
+
+**You are working on IqbalAI v2 in Cursor.** This file is read automatically at the start of every Claude Code session and after every context compaction. Read it carefully. The rules below are non-negotiable.
+
+> **Cursor users:** parallel rules for Cursor live in `.cursor/AGENTS.md` (+ `.cursor/skills/`, `.cursor/agents/`, `.cursor/rules/`, `.cursor/permissions.json`). Both toolchains coexist — do not remove either folder.
 
 ## The §0 rule — the single most important reading rule
 
@@ -18,7 +26,7 @@ If your task isn't in §0.1: read §0.2 (it tells you what to do). Often the ans
 
 ## The four project skills — when each fires
 
-Four skills are installed at `.cursor/skills/`. **Skills are heavy — read each SKILL.md ONLY when its narrow trigger truly fires.** Cursor rules in `.cursor/rules/skill-*.mdc` enforce the same triggers as this table. Pre-commit hooks + CI catch any forbidden imports / stack violations regardless, so a missed trigger costs a re-commit, not a shipped bug.
+Four skills are installed at `.claude/skills/`. **Skills are heavy — read each SKILL.md ONLY when its narrow trigger truly fires.** Pre-commit hooks + CI catch any forbidden imports / stack violations regardless, so a missed trigger costs a re-commit, not a shipped bug.
 
 | Skill | Apply ONLY when |
 |---|---|
@@ -27,17 +35,17 @@ Four skills are installed at `.cursor/skills/`. **Skills are heavy — read each
 | **data-modeling** | The change creates or modifies a SQLAlchemy model — a `models.py` (or `db/base.py` mixins): a new table, or adding/altering columns, foreign keys, enums, indexes, constraints, or relationships. Do NOT load it for repository/service/router code, Pydantic `schemas.py`, migration files, or tests. |
 | **phase-complete-review** | At PR time only — load this skill before opening the milestone PR. (It's the heaviest skill at 448 lines; it loads once per milestone at PR time, not per ticket.) |
 
-**Skill priority over body rules:** when the body of this AGENTS.md and a skill's SKILL.md both speak to the same concern, the skill's guidance is more specific and wins. The body rules below remain in force as the default; the skills add depth.
+**Skill priority over body rules:** when the body of this CLAUDE.md and a skill's SKILL.md both speak to the same concern, the skill's guidance is more specific and wins. The body rules below remain in force as the default; the skills add depth.
 
 ## Sub-agents — your first action on any ticket
 
-Cursor can launch **subagents** (Task tool) that run in their own context window and return only a compact result to this main session. Use them to keep the main context lean. Agent definitions live in `.cursor/agents/`; enforcement rule: `.cursor/rules/ticket-loader.mdc`.
+Claude Code can spawn **sub-agents** that run in their own context window and return only a compact result to this main session. Use them to keep the main context lean. The agents live in `.claude/agents/`.
 
-**MANDATORY first action when implementing any ticket:** when Hamza says any variant of `"Implement T-XXX"` (with or without a milestone path), your FIRST action — before any file read, any plan, any code — is to launch a **Task subagent** (`readonly: true`) following `.cursor/agents/ticket-loader.md`:
+**MANDATORY first action when implementing any ticket:** when Hamza says any variant of `"Implement T-XXX"` (with or without a milestone path), your FIRST action — before any file read, any plan, any code — is to invoke the **`ticket-loader`** sub-agent:
 
-> Launch a readonly Task subagent per `.cursor/agents/ticket-loader.md` to prepare ticket T-XXX.
+> Use the `ticket-loader` agent to prepare ticket T-XXX.
 
-The subagent locates the ticket, reads the cited spec § + cited ARCH §§ in its own context, and returns a compact **Ticket Dossier** (ticket body, rule excerpts, ARCH summaries, deps, acceptance criteria) to you. From that point you work from the dossier. **Reading the full milestone file, the full flow spec, or wide ranges of ARCHITECTURE.md directly in this main session is forbidden** — the only exception is following a specific cross-reference the dossier explicitly flagged. If the dossier is malformed or missing a field, abort and tell Hamza; do not paper over it by reading the source files yourself.
+The sub-agent locates the ticket, reads the cited spec § + cited ARCH §§ in its own context, and returns a compact **Ticket Dossier** (ticket body, rule excerpts, ARCH summaries, deps, acceptance criteria) to you. From that point you work from the dossier. **Reading the full milestone file, the full flow spec, or wide ranges of ARCHITECTURE.md directly in this main session is forbidden** — the only exception is following a specific cross-reference the dossier explicitly flagged. If the dossier is malformed or missing a field, abort and tell Hamza; do not paper over it by reading the source files yourself.
 
 Other available sub-agents (use when relevant):
 
@@ -45,27 +53,27 @@ Other available sub-agents (use when relevant):
 |---|---|
 | `ticket-loader` | MANDATORY first action on any "Implement T-XXX" request (above). |
 
-**Prefer subagents for parallel exploration.** If a task has multiple independent searches, audits, or extractions to do (e.g. "find every place a deprecated API is used," "verify acceptance items 1-8 in parallel"), launch subagents instead of doing them serially in the main session. Each subagent runs in its own context and returns only the result.
+**Prefer sub-agents / dynamic workflows for parallel exploration.** Opus 4.8 ships with dynamic workflows in Claude Code — if a task has multiple independent searches, audits, or extractions to do (e.g. "find every place a deprecated API is used," "verify acceptance items 1-8 in parallel"), spawn sub-agents/workflows instead of doing them serially in the main session. Each sub-agent runs in its own context and returns only the result.
 
 ## Session-state recovery (compaction)
 
-This main session may be compacted mid-work. To recover cleanly without re-reading everything, maintain `.cursor/session-state.md` — a short file (≤30 lines) you update after each meaningful step (ticket loaded, file edited, tests written, commit made). Format: current ticket ID, status, last file edited, next intended step, dossier-source list. After a compaction, read this file first; it replaces the need to re-fetch the milestone/spec/ARCH from scratch.
+This main session may be auto-compacted mid-work. To recover cleanly without re-reading everything, maintain `.claude/session-state.md` — a short file (≤30 lines) you update after each meaningful step (ticket loaded, file edited, tests written, commit made). Format: current ticket ID, status, last file edited, next intended step, dossier-source list. After a compaction, read this file first; it replaces the need to re-fetch the milestone/spec/ARCH from scratch.
 
 ## What to read — and when (conditional, not pre-loaded)
 
-The ONLY files you load at session start are this AGENTS.md and `docs/ARCHITECTURE.md` §0 (the task→sections quick-index). Every other reference doc is loaded **conditionally**, the moment its concern triggers — never pre-emptively. This keeps the main context lean and is essential for fitting a milestone's worth of tickets in one Cursor session.
+The ONLY files you load at session start are this CLAUDE.md (auto) and `docs/ARCHITECTURE.md` §0 (the task→sections quick-index). Every other reference doc is loaded **conditionally**, the moment its concern triggers — never pre-emptively. This keeps the main context lean and is essential for fitting a milestone's worth of tickets in one Claude Code session.
 
 | File | Read only when |
 |---|---|
 | `docs/STACK_LOCK.md` | About to add/modify a dependency, an import touching an external service, or any change under `app/infrastructure/{rag,ml,llm,voice,storage,events,cache}/`. Otherwise: don't load it. (Pre-commit `check_imports.py` + `check_stack_lock.py` enforce it on every commit regardless.) |
-| `docs/WORKFLOW.md` | Hamza's very first day, OR you can't recall a specific process step. The day-to-day loop is summarized in this AGENTS.md ("Workflow you must follow" below). Don't reload WORKFLOW per ticket. |
+| `docs/WORKFLOW.md` | Hamza's very first day, OR you can't recall a specific process step. The day-to-day loop is summarized in this CLAUDE.md ("Workflow you must follow" below). Don't reload WORKFLOW per ticket. |
 | `docs/DEVIATIONS.md` | You're reading STACK_LOCK and you notice a possible deviation. Otherwise skip. |
 | `docs/AMENDMENTS.md` | About to follow an ARCH § as authoritative — sanity-check it isn't amended. Use grep for the §-number rather than reading the whole file. |
 | `docs/BRANCHING.md` | At PR time, or naming a feature branch. |
 | `docs/ENV_VARS.md` | About to add or use a new env var. |
 | `docs/TODO.md` | A feature seems missing or deferred — confirm before improvising. |
 | `docs/feature-specs/<flow>.md` | The dossier (from `ticket-loader`) cites it AND the excerpt the dossier returned is insufficient — read only the cited section via line-range, never the whole file. |
-| `docs/backlog/M-NN-*.md` | The `ticket-loader` subagent reads this for you. Reading it directly in the main session is forbidden (see "Sub-agents" above). |
+| `docs/backlog/M-NN-*.md` | The `ticket-loader` sub-agent reads this for you. Reading it directly in the main session is forbidden (see "Sub-agents" below). |
 
 **ARCHITECTURE.md is governed separately by the §0 rule above — read §0 + cited §§ only, never the whole file.**
 
@@ -90,13 +98,13 @@ This split affects EVERYTHING:
 The unit of work is a **ticket** (T-NNN) inside a **milestone** (M-NN).
 
 1. **Hamza tells you which ticket to implement** (e.g., "Implement T-016").
-2. **Your literal first action: invoke the `ticket-loader` subagent** with the ticket ID. The subagent returns a compact Ticket Dossier (ticket body, cited spec excerpts, ARCH summaries, deps, acceptance). Do NOT read the milestone / spec / ARCH directly in this main session.
+2. **Your literal first action: invoke the `ticket-loader` sub-agent** with the ticket ID. The sub-agent returns a compact Ticket Dossier (ticket body, cited spec excerpts, ARCH summaries, deps, acceptance). Do NOT read the milestone / spec / ARCH directly in this main session.
 3. **Verify deps:** the dossier lists `Depends on:` — confirm those tickets are marked done before proceeding.
-4. **Read narrow skills only if their trigger fires** (see skill table above). Update `.cursor/session-state.md` with the ticket ID + intended next step.
+4. **Read narrow skills only if their trigger fires** (see skill table above). Update `.claude/session-state.md` with the ticket ID + intended next step.
 5. **Implement** — backend + frontend + migrations + tests. A ticket is a vertical slice. **Tests are mandatory, not "as specified":** backend pytest + an API contract test per endpoint; **frontend changes ship tests per frontend-master Rule 12** (Vitest+RTL + a Playwright `@smoke`). Migrations are **model-first** (write the model → `--autogenerate` → review; the ticket's data-model is intent, not DDL — ARCH §4.12).
 6. **Verify acceptance** — each item in the dossier's `Acceptance:` block must be checkable.
 7. **Run the format gate before committing** (see "Format gate" below). Then commit per Conventional Commits.
-8. **Close out the ticket (mandatory, every ticket — not just at milestone close):** in the milestone file, set that ticket's `Status: done` and record the commit SHA on the ticket. Then update `.cursor/session-state.md` (done list + next ticket). The milestone file is the durable per-ticket ledger; `session-state.md` is the fast within-session hint.
+8. **Close out the ticket (mandatory, every ticket — not just at milestone close):** in the milestone file, set that ticket's `Status: done` and record the commit SHA on the ticket. Then update `.claude/session-state.md` (done list + next ticket). The milestone file is the durable per-ticket ledger; `session-state.md` is the fast within-session hint.
 
 **Never:**
 - Implement work without a ticket reference
@@ -129,6 +137,11 @@ When the user asks for a feature:
 8. **Every visible string in the frontend** goes through `next-intl` translation keys. Never hardcode English in JSX.
 9. **Every secret or external URL** is read from an env var. Never hardcode.
 10. **Every database schema change is model-first:** edit/add the SQLAlchemy model → `alembic revision --autogenerate` → review the diff → one concern per migration, in the same PR (ARCH §4.12). A ticket's data-model shapes are **design intent, not literal DDL** — never hand-write a migration from a ticket sketch.
+11. **DB access outside the API process is disposable-engine.** Celery tasks, scripts, and async test harnesses use `run_db()` / a per-loop engine (`db/celery_async.py`) — never the API's module-level session factory. Async API tests use `httpx.AsyncClient + ASGITransport`, not `TestClient`. [AUDIT_LOG async-engine-loop]
+12. **New side effects ship with fixture mocks in the same commit.** When a service gains Celery/notification/NATS/email calls, update the affected test fixtures with autouse `AsyncMock`s — side effects never execute inside unit/API tests. [test-side-effect-isolation]
+13. **Backend contract change ⇒ regenerate before push.** Any commit touching routes/schemas runs `pnpm gen:api` and commits `openapi.json` + `schema.d.ts` — don't pay the CI round-trip. [stale-generated-client]
+14. **Switches over role/enum unions are exhaustive** (TS `never` guard; backend exhaustive match), and their tests derive the case list from the union — never hand-enumerated (frontend-master Rule 14). [enum-switch-drift]
+15. **HARD GOVERNANCE GATE:** changes to locked architecture, auth surfaces (including `PUBLIC_PATHS`), stack choices, or `.claude/`+`docs/` governing files require a drafting-side-approved `AMENDMENTS`/`DEVIATIONS` entry **before** implementation — mid-debug included, no exceptions. [ungoverned-change]
 
 ## CI invariants (non-negotiable)
 
@@ -170,6 +183,7 @@ Because `pyproject.toml`, `.pre-commit-config.yaml`, and CI all pin the **same**
 
 - Base branch: `staging` (see `docs/BRANCHING.md`).
 - Feature branches: `feature/phase<N>-<short-name>`.
+- **Branching rules (hard):** milestone/feature branches fork from `staging` only after the previous milestone has merged; **never rebase a pushed or parented branch** — sync by merging `staging` INTO your branch; after any staging merge, grep for conflict markers and diff `.github/workflows/` + `pyproject.toml` against `staging` before pushing; conventional commits only. Full rules: WORKFLOW "Branching rules". [merge-regression]
 - Commit format: Conventional Commits. Commits that touch files in `app/infrastructure/rag/`, `app/infrastructure/ml/`, `app/infrastructure/llm/`, or `app/infrastructure/voice/` MUST include a `## Stack-touching` block in the commit message listing the architecture decisions referenced.
 - One PR = one logical change. Don't bundle.
 - Open PRs with `gh pr create --base staging`.
@@ -192,21 +206,7 @@ The hooks include:
 - `scripts/check_stack_lock.py` — rejects forbidden imports (cross-references `DEVIATIONS.md` for exceptions)
 - `pytest --collect-only` — tests must at least be discoverable
 
-If you generate code that fails these hooks, the user will see the failure. Fix it and re-commit. Don't ask the user to disable hooks.
-
-## Cursor toolchain files (parity with `.claude/`)
-
-| Cursor | Claude Code | Purpose |
-|---|---|---|
-| `.cursor/AGENTS.md` | `.claude/CLAUDE.md` | Main project rules |
-| `.cursor/rules/*.mdc` | (built into CLAUDE.md) | Auto-loaded rule triggers |
-| `.cursor/skills/` | `.claude/skills/` | Domain skills |
-| `.cursor/agents/ticket-loader.md` | `.claude/agents/ticket-loader.md` | Ticket dossier subagent |
-| `.cursor/session-state.md` | `.claude/session-state.md` | Session recovery scratchpad |
-| `.cursor/permissions.json` | `.claude/settings.local.json` | Terminal/MCP command allowlist |
-| `.cursor/cli.json` | — | Cursor CLI agent permissions |
-
-**Allowlist note:** `.cursor/permissions.json` replaces the in-app terminal allowlist when Run Mode (Allowlist or Auto-review) is enabled in Cursor Settings. Match Claude's pre-approved commands without repeated approval prompts.
+If you (Claude) generate code that fails these hooks, the user will see the failure. Fix it and re-commit. Don't ask the user to disable hooks.
 
 ## When to ask for help
 
@@ -215,7 +215,7 @@ Stop and ask the user when:
 - A pattern in `ARCHITECTURE.md` would need to be **changed** (not just followed) to ship the feature — propose an amendment via `docs/AMENDMENTS.md`.
 - Your task isn't in `ARCHITECTURE.md` §0.1's task table and you're unsure which sections apply.
 - A pre-commit hook fails in a way that suggests the stack itself needs revision (rare).
-- You'd be touching more than 5 files in a single change AND the changes are not a single coherent vertical slice already authorised by the ticket.
+- You'd be touching more than 5 files in a single change AND the changes are not a single coherent vertical slice already authorised by the ticket (Opus 4.8 self-decides well on coherent changes — don't ask for permission on routine ticket implementation).
 - You'd be modifying `docs/STACK_LOCK.md`, `docs/ARCHITECTURE.md`, `docs/DEVIATIONS.md`, `docs/AMENDMENTS.md`, or `docs/BRANCHING.md`.
 
 ## When NOT to ask
@@ -236,7 +236,7 @@ Just do these. They're table stakes.
 
 ## Behavioral rules
 
-- **Flag uncertainty rather than guess.** If the ticket dossier, the cited spec, or the cited ARCH section leaves a decision genuinely ambiguous — or you're not confident about an API/signature/edge case — say so explicitly in chat and ask, rather than producing confident code that might be wrong. Unsupported claims and silently-buggy code are worse than a one-line "I'm not sure about X — confirm before I proceed."
+- **Flag uncertainty rather than guess.** If the ticket dossier, the cited spec, or the cited ARCH section leaves a decision genuinely ambiguous — or you're not confident about an API/signature/edge case — say so explicitly in chat and ask, rather than producing confident code that might be wrong. Opus 4.8 is specifically trained to surface uncertainty; lean into that. Unsupported claims and silently-buggy code are worse than a one-line "I'm not sure about X — confirm before I proceed."
 
 - **No hallucinated APIs.** If you don't know how a library works, read the docs or ask the user. Do not invent function signatures.
 - **No "TODO" placeholders in committed code.** If you can't implement something now, raise the gap in the PR description and let the user decide.
@@ -250,14 +250,27 @@ Just do these. They're table stakes.
 
 ## Session start (silent)
 
-At session start, this AGENTS.md loads and you read `docs/ARCHITECTURE.md` §0. **Do NOT print a confirmation message** listing what you read. **Do NOT pre-load** STACK_LOCK / WORKFLOW / DEVIATIONS / AMENDMENTS / BRANCHING / ENV_VARS — load each only when its trigger fires (table above).
+At session start, this CLAUDE.md auto-loads and you read `docs/ARCHITECTURE.md` §0. **Do NOT print a confirmation message** listing what you read. **Do NOT pre-load** STACK_LOCK / WORKFLOW / DEVIATIONS / AMENDMENTS / BRANCHING / ENV_VARS — load each only when its trigger fires (table above).
 
-**Resume rule (where to start, even if Hamza says nothing specific):** before waiting, determine the resume point — (1) read `ROADMAP.md` to find the currently-active milestone (the first not `done`); (2) read that milestone file's ticket `Status:` fields — **the first ticket not marked `done` is where you resume**; (3) `.cursor/session-state.md` is a fast hint for the same thing. **If `session-state.md` and the milestone file disagree, the milestone file's `Status:` fields win** (they're the durable source of truth; session-state is only a scratchpad). If Hamza names a specific ticket, that overrides the resume point. Then your literal first action for that ticket is to invoke the `ticket-loader` subagent.
+**Resume rule (where to start, even if Hamza says nothing specific):** before waiting, determine the resume point — (1) read `ROADMAP.md` to find the currently-active milestone (the first not `done`); (2) read that milestone file's ticket `Status:` fields — **the first ticket not marked `done` is where you resume**; (3) `.claude/session-state.md` is a fast hint for the same thing. **If `session-state.md` and the milestone file disagree, the milestone file's `Status:` fields win** (they're the durable source of truth; session-state is only a scratchpad). If Hamza names a specific ticket, that overrides the resume point. Then your literal first action for that ticket is to invoke the `ticket-loader` sub-agent.
 
-After a context compaction, read `.cursor/session-state.md` first to recover (do NOT re-fetch the milestone/spec/ARCH from scratch).
+After a context compaction, read `.claude/session-state.md` first to recover (do NOT re-fetch the milestone/spec/ARCH from scratch).
+
+## Claude Code toolchain files (parity with `.cursor/`)
+
+> **Parity rule (hard):** `.cursor/` is either **tracked in git** or **generated from `.claude/` by a sync script** — never gitignored, never hand-maintained. `.claude/` is the single source of truth; a Cursor session re-syncs before starting. A stale invisible clone is how three weeks of rule-hardening silently stopped applying. [ungoverned-change]
+
+| Claude Code | Cursor | Purpose |
+|---|---|---|
+| `.claude/CLAUDE.md` | `.cursor/AGENTS.md` | Main project rules |
+| `.claude/skills/` | `.cursor/skills/` | Domain skills |
+| `.claude/agents/ticket-loader.md` | `.cursor/agents/ticket-loader.md` | Ticket dossier subagent |
+| `.claude/session-state.md` | `.cursor/session-state.md` | Session recovery scratchpad |
+| `.claude/settings.local.json` | `.cursor/permissions.json` + `.cursor/cli.json` | Command allowlists |
+
+Both toolchains read the same `docs/` folder. Do not remove or merge `.claude/` and `.cursor/`.
 
 ---
 
-**Last updated:** 2026-06-24
+**Last updated:** 2026-05-12
 **Owner:** @abdurrehman-tahir
-**Toolchain:** Cursor (parallel rules for Claude Code live in `.claude/CLAUDE.md`)
