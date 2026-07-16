@@ -2,7 +2,7 @@
 
 This is the lookup the `phase-complete-review` skill uses in Pass 1 to audit the PR description's declared "Sections read from ARCHITECTURE.md" list against the actual file changes.
 
-For each pattern below, when a file matching it appears in the PR, the listed sections are the ones Cursor agent should have read. If they're absent from the PR's declared list, that's a finding to surface.
+For each pattern below, when a file matching it appears in the PR, the listed sections are the ones Claude Code should have read. If they're absent from the PR's declared list, that's a finding to surface.
 
 The skill applies these in declaration order; the first match wins. Note that this is an audit lookup — for the implementation-side guidance, use `docs/ARCHITECTURE.md §0.1` (which is task-oriented). This file is file-oriented.
 

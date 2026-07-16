@@ -498,6 +498,18 @@ jobs:
               api/ frontend/src/ frontend/e2e/ frontend/messages/ scripts/ .github/ \
             || (echo "::error::Committed merge-conflict markers found (AUDIT_LOG merge-regression — the M-07 'comflict resolved' incident broke 16 suites)." && exit 1)
 
+# Enforces .claude → .cursor parity: any PR changing .claude/ without re-running the sync,
+# or hand-editing a generated .cursor file, fails. [AUDIT_LOG ungoverned-change / .cursor parity rule]
+  cursor-parity:
+    name: Cursor rules generated from .claude (no drift)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Check .cursor parity
+        run: python scripts/sync_cursor.py --check
+
   required-jobs-presence:
     name: ci.yml still contains every required job
     runs-on: ubuntu-latest
@@ -509,7 +521,7 @@ jobs:
         run: |
           for j in backend-lint backend-tests alembic-check stack-check frontend-lint frontend-tests \
                    frontend-unit typed-client-drift response-model-gate e2e-smoke \
-                   client-request-type-lint contract-test conflict-marker-gate required-jobs-presence; do
+                   client-request-type-lint contract-test conflict-marker-gate required-jobs-presence cursor-parity; do
             grep -qE "^  $j:" .github/workflows/ci.yml \
               || (echo "::error::Required CI job '$j' missing from ci.yml — a merge likely regressed the workflow (AUDIT_LOG merge-regression)." && exit 1)
           done

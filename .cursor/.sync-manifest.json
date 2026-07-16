@@ -1,0 +1,32 @@
+{
+  "rules/000-core.mdc": {
+    "sha256_source": "001b1387027e7cca345dd2a7918125d84cf61612671243088c012cdc030a0c99",
+    "sha256_target": "19fcf42015f05d5ad52bc6f1fe215c8cd91858c42bfae04c2692d4b46b50bf99",
+    "source": ".claude/CLAUDE.md"
+  },
+  "rules/ticket-loader.mdc": {
+    "sha256_source": "275cdf57415d583f038a1fec7ee96141e77e553eb49a80a041ec1905815a6735",
+    "sha256_target": "661829a732fbcdbc08640c89ab879619b1eb5221db6dbe7e61d5f245150d6a90",
+    "source": ".claude/agents/ticket-loader.md"
+  },
+  "skills/data-modeling/SKILL.md": {
+    "sha256_source": "3d9b0406c29ef2725b6388ecf11304a981385c4df8ee07659c71467ad41e31a4",
+    "sha256_target": "3d9b0406c29ef2725b6388ecf11304a981385c4df8ee07659c71467ad41e31a4",
+    "source": ".claude/skills/data-modeling/SKILL.md"
+  },
+  "skills/frontend-master/SKILL.md": {
+    "sha256_source": "d48b2251c0085bec8cf3f914cc8f2c32ff0ddba4c9d5bfae62b4ddeb35a84bf6",
+    "sha256_target": "d48b2251c0085bec8cf3f914cc8f2c32ff0ddba4c9d5bfae62b4ddeb35a84bf6",
+    "source": ".claude/skills/frontend-master/SKILL.md"
+  },
+  "skills/phase-complete-review/SKILL.md": {
+    "sha256_source": "da047bc20895d41f2edc0324faf58e0b1569aa0dac958747cfde9923d089c17c",
+    "sha256_target": "da047bc20895d41f2edc0324faf58e0b1569aa0dac958747cfde9923d089c17c",
+    "source": ".claude/skills/phase-complete-review/SKILL.md"
+  },
+  "skills/stack-enforcer/SKILL.md": {
+    "sha256_source": "4eb48c3bf209b27b0c8c6fcd9d27084a1ec82181b4e81da35ef754941f3b04ac",
+    "sha256_target": "4eb48c3bf209b27b0c8c6fcd9d27084a1ec82181b4e81da35ef754941f3b04ac",
+    "source": ".claude/skills/stack-enforcer/SKILL.md"
+  }
+}
