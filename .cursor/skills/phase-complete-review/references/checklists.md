@@ -639,7 +639,7 @@ For any PR that implements or modifies a feature.
 
 **Pass:** spec's §8 "Open questions" list is empty (or all items checked off as resolved).
 
-**Fail mode:** spec has unresolved open questions but implementation is proceeding anyway — Cursor agent is silently guessing answers.
+**Fail mode:** spec has unresolved open questions but implementation is proceeding anyway — Claude Code is silently guessing answers.
 
 **Fix:** stop implementation. Resolve the open questions via a spec amendment PR. Once resolved (Awais + Abd. approve), continue implementation.
 

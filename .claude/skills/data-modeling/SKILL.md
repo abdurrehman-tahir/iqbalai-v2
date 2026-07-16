@@ -100,6 +100,8 @@ status: Mapped[str] = mapped_column(String(20))   # "activ", "Active", "ACTIVE" 
 
 Enum changes are additive only (`ADD VALUE`); rename/remove is a multi-step migration.
 
+**Migration mechanics:** never put `sa.Enum(...)` inside `op.create_table()` for Postgres enums — even with `create_type=False`, SQLAlchemy's hook re-emits `CREATE TYPE` → `DuplicateObjectError` on a fresh DB (M-05 hit this twice — AUDIT_LOG `[migration-enum-create]`). Create the types idempotently in a prior step (`DO $$ … EXCEPTION WHEN duplicate_object`) and reference them as plain column types (raw-SQL `CREATE TABLE` if needed).
+
 ## Rule 5 — Timestamps: `timestamptz` in UTC, tz-aware, DB-set
 
 All timestamps are UTC `timestamptz` (§4.14). `created_at`/`updated_at` come from `AuditMixin` (DB server-side default + trigger) — the app never sets them. No naive `datetime`, no `timestamp`-without-tz, no date-only column unless date is the real semantic (`exam_date`).
@@ -124,7 +126,7 @@ scores_json: Mapped[dict] = mapped_column(JSONB, nullable=True)   # CORRECT + a 
 
 ## Rule 7 — Push invariants to DB constraints; explicit string lengths
 
-DB constraints can't be bypassed by buggy code; Pydantic can — do **both** (§4.15). Use `CHECK` for ranges/formats, `UNIQUE` for uniqueness invariants. Strings have explicit max lengths; bare `String`/`VARCHAR` without length is forbidden (`Text` only for paragraph content) (§4.8).
+DB constraints can't be bypassed by buggy code; Pydantic can — do **both** (§4.15). Use `CHECK` for ranges/formats, `UNIQUE` for uniqueness invariants. Strings have explicit max lengths; bare `String`/`VARCHAR` without length is forbidden (`Text` only for paragraph content) (§4.8). **External-identifier sizing:** columns storing IdP/third-party identifiers (Authentik `sub`, provider user-ids) are `String(255)`/`Text`, **never UUID-width 36** — external formats are not ours to assume (Authentik's `sub` is a 64-char hash; three UUID-width columns 500'd every library upload — AUDIT_LOG `[identity-column-width]`).
 
 ```python
 # CORRECT
@@ -160,7 +162,7 @@ When the model is correct, ensure each Pydantic `…Read` schema's fields are a 
 1. **Identify the change:** new table? new column/FK/enum/index/constraint/relationship?
 2. **Walk Rules 1–9.** For each, ask: does the model comply? Fix before writing.
 3. **Compose the mixins first**, then feature columns, then constraints/indexes in `__table_args__`, then relationships.
-4. **Then** `alembic revision --autogenerate` → review the diff → one concern per migration (§4.12). The model is the source; never hand-write the DDL from a ticket sketch.
+4. **Then** `alembic revision --autogenerate` → review the diff → one concern per migration (§4.12). The model is the source; never hand-write the DDL from a ticket sketch. Every migration carries the §4.12 header block (`Purpose:` / `Risk:` / `Reversible:`) **when authored, never backfilled after a red CI** (AUDIT_LOG `[migration]`). A migration referencing an object owned by the **other Alembic branch** (cross-schema view/FK) declares an explicit `depends_on = ("<other_branch_rev>",)` (`[migration-crossbranch-deps]`). Before the PR: fresh-DB proof — `docker compose down -v` … `alembic upgrade heads` (plural).
 
 ## What this skill does NOT cover
 

@@ -124,6 +124,8 @@ If the PR body has an optional **"Sections NOT read (justification)"** block (so
 
 Run these only for areas the PR touches. Skip irrelevant ones to save effort.
 
+**Spec-conformance diff (applies to every checklist below):** for any ticket implementing a numbered ARCH section — above all §6 security — diff the implementation against the section's **normative statements** and list each deviation explicitly in the review output. "Simplified for now" requires a recorded deferral (ticket note or AMENDMENTS), never silence: T-016 shipped sessionStorage tokens, browser-side token exchange, and a lenient JWT validator against a spec mandating the opposite, and every gate stayed green because none compared the code to the section it implements (AUDIT_LOG `[spec-conformance-drift]`).
+
 ### Checklist CI — GitHub Actions workflows (`.github/workflows/`)
 
 If the PR touches any file under `.github/workflows/`:
