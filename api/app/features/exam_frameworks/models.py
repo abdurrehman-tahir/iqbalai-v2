@@ -117,9 +117,11 @@ class ExamFramework(AuditMixin, SoftDeleteMixin, Base):
         nullable=False,
         default=FrameworkStatus.DRAFT,
     )
-    # Platform Admin user id. Plain column (actor id may be cross-schema/Authentik),
-    # mirrors graduation_requests.requested_by_user_id — no FK by design.
-    created_by: Mapped[str] = mapped_column(String(36), nullable=False)
+    # The acting Platform Admin's Authentik JWT `sub` — NOT users.id (the routers pass
+    # claims["sub"] straight through). Plain column, no FK by design: the actor may be
+    # cross-schema. 255 because subs can be 64-char hashes, matching audit_log.actor_id
+    # (school_0014, same widening).
+    created_by: Mapped[str] = mapped_column(String(255), nullable=False)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:
@@ -159,8 +161,9 @@ class FrameworkStudyPlan(AuditMixin, Base):
     # Cited source list: [{"url": ..., "title": ...}, ...] — schemas.SourceCitation.
     sources_cited_jsonb: Mapped[list[object]] = mapped_column(JSONB, nullable=False)
     generated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    # Approving Platform Admin's Authentik JWT `sub`, sized as exam_frameworks.created_by.
     # Nullable: approval may not have happened yet (§4.7).
-    approved_by: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    approved_by: Mapped[str | None] = mapped_column(String(255), nullable=True)
     approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     status: Mapped[StudyPlanStatus] = mapped_column(
         SAEnum(

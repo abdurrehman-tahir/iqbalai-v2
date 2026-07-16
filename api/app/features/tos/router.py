@@ -10,6 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.exceptions import NotFoundError
 from app.core.responses import SuccessEnvelope, success
+from app.core.tenant import TenantType, get_tenant_type
+from app.features.independent_users.service import IndependentUserService
 from app.features.tos.schemas import (
     DisclaimerVersionCreate,
     DisclaimerVersionRead,
@@ -23,6 +25,30 @@ from app.features.tos.service import TosService
 from app.features.users.service import UserService
 
 router = APIRouter()
+
+
+async def _resolve_caller(claims: dict[str, object], db: AsyncSession) -> tuple[str, TenantType]:
+    """Resolve the caller's app-user id in whichever tenant owns them.
+
+    Independent users are created by ``/auth/post-login`` into independent.users and have
+    no row in school.users, so looking them up via UserService alone 404'd every
+    independent teacher/student at the ToS gate — the last step of their first login
+    (QA E10/E11).
+    """
+    authentik_id = str(claims.get("sub", ""))
+    tenant_type = get_tenant_type(claims)
+
+    if tenant_type == "independent":
+        independent_user = await IndependentUserService(db).get_me(authentik_id)
+        if independent_user is None:
+            raise NotFoundError("User profile not found — call /auth/post-login first")
+        return independent_user.id, tenant_type
+
+    school_user = await UserService(db).get_me(authentik_id)
+    if school_user is None:
+        raise NotFoundError("User profile not found — call /auth/post-login first")
+    return school_user.id, tenant_type
+
 
 # ── Public read endpoints (no auth needed for current ToS/Disclaimer) ─────────
 
@@ -82,11 +108,11 @@ async def accept_tos(
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    user = await UserService(db).get_me(str(claims.get("sub", "")))
-    if user is None:
-        raise NotFoundError("User profile not found — call /auth/post-login first")
+    user_id, tenant_type = await _resolve_caller(claims, db)
     ip = request.client.host if request.client else None
-    acceptance = await TosService(db).accept_tos(user.id, payload.tos_version_id, ip)
+    acceptance = await TosService(db).accept_tos(
+        user_id, payload.tos_version_id, ip, tenant_type=tenant_type
+    )
     resp = TosAcceptResponse(
         accepted=True,
         tos_version_id=payload.tos_version_id,
@@ -107,11 +133,9 @@ async def decline_tos(
     claims: dict[str, object] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
-    user = await UserService(db).get_me(str(claims.get("sub", "")))
-    if user is None:
-        raise NotFoundError("User profile not found — call /auth/post-login first")
+    user_id, tenant_type = await _resolve_caller(claims, db)
     ip = request.client.host if request.client else None
-    await TosService(db).decline_tos(user.id, ip)
+    await TosService(db).decline_tos(user_id, ip, tenant_type=tenant_type)
     return success(TosDeclineResponse(declined=True).model_dump())
 
 

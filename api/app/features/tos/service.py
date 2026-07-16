@@ -13,6 +13,8 @@ from app.core.exceptions import (
     TosAcceptanceRequiredError,
     ValidationError,
 )
+from app.core.tenant import TenantType
+from app.features.independent_users.service import IndependentUserService
 from app.features.tos.models import DisclaimerVersion, TosVersion, UserTosAcceptance
 from app.features.tos.repository import TosRepository
 from app.features.users.service import UserService
@@ -27,6 +29,18 @@ class TosService:
     def __init__(self, session: AsyncSession) -> None:
         self._session = session
         self._repo = TosRepository(session)
+
+    def _account_service(self, tenant_type: TenantType) -> UserService | IndependentUserService:
+        """Pick the user table the ToS status change applies to.
+
+        Independent users live in their own schema (§3.16) and have no row in
+        school.users, so routing a decline/accept to UserService raised NotFound and
+        broke independent login at the ToS gate (QA E10/E11). Both services expose the
+        same suspend/reactivate pair.
+        """
+        if tenant_type == "independent":
+            return IndependentUserService(self._session)
+        return UserService(self._session)
 
     async def get_current_tos(self) -> TosVersion:
         tos = await self._repo.get_current_tos()
@@ -69,6 +83,7 @@ class TosService:
         user_id: str,
         tos_version_id: str,
         ip_address: str | None = None,
+        tenant_type: TenantType = "school",
     ) -> UserTosAcceptance:
         tos = await self._repo.get_tos_by_id(tos_version_id)
         if tos is None:
@@ -77,7 +92,7 @@ class TosService:
         if already:
             raise ConflictError("ToS version already accepted")
         acceptance = await self._repo.record_acceptance(user_id, tos_version_id, ip_address)
-        await UserService(self._session).reactivate_on_tos_accept(user_id)
+        await self._account_service(tenant_type).reactivate_on_tos_accept(user_id)
         await audit(
             session=self._session,
             action="tos.accepted",
@@ -88,12 +103,17 @@ class TosService:
         )
         return acceptance
 
-    async def decline_tos(self, user_id: str, ip_address: str | None = None) -> None:
+    async def decline_tos(
+        self,
+        user_id: str,
+        ip_address: str | None = None,
+        tenant_type: TenantType = "school",
+    ) -> None:
         """Decline current ToS — suspends the account (Flow 1 §5.6)."""
         current = await self._repo.get_current_tos()
         if current is None:
             raise NotFoundError("No ToS version published yet")
-        await UserService(self._session).suspend_for_tos_decline(user_id)
+        await self._account_service(tenant_type).suspend_for_tos_decline(user_id)
         await audit(
             session=self._session,
             action="tos.declined",

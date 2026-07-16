@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { useTranslations } from "next-intl";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
@@ -20,9 +21,15 @@ export default function HomePage() {
         <p className="text-gray-500">
           {t("hero_subtitle")}
         </p>
-        <button className="mt-6 px-8 py-3 bg-brand-600 text-white rounded-lg font-medium hover:bg-brand-700 transition-colors min-h-[44px] min-w-[44px]">
+        {/* Navigation, so a Link — this was a bare <button> with no handler and no href,
+            which left the landing page's only CTA inert (QA E03/E05). /login is the one
+            sanctioned entry point; never link Authentik directly. */}
+        <Link
+          href="/login"
+          className="mt-6 inline-flex min-h-[44px] min-w-[44px] items-center justify-center rounded-lg bg-brand-600 px-8 py-3 font-medium text-white transition-colors hover:bg-brand-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-600 focus-visible:ring-offset-2"
+        >
           {t("cta_button")}
-        </button>
+        </Link>
         <div className="mt-8">
           <LanguageSwitcher />
         </div>

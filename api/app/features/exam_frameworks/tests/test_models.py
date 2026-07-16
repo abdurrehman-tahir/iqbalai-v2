@@ -26,6 +26,17 @@ _INDEPENDENT_MIGRATION = (
     / "independent"
     / "0007_exam_framework_views.py"
 )
+_WIDEN_MIGRATION = (
+    Path(__file__).resolve().parents[4]
+    / "alembic"
+    / "versions"
+    / "school"
+    / "0046_widen_framework_actor_columns.py"
+)
+
+# An Authentik `sub` is a 64-char hex hash, not a 36-char UUID. The routers pass it
+# straight through as `actor_id`, so every column that persists one must fit it.
+_SAMPLE_AUTHENTIK_SUB = "a1b2c3d4" * 8
 
 
 def test_all_three_tables_registered() -> None:
@@ -138,6 +149,35 @@ def test_content_jsonb_shape_roundtrips_section_3_5_2() -> None:
     assert parsed.topics[0].priority_weight == 0.9
     assert parsed.weekly_pacing[0].week_from_exam == 12
     assert parsed.exam_strategy.time_allocation == "1 min per MCQ"
+
+
+def test_actor_columns_fit_an_authentik_sub() -> None:
+    """QA E01 — create/approve 500'd with StringDataRightTruncationError.
+
+    `created_by` and `approved_by` receive claims["sub"] verbatim from the routers, but
+    were VARCHAR(36) — too narrow for a 64-char sub. Widened to 255 in school_0046,
+    matching audit_log.actor_id (school_0014, the same defect a milestone earlier).
+    """
+    assert len(_SAMPLE_AUTHENTIK_SUB) == 64, "sample must be a realistic 64-char sub"
+
+    actor_columns = (
+        models.ExamFramework.__table__.columns["created_by"],
+        models.FrameworkStudyPlan.__table__.columns["approved_by"],
+    )
+    for col in actor_columns:
+        assert col.type.length == 255, f"{col.name} must hold an Authentik sub"  # type: ignore[attr-defined]
+        assert len(_SAMPLE_AUTHENTIK_SUB) <= col.type.length  # type: ignore[attr-defined]
+
+
+def test_widen_migration_recreates_the_dependent_views() -> None:
+    """Postgres cannot alter a column type a view selects, so school_0046 drops both
+    independent views and must put them back — otherwise the independent schema silently
+    loses its read-only path to published frameworks."""
+    text = _WIDEN_MIGRATION.read_text()
+    assert "DROP VIEW IF EXISTS independent.exam_frameworks" in text
+    assert "DROP VIEW IF EXISTS independent.framework_study_plans" in text
+    assert text.count("CREATE VIEW independent.exam_frameworks") >= 1
+    assert text.count("CREATE VIEW independent.framework_study_plans") >= 1
 
 
 def test_independent_cross_schema_views_defined() -> None:
