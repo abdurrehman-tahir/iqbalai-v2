@@ -7,7 +7,7 @@ description: |
   checklists locked in ARCHITECTURE.md (§3.13 cross-tenant denial test, §4.20 schema review,
   §5.20 API design review, §6.7 access-dep audit, §11.16 upload-pipeline review, §12.21
   frontend pattern audit, §14.4 PII-scrubbing check, §10.10 task review, §9.10 event review).
-  Use this skill at the END of every feature implementation — when Hamza or Claude Code
+  Use this skill at the END of every feature implementation — when Hamza or Cursor
   thinks the PR is ready, BEFORE requesting Abd.'s review. Trigger whenever the user says
   "review my PR", "is this ready", "check before I push", "phase N feature X is done",
   "I'm about to open a PR", or any phrase indicating the implementation is wrapping up.
@@ -29,7 +29,7 @@ description: |
 - **Documentation drift** — the PR says it changes auth flows but doesn't update §6
 - **Section-reading mismatch** — Hamza changed `events.py` but didn't list §9 as read
 
-The §0 enforcement model assumes Claude Code reads the right sections — this skill audits that assumption against the actual file changes. It's the audit layer for the §0 rule.
+The §0 enforcement model assumes Cursor reads the right sections — this skill audits that assumption against the actual file changes. It's the audit layer for the §0 rule.
 
 ## When to apply this skill
 
@@ -37,7 +37,7 @@ Apply at the end of every feature implementation, BEFORE the PR is opened OR bef
 
 1. **Hamza says "I'm ready to push" or "is this PR ready?"**
 2. **Hamza says "review this before I open the PR"**
-3. **Claude Code finishes the implement step in WORKFLOW.md Step 1** and is about to call `gh pr create`
+3. **Cursor finishes the implement step in WORKFLOW.md Step 1** and is about to call `gh pr create`
 4. **CI fails on a check** (run the relevant section of this skill to diagnose)
 5. **Abd. asks for a pre-review** of a draft PR
 

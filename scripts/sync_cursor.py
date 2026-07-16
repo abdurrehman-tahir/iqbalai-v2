@@ -10,7 +10,9 @@ provenance manifest). Zero paraphrasing = zero translation-fidelity risk.
 Mapping (managed targets):
   .claude/CLAUDE.md                  -> .cursor/rules/000-core.mdc      (alwaysApply: true)
   .claude/agents/ticket-loader.md    -> .cursor/rules/ticket-loader.mdc (description-triggered)
-  .claude/skills/<name>/SKILL.md     -> .cursor/skills/<name>/SKILL.md  (byte-identical; Agent
+  .claude/skills/<name>/SKILL.md     -> .cursor/skills/<name>/SKILL.md  (verbatim except the
+                                        self-reference substitution "Claude Code" -> "Cursor" in the
+                                        BODY only — frontmatter and .claude/ paths untouched; Agent
                                         Skills is a cross-agent standard — Cursor reads these natively)
   (provenance)                       -> .cursor/.sync-manifest.json
 
@@ -92,6 +94,28 @@ def gen_ticket_loader(agent_md: str) -> str:
     return fm + note + body.lstrip("\n")
 
 
+def cursorize_skill(text: str, name: str) -> str:
+    """Replace self-references 'Claude Code' -> 'Cursor' in the skill BODY only.
+    Frontmatter (name:/description:? both may mention the agent — description is body-facing
+    trigger text, so it IS substituted; the name: line never contains it) and literal
+    `.claude/` paths are preserved. Deterministic; safe when zero occurrences exist."""
+    lines = text.split("\n")
+    assert lines[0].strip() == "---"
+    end = next(i for i in range(1, len(lines)) if lines[i].strip() == "---")
+    head, body = lines[:end + 1], "\n".join(lines[end + 1:])
+    # frontmatter: substitute only in description block lines (never the name: line)
+    for i, ln in enumerate(head):
+        if ln.startswith("name:"):
+            assert "Claude Code" not in ln, f"unexpected agent name reference in {name} frontmatter name:"
+        elif "Claude Code" in ln:
+            head[i] = ln.replace("Claude Code", "Cursor")
+    body = body.replace("Claude Code", "Cursor")
+    out = "\n".join(head) + "\n" + body
+    assert ".claude/" not in text or ".claude/" in out, f"substitution corrupted a .claude/ path in {name}"
+    assert "Claude Code" not in out, f"residual Claude Code reference in {name}"
+    return out
+
+
 def build(into: Path) -> dict:
     """Generate the full managed tree under `into`; return the manifest dict."""
     manifest: dict[str, dict] = {}
@@ -124,7 +148,8 @@ def build(into: Path) -> dict:
         dst = into / "skills" / skill_dir.name
         if dst.exists():
             shutil.rmtree(dst)
-        shutil.copytree(skill_dir, dst)  # copies references/ etc. too, byte-identical
+        shutil.copytree(skill_dir, dst)  # copies references/ etc. too
+        (dst / "SKILL.md").write_text(cursorize_skill(text, skill_dir.name), encoding="utf-8")
         manifest[f"skills/{skill_dir.name}/SKILL.md"] = {"source": f".claude/skills/{skill_dir.name}/SKILL.md",
                                                          "sha256_source": sha256((skill_dir / 'SKILL.md').read_bytes()),
                                                          "sha256_target": sha256((dst / 'SKILL.md').read_bytes())}

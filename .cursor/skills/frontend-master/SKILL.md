@@ -16,7 +16,7 @@ description: |
   (large desktop) with WCAG 2.5.5 touch targets (≥44×44px). Use this skill before writing
   ANY .tsx file under frontend/src/, before adding a frontend dependency, before writing
   a form, before writing a component that fetches data, before adding a new page/route.
-  Trigger whenever Hamza or a contributor asks Claude Code to "build a UI", "make a screen",
+  Trigger whenever Hamza or a contributor asks Cursor to "build a UI", "make a screen",
   "add a page", "create a component", "build a form", "show this data", "implement the
   dashboard", "add a chart", "build the modal", or any frontend task — even when the
   request doesn't explicitly mention React, Next.js, Tailwind, or responsiveness. Triggers

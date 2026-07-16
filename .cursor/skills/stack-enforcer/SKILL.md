@@ -216,7 +216,7 @@ Per §14.3 and §16.6:
 
 ## Workflow
 
-When you (Claude Code) are about to write or modify code:
+When you (Cursor) are about to write or modify code:
 
 1. **Identify what you're about to do.** Is it a new file? A new import? A new feature? A new task?
 2. **Apply the relevant rules.** Walk through Rules 1-6 in order for the change in question.

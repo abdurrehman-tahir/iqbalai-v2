@@ -16,17 +16,17 @@
   },
   "skills/frontend-master/SKILL.md": {
     "sha256_source": "d48b2251c0085bec8cf3f914cc8f2c32ff0ddba4c9d5bfae62b4ddeb35a84bf6",
-    "sha256_target": "d48b2251c0085bec8cf3f914cc8f2c32ff0ddba4c9d5bfae62b4ddeb35a84bf6",
+    "sha256_target": "fa22d277402fd791f212b797ba7ae2ab301972501b22cca05327279b4d8cb10a",
     "source": ".claude/skills/frontend-master/SKILL.md"
   },
   "skills/phase-complete-review/SKILL.md": {
     "sha256_source": "da047bc20895d41f2edc0324faf58e0b1569aa0dac958747cfde9923d089c17c",
-    "sha256_target": "da047bc20895d41f2edc0324faf58e0b1569aa0dac958747cfde9923d089c17c",
+    "sha256_target": "9826d74c1da4311cf0b41b4c1e66cb1775a563b12623f9bca86de45f8c337d26",
     "source": ".claude/skills/phase-complete-review/SKILL.md"
   },
   "skills/stack-enforcer/SKILL.md": {
     "sha256_source": "4eb48c3bf209b27b0c8c6fcd9d27084a1ec82181b4e81da35ef754941f3b04ac",
-    "sha256_target": "4eb48c3bf209b27b0c8c6fcd9d27084a1ec82181b4e81da35ef754941f3b04ac",
+    "sha256_target": "4f4100280caa2a44f298604e113a894ff1722137abafd4d82820ca1e26bbeae4",
     "source": ".claude/skills/stack-enforcer/SKILL.md"
   }
 }
