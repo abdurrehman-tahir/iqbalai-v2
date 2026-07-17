@@ -1,48 +1,20 @@
 # Session state (live — Claude Code updates this)
 
-**Current milestone:** M-07 — Exam Framework Engine
-**Branch:** milestone/M-07-exam-framework (created off milestone/M-06-student-onboarding)
-**Current ticket:** T-100 — Milestone M-07 PR + demo (next; final ticket)
+**Current milestone:** M-07a — Login Flow Remediation
+**Branch:** milestone/M-07a-login-flow-remediation (forked off staging @ 5e438cf, post-M-07)
+**Current ticket:** T-238 done; next = T-239
 
-## Plan
-- Branch made off M-06. When M-06 merges to staging, REBASE this branch onto staging (deferred — external event).
-- Implement T-091..T-100 one ticket per commit.
+## Environment constraints (this dev clone — check before trusting "gate passed")
+- No Python/uv/pre-commit/Docker installed here → ruff/mypy/pytest CANNOT be run locally. Every commit this session is format-gate-unverified; needs CI or a real toolchain to confirm.
+- No GitHub push access (403 for authenticated account Hamza-Nawaz5588) → all branches are LOCAL ONLY, nothing pushed, no PRs opened yet.
 
 ## Done this milestone
-- T-091 — data model (3 tables + dual-head views) — commit 864b378
-- T-092 — Framework definition CRUD (Platform Admin, DRAFT) — commit 6986b64
-- T-093 — Pattern-A AI research agent (SearXNG → web_fetch → LLM synthesis) — commit f930079
-- T-094 — Approval workflow (PENDING_APPROVAL → PUBLISHED, SLA reminder@7d/escalation@14d) — commit 9625fb5
-- T-095 — Versioning + quarterly refresh + deprecation (refresh beat, deprecate, refresh-safe reverts) — commit 863f5ed
-- T-096 — Student framework selection + rendering + region scoping (both tenants; /student/exam-frameworks) — commit d0d7eb4
-- T-097 — Notifications: system (admin) + self_study (student) namespaces; NATS events; 4-lang templates — commit 51284d0
-- T-098 — Audit logging: M07_AUDIT_ACTIONS registry + 4 new audit() calls + elevated flags — commit dab0089
-- T-099 — E2E smoke test: tests/test_m07_exam_framework_e2e.py drives full lifecycle — commit 247edc8
+- T-238 — Removed PUBLIC_PATHS auth-bypass for `/independent/students/me/exam-frameworks` (M-05 landed, audit C6). Gated route with `require_role("independent_student")`; added router 401/200/403 tests + PUBLIC_PATHS snapshot test. Hotfix commit 12011ef on local `fix/exam-frameworks-auth-bypass` (branched off staging, NOT pushed — needs push+PR to staging separately). Cherry-picked onto milestone branch as f46b363.
 
-## T-100 status (PR + demo) — NOT auto-completable
-- T-094–T-099 all DONE, committed, tested. All M-07 files ruff/format/mypy clean; M-07 backend + FE tests green; E2E green.
-- T-100 is human-gated: open PR milestone/M-07-exam-framework → staging, run phase-complete-review, LIVE DEMO for Abd.+Awais, address review, MERGE. Cannot do demo/merge autonomously. Awaiting user decision to push+open PR (outward-facing on shared origin git@github.com:abdurrehman-tahir/iqbalai-v2).
-- **CI-GREEN BLOCKER (pre-existing, NOT M-07):** `ruff check .` = 160 errors repo-wide; `ruff format --check .` = 64 files would reformat; mypy app/ has errors in bulk_imports/library. These predate M-07 (branch cut from M-06 in this state; even app/main.py fails). Fixing = repo-wide cleanup, out of M-07 scope. T-100 "CI green" needs this addressed separately — flag to Abd.
-- Also still open (flagged earlier): T-096 legacy exam_syllabi vs new exam_frameworks engine reconciliation (product decision); M-06 ledger shows all todo though code shipped (ledger lag).
+## Next step
+- Invoke ticket-loader for T-239 (exhaustive getPostLoginPath + TS never guard).
 
-## T-097 notes
-- User decided: reuse existing §9.21 namespaces (system for admin, self_study for student v2-available), NOT a new `framework` namespace. No amendment.
-- pre-commit hook is NOT installed in this clone → my commits don't run ruff/mypy locally; CI (`uv run ruff check .` + `ruff format --check .`) is the real gate. RUN THE FORMAT GATE MANUALLY via api/.venv before each commit.
-- Added `[tool.ruff.lint.per-file-ignores]` for notifications/templates/*.py = ["E501"] — fixes latent E501 in the pre-existing connections.py template too (would otherwise fail T-100 CI).
-- LATENT RISK for T-100: `ruff check .` runs whole repo; there may be other pre-existing lint issues outside exam_frameworks. Check at PR time.
-
-## T-096 notes
-- Legacy independent-signup selection uses `exam_syllabi` (older table), NOT the T-091 `exam_frameworks` engine. T-096 built the real selection engine ALONGSIDE the legacy syllabus path (did not touch signup). Reconciling the two is a product decision for Abd. — flagged, not done.
-- Student region is NOT stored on profile (only grade_level). Region+grade are caller-supplied query params on /available. The filtering engine is what T-096 ships.
-- `student` i18n namespace is en-only in this repo (ur/sd/ps carry only app/nav/landing/common/auth/admin) — student.frameworks added to en only, consistent with existing student.dashboard/data-rights.
-- User's uncommitted M-07b drafts (login milestone) + ROADMAP/_CHANGE_LOG edits are NOT mine — keep them OUT of M-07 commits.
-
-## Notes / gotchas
-- Migrations hand-authored in established style (env.py only imports Base; no autogenerate registry).
-- Platform-shared tables live in `school` schema; independent schema gets read-only cross-schema views (§3.16/§4.21).
-- Register new model modules' imports in tests/test_model_metadata.py for the offline FK/enum lint.
-- School head: school_0041. Independent head: independent_0006.
-
-## Pre-existing defects (NOT T-093; awaiting user decision to fix separately)
-- graduation_requests.school_id FK missing index=True (M-06 commit 9aca648) — fails test_every_foreign_key_has_ondelete_and_index under cross-test model registration.
-- Unused `useEffect` import in IndependentStudentOnboardingClient.tsx (M-05 commit 0e9f6b5) — fails whole-project `next lint`.
+## Outstanding human/ops gates (not auto-completable)
+- Push `fix/exam-frameworks-auth-bypass` + open hotfix PR to staging (blocked on GitHub write access).
+- T-248 (staging ops/Authentik theming) and T-249 (demo + milestone PR) are human-gated per the milestone brief.
+- All local commits need a real ruff/mypy/pytest run (CI or a machine with the toolchain) before any PR is trustworthy.

@@ -22,7 +22,8 @@ Deployment items (host nginx `/idp` per §15.11, Authentik redirect-URIs/issuer 
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.25 day
-**Status:** todo
+**Status:** done
+**Commit:** 12011ef (hotfix, branch `fix/exam-frameworks-auth-bypass`); cherry-picked onto `milestone/M-07a-login-flow-remediation` as f46b363. **Not pushed** — this dev environment has no GitHub write access (403) and no Python/uv/pre-commit installed, so ruff/mypy/pytest could not be run locally; needs a push + CI run to confirm before the hotfix PR is opened and this ticket is truly closed.
 
 ### Spec source
 - Login-flow audit C6; ARCH §6.6 (PUBLIC_PATHS is a small allowlist of auth/health/docs only)
