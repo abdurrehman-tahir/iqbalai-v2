@@ -1,8 +1,15 @@
-"""API contract test for GET /independent/students/me/exam-frameworks — T-238.
+"""API contract tests for the independent-student-onboarding routes — T-238.
 
-The route was exempted in PUBLIC_PATHS since M-05 (0e9f6b5) — a `/me/` endpoint
-cannot resolve a user without auth, so the exemption was an auth-bypass, not a
-feature. It now requires `independent_student` like its onboarding siblings.
+`/exam-frameworks` was exempted in PUBLIC_PATHS since M-05 (0e9f6b5) — a `/me/`
+endpoint cannot resolve a user without auth, so the exemption was an
+auth-bypass, not a feature.
+
+Verifying the fix surfaced a second bug in all three routes here: they used
+`require_role("independent_student")`, whose "X or higher" hierarchy check
+(ARCH §6.19) isn't meaningful across tenants — `independent_student` shares
+numeric levels with school-tenant roles in ROLE_HIERARCHY, so it passed for
+ANY authenticated user. All three routes now use the exact-match
+`require_independent_student()` dependency instead (see router.py).
 """
 
 from __future__ import annotations
@@ -55,9 +62,7 @@ async def test_exam_frameworks_requires_auth() -> None:
 
 @pytest.mark.asyncio
 async def test_exam_frameworks_returns_200_for_independent_student() -> None:
-    async with _build_client(
-        claims={"sub": "student-1", "role": "independent_student"}
-    ) as client:
+    async with _build_client(claims={"sub": "student-1", "role": "independent_student"}) as client:
         resp = await client.get("/api/v1/independent/students/me/exam-frameworks")
 
     assert resp.status_code == 200
@@ -68,5 +73,28 @@ async def test_exam_frameworks_returns_200_for_independent_student() -> None:
 async def test_exam_frameworks_forbidden_for_wrong_role() -> None:
     async with _build_client(claims={"sub": "u-1", "role": "school_admin"}) as client:
         resp = await client.get("/api/v1/independent/students/me/exam-frameworks")
+
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_onboarding_forbidden_for_wrong_role() -> None:
+    """Regression: require_role("independent_student") let ANY authenticated
+    role through (ROLE_HIERARCHY "X or higher" isn't tenant-aware) — a
+    school_admin could read another tenant's onboarding state."""
+    async with _build_client(claims={"sub": "u-1", "role": "school_admin"}) as client:
+        resp = await client.get("/api/v1/independent/students/me/onboarding")
+
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_complete_profile_forbidden_for_wrong_role() -> None:
+    """Same regression as above, for the mutating PUT — the more severe half."""
+    async with _build_client(claims={"sub": "u-1", "role": "school_admin"}) as client:
+        resp = await client.put(
+            "/api/v1/independent/students/me/profile",
+            json={"exam_date": "2099-01-01"},
+        )
 
     assert resp.status_code == 403
