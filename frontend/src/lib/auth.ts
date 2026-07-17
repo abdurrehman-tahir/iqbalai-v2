@@ -3,6 +3,8 @@
  * The frontend stores the Authentik JWT in sessionStorage after OIDC callback.
  */
 
+import type { IndependentUserRole, UserRole } from "@/lib/api/types";
+
 export const TOKEN_KEY = "iqbalai_access_token";
 export const USER_KEY = "iqbalai_user";
 
@@ -77,9 +79,44 @@ export function getLoginUrl(options: LoginUrlOptions = {}): string {
   return `${authentikBase}/application/o/authorize/?${params.toString()}`;
 }
 
+/** Every role a JWT `role` claim can carry — school tenant + independent tenant. */
+export type Role = UserRole | IndependentUserRole;
+
+/**
+ * Complete, ordered list of `Role` members — the single source of truth both
+ * `getPostLoginPath` and its test derive their case coverage from (T-239: the
+ * prior switch and its test each hand-listed roles independently, so `student`/
+ * `parent` silently fell through in both without either catching the other).
+ */
+export const ALL_ROLES = [
+  "platform_admin",
+  "district_admin",
+  "school_admin",
+  "coordinator",
+  "teacher",
+  "student",
+  "parent",
+  "independent_teacher",
+  "independent_student",
+] as const satisfies readonly Role[];
+
+// Compile-time completeness check: if `Role` (driven by the generated OpenAPI
+// schema) ever gains a member missing from ALL_ROLES, this line fails to
+// typecheck (`Role` would no longer be assignable to `(typeof ALL_ROLES)[number]`).
+type _AllRolesCovered = Role extends (typeof ALL_ROLES)[number] ? true : never;
+const _allRolesCovered: _AllRolesCovered = true;
+void _allRolesCovered;
+
+function assertNeverRole(role: never): never {
+  throw new Error(`getPostLoginPath: unhandled role "${String(role)}"`);
+}
+
 /** Route a user lands on after login based on role (flow-2 §3.1). */
 export function getPostLoginPath(role: string): string {
-  switch (role) {
+  const typedRole = role as Role;
+  switch (typedRole) {
+    case "platform_admin":
+      return "/admin";
     case "district_admin":
       return "/admin/district/schools";
     case "school_admin":
@@ -88,12 +125,16 @@ export function getPostLoginPath(role: string): string {
       return "/coordinator";
     case "teacher":
       return "/teacher";
+    case "student":
+      return "/student";
+    case "parent":
+      return "/parent";
     case "independent_teacher":
       return "/independent/teacher";
     case "independent_student":
       return "/independent/student";
     default:
-      return "/admin";
+      return assertNeverRole(typedRole);
   }
 }
 

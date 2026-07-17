@@ -9,6 +9,8 @@ import {
   setUser,
   getLoginUrl,
   getPostLoginPath,
+  ALL_ROLES,
+  type Role,
   type StoredUser,
 } from "../auth";
 
@@ -79,24 +81,31 @@ describe("getLoginUrl", () => {
   });
 });
 
+// T-239: expected paths keyed by `Role` — TS enforces every ALL_ROLES member has
+// an entry here (missing/extra keys fail to typecheck), so this table can't drift
+// out of sync with the role union the way the old hand-listed test cases did.
+const EXPECTED_DASHBOARD: Record<Role, string> = {
+  platform_admin: "/admin",
+  district_admin: "/admin/district/schools",
+  school_admin: "/school/admin",
+  coordinator: "/coordinator",
+  teacher: "/teacher",
+  student: "/student",
+  parent: "/parent",
+  independent_teacher: "/independent/teacher",
+  independent_student: "/independent/student",
+};
+
 describe("getPostLoginPath", () => {
-  it("routes district_admin to district schools dashboard", () => {
-    expect(getPostLoginPath("district_admin")).toBe("/admin/district/schools");
+  it("covers every role in the union", () => {
+    expect(ALL_ROLES).toHaveLength(9);
   });
 
-  it("routes school_admin to school dashboard", () => {
-    expect(getPostLoginPath("school_admin")).toBe("/school/admin");
+  it.each(ALL_ROLES)("routes %s to its documented dashboard", (role) => {
+    expect(getPostLoginPath(role)).toBe(EXPECTED_DASHBOARD[role]);
   });
 
-  it("routes coordinator to coordinator dashboard", () => {
-    expect(getPostLoginPath("coordinator")).toBe("/coordinator");
-  });
-
-  it("routes teacher to teacher dashboard", () => {
-    expect(getPostLoginPath("teacher")).toBe("/teacher");
-  });
-
-  it("routes platform_admin to platform admin home", () => {
-    expect(getPostLoginPath("platform_admin")).toBe("/admin");
+  it("throws for an unrecognized role instead of silently falling through", () => {
+    expect(() => getPostLoginPath("not_a_real_role")).toThrow(/unhandled role/i);
   });
 });
