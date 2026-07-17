@@ -24,6 +24,7 @@ router = APIRouter(prefix="/independent/students/me", tags=["independent-student
     response_model=SuccessEnvelope[list[ExamFrameworkOption]],
     operation_id="list_independent_exam_frameworks",
     summary="List exam frameworks available for independent student signup",
+    dependencies=[require_role("independent_student")],
 )
 async def list_exam_frameworks(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
     svc = IndependentStudentOnboardingService(db)

@@ -49,6 +49,33 @@ def test_public_paths_includes_auth_callback() -> None:
     assert "/api/v1/auth/callback" in PUBLIC_PATHS
 
 
+def test_public_paths_is_exactly_the_locked_allowlist() -> None:
+    """T-238: PUBLIC_PATHS is a small allowlist (auth/health/docs) — nothing else.
+
+    A `/me/`-style feature route is never a legitimate PUBLIC_PATHS entry (a `/me/`
+    endpoint can't resolve a user without auth — see the M-05 exam-frameworks bypass
+    this test guards against). Any future addition must be justified in review, not
+    grown ad hoc.
+    """
+    assert PUBLIC_PATHS == frozenset(
+        {
+            "/health",
+            "/health/ready",
+            "/api/v1/health",
+            "/api/v1/health/ready",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/api/v1/auth/callback",
+            "/api/v1/auth/login",
+            "/api/v1/auth/accept-invite",
+            "/api/v1/independent/signup",
+            "/api/v1/parents/signup",
+            "/metrics",
+        }
+    )
+
+
 # ---------------------------------------------------------------------------
 # Public path — no auth required
 # ---------------------------------------------------------------------------
