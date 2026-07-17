@@ -15,7 +15,7 @@ logger = structlog.get_logger(__name__)
 
 _jwks_cache: dict[str, Any] | None = None
 _jwks_cache_expires_at: float = 0.0
-_JWKS_TTL_SECONDS = 300
+_JWKS_TTL_SECONDS = 3600  # 1h per ARCH §6.5
 
 
 async def _fetch_jwks(jwks_url: str) -> dict[str, Any]:
@@ -56,11 +56,14 @@ def _signing_key_for_token(token: str, jwks: dict[str, Any]) -> Any | None:
 
 
 async def decode_jwt(token: str) -> dict[str, object] | None:
-    """Decode and validate a JWT issued by Authentik.
+    """Decode and validate a JWT issued by Authentik per ARCH §6.5.
 
-    Returns the claims dict on success, None on any validation failure.
-    Validation is intentionally lenient in dev (no audience check) — tighten
-    per ARCH §6.4 when Authentik is fully wired.
+    Returns the claims dict on success, None on any validation failure
+    (missing/malformed token, bad signature, expiry, issuer mismatch,
+    audience mismatch, or a missing required claim — all map to 401 at
+    the caller). ES256 is Authentik's default signing algorithm; RS256
+    is kept as a locked fallback. Issuer/audience are verified against
+    the configured Authentik instance — never skipped.
     """
     settings = get_settings()
     try:
@@ -73,8 +76,14 @@ async def decode_jwt(token: str) -> dict[str, object] | None:
         claims: dict[str, object] = jwt.decode(
             token,
             signing_key,
-            algorithms=["RS256"],
-            options={"verify_aud": False, "verify_iss": False},
+            algorithms=["ES256", "RS256"],
+            audience=settings.OIDC_CLIENT_ID,
+            issuer=settings.OIDC_ISSUER_URL,
+            options={
+                "require": ["exp", "iat", "sub", "iss", "aud"],
+                # Authentik and the API VMs are NTP-synced; 30s is generous (§6.5).
+                "leeway": 30,
+            },
         )
         return claims
     except (JWTError, httpx.HTTPError, httpx.TransportError) as exc:
