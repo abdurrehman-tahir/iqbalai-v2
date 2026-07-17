@@ -59,7 +59,8 @@ Deployment items (host nginx `/idp` per §15.11, Authentik redirect-URIs/issuer 
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** 906f50c (local, not pushed — see session-state.md environment constraints). Verified locally: `tsc --noEmit` clean, `eslint` clean, `vitest run` 19/19 green.
 
 ### Spec source
 - Login-flow audit A1; T-016 (each role lands on its dashboard)
@@ -96,7 +97,8 @@ Make `getPostLoginPath` an **exhaustive switch over the full role union** (7 `Us
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** ab13a87 (local, not pushed). Verified locally: `tsc --noEmit` clean, `eslint` clean, `vitest run` 6/6 green, and live-confirmed `NODE_ENV=production next build` fails at config-eval with no env vars set / proceeds once all three are set. Also fixed `.env.prod.example`'s own `NEXT_PUBLIC_AUTHENTIK_URL` (was modeling the raw-port bug).
 
 ### Spec source
 - Login-flow audit B1; root cause of the tester-reported `localhost:9000` redirect
