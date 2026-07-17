@@ -2,22 +2,27 @@
 
 **Current milestone:** M-07a — Login Flow Remediation
 **Branch:** milestone/M-07a-login-flow-remediation (forked off staging @ 5e438cf, post-M-07)
-**Current ticket:** T-240 done; next = T-241
+**Current ticket:** T-241 done; next = T-242
 
-## Environment constraints (this dev clone — check before trusting "gate passed")
-- No Python/uv/pre-commit/Docker installed here → backend ruff/mypy/pytest CANNOT be run locally. Backend commits this session are format-gate-unverified; need CI or a real toolchain to confirm.
-- Frontend toolchain DOES work: `frontend/` has `pnpm install`'d node_modules now (large `next`/`@next/swc-win32-x64` tarballs need `--fetch-timeout 300000`, registry is slow on this network). `esbuild`'s postinstall was skipped by pnpm's build-approval gate — fixed by running `node node_modules/.pnpm/esbuild@0.21.5/node_modules/esbuild/install.js` once (`sharp`/`unrs-resolver` still unbuilt but unneeded for lint/typecheck/test). Run checks via the bash wrapper scripts directly (`./node_modules/.bin/tsc --noEmit`, `./node_modules/.bin/vitest run <file>`, `ESLINT_USE_FLAT_CONFIG=false ./node_modules/.bin/eslint <files>` — repo's `.eslintrc.json` is legacy format, ESLint 9 defaults to flat config). No `format`/prettier script exists in package.json despite CLAUDE.md's format gate listing `pnpm --dir frontend format` — pre-existing gap, not introduced this session.
-- No GitHub push access (403 for authenticated account Hamza-Nawaz5588) → all branches are LOCAL ONLY, nothing pushed, no PRs opened yet.
+## Environment (toolchain now fully working — update from earlier session)
+- uv installed manually to `~/.local/bin` (astral.sh installer script hung on this network; downloaded the GitHub release zip directly instead). `uv python install 3.12` + `uv sync --group dev` both work. Backend pytest/ruff/mypy genuinely run now. Each Bash call needs `export PATH="/c/Users/RAJA MUDASSAR/.local/bin:$PATH"` (not persisted globally in this environment).
+- Frontend toolchain also works (pnpm installed, esbuild manually rebuilt — see earlier note). Both stacks are now locally verifiable.
+- No GitHub push access (403 for Hamza-Nawaz5588) → all branches still LOCAL ONLY, nothing pushed, no PRs opened.
+- Known pre-existing, NOT-my-scope mypy gap (confirmed present on staging before this session): `import-untyped` errors for celery/boto3/fastembed/openpyxl/jose across ~14 files repo-wide — no `types-*` stub packages declared. Don't fix without asking (adding deps needs approval).
+- Full-repo `uv run pytest app/ -q` is slow (heavy ML/RAG deps) — don't block on it; prefer targeted test runs scoped to touched packages.
 
 ## Done this milestone
-- T-238 — Removed PUBLIC_PATHS auth-bypass for `/independent/students/me/exam-frameworks` (M-05 landed, audit C6). Gated route with `require_role("independent_student")`; added router 401/200/403 tests + PUBLIC_PATHS snapshot test. Hotfix commit 12011ef on local `fix/exam-frameworks-auth-bypass` (branched off staging, NOT pushed). Cherry-picked onto milestone branch as f46b363. Backend-only — NOT verified locally (no Python toolchain).
-- T-239 — Exhaustive `getPostLoginPath` switch (student/parent cases + never-guard default), `Role` type re-exported from generated OpenAPI schema in `lib/api/types.ts`, `ALL_ROLES` single-source-of-truth array with compile-time completeness check, test rewritten to iterate `ALL_ROLES`. Commit 906f50c. VERIFIED locally: tsc clean, eslint clean, vitest 19/19 green.
-- T-240 — `assertAuthEnv()` (src/lib/env-guard.ts) wired into next.config.ts: prod build fails loudly if NEXT_PUBLIC_AUTHENTIK_URL/APP_URL/AUTHENTIK_CLIENT_ID unset, dev warns. Documented all three in .env.example (/idp-form note) and fixed .env.prod.example's own raw-port bug. Commit ab13a87. VERIFIED locally incl. a real `NODE_ENV=production next build` actually failing/passing as expected (not just unit tests).
+- T-238 — Removed PUBLIC_PATHS auth-bypass for `/independent/students/me/exam-frameworks`. Hotfix commit 12011ef on local `fix/exam-frameworks-auth-bypass` (not pushed). Cherry-picked onto milestone branch as f46b363.
+- T-238 follow-up (commit 0561141) — verifying T-238 with the real toolchain surfaced: (1) `independent_student_onboarding/tests/` had no `__init__.py`, so its tests never actually ran; (2) once running, `require_role("independent_student")` on all 3 routes there was a no-op cross-tenant gate (ROLE_HIERARCHY's "X or higher" isn't tenant-aware — any authenticated role passed). Fixed with new `require_independent_student()` exact-match dependency + regression tests. **FLAGGED for Abd.: the shared `require_role`/ROLE_HIERARCHY design gap likely affects other independent-tenant routes using the same pattern — not fixed repo-wide, needs triage.**
+- T-239 — Exhaustive `getPostLoginPath` switch. Commit 906f50c. Verified: tsc/eslint/vitest all green.
+- T-240 — `assertAuthEnv()` fail-loud prod guard. Commit ab13a87. Verified incl. a real `next build` pass/fail check.
+- T-241 — JWT §6.5 hardening: algorithms ["ES256","RS256"], iss/aud verification, JWKS TTL 300->3600, leeway=30 (had to move `leeway` inside `options={}` after a real pytest run caught a wrong top-level-kwarg attempt). Commit cd3266f. Verified: `pytest app/core/` 74/74 green.
 
 ## Next step
-- Invoke ticket-loader for T-241 (JWT §6.5: ES256+RS256, verify iss+aud, JWKS TTL 3600 — backend, audit C3). NOTE: check whether uv/Python install (attempted via astral.sh installer, background task) succeeded before assuming backend commits are still unverified.
+- Invoke ticket-loader for T-242 (ToS middleware gate on mutating methods, audit C4).
 
 ## Outstanding human/ops gates (not auto-completable)
 - Push `fix/exam-frameworks-auth-bypass` + open hotfix PR to staging (blocked on GitHub write access).
 - T-248 (staging ops/Authentik theming) and T-249 (demo + milestone PR) are human-gated per the milestone brief.
-- All backend commits need a real ruff/mypy/pytest run (CI or a machine with uv/Python) before any PR is trustworthy. Frontend commits from T-239 onward ARE locally verified.
+- All local commits are now genuinely toolchain-verified (backend + frontend) but still need a push + real CI run before merge — nothing has left this machine yet.
+- **New finding to raise with Abd.**: `require_role()`'s hierarchy check (ARCH §6.19) treats `independent_student`/`independent_teacher` as sharing a numeric scale with school-tenant roles, so `require_role("independent_student")` (and likely `require_role("independent_teacher")`) passes for ANY authenticated role. Only fixed at the 3 routes touched in T-238's follow-up — other callers of this pattern repo-wide are unaudited.

@@ -23,7 +23,8 @@ Deployment items (host nginx `/idp` per §15.11, Authentik redirect-URIs/issuer 
 **Milestone:** M-07a
 **Estimate:** 0.25 day
 **Status:** done
-**Commit:** 12011ef (hotfix, branch `fix/exam-frameworks-auth-bypass`); cherry-picked onto `milestone/M-07a-login-flow-remediation` as f46b363. **Not pushed** — this dev environment has no GitHub write access (403) and no Python/uv/pre-commit installed, so ruff/mypy/pytest could not be run locally; needs a push + CI run to confirm before the hotfix PR is opened and this ticket is truly closed.
+**Commit:** 12011ef (hotfix, branch `fix/exam-frameworks-auth-bypass`); cherry-picked onto `milestone/M-07a-login-flow-remediation` as f46b363. **Not pushed** — this dev environment has no GitHub write access (403); needs a push + CI run before the hotfix PR is opened and this ticket is truly closed.
+**Follow-up commit:** 0561141 — verifying this ticket with a real Python toolchain (installed mid-session) surfaced that `independent_student_onboarding/tests/` had no `__init__.py` (pre-existing on staging), so its tests — including this ticket's own router test — were never actually collected/run. Fixed, and collecting them exposed a second bug: `require_role("independent_student")` on all 3 routes in that file is a no-op cross-tenant gate (any authenticated role passes). Fixed with an exact-match `require_independent_student()` dependency; see commit for full detail. **Flagging the underlying `require_role`/`ROLE_HIERARCHY` "X or higher" design gap (ARCH §6.19) as a new finding for Abd. — not tenant-aware, likely affects other independent-tenant routes using the same pattern. Not fixed repo-wide in this session (out of ticket scope, ~50+ other callers).**
 
 ### Spec source
 - Login-flow audit C6; ARCH §6.6 (PUBLIC_PATHS is a small allowlist of auth/health/docs only)
@@ -138,7 +139,8 @@ Note: after T-244/T-245 land, the *browser* no longer builds the authorize URL (
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** cd3266f (local, not pushed). Verified locally with a real toolchain: `uv run pytest app/core/` 74/74 green, `ruff format`/`check` clean, `mypy --strict` clean on this file (0 new errors beyond the repo's pre-existing import-untyped stub gaps). No dev-leniency flag added — local Authentik's issuer/audience already match `OIDC_ISSUER_URL`/`OIDC_CLIENT_ID`, so strict-by-default needed no escape hatch (acceptance item 3 satisfied trivially).
 
 ### Spec source
 - Login-flow audit C3; ARCH §6.5 (ES256 primary / RS256 fallback; verify issuer + audience; JWKS cache 1h)
