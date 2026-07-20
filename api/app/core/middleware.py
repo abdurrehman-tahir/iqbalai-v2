@@ -14,6 +14,7 @@ from app.core.tenant import get_tenant_type
 from app.db.session import async_session_factory
 from app.features.independent_users.models import IndependentUser, IndependentUserAccountStatus
 from app.features.independent_users.repository import IndependentUserRepository
+from app.features.tos.service import TosService
 from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
 from app.features.users.service import _ROLE_LOGIN_PRIORITY
@@ -36,6 +37,25 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/api/v1/independent/signup",
         "/api/v1/parents/signup",
         "/metrics",
+    }
+)
+
+# State-changing methods the ToS gate applies to (T-242, audit C4). GET stays
+# readable so the FE can render the ToS modal + content before the user acts.
+_STATE_CHANGING_METHODS: frozenset[str] = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+
+# Authenticated paths a caller with an unaccepted ToS must still be able to
+# reach: post-login (runs before the FE even knows tos_acceptance_required),
+# the accept/decline endpoints themselves (the only way out of the gate), and
+# logout (a user must always be able to sign out). `/auth/logout` doesn't
+# exist yet (T-246) — listed proactively so that ticket doesn't need to
+# re-touch this set.
+TOS_ALLOWED_PATHS: frozenset[str] = frozenset(
+    {
+        "/api/v1/auth/post-login",
+        "/api/v1/auth/logout",
+        "/api/v1/users/me/accept-tos",
+        "/api/v1/users/me/decline-tos",
     }
 )
 
@@ -154,6 +174,34 @@ def _account_status_block(user: User | IndependentUser) -> JSONResponse | None:
     return None
 
 
+async def _tos_acceptance_required(user: User | IndependentUser) -> bool:
+    """True if `user` has not accepted the current ToS version.
+
+    ``tos_acceptance_required`` is not a persisted column — it's computed
+    per-request the same way ``AuthService.post_login`` and
+    ``TosService.require_tos_accepted`` already compute it.
+    """
+    async with async_session_factory() as session:
+        return not await TosService(session).check_user_has_accepted_current(user.id)
+
+
+def _tos_acceptance_block() -> JSONResponse:
+    """Return the 403 a state-changing request gets when ToS isn't accepted.
+
+    Today the modal dismisses without consequence — the token stays fully
+    capable. This makes the gate enforcement, not decoration (T-242, audit C4).
+    """
+    return JSONResponse(
+        status_code=403,
+        content={
+            "error": {
+                "code": "TOS_ACCEPTANCE_REQUIRED",
+                "message": "Terms of Service acceptance required",
+            }
+        },
+    )
+
+
 def _allow_suspended_parent_post_login(request: Request, user: User | IndependentUser) -> bool:
     """Let auto-suspended unlinked parents reach post-login so auth can resume them."""
     return (
@@ -213,6 +261,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
             blocked = _account_status_block(user)
             if blocked is not None and not _allow_suspended_parent_post_login(request, user):
                 return blocked
+
+            if (
+                request.method in _STATE_CHANGING_METHODS
+                and request.url.path not in TOS_ALLOWED_PATHS
+                and await _tos_acceptance_required(user)
+            ):
+                return _tos_acceptance_block()
+
             claims = _enrich_claims_from_user(claims, user)
 
         request.state.claims = claims

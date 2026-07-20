@@ -11,7 +11,7 @@ from starlette.responses import JSONResponse
 from starlette.routing import Route
 from starlette.testclient import TestClient
 
-from app.core.middleware import PUBLIC_PATHS, AuthMiddleware
+from app.core.middleware import PUBLIC_PATHS, TOS_ALLOWED_PATHS, AuthMiddleware
 from app.features.users.models import User, UserAccountStatus, UserRole
 
 
@@ -22,7 +22,13 @@ def _echo_claims(request: Request) -> JSONResponse:
 
 
 def _make_test_app() -> Starlette:
-    app = Starlette(routes=[Route("/secret", _echo_claims), Route("/health", _echo_claims)])
+    app = Starlette(
+        routes=[
+            Route("/secret", _echo_claims, methods=["GET", "POST"]),
+            Route("/health", _echo_claims),
+            Route("/api/v1/users/me/accept-tos", _echo_claims, methods=["POST"]),
+        ]
+    )
     app.add_middleware(AuthMiddleware)
     return app
 
@@ -186,5 +192,101 @@ def test_suspended_user_returns_403(client: TestClient) -> None:
             return_value=_db_user(status=UserAccountStatus.SUSPENDED),
         ):
             response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "ACCOUNT_SUSPENDED"
+
+
+# ---------------------------------------------------------------------------
+# ToS acceptance gate (T-242, audit C4) — state-changing methods only
+# ---------------------------------------------------------------------------
+
+
+def _auth_headers_and_mocks() -> tuple[dict[str, str], dict[str, object]]:
+    return {"Authorization": "Bearer valid.token.here"}, {"sub": "user-123", "role": "teacher"}
+
+
+def test_post_blocked_when_tos_not_accepted(client: TestClient) -> None:
+    headers, fake_claims = _auth_headers_and_mocks()
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            with patch(
+                "app.core.middleware._tos_acceptance_required",
+                new_callable=AsyncMock,
+                return_value=True,
+            ):
+                response = client.post("/secret", headers=headers)
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "TOS_ACCEPTANCE_REQUIRED"
+
+
+def test_get_allowed_when_tos_not_accepted(client: TestClient) -> None:
+    """GET stays readable so the FE can render the modal + content."""
+    headers, fake_claims = _auth_headers_and_mocks()
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            with patch(
+                "app.core.middleware._tos_acceptance_required",
+                new_callable=AsyncMock,
+                return_value=True,
+            ):
+                response = client.get("/secret", headers=headers)
+    assert response.status_code == 200
+
+
+def test_post_succeeds_after_tos_accepted(client: TestClient) -> None:
+    headers, fake_claims = _auth_headers_and_mocks()
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            with patch(
+                "app.core.middleware._tos_acceptance_required",
+                new_callable=AsyncMock,
+                return_value=False,
+            ):
+                response = client.post("/secret", headers=headers)
+    assert response.status_code == 200
+
+
+def test_accept_tos_endpoint_reachable_despite_gate(client: TestClient) -> None:
+    """The accept-tos POST itself must never be blocked by its own gate."""
+    assert "/api/v1/users/me/accept-tos" in TOS_ALLOWED_PATHS
+    headers, fake_claims = _auth_headers_and_mocks()
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            with patch(
+                "app.core.middleware._tos_acceptance_required",
+                new_callable=AsyncMock,
+                return_value=True,
+            ) as tos_check:
+                response = client.post("/api/v1/users/me/accept-tos", headers=headers)
+    assert response.status_code == 200
+    tos_check.assert_not_called()
+
+
+def test_suspended_user_still_blocked_before_tos_check(client: TestClient) -> None:
+    """Decline path (suspended) is unchanged — account-status block runs first."""
+    headers, fake_claims = _auth_headers_and_mocks()
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(status=UserAccountStatus.SUSPENDED),
+        ):
+            response = client.post("/secret", headers=headers)
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "ACCOUNT_SUSPENDED"

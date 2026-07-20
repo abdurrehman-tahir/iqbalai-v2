@@ -108,6 +108,19 @@ export class ApiError extends Error {
   }
 }
 
+/**
+ * T-242 (audit C4): the backend now rejects any state-changing request with
+ * this code when the caller hasn't accepted the current ToS — previously the
+ * modal was decoration (dismissible with no consequence), now it's the only
+ * way past a 403 on the next mutating call. Callers should treat this as "go
+ * re-present the ToS acceptance flow", not a generic error toast.
+ */
+export const TOS_ACCEPTANCE_REQUIRED_CODE = "TOS_ACCEPTANCE_REQUIRED";
+
+export function isTosAcceptanceRequiredError(err: unknown): err is ApiError {
+  return err instanceof ApiError && err.code === TOS_ACCEPTANCE_REQUIRED_CODE;
+}
+
 type ValidationDetail = {
   loc?: unknown[];
   msg?: string;
