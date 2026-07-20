@@ -19,6 +19,35 @@ from app.features.users.service import UserService
 
 logger = structlog.get_logger(__name__)
 
+# T-244: role -> dashboard path for the server-side OIDC redirect (ARCH §6.4
+# step 11). MUST stay in sync with frontend/src/lib/auth.ts's ALL_ROLES /
+# getPostLoginPath (T-239) — same 9-role set, same paths. That FE mapping is
+# still used separately for the client-side ToS-accept redirect.
+_ROLE_DASHBOARD_PATH: dict[str, str] = {
+    "platform_admin": "/admin",
+    "district_admin": "/admin/district/schools",
+    "school_admin": "/school/admin",
+    "coordinator": "/coordinator",
+    "teacher": "/teacher",
+    "student": "/student",
+    "parent": "/parent",
+    "independent_teacher": "/independent/teacher",
+    "independent_student": "/independent/student",
+}
+
+
+def get_post_login_path(role: str) -> str:
+    """Dashboard path for `role`, or raise if the role is unrecognized.
+
+    Raising (rather than a silent fallback) matches T-239's `never`-guard
+    intent on the frontend side — an unmapped role should fail loudly, not
+    quietly misroute someone to /admin.
+    """
+    path = _ROLE_DASHBOARD_PATH.get(role)
+    if path is None:
+        raise ValueError(f"get_post_login_path: unhandled role {role!r}")
+    return path
+
 
 class AuthService:
     """Handles post-OIDC-callback business logic."""

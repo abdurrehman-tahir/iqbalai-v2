@@ -17,6 +17,7 @@ dependencies = [
     "qdrant-client>=1.9.0",
     "structlog>=24.2.0",
     "python-jose[cryptography]>=3.3.0",
+    "authlib>=1.3.0",  # T-244 — server-side OIDC code+PKCE exchange (STACK_LOCK §Auth in FastAPI)
     "celery[redis]>=5.3.0",
     "redis>=5.0.0",  # T-029 — async cache client (redis.asyncio); STACK_LOCK §locks Redis 7
     "nats-py>=2.6.0",

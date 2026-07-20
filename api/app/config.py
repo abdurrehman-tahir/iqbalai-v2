@@ -44,8 +44,16 @@ class Settings(BaseSettings):
     OIDC_CLIENT_ID: str = "iqbalai-api"
     OIDC_CLIENT_SECRET: str = "change_me"
     OIDC_JWKS_URL: str = "http://localhost:9000/application/o/iqbalai/jwks/"
+    # Authorize/token endpoints are shared across all Authentik providers (not
+    # slugged per-application like the issuer/JWKS above) — T-244, ARCH §6.4.
+    OIDC_AUTHORIZE_URL: str = "http://localhost:9000/application/o/authorize/"
+    OIDC_TOKEN_URL: str = "http://localhost:9000/application/o/token/"
     AUTHENTIK_API_URL: str = "http://localhost:9000/api/v3"
     AUTHENTIK_API_TOKEN: str = ""
+
+    # Cookie session (T-244, ARCH §6.4/§6.17). `Secure` requires HTTPS — strict
+    # by default; local dev over http://localhost sets this false in .env.
+    COOKIE_SECURE: bool = True
 
     # App URLs + email (T-030 invite flow)
     APP_URL: str = "http://localhost:3000"

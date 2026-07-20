@@ -9,6 +9,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
+from app.config import get_settings
+from app.core.cookies import ACCESS_COOKIE
 from app.core.security import decode_jwt
 from app.core.tenant import get_tenant_type
 from app.db.session import async_session_factory
@@ -33,6 +35,10 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/openapi.json",
         "/api/v1/auth/callback",
         "/api/v1/auth/login",
+        # Called when the access token is expired/missing — by definition can't
+        # require a valid access token itself. Validates the iqbalai_refresh
+        # cookie internally instead (T-244, ARCH §6.9).
+        "/api/v1/auth/refresh",
         "/api/v1/auth/accept-invite",
         "/api/v1/independent/signup",
         "/api/v1/parents/signup",
@@ -58,6 +64,61 @@ TOS_ALLOWED_PATHS: frozenset[str] = frozenset(
         "/api/v1/users/me/decline-tos",
     }
 )
+
+
+def _origin_allowed(request: Request) -> bool:
+    """CSRF defense-in-depth for mutating methods (T-244, ARCH §6.17).
+
+    SameSite=Lax on the session cookies is the primary defense (a cross-site
+    POST/fetch never carries them at all in modern browsers); this Origin/
+    Referer check is the second layer the threat table calls for. Enforced
+    unconditionally for every mutating request — including PUBLIC_PATHS ones
+    like /auth/refresh or /independent/signup, since Origin validity doesn't
+    depend on whether the endpoint requires a token.
+
+    Only enforced when the browser actually sent Origin or Referer: non-browser
+    API clients (tests, curl, tooling) that send neither are unaffected — real
+    browsers always send at least one on a state-changing request.
+    """
+    allowed_origins = get_settings().cors_allowed_origins
+
+    origin = request.headers.get("origin")
+    if origin is not None:
+        return origin in allowed_origins
+
+    referer = request.headers.get("referer")
+    if referer is not None:
+        return any(referer.startswith(o) for o in allowed_origins)
+
+    return True
+
+
+def _origin_rejected_response() -> JSONResponse:
+    return JSONResponse(
+        status_code=403,
+        content={
+            "error": {
+                "code": "ORIGIN_NOT_ALLOWED",
+                "message": "Cross-origin request rejected",
+            }
+        },
+    )
+
+
+def _extract_access_token(request: Request) -> str | None:
+    """Cookie first (T-244, ARCH §6.6), then Authorization header.
+
+    Header support stays for tooling through this milestone only — T-245's
+    frontend cutover removes the header path from the browser client.
+    """
+    cookie_token = request.cookies.get(ACCESS_COOKIE)
+    if cookie_token:
+        return cookie_token
+
+    authorization = request.headers.get("Authorization", "")
+    if authorization.startswith("Bearer "):
+        return authorization.removeprefix("Bearer ")
+    return None
 
 
 def _enrich_claims_from_user(
@@ -226,22 +287,24 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS":
             return await call_next(request)
 
+        if request.method in _STATE_CHANGING_METHODS and not _origin_allowed(request):
+            return _origin_rejected_response()
+
         if request.url.path in PUBLIC_PATHS:
             return await call_next(request)
 
-        authorization = request.headers.get("Authorization", "")
-        if not authorization.startswith("Bearer "):
+        token = _extract_access_token(request)
+        if token is None:
             return JSONResponse(
                 status_code=401,
                 content={
                     "error": {
                         "code": "AUTHENTICATION_REQUIRED",
-                        "message": "Bearer token required",
+                        "message": "Authentication required",
                     }
                 },
             )
 
-        token = authorization.removeprefix("Bearer ")
         claims = await decode_jwt(token)
         if claims is None:
             return JSONResponse(

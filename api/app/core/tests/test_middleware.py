@@ -27,6 +27,7 @@ def _make_test_app() -> Starlette:
             Route("/secret", _echo_claims, methods=["GET", "POST"]),
             Route("/health", _echo_claims),
             Route("/api/v1/users/me/accept-tos", _echo_claims, methods=["POST"]),
+            Route("/api/v1/independent/signup", _echo_claims, methods=["POST"]),
         ]
     )
     app.add_middleware(AuthMiddleware)
@@ -62,6 +63,10 @@ def test_public_paths_is_exactly_the_locked_allowlist() -> None:
     endpoint can't resolve a user without auth — see the M-05 exam-frameworks bypass
     this test guards against). Any future addition must be justified in review, not
     grown ad hoc.
+
+    T-244 justification for `/api/v1/auth/refresh`: it's called precisely when
+    the access token is expired/missing, so it can't require one itself — it
+    validates the iqbalai_refresh cookie internally instead (ARCH §6.9).
     """
     assert PUBLIC_PATHS == frozenset(
         {
@@ -74,6 +79,7 @@ def test_public_paths_is_exactly_the_locked_allowlist() -> None:
             "/openapi.json",
             "/api/v1/auth/callback",
             "/api/v1/auth/login",
+            "/api/v1/auth/refresh",
             "/api/v1/auth/accept-invite",
             "/api/v1/independent/signup",
             "/api/v1/parents/signup",
@@ -290,3 +296,95 @@ def test_suspended_user_still_blocked_before_tos_check(client: TestClient) -> No
             response = client.post("/secret", headers=headers)
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "ACCOUNT_SUSPENDED"
+
+
+# ---------------------------------------------------------------------------
+# Origin/Referer CSRF check on mutating methods (T-244, ARCH §6.17)
+# ---------------------------------------------------------------------------
+
+_ALLOWED_ORIGIN = "http://localhost:3000"
+
+
+def test_cross_origin_post_is_rejected(client: TestClient) -> None:
+    response = client.post("/secret", headers={"Origin": "http://evil.example"})
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "ORIGIN_NOT_ALLOWED"
+
+
+def test_cross_origin_post_with_valid_cookie_is_still_rejected(client: TestClient) -> None:
+    """T-244 acceptance item 3, verbatim: a cross-origin mutating request is
+    rejected even when it carries a legitimate, currently-valid session cookie
+    — the Origin check runs before auth is even evaluated, so a stolen/replayed
+    valid cookie used from a forged cross-site request still doesn't get in."""
+    with patch(
+        "app.core.middleware.decode_jwt",
+        new_callable=AsyncMock,
+        return_value={"sub": "u-1", "role": "teacher"},
+    ):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            response = client.post(
+                "/secret",
+                headers={
+                    "Origin": "http://evil.example",
+                    "Authorization": "Bearer valid.token.here",
+                },
+            )
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "ORIGIN_NOT_ALLOWED"
+
+
+def test_same_origin_post_passes_the_csrf_check(client: TestClient) -> None:
+    """Origin matches — request proceeds to the normal auth gate (401, no token)."""
+    response = client.post("/secret", headers={"Origin": _ALLOWED_ORIGIN})
+    assert response.status_code == 401  # past the CSRF check, blocked on auth instead
+    assert response.json()["error"]["code"] == "AUTHENTICATION_REQUIRED"
+
+
+def test_post_with_no_origin_or_referer_is_not_csrf_blocked(client: TestClient) -> None:
+    """Non-browser clients (tests, curl, tooling) send neither header — unaffected."""
+    response = client.post("/secret")
+    assert response.status_code == 401  # past the CSRF check
+    assert response.json()["error"]["code"] == "AUTHENTICATION_REQUIRED"
+
+
+def test_referer_fallback_when_origin_absent_matching(client: TestClient) -> None:
+    response = client.post("/secret", headers={"Referer": f"{_ALLOWED_ORIGIN}/some/page"})
+    assert response.status_code == 401  # past the CSRF check
+
+
+def test_referer_fallback_when_origin_absent_mismatched(client: TestClient) -> None:
+    response = client.post("/secret", headers={"Referer": "http://evil.example/some/page"})
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "ORIGIN_NOT_ALLOWED"
+
+
+def test_origin_header_wins_over_a_mismatched_referer(client: TestClient) -> None:
+    """Origin is authoritative when present — Referer is only a fallback."""
+    response = client.post(
+        "/secret",
+        headers={"Origin": _ALLOWED_ORIGIN, "Referer": "http://evil.example/x"},
+    )
+    assert response.status_code == 401  # past the CSRF check
+
+
+def test_get_requests_are_never_csrf_checked(client: TestClient) -> None:
+    response = client.get("/secret", headers={"Origin": "http://evil.example"})
+    assert response.status_code == 401  # 401 (no token), not 403 ORIGIN_NOT_ALLOWED
+
+
+def test_csrf_check_applies_even_to_public_paths(client: TestClient) -> None:
+    """Origin validity doesn't depend on whether the endpoint needs a token —
+    a public signup endpoint is just as forgeable cross-site as any other."""
+    assert "/api/v1/independent/signup" in PUBLIC_PATHS
+    response = client.post("/api/v1/independent/signup", headers={"Origin": "http://evil.example"})
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "ORIGIN_NOT_ALLOWED"
+
+
+def test_csrf_check_allows_public_path_with_matching_origin(client: TestClient) -> None:
+    response = client.post("/api/v1/independent/signup", headers={"Origin": _ALLOWED_ORIGIN})
+    assert response.status_code == 200  # public path, valid origin — reaches the handler

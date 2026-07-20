@@ -493,6 +493,46 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * OIDC callback — server-side code+PKCE exchange (ARCH §6.4 steps 7-11)
+         * @description Validates state, exchanges the code + PKCE verifier with Authentik server-side, validates the id_token nonce, provisions/looks up the user, sets the iqbalai_access/iqbalai_refresh cookies, and redirects to the caller's dashboard. Any failure redirects to a clean error page — never a hang, never a 500 for an untrusted callback.
+         */
+        get: operations["auth_callback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Start the OIDC login redirect (ARCH §6.4 step 1-2)
+         * @description Generates state (CSRF), nonce, and a PKCE S256 challenge; stores them server-side in Redis keyed by a transient cookie; redirects the browser to Authentik's authorize endpoint. No response body — always a 302.
+         */
+        get: operations["auth_login"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/post-login": {
         parameters: {
             query?: never;
@@ -507,6 +547,26 @@ export interface paths {
          * @description Called by the frontend after every successful Authentik OIDC callback. Creates a User row on first login. Returns ToS acceptance status so the frontend can show the acceptance modal if needed.
          */
         post: operations["post_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh the access token from the iqbalai_refresh cookie (ARCH §6.9)
+         * @description Reads the opaque iqbalai_refresh reference, resolves it to the real Authentik refresh token server-side, exchanges it for a new access token, and rotates the reference (single-use). No request body.
+         */
+        post: operations["auth_refresh"];
         delete?: never;
         options?: never;
         head?: never;
@@ -6296,6 +6356,84 @@ export interface operations {
             };
         };
     };
+    auth_callback: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Redirect to the dashboard, or to a login error page */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auth_login: {
+        parameters: {
+            query?: {
+                next?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Redirect to Authentik's authorize endpoint */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     post_login: {
         parameters: {
             query?: never;
@@ -6313,6 +6451,24 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_PostLoginResponse_"];
                 };
+            };
+        };
+    };
+    auth_refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
