@@ -2,7 +2,7 @@
 
 **Current milestone:** M-07a — Login Flow Remediation
 **Branch:** milestone/M-07a-login-flow-remediation (forked off staging @ 5e438cf, post-M-07)
-**Current ticket:** T-242 done; next = T-243
+**Current ticket:** T-243 done; next = T-244 (large — core server-side OIDC)
 
 ## Environment (toolchain now fully working — update from earlier session)
 - uv installed manually to `~/.local/bin` (astral.sh installer script hung on this network; downloaded the GitHub release zip directly instead). `uv python install 3.12` + `uv sync --group dev` both work. Backend pytest/ruff/mypy genuinely run now. Each Bash call needs `export PATH="/c/Users/RAJA MUDASSAR/.local/bin:$PATH"` (not persisted globally in this environment).
@@ -19,8 +19,10 @@
 - T-241 — JWT §6.5 hardening: algorithms ["ES256","RS256"], iss/aud verification, JWKS TTL 300->3600, leeway=30 (had to move `leeway` inside `options={}` after a real pytest run caught a wrong top-level-kwarg attempt). Commit cd3266f. Verified: `pytest app/core/` 74/74 green. Full backend suite (544/544, ~38min) confirmed zero regressions.
 - T-242 — ToS middleware gate: AuthMiddleware blocks POST/PUT/PATCH/DELETE with 403 TOS_ACCEPTANCE_REQUIRED unless the caller accepted the current ToS or is hitting an allowlisted path (post-login/accept-tos/decline-tos/logout — logout listed proactively for T-246). FE: `isTosAcceptanceRequiredError()` mapping primitive in lib/api/index.ts + tests. Commit 8d64e8b. Verified: backend 88/88 (core+tos) + full suite 544/544 green; frontend vitest 201/201 (52 files), tsc/eslint clean. **Deliberately NOT done**: wiring the FE mapping into a global QueryClient interceptor (providers.tsx) so it fires from any page — flagged as a follow-up needing its own UX sign-off, not guessed at.
 
+- T-243 — Deleted inert `nginx/` placeholder (drifted from §15.11: no /idp, no SSL, wrong service names). Added pointer note to docs/DEV_CONTAINERS.md. Commit 57c9540. **Flagged for Abd. (not fixed, needs AMENDMENTS approval):** ARCHITECTURE.md §2 folder-tree (line 413) + `.claude/skills/phase-complete-review`/`.cursor/` mirror still reference the now-deleted `nginx/conf.d/*.conf` — stale, harmless (dead glob), but should be cleaned up in a governed ARCH/skill update.
+
 ## Next step
-- Invoke ticket-loader for T-243 (delete inert nginx/ placeholder, audit B2).
+- Invoke ticket-loader for T-244 (core: GET /auth/login, GET /auth/callback, refresh, cookie session per §6.17, Origin/Referer CSRF, reuse post_login provisioning). This is the biggest ticket in the milestone — authlib server-side OIDC exchange, HttpOnly cookies. stack-enforcer skill likely triggers (authlib/Redis paths).
 
 ## Outstanding human/ops gates (not auto-completable)
 - Push `fix/exam-frameworks-auth-bypass` + open hotfix PR to staging (blocked on GitHub write access).

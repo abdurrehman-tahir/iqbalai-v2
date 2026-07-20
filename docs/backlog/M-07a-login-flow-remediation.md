@@ -214,7 +214,8 @@ Add the missing enforcement leg: in `AuthMiddleware`, when the resolved user has
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.25 day
-**Status:** todo
+**Status:** done
+**Commit:** 57c9540 (local, not pushed). Confirmed no functional references before deleting (docker-compose.yml clean; deploy-staging.yml's rsync excludes target different, gitignored `.prod` filenames unaffected by this removal). **Flagged, not fixed (needs ARCH/AMENDMENTS approval this ticket doesn't grant):** ARCHITECTURE.md §2's folder-structure diagram (line 413) still lists `nginx/` as expected repo content, and `.claude/skills/phase-complete-review` + its `.cursor/` mirror still map `nginx/conf.d/*.conf` to a review trigger — both now stale. Left for Abd.
 
 ### Spec source
 - Login-flow audit B2
