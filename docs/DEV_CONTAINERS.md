@@ -37,6 +37,7 @@ NATS connects **eagerly** at app startup (`init_nats()` in the §16.1 lifespan),
 | any perf or load-test work | + `observability` | only when you actually need metrics/dashboards |
 
 ## Notes
+- nginx is host-level, not a container in this stack — the only authoritative config shape is ARCHITECTURE.md §15.11. There is intentionally no nginx file in this repo (T-243, audit B2: an earlier placeholder under `nginx/` drifted from §15.11 — no `/idp` location, no SSL, wrong service names — and became a second, wrong source of truth. Deleted rather than fixed, since the real config lives only on the deploy target per T-248).
 - Authentik is 3 of the heaviest containers but is needed from M-01 on (login), so it stays in core.
 - `infinity` (BGE-M3 embeddings) is RAM-heavy and only runs under `rag`. Skip it locally by keeping `EMBEDDING_PROVIDER=local` (default) — embeddings run inside `celery-worker` via fastembed (ONNX) instead.
 - **Apple Silicon:** compose pins `michaelf34/infinity:0.0.75` (multi-arch). Do **not** use `:latest` locally — it is amd64-only and crash-loops under Rosetta. First boot downloads ~2 GB of models; wait until `curl -f http://localhost:7997/health` succeeds (often 2–5 min).
