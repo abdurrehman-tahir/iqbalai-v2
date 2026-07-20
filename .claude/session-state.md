@@ -2,30 +2,22 @@
 
 **Current milestone:** M-07a — Login Flow Remediation
 **Branch:** milestone/M-07a-login-flow-remediation (forked off staging @ 5e438cf, post-M-07)
-**Current ticket:** T-243 done; next = T-244 (large — core server-side OIDC)
+**Current ticket:** T-244 done; next = T-245 (FE cutover to cookie auth)
 
-## Environment (toolchain now fully working — update from earlier session)
-- uv installed manually to `~/.local/bin` (astral.sh installer script hung on this network; downloaded the GitHub release zip directly instead). `uv python install 3.12` + `uv sync --group dev` both work. Backend pytest/ruff/mypy genuinely run now. Each Bash call needs `export PATH="/c/Users/RAJA MUDASSAR/.local/bin:$PATH"` (not persisted globally in this environment).
-- Frontend toolchain also works (pnpm installed, esbuild manually rebuilt — see earlier note). Both stacks are now locally verifiable.
-- No GitHub push access (403 for Hamza-Nawaz5588) → all branches still LOCAL ONLY, nothing pushed, no PRs opened.
-- Known pre-existing, NOT-my-scope mypy gap (confirmed present on staging before this session): `import-untyped` errors for celery/boto3/fastembed/openpyxl/jose across ~14 files repo-wide — no `types-*` stub packages declared. Don't fix without asking (adding deps needs approval).
-- Full-repo `uv run pytest app/ -q` is slow (heavy ML/RAG deps) — don't block on it; prefer targeted test runs scoped to touched packages.
+## Environment
+- uv at `~/.local/bin` (astral installer hung; used GitHub release zip directly). `export PATH="/c/Users/RAJA MUDASSAR/.local/bin:$PATH"` needed per Bash call. pnpm/node also working. Both stacks fully locally verifiable.
+- No GitHub push access (403, Hamza-Nawaz5588) → all branches LOCAL ONLY, nothing pushed.
+- Pre-existing, not-my-scope mypy gap: import-untyped for celery/boto3/fastembed/openpyxl/jose/**authlib** (T-244 added authlib to this same class). Don't fix without asking.
+- No Docker here → can't run a real Authentik/compose stack. T-244's "real login E2E" acceptance item is unverified; token exchange mocked at the HTTP boundary per its own test spec.
 
-## Done this milestone
-- T-238 — Removed PUBLIC_PATHS auth-bypass for `/independent/students/me/exam-frameworks`. Hotfix commit 12011ef on local `fix/exam-frameworks-auth-bypass` (not pushed). Cherry-picked onto milestone branch as f46b363.
-- T-238 follow-up (commit 0561141) — verifying T-238 with the real toolchain surfaced: (1) `independent_student_onboarding/tests/` had no `__init__.py`, so its tests never actually ran; (2) once running, `require_role("independent_student")` on all 3 routes there was a no-op cross-tenant gate (ROLE_HIERARCHY's "X or higher" isn't tenant-aware — any authenticated role passed). Fixed with new `require_independent_student()` exact-match dependency + regression tests. **FLAGGED for Abd.: the shared `require_role`/ROLE_HIERARCHY design gap likely affects other independent-tenant routes using the same pattern — not fixed repo-wide, needs triage.**
-- T-239 — Exhaustive `getPostLoginPath` switch. Commit 906f50c. Verified: tsc/eslint/vitest all green.
-- T-240 — `assertAuthEnv()` fail-loud prod guard. Commit ab13a87. Verified incl. a real `next build` pass/fail check.
-- T-241 — JWT §6.5 hardening: algorithms ["ES256","RS256"], iss/aud verification, JWKS TTL 300->3600, leeway=30 (had to move `leeway` inside `options={}` after a real pytest run caught a wrong top-level-kwarg attempt). Commit cd3266f. Verified: `pytest app/core/` 74/74 green. Full backend suite (544/544, ~38min) confirmed zero regressions.
-- T-242 — ToS middleware gate: AuthMiddleware blocks POST/PUT/PATCH/DELETE with 403 TOS_ACCEPTANCE_REQUIRED unless the caller accepted the current ToS or is hitting an allowlisted path (post-login/accept-tos/decline-tos/logout — logout listed proactively for T-246). FE: `isTosAcceptanceRequiredError()` mapping primitive in lib/api/index.ts + tests. Commit 8d64e8b. Verified: backend 88/88 (core+tos) + full suite 544/544 green; frontend vitest 201/201 (52 files), tsc/eslint clean. **Deliberately NOT done**: wiring the FE mapping into a global QueryClient interceptor (providers.tsx) so it fires from any page — flagged as a follow-up needing its own UX sign-off, not guessed at.
-
-- T-243 — Deleted inert `nginx/` placeholder (drifted from §15.11: no /idp, no SSL, wrong service names). Added pointer note to docs/DEV_CONTAINERS.md. Commit 57c9540. **Flagged for Abd. (not fixed, needs AMENDMENTS approval):** ARCHITECTURE.md §2 folder-tree (line 413) + `.claude/skills/phase-complete-review`/`.cursor/` mirror still reference the now-deleted `nginx/conf.d/*.conf` — stale, harmless (dead glob), but should be cleaned up in a governed ARCH/skill update.
+## Done this milestone (commits, all local/unpushed)
+T-238 12011ef+f46b363 · T-238-followup 0561141 (require_role cross-tenant gap, flagged) · T-239 906f50c · T-240 ab13a87 · T-241 cd3266f · T-242 8d64e8b (FE global wiring deliberately deferred) · T-243 57c9540 (ARCH §2/skill staleness flagged) · **T-244 bdd34ca** — server-side OIDC login/callback/refresh, cookie session, CSRF Origin check. New: `app/core/cookies.py`, `app/features/auth/{oidc_client,oidc_session,refresh_session}.py`, `get_post_login_path()`. 146/146 backend + 59/59 frontend green.
 
 ## Next step
-- Invoke ticket-loader for T-244 (core: GET /auth/login, GET /auth/callback, refresh, cookie session per §6.17, Origin/Referer CSRF, reuse post_login provisioning). This is the biggest ticket in the milestone — authlib server-side OIDC exchange, HttpOnly cookies. stack-enforcer skill likely triggers (authlib/Redis paths).
+Invoke ticket-loader for T-245 (FE cutover: LoginButton → `/api/v1/auth/login`, kill sessionStorage, `credentials:"include"`, remove Bearer dual-read, update OidcCallbackClient/auth helpers + tests). Depends on T-244 (done) + T-239 (done).
 
-## Outstanding human/ops gates (not auto-completable)
-- Push `fix/exam-frameworks-auth-bypass` + open hotfix PR to staging (blocked on GitHub write access).
-- T-248 (staging ops/Authentik theming) and T-249 (demo + milestone PR) are human-gated per the milestone brief.
-- All local commits are now genuinely toolchain-verified (backend + frontend) but still need a push + real CI run before merge — nothing has left this machine yet.
-- **New finding to raise with Abd.**: `require_role()`'s hierarchy check (ARCH §6.19) treats `independent_student`/`independent_teacher` as sharing a numeric scale with school-tenant roles, so `require_role("independent_student")` (and likely `require_role("independent_teacher")`) passes for ANY authenticated role. Only fixed at the 3 routes touched in T-238's follow-up — other callers of this pattern repo-wide are unaudited.
+## Outstanding (not auto-completable)
+- Push everything + open PRs (blocked on GitHub access) — incl. the standalone T-238 hotfix PR.
+- T-248/T-249 human-gated (ops access, live demo).
+- Flagged for Abd.: `require_role`/ROLE_HIERARCHY cross-tenant gap (T-238 note); ARCH §2 + skill `nginx/conf.d` staleness (T-243 note); FE global ToS-error wiring (T-242 note).
+- T-244's real-Authentik login round-trip needs a machine with Docker to confirm.

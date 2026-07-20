@@ -246,7 +246,8 @@ Delete the `nginx/` folder (it is not wired into compose and diverges from §15.
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** bdd34ca (local, not pushed). Verified locally: `pytest app/core/ app/features/auth/ app/features/tos/ app/features/independent_student_onboarding/` 146/146 green (13 router-level OIDC flow tests + 17 session-storage + 11 role-mapping + 8 CSRF tests, cookie attributes asserted explicitly). ruff/mypy clean (0 new errors beyond the repo's pre-existing stub gaps, now incl. authlib). Frontend: `pnpm gen:api` regenerated, tsc clean, 59/59 existing vitest green post-regen. **Not run: an actual browser round-trip against a live local Authentik** (no Docker in this dev environment) — token exchange is mocked at the HTTP boundary per the ticket's own test spec. This is the one acceptance item ("full login against real local Authentik") that needs a real compose stack to confirm before the ticket is truly closed — flag for whoever has Docker access. A real bug was caught by the tests (not written blind): `/auth/login`'s `next` param originally defaulted to `"/"` when absent, making the role-dashboard fallback at `/auth/callback` unreachable — every login would have landed on the site root. Fixed (see commit).
 
 ### Spec source
 - Login-flow audit C1/C2; ARCH §6.4 (the locked flow diagram: API performs steps 8–9 code+PKCE exchange, step 11 sets HttpOnly cookies), §6.17 (cookie spec), §6 threat table (CSRF row: SameSite=Lax + `state` + **Origin/Referer check on mutating endpoints in middleware**)
