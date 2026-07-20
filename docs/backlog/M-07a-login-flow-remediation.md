@@ -176,7 +176,8 @@ Bring token verification to §6.5: `algorithms=["ES256","RS256"]`; `verify_iss=T
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** 8d64e8b (local, not pushed). Verified locally: `pytest app/core/ app/features/tos/` 88/88 green + full backend suite 544/544 green (confirms zero regression from T-241/T-242 combined); frontend `vitest run` 201/201 green (52 files), tsc clean, eslint clean. **Scope note:** FE ships the `isTosAcceptanceRequiredError()` mapping primitive + real test coverage, not a global QueryClient-level wiring of it into every mutating call site (`components/providers.tsx`) — that's an app-wide UX decision (redirect vs. inline overlay from any page) flagged as a follow-up rather than guessed at mid-ticket.
 
 ### Spec source
 - Login-flow audit C4; M-01 T-016: "Block any state-changing endpoint if user hasn't accepted current ToS (middleware check)"
