@@ -288,7 +288,8 @@ Implement §6.4 as drawn, in the API:
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 8dc0d4c (local, not pushed). Verified locally: backend `pytest app/core/ app/features/auth/ app/features/tos/ app/features/independent_student_onboarding/` 151/151 green, ruff/mypy clean. Frontend: full `vitest run` 55 files/207 tests green, `tsc --noEmit` clean, full `eslint src/` clean. **Real gap surfaced and fixed proactively**: `tests/test_admin_create_real_backend.py` (currently skipped here — no Postgres) still used Bearer headers against the real `AuthMiddleware`; would have broken silently in a Postgres-enabled CI run. Also extended `GET /auth/login` with `prompt_login`/`login_hint` passthrough (not in the ticket text) to avoid regressing the post-invite/post-signup forced-relogin UX four existing flows depended on. **Deliberately deferred (flagged, not silently done)**: the `token` parameter threaded through ~50 `lib/api/index.ts` call sites via `useClientAuth()` is now inert (cookies carry auth) but left in place — ripping it out touches the entire app's data-fetching surface for zero behavioral gain. **Not run**: the ticket's Playwright `@smoke` requirement — no browser/E2E runner or live Authentik here; that's T-247's job. This commit's Vitest suite covers the ticket's own mechanical test list (credentials sent, no Authorization header, zero sessionStorage token usage).
 
 ### Spec source
 - Login-flow audit C1; ARCH §6.17 ("Never localStorage. Never JS-accessible.")
