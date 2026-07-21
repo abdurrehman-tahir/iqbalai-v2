@@ -36,7 +36,10 @@ test.describe("Admin create — real backend contract @smoke @real", () => {
   test("POST /admin/exam-syllabi accepts UI payload", async ({ request }) => {
     const response = await request.post(`${API_BASE}/admin/exam-syllabi`, {
       headers: {
-        Authorization: `Bearer ${ADMIN_TOKEN}`,
+        // T-245 removed AuthMiddleware's Bearer-header fallback — cookie-only now
+        // (ARCH §6.6/§6.17). Starlette parses `Cookie` regardless of client, so a
+        // raw APIRequestContext call authenticates the same way a browser would.
+        Cookie: `iqbalai_access=${ADMIN_TOKEN}`,
         "Content-Type": "application/json",
       },
       data: EXAM_SYLLABUS_CREATE_FROM_UI,
@@ -54,7 +57,10 @@ test.describe("Admin create — real backend contract @smoke @real", () => {
 
     const response = await request.post(`${API_BASE}/exam-frameworks/`, {
       headers: {
-        Authorization: `Bearer ${ADMIN_TOKEN}`,
+        // T-245 removed AuthMiddleware's Bearer-header fallback — cookie-only now
+        // (ARCH §6.6/§6.17). Starlette parses `Cookie` regardless of client, so a
+        // raw APIRequestContext call authenticates the same way a browser would.
+        Cookie: `iqbalai_access=${ADMIN_TOKEN}`,
         "Content-Type": "application/json",
       },
       data: { ...EXAM_FRAMEWORK_CREATE_FROM_UI, name },
@@ -70,7 +76,7 @@ test.describe("Admin create — real backend contract @smoke @real", () => {
     // T-093: the DRAFT framework can be handed to the AI research pipeline — the
     // trigger is accepted (202) and returns a RUNNING job.
     const research = await request.post(`${API_BASE}/exam-frameworks/${body.data.id}/research`, {
-      headers: { Authorization: `Bearer ${ADMIN_TOKEN}` },
+      headers: { Cookie: `iqbalai_access=${ADMIN_TOKEN}` },
     });
     expect(research.status(), await research.text()).toBe(202);
     const researchBody = await research.json();
@@ -83,7 +89,10 @@ test.describe("Admin create — real backend contract @smoke @real", () => {
 
     const response = await request.post(`${API_BASE}/admin/subscription-tiers`, {
       headers: {
-        Authorization: `Bearer ${ADMIN_TOKEN}`,
+        // T-245 removed AuthMiddleware's Bearer-header fallback — cookie-only now
+        // (ARCH §6.6/§6.17). Starlette parses `Cookie` regardless of client, so a
+        // raw APIRequestContext call authenticates the same way a browser would.
+        Cookie: `iqbalai_access=${ADMIN_TOKEN}`,
         "Content-Type": "application/json",
       },
       data: { ...SUBSCRIPTION_TIER_CREATE_FROM_UI, slug },
@@ -108,7 +117,7 @@ test.describe("Coordinator create — real backend contract @smoke @real", () =>
 
     const response = await request.post(`${API_BASE}/subjects/`, {
       headers: {
-        Authorization: `Bearer ${COORDINATOR_TOKEN}`,
+        Cookie: `iqbalai_access=${COORDINATOR_TOKEN}`,
         "Content-Type": "application/json",
       },
       data: { ...SUBJECT_CREATE_FROM_UI, name },

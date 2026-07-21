@@ -381,14 +381,61 @@ jobs:
       # The @smoke specs run offline: they stub the API via route mocks + seeded
       # sessionStorage, and Playwright boots its own Next dev server
       # (playwright.config.ts `webServer: pnpm dev`). No backend/docker/seed needed
-      # on PR — the real-backend full-stack bring-up + scripts/seed_dev.py lands
-      # with container profiles in T-236.
-      - name: Playwright smoke (@smoke mock + @real backend)
+      # for those.
+      #
+      # @real (including @auth @real, T-247) needs the actual composed backend —
+      # postgres + redis + Authentik (server+worker) + api — plus seeded users.
+      # Minimal subset only (api's own compose deps are just postgres+redis;
+      # nats/minio/qdrant/infinity stay off per the core-only boot pattern).
+      - name: Write CI .env for docker compose
+        if: steps.detect.outputs.fe == 'yes'
+        run: |
+          cat > .env <<EOF
+          POSTGRES_USER=iqbalai
+          POSTGRES_PASSWORD=ci-only-not-a-real-secret
+          POSTGRES_DB=iqbalai
+          DB_URL=postgresql+asyncpg://iqbalai:ci-only-not-a-real-secret@postgres:5432/iqbalai
+          REDIS_URL=redis://redis:6379/0
+          AUTHENTIK_SECRET_KEY=$(openssl rand -hex 32)
+          AUTHENTIK_BOOTSTRAP_EMAIL=admin@iqbalai.dev
+          AUTHENTIK_BOOTSTRAP_PASSWORD=$(openssl rand -hex 16)
+          COOKIE_SECURE=false
+          APP_URL=http://localhost:3000
+          CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
+          EOF
+      - name: Bring up postgres + redis + Authentik + api
+        if: steps.detect.outputs.fe == 'yes'
+        run: |
+          docker compose up -d postgres redis authentik-redis authentik-server authentik-worker --wait
+          uv run --project api alembic -c api/alembic.ini upgrade head
+          docker compose up -d api --wait
+        env:
+          # AUTHENTIK_API_TOKEN stays unset here — bootstrap_authentik.py is a
+          # stub (no automated Authentik application/token provisioning exists
+          # yet, T-247 dossier finding). Until that lands, this step brings the
+          # stack up but the OIDC application itself is NOT configured, so the
+          # @auth @real specs below will correctly skip via their own
+          # apiReachable()-adjacent Authentik-reachability guards rather than
+          # hang or false-fail. Flagged in the T-247 PR description.
+          AUTHENTIK_API_TOKEN: ""
+      - name: Seed demo data + real Authentik E2E identities
+        if: steps.detect.outputs.fe == 'yes'
+        run: |
+          uv run --project api python scripts/seed_dev.py
+          uv run --project api python scripts/seed_e2e_auth_users.py
+        env:
+          DB_URL: postgresql+asyncpg://iqbalai:ci-only-not-a-real-secret@localhost:5432/iqbalai
+          AUTHENTIK_API_URL: http://localhost:9000/api/v3
+          AUTHENTIK_API_TOKEN: ""
+      - name: Playwright smoke (@smoke mock + @real backend, incl. @auth @real)
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
         run: |
           pnpm e2e --grep @smoke --grep-invert @real
           pnpm e2e --grep @real
+        env:
+          REAL_BACKEND_URL: http://localhost:8000/api/v1
+          NEXT_PUBLIC_AUTHENTIK_URL: http://localhost:9000
 
   e2e-full:
     name: Playwright E2E (full suite, nightly)

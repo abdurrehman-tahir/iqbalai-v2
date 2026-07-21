@@ -17,6 +17,8 @@ logger = structlog.get_logger(__name__)
 class AuthentikClientProtocol(Protocol):
     async def create_user(self, *, email: str, name: str, is_active: bool = False) -> str: ...
 
+    async def find_user_by_email(self, email: str) -> str | None: ...
+
     async def activate_user(self, authentik_id: str) -> None: ...
 
     async def deactivate_user(self, authentik_id: str) -> None: ...
@@ -39,6 +41,12 @@ class DevAuthentikClient:
         self._users[pk] = {"email": email, "name": name, "is_active": is_active, "password": None}
         logger.info("dev_authentik_user_created", pk=pk, email=email, is_active=is_active)
         return pk
+
+    async def find_user_by_email(self, email: str) -> str | None:
+        for pk, user in self._users.items():
+            if user["email"] == email:
+                return pk
+        return None
 
     async def activate_user(self, authentik_id: str) -> None:
         if authentik_id in self._users:
@@ -130,6 +138,27 @@ class AuthentikClient:
         resp = await self._request("POST", "/core/users/", json=payload)
         data = resp.json()
         return str(data["pk"])
+
+    async def find_user_by_email(self, email: str) -> str | None:
+        """Look up an existing user's pk by email, for idempotent provisioning.
+
+        UNVERIFIED against a live Authentik instance (T-247, ARCH §6.4 real-backend
+        E2E suite) — Authentik's `/core/users/` is a standard DRF ViewSet and its
+        OpenAPI schema documents an `email` query filter, but this exact call has
+        not been exercised against a running Authentik here. Confirm/adjust once
+        run against a real instance.
+        """
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            resp = await client.get(
+                f"{self._base_url}/core/users/",
+                params={"email": email},
+                headers=self._auth_headers(),
+            )
+        self._raise_for_response(resp, path="/core/users/")
+        results = resp.json().get("results", [])
+        if not results:
+            return None
+        return str(results[0]["pk"])
 
     async def activate_user(self, authentik_id: str) -> None:
         await self._request(

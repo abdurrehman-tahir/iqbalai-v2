@@ -153,6 +153,7 @@ async def test_demo_set_covers_the_hierarchy() -> None:
         "coordinator",
         "teacher",
         "student",
+        "parent",
     ):
         assert expected in roles
 
@@ -160,3 +161,87 @@ async def test_demo_set_covers_the_hierarchy() -> None:
     student = next(u for u in seed.SEED_USERS if u.role.value == "student")
     assert student.school_id == seed.DEMO_SCHOOL_ID
     assert student.district_id == seed.DEMO_DISTRICT_ID
+
+
+def test_parent_has_no_school_or_district_scope() -> None:
+    """Parent access is via ParentChildLink, not org membership (T-247)."""
+    seed = _load_seed()
+    parent = next(u for u in seed.SEED_USERS if u.role.value == "parent")
+    assert parent.school_id is None
+    assert parent.district_id is None
+
+
+# ---------------------------------------------------------------------------
+# Independent-tenant users (T-247)
+# ---------------------------------------------------------------------------
+
+
+class _FakeIndependentStore:
+    """In-memory stand-in for the `independent.users` table."""
+
+    def __init__(self) -> None:
+        self.by_authentik: dict[str, object] = {}
+
+    async def get_existing(self, authentik_id: str) -> object | None:
+        return self.by_authentik.get(authentik_id)
+
+    async def persist(self, user: object) -> None:
+        self.by_authentik[user.authentik_id] = user  # type: ignore[attr-defined]
+
+
+@pytest.mark.asyncio
+async def test_independent_users_first_run_creates_full_set() -> None:
+    seed = _load_seed()
+    store = _FakeIndependentStore()
+
+    result = await seed.seed_independent_users(
+        seed.SEED_INDEPENDENT_USERS, store.get_existing, store.persist
+    )
+
+    assert result.created == len(seed.SEED_INDEPENDENT_USERS)
+    assert result.updated == 0
+    assert len(store.by_authentik) == len(seed.SEED_INDEPENDENT_USERS)
+
+
+@pytest.mark.asyncio
+async def test_independent_users_rerun_is_idempotent() -> None:
+    seed = _load_seed()
+    store = _FakeIndependentStore()
+
+    await seed.seed_independent_users(
+        seed.SEED_INDEPENDENT_USERS, store.get_existing, store.persist
+    )
+    second = await seed.seed_independent_users(
+        seed.SEED_INDEPENDENT_USERS, store.get_existing, store.persist
+    )
+
+    assert second.created == 0
+    assert second.updated == len(seed.SEED_INDEPENDENT_USERS)
+    assert len(store.by_authentik) == len(seed.SEED_INDEPENDENT_USERS)
+
+
+def test_independent_set_covers_both_independent_roles() -> None:
+    seed = _load_seed()
+    roles = {u.role.value for u in seed.SEED_INDEPENDENT_USERS}
+    assert roles == {"independent_teacher", "independent_student"}
+
+
+def test_full_seed_covers_all_nine_roles() -> None:
+    """The union of SEED_USERS + SEED_INDEPENDENT_USERS is exactly the 9-role set
+    frontend/src/lib/auth.ts's ALL_ROLES asserts (T-239) — kept as a plain string
+    set here since this script cannot import frontend TS."""
+    seed = _load_seed()
+    roles = {u.role.value for u in seed.SEED_USERS} | {
+        u.role.value for u in seed.SEED_INDEPENDENT_USERS
+    }
+    assert roles == {
+        "platform_admin",
+        "district_admin",
+        "school_admin",
+        "coordinator",
+        "teacher",
+        "student",
+        "parent",
+        "independent_teacher",
+        "independent_student",
+    }

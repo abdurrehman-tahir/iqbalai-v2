@@ -1,10 +1,18 @@
 #!/usr/bin/env python3
-"""Idempotent development seed (T-228).
+"""Idempotent development seed (T-228; extended T-247 for full role coverage).
 
 Creates a reproducible demo dataset: the bootstrap Platform Admin plus one
 sample district/school hierarchy (District Admin → School Admin → Coordinator →
-Teacher → Student). Used by the E2E `e2e-smoke` job and for manual demos so the
-data is reproducible rather than hand-made.
+Teacher → Student → Parent), plus the two independent-tenant roles (Independent
+Teacher, Independent Student) — all 9 roles in the `Role` union. Used by the E2E
+`e2e-smoke` job and for manual demos so the data is reproducible rather than
+hand-made.
+
+Postgres-only: `authentik_id` here is a fixed placeholder string, not a real
+Authentik identity, so these rows alone cannot complete a real OIDC login. For
+the T-247 `@auth @real` suite (which drives an actual Authentik login form),
+see `scripts/seed_e2e_auth_users.py` — it provisions real Authentik identities
+and seeds the matching DB rows keyed on Authentik's own assigned pk instead.
 
 Idempotent: keyed on the unique ``authentik_id``. Re-running upserts (create if
 missing, otherwise refresh mutable fields) so the DB ends in the same state no
@@ -38,6 +46,7 @@ if str(_API_DIR) not in sys.path:
 import structlog  # noqa: E402  (import after sys.path shim)
 
 from app.features.academic_sessions.models import AcademicSession  # noqa: E402
+from app.features.independent_users.models import IndependentUser, IndependentUserRole  # noqa: E402
 from app.features.schools.models import District, School  # noqa: E402
 from app.features.users.models import User, UserRole  # noqa: E402
 
@@ -114,6 +123,43 @@ SEED_USERS: tuple[SeedUser, ...] = (
         role=UserRole.STUDENT,
         school_id=DEMO_SCHOOL_ID,
         district_id=DEMO_DISTRICT_ID,
+    ),
+    # T-247: Parent has no school/district scope of its own — access is via
+    # ParentChildLink to a student, not org membership (ARCH §6.4 role table).
+    SeedUser(
+        authentik_id="seed-parent",
+        email="parent@iqbalai.dev",
+        display_name="Parent",
+        role=UserRole.PARENT,
+    ),
+)
+
+
+@dataclass(frozen=True)
+class SeedIndependentUser:
+    """An independent-tenant user to upsert (T-247). Independent users have no
+    school/district scope — they live in the separate `independent` Postgres
+    schema (ARCH §3.16) and are each their own micro-tenant."""
+
+    authentik_id: str
+    email: str
+    display_name: str
+    role: IndependentUserRole
+
+
+# The two independent-tenant roles (school-tenant roles are in SEED_USERS above).
+SEED_INDEPENDENT_USERS: tuple[SeedIndependentUser, ...] = (
+    SeedIndependentUser(
+        authentik_id="seed-independent-teacher",
+        email="independent.teacher@iqbalai.dev",
+        display_name="Independent Teacher",
+        role=IndependentUserRole.INDEPENDENT_TEACHER,
+    ),
+    SeedIndependentUser(
+        authentik_id="seed-independent-student",
+        email="independent.student@iqbalai.dev",
+        display_name="Independent Student",
+        role=IndependentUserRole.INDEPENDENT_STUDENT,
     ),
 )
 
@@ -236,8 +282,41 @@ async def seed_users(
     return result
 
 
-async def run_seed() -> tuple[SeedResult, SeedResult]:
-    """Open a real DB session and seed the demo dataset (org chain, then users)."""
+async def seed_independent_users(
+    seeds: Iterable[SeedIndependentUser],
+    get_existing: Callable[[str], Awaitable[IndependentUser | None]],
+    persist: Callable[[IndependentUser], Awaitable[None]],
+) -> SeedResult:
+    """Upsert independent-tenant `seeds` (T-247) — same shape as `seed_users`,
+    decoupled from the DB session for unit testability."""
+    result = SeedResult()
+    for spec in seeds:
+        existing = await get_existing(spec.authentik_id)
+        if existing is None:
+            user = IndependentUser(
+                authentik_id=spec.authentik_id,
+                email=spec.email,
+                display_name=spec.display_name,
+                role=spec.role,
+            )
+            await persist(user)
+            result.created += 1
+        else:
+            existing.email = spec.email
+            existing.display_name = spec.display_name
+            existing.role = spec.role
+            await persist(existing)
+            result.updated += 1
+    return result
+
+
+async def run_seed() -> tuple[SeedResult, SeedResult, SeedResult]:
+    """Open a real DB session and seed the demo dataset (org chain, then users).
+
+    Independent users (T-247) share the same session — their model declares its
+    own `schema="independent"` in `__table_args__`, so no separate connection or
+    schema_translate_map is needed; SQLAlchemy qualifies the table name itself.
+    """
     from sqlalchemy import select
 
     from app.db.session import async_session_factory
@@ -245,7 +324,9 @@ async def run_seed() -> tuple[SeedResult, SeedResult]:
     async with async_session_factory() as session:
 
         async def get_district(district_id: str) -> District | None:
-            res = await session.execute(select(District).where(District.id == district_id))
+            res = await session.execute(
+                select(District).where(District.id == district_id)
+            )
             return res.scalar_one_or_none()
 
         async def get_school(school_id: str) -> School | None:
@@ -267,29 +348,50 @@ async def run_seed() -> tuple[SeedResult, SeedResult]:
             session.add(row)
             await session.flush()
 
-        org_result = await seed_org(get_district, get_school, get_session_row, persist_org)
+        org_result = await seed_org(
+            get_district, get_school, get_session_row, persist_org
+        )
 
         async def get_existing(authentik_id: str) -> User | None:
-            res = await session.execute(select(User).where(User.authentik_id == authentik_id))
+            res = await session.execute(
+                select(User).where(User.authentik_id == authentik_id)
+            )
             return res.scalar_one_or_none()
 
         async def persist(user: User) -> None:
             session.add(user)
 
         user_result = await seed_users(SEED_USERS, get_existing, persist)
+
+        async def get_existing_independent(authentik_id: str) -> IndependentUser | None:
+            res = await session.execute(
+                select(IndependentUser).where(
+                    IndependentUser.authentik_id == authentik_id
+                )
+            )
+            return res.scalar_one_or_none()
+
+        async def persist_independent(user: IndependentUser) -> None:
+            session.add(user)
+
+        independent_result = await seed_independent_users(
+            SEED_INDEPENDENT_USERS, get_existing_independent, persist_independent
+        )
         await session.commit()
-    return org_result, user_result
+    return org_result, user_result, independent_result
 
 
 def main() -> None:
-    org_result, user_result = asyncio.run(run_seed())
+    org_result, user_result, independent_result = asyncio.run(run_seed())
     logger.info(
         "seed_dev.complete",
         org_created=org_result.created,
         org_updated=org_result.updated,
         created=user_result.created,
         updated=user_result.updated,
-        total=len(SEED_USERS),
+        independent_created=independent_result.created,
+        independent_updated=independent_result.updated,
+        total=len(SEED_USERS) + len(SEED_INDEPENDENT_USERS),
     )
 
 

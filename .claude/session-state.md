@@ -2,30 +2,28 @@
 
 **Current milestone:** M-07a — Login Flow Remediation
 **Branch:** milestone/M-07a-login-flow-remediation (forked off staging @ 5e438cf, post-M-07)
-**Current ticket:** T-246 done; next = T-247 (Playwright @auth @real per-role suite + CI real-backend lane)
+**Current ticket:** T-247 in_progress (code shipped, acceptance unverified — see ledger). Next: fix the 11 broken `@smoke` specs (flagged below), then re-attempt T-247 acceptance once Docker/Authentik is available, then T-248/T-249.
 
 ## Environment
-- uv at `~/.local/bin`; `export PATH="/c/Users/RAJA MUDASSAR/.local/bin:$PATH"` needed per Bash call. pnpm/node working too. Both stacks fully locally verifiable.
-- No GitHub push access (403, Hamza-Nawaz5588) → all branches LOCAL ONLY, nothing pushed.
+- uv at `~/.local/bin`; `export PATH="/c/Users/RAJA MUDASSAR/.local/bin:$PATH"` needed per Bash call. pnpm/node node_modules present — use `node_modules/.bin/<tool>` directly, no global pnpm/eslint on PATH.
+- No GitHub push access was 403 earlier this session; Hamza asked to push again mid-T-247 — retry, don't assume still blocked.
 - Pre-existing mypy stub gap (not my scope): celery/boto3/fastembed/openpyxl/jose/authlib import-untyped. Don't fix without asking.
-- No Docker/Postgres here → `tests/test_admin_create_real_backend.py` and any live-Authentik/Playwright checks are unverified (collectible/importable only). No @auth @real E2E possible until a machine with Docker picks this up (T-247's job anyway).
-- Full backend suite (`uv run pytest -q`, no path filter) takes ~38 min in this environment (heavy import chains, e.g. qdrant_client/fastembed) — it's not hung, just slow; don't kill it early, let it finish or scope to touched dirs for quick iteration.
+- No Docker/Postgres/Authentik here → nothing in T-247 has been run, only format/mypy/unit-tested with fakes.
+- Full backend suite (`uv run pytest -q`, no path filter) takes ~38 min in this environment — not hung, just slow.
 
-## Done this milestone (commits, all local/unpushed)
-T-238 12011ef+f46b363 · T-238-followup 0561141 (require_role cross-tenant gap, flagged) · T-239 906f50c · T-240 ab13a87 · T-241 cd3266f · T-242 8d64e8b (FE global ToS-error wiring deferred, flagged) · T-243 57c9540 (ARCH §2/skill staleness flagged) · T-244 bdd34ca (server-side OIDC login/callback/refresh, cookie session, CSRF Origin check — new authlib dep) · T-245 8dc0d4c (FE cutover: sessionStorage removed, GET /auth/me + useCurrentUser() hook, credentials:"include", Bearer path removed) · **T-246 33d372e** — POST /auth/logout: revokes refresh token at Authentik (RFC 7009), clears both cookies, blacklists access JWT's jti in Redis (checked in AuthMiddleware.dispatch). Deviated from ticket's `SuccessEnvelope` wording → 204/response_model=None (ARCH §6.8 has no response body, matches /refresh precedent) — flagged in ledger. FE: performLogout() in lib/auth.ts, wired into all 9 shells' handleLogout(). Full backend suite 693 passed/3 skipped/0 failed; frontend 209/209 green; tsc/eslint/ruff/mypy clean; openapi.json+schema.d.ts regenerated.
+## Done this milestone (commits, local — push status: see above)
+T-238 12011ef+f46b363 · T-238-followup 0561141 · T-239 906f50c · T-240 ab13a87 · T-241 cd3266f · T-242 8d64e8b · T-243 57c9540 · T-244 bdd34ca · T-245 8dc0d4c · T-246 33d372e (POST /auth/logout, JTI blacklist) · T-247 (in_progress, uncommitted-or-just-committed at session end — check `git log`): seed_dev.py extended to 9 roles, new scripts/seed_e2e_auth_users.py (real Authentik identity provisioning via the already-proven AuthentikClient + new find_user_by_email), frontend/e2e/auth-real.spec.ts (@auth @real, 9 role journeys + ToS + unauth + tampered-callback + logout), admin-create-real.spec.ts Bearer→Cookie fix, ci.yml e2e-smoke real-backend lane wiring.
 
-## Next step
-Invoke ticket-loader for T-247 already done once (dossier captured below) — resume implementing from it. **Two genuine blockers the dossier surfaced, user chose "full scope, best-effort" (all 3 AskUserQuestion options were: full-scope-flagged-unverified / partial-scope-split / stop-and-ask-Abd — user picked full scope):**
-1. No Authentik user-provisioning automation exists anywhere in the repo — `scripts/bootstrap_authentik.py` is still a literal stub (prints manual instructions, exits). Must write a real one (Authentik API, following that script's existing shape) to create the 9 per-role login-capable identities — **cannot verify against a live Authentik here (no Docker)**, so this violates "no hallucinated APIs" in this one narrow spot; flag explicitly wherever this API is called.
-2. `.github/workflows/ci.yml`'s `e2e-smoke` job's `@real` step runs against `pnpm dev` only (Next.js dev server) — no docker-compose stack, no Authentik, no seeded DB today. T-247 needs to wire that in (CI invariant 3: edit, don't replace).
-Also: extend `scripts/seed_dev.py`'s `SEED_USERS` (currently 6 roles) with `parent`/`independent_teacher`/`independent_student` (3 missing) — note independent roles are self-signup/no-school-context, don't fit `SeedUser`'s shape as-is, document provisioning per ticket text. Existing `frontend/e2e/admin-create-real.spec.ts` uses `Authorization: Bearer` — now stale post-T-245's Bearer removal; flag in T-247's PR, not this ticket's job to fix.
-Role→dashboard map for E2E assertions (confirmed via direct read, T-239's source of truth): platform_admin→/admin, district_admin→/admin/district/schools, school_admin→/school/admin, coordinator→/coordinator, teacher→/teacher, student→/student, parent→/parent, independent_teacher→/independent/teacher, independent_student→/independent/student.
+## Genuine open blocker for T-247 acceptance
+`scripts/bootstrap_authentik.py` is still a stub — nothing anywhere automates creating the Authentik **OIDC application/provider** itself (user-account provisioning is fine, proven, and now reused). Until that exists (Authentik blueprint YAML or a scripted admin-API bootstrap — a real design decision, flagged not guessed), the CI real-backend lane brings the stack up but can't complete an actual OIDC exchange, and `@auth @real` will fail (not skip) rather than pass. This is the top blocker for actually closing T-247.
+
+## Deferred (confirmed with Hamza, not yet done)
+11 pre-existing `@smoke` specs are broken by T-245's sessionStorage removal (dead `sessionStorage.setItem` seeding + no `GET /auth/me` mock in their inline route handlers): admin-shell-smoke, academic-sessions-smoke, coordinator-curriculum-smoke, districts-smoke, exam-frameworks-smoke, independent-teacher-onboarding-smoke, m04-teacher-onboarding-milestone-smoke, subjects-smoke, teacher-library-browse-smoke, teacher-onboarding-smoke, teacher-reference-smoke. Hamza said fix it — do this first next session (add a `GET /auth/me` mock returning the seeded role/user to each inline installer + `helpers/mock-api.ts`, drop the dead sessionStorage calls).
 
 ## Outstanding (not auto-completable / flagged for Abd.)
-- Push everything + open PRs (blocked on GitHub access) — incl. the standalone T-238 hotfix PR.
 - T-248/T-249 human-gated (ops access, live demo, real Authentik round-trip).
 - `require_role`/ROLE_HIERARCHY cross-tenant gap (T-238 note) — other callers repo-wide unaudited.
 - ARCH §2 folder-tree + phase-complete-review skill both still reference deleted `nginx/conf.d/*.conf` (T-243 note).
 - FE global wiring of `isTosAcceptanceRequiredError()` into a QueryClient interceptor (T-242 note) — primitive shipped, app-wide wiring deferred.
-- `lib/api/index.ts`'s `token` param across ~50 call sites is now inert (T-245 note) — cosmetic cleanup, not urgent, not done.
-- T-244/T-245/T-246's real-Authentik login/logout round-trip + Playwright `@smoke` need a machine with Docker — T-247 is meant to close this but is itself unverifiable here (see blockers above).
+- `lib/api/index.ts`'s `token` param across ~50 call sites is now inert (T-245 note) — cosmetic, not urgent.
+- Real-Authentik round-trip for T-244/T-245/T-246/T-247 all still unverified — needs a machine with Docker + the Authentik bootstrap gap closed.
