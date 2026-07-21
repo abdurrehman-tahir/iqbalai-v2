@@ -170,10 +170,7 @@ async def _tos_required_block(
     request: Request, user: User | IndependentUser
 ) -> JSONResponse | None:
     """Enforce ToS acceptance before a user can mutate application state."""
-    if (
-        request.method not in _STATE_CHANGING_METHODS
-        or request.url.path in _TOS_COMPLETION_PATHS
-    ):
+    if request.method not in _STATE_CHANGING_METHODS or request.url.path in _TOS_COMPLETION_PATHS:
         return None
 
     from app.features.tos.service import TosService

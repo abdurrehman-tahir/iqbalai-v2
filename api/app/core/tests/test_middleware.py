@@ -228,7 +228,9 @@ def test_unaccepted_tos_blocks_state_changing_request(client: TestClient) -> Non
                     content={"error": {"code": "TOS_ACCEPTANCE_REQUIRED"}},
                 ),
             ):
-                response = client.post("/secret", headers={"Authorization": "Bearer valid.token.here"})
+                response = client.post(
+                    "/secret", headers={"Authorization": "Bearer valid.token.here"}
+                )
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "TOS_ACCEPTANCE_REQUIRED"
 

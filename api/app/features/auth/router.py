@@ -69,9 +69,7 @@ def _post_login_path(role: str) -> str:
     return paths.get(role, "/")
 
 
-@router.get(
-    "/login", response_model=None, operation_id="oidc_login", include_in_schema=True
-)
+@router.get("/login", response_model=None, operation_id="oidc_login", include_in_schema=True)
 async def login(next: str | None = Query(default=None)) -> RedirectResponse:
     """Create server-side state/nonce/PKCE and redirect to Authentik."""
     transient_id, redirect_url = await start_login(next)
@@ -88,9 +86,7 @@ async def login(next: str | None = Query(default=None)) -> RedirectResponse:
     return response
 
 
-@router.get(
-    "/callback", response_model=None, operation_id="oidc_callback", include_in_schema=True
-)
+@router.get("/callback", response_model=None, operation_id="oidc_callback", include_in_schema=True)
 async def callback(
     request: Request,
     code: str | None = Query(default=None),
@@ -116,7 +112,9 @@ async def callback(
     destination = (
         "/auth/callback?tos=required"
         if bool(login_result["tos_acceptance_required"])
-        else next_path if next_path != "/" else _post_login_path(str(login_result["role"]))
+        else next_path
+        if next_path != "/"
+        else _post_login_path(str(login_result["role"]))
     )
     response = RedirectResponse(
         f"{get_settings().APP_URL.rstrip('/')}{destination}",
@@ -136,9 +134,7 @@ async def callback(
 async def refresh(request: Request) -> JSONResponse:
     """Rotate the opaque refresh reference and replace the access cookie."""
     try:
-        access, reference = await rotate_refresh_token(
-            request.cookies.get(_REFRESH_COOKIE, "")
-        )
+        access, reference = await rotate_refresh_token(request.cookies.get(_REFRESH_COOKIE, ""))
     except ValueError:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, detail="Session refresh failed"

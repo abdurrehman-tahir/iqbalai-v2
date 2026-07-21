@@ -60,9 +60,7 @@ async def start_login(next_path: str | None) -> tuple[str, str]:
         "verifier": verifier,
         "next": safe_next_path(next_path),
     }
-    await get_redis().setex(
-        f"oidc:state:{transient_id}", _STATE_TTL_SECONDS, json.dumps(record)
-    )
+    await get_redis().setex(f"oidc:state:{transient_id}", _STATE_TTL_SECONDS, json.dumps(record))
     params = urlencode(
         {
             "client_id": settings.OIDC_CLIENT_ID,
@@ -78,9 +76,9 @@ async def start_login(next_path: str | None) -> tuple[str, str]:
     return transient_id, f"{_endpoint('authorize')}?{params}"
 
 
-async def complete_login(transient_id: str | None, state: str | None, code: str | None) -> tuple[
-    OidcCallbackTokens, str
-]:
+async def complete_login(
+    transient_id: str | None, state: str | None, code: str | None
+) -> tuple[OidcCallbackTokens, str]:
     """Validate state and nonce, exchange the authorization code server-side."""
     if not transient_id or not state or not code:
         raise ValueError("Missing OIDC callback parameters")
