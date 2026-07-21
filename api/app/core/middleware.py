@@ -229,7 +229,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path in PUBLIC_PATHS:
             return await call_next(request)
 
-        token = request.cookies.get("iqbalai_access")
+        cookie_token = request.cookies.get("iqbalai_access")
+        token = cookie_token
         authorization = request.headers.get("Authorization", "")
         # Temporary tooling compatibility during T-244. T-245 removes this
         # fallback once every browser/E2E helper uses the cookie session.
@@ -280,7 +281,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
             tos_blocked = await _tos_required_block(request, user)
             if tos_blocked is not None:
                 return tos_blocked
-        if not _same_origin_mutation(request):
+        # Bearer auth remains temporarily available to non-browser tooling until
+        # the T-245 cutover removes it; CSRF origin checks protect cookie sessions.
+        if cookie_token is not None and not _same_origin_mutation(request):
             return JSONResponse(
                 status_code=403,
                 content={
