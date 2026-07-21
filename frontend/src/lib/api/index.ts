@@ -161,17 +161,17 @@ function parseApiErrorBody(
   };
 }
 
-async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
+async function request<T>(path: string, options: RequestInit = {}, _token?: string): Promise<T> {
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> | undefined),
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    credentials: "include",
+    headers,
+  });
 
   if (!res.ok) {
     let errorJson: {
@@ -200,14 +200,12 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
   return (envelope.data ?? envelope) as T;
 }
 
-async function requestFormData<T>(path: string, formData: FormData, token?: string): Promise<T> {
+async function requestFormData<T>(path: string, formData: FormData, _token?: string): Promise<T> {
   const headers: Record<string, string> = {};
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
 
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
+    credentials: "include",
     headers,
     body: formData,
   });
@@ -230,6 +228,8 @@ async function requestFormData<T>(path: string, formData: FormData, token?: stri
 export const authApi = {
   postLogin: (token: string) =>
     request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
+  me: () => request<PostLoginResponse>("/auth/me"),
+  logout: () => request<{ logged_out: boolean }>("/auth/logout", { method: "POST" }),
 
   acceptInvite: (data: AcceptInviteRequest) =>
     request<{ status: string; email?: string; message: string }>("/auth/accept-invite", {
@@ -928,10 +928,10 @@ export interface BulkImportJob {
   completed_at: string | null;
 }
 
-async function uploadRequest<T>(path: string, formData: FormData, token: string): Promise<T> {
+async function uploadRequest<T>(path: string, formData: FormData, _token: string): Promise<T> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
+    credentials: "include",
     body: formData,
   });
 
@@ -1071,9 +1071,9 @@ export interface DataRightsStatusRead {
   deletion_policy_message: string;
 }
 
-async function downloadRequest(path: string, token: string): Promise<Blob> {
+async function downloadRequest(path: string, _token: string): Promise<Blob> {
   const res = await fetch(`${API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
+    credentials: "include",
   });
   if (!res.ok) {
     let message = `Request failed with status ${res.status}`;

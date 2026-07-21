@@ -22,7 +22,12 @@ def _echo_claims(request: Request) -> JSONResponse:
 
 
 def _make_test_app() -> Starlette:
-    app = Starlette(routes=[Route("/secret", _echo_claims), Route("/health", _echo_claims)])
+    app = Starlette(
+        routes=[
+            Route("/secret", _echo_claims, methods=["GET", "POST"]),
+            Route("/health", _echo_claims),
+        ]
+    )
     app.add_middleware(AuthMiddleware)
     return app
 
@@ -72,6 +77,8 @@ _EXPECTED_PUBLIC_PATHS = frozenset(
         # OIDC redirect-flow entry points (§6.4)
         "/api/v1/auth/callback",
         "/api/v1/auth/login",
+        "/api/v1/auth/refresh",
+        "/api/v1/auth/logout",
         # Pre-auth onboarding (§6.20 / A-001 / Flow-2 / Flow-4)
         "/api/v1/auth/accept-invite",
         "/api/v1/independent/signup",
@@ -177,6 +184,18 @@ def test_valid_token_passes_through(client: TestClient) -> None:
     assert response.status_code == 200
 
 
+def test_access_cookie_authenticates_request(client: TestClient) -> None:
+    fake_claims = {"sub": "user-123", "role": "teacher"}
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            response = client.get("/secret", cookies={"iqbalai_access": "cookie.token"})
+    assert response.status_code == 200
+
+
 def test_valid_token_claims_enriched_from_database(client: TestClient) -> None:
     fake_claims = {"sub": "user-123", "role": "student", "email": "admin@district.edu"}
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
@@ -191,6 +210,27 @@ def test_valid_token_claims_enriched_from_database(client: TestClient) -> None:
     assert body["claims"]["role"] == "district_admin"
     assert body["claims"]["district_id"] == "district-abc"
     assert body["claims"]["user_id"] == "user-db-1"
+
+
+def test_unaccepted_tos_blocks_state_changing_request(client: TestClient) -> None:
+    fake_claims = {"sub": "user-123", "role": "teacher"}
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware._resolve_active_user",
+            new_callable=AsyncMock,
+            return_value=_db_user(),
+        ):
+            with patch(
+                "app.core.middleware._tos_required_block",
+                new_callable=AsyncMock,
+                return_value=JSONResponse(
+                    status_code=403,
+                    content={"error": {"code": "TOS_ACCEPTANCE_REQUIRED"}},
+                ),
+            ):
+                response = client.post("/secret", headers={"Authorization": "Bearer valid.token.here"})
+    assert response.status_code == 403
+    assert response.json()["error"]["code"] == "TOS_ACCEPTANCE_REQUIRED"
 
 
 def test_suspended_user_returns_403(client: TestClient) -> None:

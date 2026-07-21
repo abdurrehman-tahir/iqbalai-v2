@@ -10,12 +10,13 @@ import structlog
 from jose import JWTError, jwk, jwt
 
 from app.config import get_settings
+from app.infrastructure.cache.client import get_redis
 
 logger = structlog.get_logger(__name__)
 
 _jwks_cache: dict[str, Any] | None = None
 _jwks_cache_expires_at: float = 0.0
-_JWKS_TTL_SECONDS = 300
+_JWKS_TTL_SECONDS = 3600
 
 
 async def _fetch_jwks(jwks_url: str) -> dict[str, Any]:
@@ -59,8 +60,9 @@ async def decode_jwt(token: str) -> dict[str, object] | None:
     """Decode and validate a JWT issued by Authentik.
 
     Returns the claims dict on success, None on any validation failure.
-    Validation is intentionally lenient in dev (no audience check) — tighten
-    per ARCH §6.4 when Authentik is fully wired.
+    Both issuer and audience are mandatory in every environment. Local
+    Authentik must therefore be configured with the same client/issuer contract
+    as staging rather than relying on a silently permissive validator.
     """
     settings = get_settings()
     try:
@@ -73,10 +75,27 @@ async def decode_jwt(token: str) -> dict[str, object] | None:
         claims: dict[str, object] = jwt.decode(
             token,
             signing_key,
-            algorithms=["RS256"],
-            options={"verify_aud": False, "verify_iss": False},
+            algorithms=["ES256", "RS256"],
+            issuer=settings.OIDC_ISSUER_URL,
+            audience=settings.OIDC_CLIENT_ID,
+            options={"verify_aud": True, "verify_iss": True},
         )
         return claims
     except (JWTError, httpx.HTTPError, httpx.TransportError) as exc:
         logger.debug("jwt_decode_failed", reason=str(exc))
         return None
+
+
+async def blacklist_jti(claims: dict[str, object]) -> None:
+    """Blacklist an access token until its natural expiration after logout."""
+    jti = str(claims.get("jti", ""))
+    exp = claims.get("exp")
+    if not jti or not isinstance(exp, (int, float)):
+        return
+    ttl = max(1, int(exp - time.time()))
+    await get_redis().setex(f"auth:blacklist:{jti}", ttl, "1")
+
+
+async def is_jti_blacklisted(claims: dict[str, object]) -> bool:
+    jti = str(claims.get("jti", ""))
+    return bool(jti and await get_redis().exists(f"auth:blacklist:{jti}"))

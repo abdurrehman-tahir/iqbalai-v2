@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from pydantic import model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -15,6 +16,7 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
+    ENVIRONMENT: str = "development"
 
     # Database
     DB_URL: str = "postgresql+asyncpg://iqbalai:iqbalai@localhost:5432/iqbalai"
@@ -117,6 +119,29 @@ class Settings(BaseSettings):
     @property
     def cors_allowed_origins(self) -> list[str]:
         return [o.strip() for o in self.CORS_ALLOWED_ORIGINS.split(",") if o.strip()]
+
+    @model_validator(mode="after")
+    def require_oidc_values_in_production(self) -> "Settings":
+        """Prevent a deployed API from silently trusting local Authentik defaults."""
+        if self.ENVIRONMENT.lower() == "production":
+            required = {
+                "OIDC_ISSUER_URL": self.OIDC_ISSUER_URL,
+                "OIDC_CLIENT_ID": self.OIDC_CLIENT_ID,
+                "OIDC_CLIENT_SECRET": self.OIDC_CLIENT_SECRET,
+                "OIDC_JWKS_URL": self.OIDC_JWKS_URL,
+                "APP_URL": self.APP_URL,
+            }
+            missing = [
+                name
+                for name, value in required.items()
+                if not value or "localhost" in value or value == "change_me"
+            ]
+            if missing:
+                raise ValueError(
+                    "Production authentication settings must be explicitly configured: "
+                    + ", ".join(missing)
+                )
+        return self
 
 
 @lru_cache

@@ -281,7 +281,8 @@ describe("auditApi + libraryApi", () => {
     expect(url).toContain("title=guide");
     expect(url).toContain("content_type=curriculum");
     expect(init.body).toBeInstanceOf(FormData);
-    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
+    expect(init.credentials).toBe("include");
+    expect((init.headers as Record<string, string>).Authorization).toBeUndefined();
     expect((init.headers as Record<string, string>)["Content-Type"]).toBeUndefined();
   });
 });

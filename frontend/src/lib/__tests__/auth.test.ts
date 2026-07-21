@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from "vitest";
 import {
+  ALL_APP_ROLES,
   TOKEN_KEY,
   USER_KEY,
   getToken,
@@ -25,29 +26,21 @@ beforeEach(() => {
 });
 
 describe("getToken", () => {
-  it("returns null when no token is stored", () => {
+  it("never exposes an HttpOnly cookie token to JavaScript", () => {
     expect(getToken()).toBeNull();
-  });
-
-  it("returns the stored token", () => {
     sessionStorage.setItem(TOKEN_KEY, "my-jwt");
-    expect(getToken()).toBe("my-jwt");
+    expect(getToken()).toBeNull();
   });
 });
 
 describe("setToken / clearToken", () => {
-  it("stores and then clears the token", () => {
+  it("does not persist a token and clears only display state", () => {
     setToken("abc.def.ghi");
-    expect(getToken()).toBe("abc.def.ghi");
+    expect(sessionStorage.getItem(TOKEN_KEY)).toBeNull();
 
-    clearToken();
-    expect(getToken()).toBeNull();
-  });
-
-  it("clearToken also removes the stored user", () => {
-    setToken("tok");
     setUser(MOCK_USER);
     clearToken();
+    expect(getToken()).toBeNull();
     expect(getUser()).toBeNull();
   });
 });
@@ -69,34 +62,34 @@ describe("getUser / setUser", () => {
 });
 
 describe("getLoginUrl", () => {
-  it("adds prompt=login and login_hint for post-invite sign-in", () => {
+  it("targets the API-owned OIDC entry point", () => {
     const url = getLoginUrl({
       promptLogin: true,
       loginHint: "district@school.edu",
     });
-    expect(url).toContain("prompt=login");
-    expect(url).toContain("login_hint=district%40school.edu");
+    expect(url).toContain("/api/v1/auth/login");
+    expect(url).not.toContain("authorize");
+    expect(url).not.toContain("login_hint");
   });
 });
 
 describe("getPostLoginPath", () => {
-  it("routes district_admin to district schools dashboard", () => {
-    expect(getPostLoginPath("district_admin")).toBe("/admin/district/schools");
-  });
+  const expectedPaths = {
+    platform_admin: "/admin",
+    district_admin: "/admin/district/schools",
+    school_admin: "/school/admin",
+    coordinator: "/coordinator",
+    teacher: "/teacher",
+    student: "/student",
+    parent: "/parent",
+    independent_teacher: "/independent/teacher",
+    independent_student: "/independent/student",
+  } as const;
 
-  it("routes school_admin to school dashboard", () => {
-    expect(getPostLoginPath("school_admin")).toBe("/school/admin");
-  });
-
-  it("routes coordinator to coordinator dashboard", () => {
-    expect(getPostLoginPath("coordinator")).toBe("/coordinator");
-  });
-
-  it("routes teacher to teacher dashboard", () => {
-    expect(getPostLoginPath("teacher")).toBe("/teacher");
-  });
-
-  it("routes platform_admin to platform admin home", () => {
-    expect(getPostLoginPath("platform_admin")).toBe("/admin");
+  it("maps every generated application role to its dashboard", () => {
+    expect(ALL_APP_ROLES).toEqual(Object.keys(expectedPaths));
+    for (const role of ALL_APP_ROLES) {
+      expect(getPostLoginPath(role)).toBe(expectedPaths[role]);
+    }
   });
 });

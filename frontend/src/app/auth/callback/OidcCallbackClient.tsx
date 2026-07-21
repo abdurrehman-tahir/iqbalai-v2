@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authApi, tosApi, ApiError } from "@/lib/api";
-import { setToken, setUser, getPostLoginPath } from "@/lib/auth";
+import { clearToken, getPostLoginPath, setUser, toAppRole } from "@/lib/auth";
 import { TosModal } from "./TosModal";
 
 type Phase = "loading" | "tos" | "suspended" | "error";
@@ -17,67 +17,19 @@ interface TosData {
 
 export function OidcCallbackClient() {
   const router = useRouter();
-  const searchParams = useSearchParams();
   const t = useTranslations("auth.callback");
 
   const [phase, setPhase] = useState<Phase>("loading");
   const [errorMsg, setErrorMsg] = useState("");
   const [tosData, setTosData] = useState<TosData | null>(null);
-  const [pendingToken, setPendingToken] = useState<string | null>(null);
-  // Guard against React 18 StrictMode double-invocation: authorization codes are single-use.
-  const exchangeAttempted = useRef(false);
-
   useEffect(() => {
-    if (exchangeAttempted.current) return;
-    exchangeAttempted.current = true;
-
-    const code = searchParams.get("code");
-    const error = searchParams.get("error");
-
-    if (error) {
-      setErrorMsg(t("error.auth_denied"));
-      setPhase("error");
-      return;
-    }
-
-    if (!code) {
-      setErrorMsg(t("error.no_code"));
-      setPhase("error");
-      return;
-    }
-
-    // Exchange code for token via Authentik token endpoint, then call post-login
-    void exchangeCode(code);
+    void loadCookieSession();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function exchangeCode(code: string) {
+  async function loadCookieSession() {
     try {
-      const authentikBase = process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
-      const clientId = process.env.NEXT_PUBLIC_AUTHENTIK_CLIENT_ID ?? "iqbalai-frontend";
-      const redirectUri =
-        (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") + "/auth/callback";
-
-      const res = await fetch(`${authentikBase}/application/o/token/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          grant_type: "authorization_code",
-          code,
-          client_id: clientId,
-          redirect_uri: redirectUri,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Token exchange failed");
-      const tokenData = (await res.json()) as { access_token: string };
-      const token = tokenData.access_token;
-
-      setToken(token);
-      setPendingToken(token);
-
-      // Post-login to create/update user record
-      const user = await authApi.postLogin(token);
+      const user = await authApi.me();
       setUser({
         user_id: user.user_id,
         email: user.email,
@@ -94,8 +46,7 @@ export function OidcCallbackClient() {
       }
 
       if (user.tos_acceptance_required && user.current_tos_version_id) {
-        // Fetch ToS content to display in modal
-        const tos = await tosApi.getCurrent(token);
+        const tos = await tosApi.getCurrent("");
         setTosData({
           id: tos.id,
           version: tos.version,
@@ -103,7 +54,7 @@ export function OidcCallbackClient() {
         });
         setPhase("tos");
       } else {
-        router.replace(getPostLoginPath(user.role));
+        router.replace(getPostLoginPath(toAppRole(user.role)));
       }
     } catch (err) {
       console.error("OIDC callback error:", err);
@@ -118,13 +69,11 @@ export function OidcCallbackClient() {
   }
 
   async function handleTosAccept() {
-    if (!pendingToken || !tosData) return;
+    if (!tosData) return;
     try {
-      await tosApi.acceptTos(pendingToken, tosData.id);
-      const stored = JSON.parse(sessionStorage.getItem("iqbalai_user") ?? "{}") as {
-        role?: string;
-      };
-      router.replace(getPostLoginPath(stored.role ?? "platform_admin"));
+      const user = await authApi.me();
+      await tosApi.acceptTos("", tosData.id);
+      router.replace(getPostLoginPath(toAppRole(user.role)));
     } catch {
       setErrorMsg(t("error.tos_accept_failed"));
       setPhase("error");
@@ -132,10 +81,9 @@ export function OidcCallbackClient() {
   }
 
   async function handleTosDecline() {
-    if (!pendingToken) return;
     try {
-      await tosApi.declineTos(pendingToken);
-      import("@/lib/auth").then(({ clearToken }) => clearToken());
+      await tosApi.declineTos("");
+      clearToken();
       setPhase("suspended");
     } catch {
       setErrorMsg(t("error.tos_decline_failed"));

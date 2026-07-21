@@ -9,7 +9,8 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from app.core.security import decode_jwt
+from app.config import get_settings
+from app.core.security import decode_jwt, is_jti_blacklisted
 from app.core.tenant import get_tenant_type
 from app.db.session import async_session_factory
 from app.features.independent_users.models import IndependentUser, IndependentUserAccountStatus
@@ -19,6 +20,15 @@ from app.features.users.repository import UserRepository
 from app.features.users.service import _ROLE_LOGIN_PRIORITY
 
 logger = structlog.get_logger(__name__)
+_STATE_CHANGING_METHODS = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+_TOS_COMPLETION_PATHS = frozenset(
+    {
+        "/api/v1/auth/post-login",
+        "/api/v1/auth/logout",
+        "/api/v1/users/me/accept-tos",
+        "/api/v1/users/me/decline-tos",
+    }
+)
 
 # Paths that skip JWT validation entirely
 PUBLIC_PATHS: frozenset[str] = frozenset(
@@ -32,6 +42,8 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/openapi.json",
         "/api/v1/auth/callback",
         "/api/v1/auth/login",
+        "/api/v1/auth/refresh",
+        "/api/v1/auth/logout",
         "/api/v1/auth/accept-invite",
         "/api/v1/independent/signup",
         "/api/v1/parents/signup",
@@ -154,6 +166,33 @@ def _account_status_block(user: User | IndependentUser) -> JSONResponse | None:
     return None
 
 
+async def _tos_required_block(
+    request: Request, user: User | IndependentUser
+) -> JSONResponse | None:
+    """Enforce ToS acceptance before a user can mutate application state."""
+    if (
+        request.method not in _STATE_CHANGING_METHODS
+        or request.url.path in _TOS_COMPLETION_PATHS
+    ):
+        return None
+
+    from app.features.tos.service import TosService
+
+    async with async_session_factory() as session:
+        accepted = await TosService(session).check_user_has_accepted_current(user.id)
+    if accepted:
+        return None
+    return JSONResponse(
+        status_code=403,
+        content={
+            "error": {
+                "code": "TOS_ACCEPTANCE_REQUIRED",
+                "message": "Terms of Service acceptance required",
+            }
+        },
+    )
+
+
 def _allow_suspended_parent_post_login(request: Request, user: User | IndependentUser) -> bool:
     """Let auto-suspended unlinked parents reach post-login so auth can resume them."""
     return (
@@ -162,6 +201,18 @@ def _allow_suspended_parent_post_login(request: Request, user: User | Independen
         and user.role == UserRole.PARENT
         and user.status == UserAccountStatus.SUSPENDED
     )
+
+
+def _same_origin_mutation(request: Request) -> bool:
+    """Apply the §6 CSRF Origin/Referer defense to cookie-authenticated writes."""
+    if request.method not in _STATE_CHANGING_METHODS:
+        return True
+    expected = get_settings().APP_URL.rstrip("/")
+    origin = request.headers.get("origin")
+    if origin:
+        return origin.rstrip("/") == expected
+    referer = request.headers.get("referer")
+    return bool(referer and referer.startswith(f"{expected}/"))
 
 
 class AuthMiddleware(BaseHTTPMiddleware):
@@ -181,19 +232,23 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.url.path in PUBLIC_PATHS:
             return await call_next(request)
 
+        token = request.cookies.get("iqbalai_access")
         authorization = request.headers.get("Authorization", "")
-        if not authorization.startswith("Bearer "):
+        # Temporary tooling compatibility during T-244. T-245 removes this
+        # fallback once every browser/E2E helper uses the cookie session.
+        if token is None and authorization.startswith("Bearer "):
+            token = authorization.removeprefix("Bearer ")
+        if token is None:
             return JSONResponse(
                 status_code=401,
                 content={
                     "error": {
                         "code": "AUTHENTICATION_REQUIRED",
-                        "message": "Bearer token required",
+                        "message": "Authentication cookie required",
                     }
                 },
             )
 
-        token = authorization.removeprefix("Bearer ")
         claims = await decode_jwt(token)
         if claims is None:
             return JSONResponse(
@@ -206,6 +261,17 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 },
             )
 
+        if await is_jti_blacklisted(claims):
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": {
+                        "code": "AUTHENTICATION_REQUIRED",
+                        "message": "Session has been revoked",
+                    }
+                },
+            )
+
         claims["tenant_type"] = get_tenant_type(claims)
 
         user = await _resolve_active_user(claims)
@@ -214,6 +280,19 @@ class AuthMiddleware(BaseHTTPMiddleware):
             if blocked is not None and not _allow_suspended_parent_post_login(request, user):
                 return blocked
             claims = _enrich_claims_from_user(claims, user)
+            tos_blocked = await _tos_required_block(request, user)
+            if tos_blocked is not None:
+                return tos_blocked
+        if not _same_origin_mutation(request):
+            return JSONResponse(
+                status_code=403,
+                content={
+                    "error": {
+                        "code": "CSRF_ORIGIN_INVALID",
+                        "message": "Cross-origin state-changing request rejected",
+                    }
+                },
+            )
 
         request.state.claims = claims
         return await call_next(request)

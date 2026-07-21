@@ -1,18 +1,17 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getToken } from "@/lib/auth";
 
 /**
- * Session token lives in sessionStorage (browser-only).
- * Use `mounted` so the first client render matches SSR (avoids hydration errors).
+ * The HttpOnly cookie is verified by the API. `token` is a compatibility
+ * sentinel for existing feature clients while their token parameters retire.
  */
 export function useClientAuth() {
   const [mounted, setMounted] = useState(false);
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    setToken(getToken());
+    setToken("cookie-session");
     setMounted(true);
   }, []);
 

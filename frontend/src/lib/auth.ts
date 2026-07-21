@@ -1,7 +1,8 @@
 /**
- * Auth helpers — token storage and retrieval.
- * The frontend stores the Authentik JWT in sessionStorage after OIDC callback.
+ * Auth helpers for the API-owned, HttpOnly-cookie OIDC session.
  */
+
+import type { components } from "@/lib/api/schema";
 
 export const TOKEN_KEY = "iqbalai_access_token";
 export const USER_KEY = "iqbalai_user";
@@ -17,16 +18,15 @@ export interface StoredUser {
 }
 
 export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return sessionStorage.getItem(TOKEN_KEY);
+  // Tokens are intentionally HttpOnly and never exposed to browser JavaScript.
+  return null;
 }
 
-export function setToken(token: string): void {
-  sessionStorage.setItem(TOKEN_KEY, token);
+export function setToken(_token: string): void {
+  // Compatibility no-op while feature callers migrate to cookie credentials.
 }
 
 export function clearToken(): void {
-  sessionStorage.removeItem(TOKEN_KEY);
   sessionStorage.removeItem(USER_KEY);
 }
 
@@ -52,34 +52,73 @@ export interface LoginUrlOptions {
   loginHint?: string;
 }
 
-/** Authentik OIDC login URL (triggers browser redirect). */
+/** API-owned OIDC login endpoint (the API creates PKCE/state/nonce). */
 export function getLoginUrl(options: LoginUrlOptions = {}): string {
-  const authentikBase =
-    process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
-  const clientId =
-    process.env.NEXT_PUBLIC_AUTHENTIK_CLIENT_ID ?? "iqbalai-frontend";
-  const redirectUri = encodeURIComponent(
-    (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") +
-      "/auth/callback",
-  );
-  const params = new URLSearchParams({
-    client_id: clientId,
-    response_type: "code",
-    scope: "openid profile email",
-    redirect_uri: decodeURIComponent(redirectUri),
-  });
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+  const params = new URLSearchParams();
   if (options.promptLogin) {
-    params.set("prompt", "login");
+    // Prompt and login_hint are advisory-only until the API accepts them. They
+    // must never be used to build an IdP authorize URL in the browser.
+    params.set("next", "/");
   }
-  if (options.loginHint) {
-    params.set("login_hint", options.loginHint);
-  }
-  return `${authentikBase}/application/o/authorize/?${params.toString()}`;
+  return `${apiBase}/auth/login${params.size ? `?${params.toString()}` : ""}`;
 }
 
-/** Route a user lands on after login based on role (flow-2 §3.1). */
-export function getPostLoginPath(role: string): string {
+/**
+ * Every role that can log in — the school-tenant `UserRole` union plus the two
+ * independent-tenant roles. Sourced from the generated OpenAPI types so the set
+ * tracks the backend enum automatically (frontend-master Rule 14 [enum-switch-drift]).
+ */
+export type AppRole =
+  | components["schemas"]["UserRole"]
+  | components["schemas"]["IndependentUserRole"];
+
+/**
+ * Compile-time-exhaustive role set. `Record<AppRole, true>` forces every union
+ * member to appear as a key: add a role to the backend enum (regenerate the
+ * types) and this object fails `tsc` until the new role is handled here and in
+ * `getPostLoginPath`. `ALL_APP_ROLES` derives its runtime list from these keys,
+ * so tests never hand-enumerate roles (audit A1 root cause).
+ */
+const APP_ROLES: Record<AppRole, true> = {
+  platform_admin: true,
+  district_admin: true,
+  school_admin: true,
+  coordinator: true,
+  teacher: true,
+  student: true,
+  parent: true,
+  independent_teacher: true,
+  independent_student: true,
+};
+
+export const ALL_APP_ROLES = Object.keys(APP_ROLES) as AppRole[];
+
+/** True when an arbitrary string is a known application role. */
+export function isAppRole(role: string): role is AppRole {
+  return Object.prototype.hasOwnProperty.call(APP_ROLES, role);
+}
+
+/**
+ * Coerce an untrusted role string (e.g. from a decoded JWT) to a known
+ * `AppRole`, falling back to `platform_admin` for unrecognised values so a
+ * malformed token never crashes routing.
+ */
+export function toAppRole(role: string): AppRole {
+  return isAppRole(role) ? role : "platform_admin";
+}
+
+/**
+ * Route a user lands on after login based on role (flow-2 §3.1).
+ * Exhaustive switch over the full `AppRole` union: the `never` guard in the
+ * default branch makes deleting any case (or adding an unhandled role to the
+ * enum) fail `tsc` — closing audit A1 where `student`/`parent` silently fell
+ * through to `/admin`.
+ */
+export function getPostLoginPath(role: AppRole): string {
   switch (role) {
+    case "platform_admin":
+      return "/admin";
     case "district_admin":
       return "/admin/district/schools";
     case "school_admin":
@@ -88,20 +127,21 @@ export function getPostLoginPath(role: string): string {
       return "/coordinator";
     case "teacher":
       return "/teacher";
+    case "student":
+      return "/student";
+    case "parent":
+      return "/parent";
     case "independent_teacher":
       return "/independent/teacher";
     case "independent_student":
       return "/independent/student";
-    default:
-      return "/admin";
+    default: {
+      const _exhaustive: never = role;
+      return _exhaustive;
+    }
   }
 }
 
 export function getLogoutUrl(): string {
-  const authentikBase =
-    process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
-  const redirectUri = encodeURIComponent(
-    (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") + "/login",
-  );
-  return `${authentikBase}/application/o/iqbalai-frontend/end-session/?redirect_uri=${redirectUri}`;
+  return "/logout";
 }

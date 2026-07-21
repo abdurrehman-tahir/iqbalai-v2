@@ -132,6 +132,6 @@ describe("NotificationBell — mark as read", () => {
     await userEvent.click(screen.getByRole("button", { name: "aria_label" }));
     await waitFor(() => screen.getByText("ToS Updated"));
     await userEvent.click(screen.getByText("ToS Updated"));
-    expect(mockMarkRead).toHaveBeenCalledWith("mock-token", "n1");
+    expect(mockMarkRead).toHaveBeenCalledWith("cookie-session", "n1");
   });
 });
