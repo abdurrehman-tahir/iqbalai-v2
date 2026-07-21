@@ -22,7 +22,8 @@ Deployment items (host nginx `/idp` per §15.11, Authentik redirect-URIs/issuer 
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.25 day
-**Status:** todo
+**Status:** done
+**Commit:** f031959
 
 ### Spec source
 - Login-flow audit C6; ARCH §6.6 (PUBLIC_PATHS is a small allowlist of auth/health/docs only)
