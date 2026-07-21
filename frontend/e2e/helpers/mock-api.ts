@@ -206,7 +206,10 @@ async function handleApiRoute(state: MockState, route: Route) {
   }
   const method = request.method();
 
-  if (method === "POST" && path === "/auth/post-login") {
+  if (
+    (method === "POST" && path === "/auth/post-login") ||
+    (method === "GET" && path === "/auth/me")
+  ) {
     await route.fulfill({
       status: 200,
       contentType: "application/json",
