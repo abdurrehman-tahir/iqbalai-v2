@@ -56,6 +56,25 @@ class _FakeSchoolUserRepo:
         return None
 
 
+class _FakeSyllabus:
+    """Minimal stand-in for an ExamSyllabus row (T-238 signup catalog)."""
+
+    def __init__(self, syllabus_id: str, name: str) -> None:
+        self.id = syllabus_id
+        self.name = name
+        self.exam_board = "FBISE"
+        self.language = "en"
+        self.deleted_at = None
+
+
+class _FakeSyllabiRepo:
+    def __init__(self, session: Any) -> None:
+        pass
+
+    async def list_syllabi(self) -> list[_FakeSyllabus]:
+        return [_FakeSyllabus("syl-1", "Matric Science")]
+
+
 @pytest.fixture(autouse=True)
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeIndependentUserRepo.store = {}
@@ -67,6 +86,10 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "app.features.independent_signup.service.UserRepository",
         _FakeSchoolUserRepo,
+    )
+    monkeypatch.setattr(
+        "app.features.independent_signup.service.ExamSyllabiRepository",
+        _FakeSyllabiRepo,
     )
     monkeypatch.setattr("app.features.independent_signup.service.audit", AsyncMock())
     monkeypatch.setattr("app.features.independent_signup.service.send_account_email", AsyncMock())
@@ -97,6 +120,16 @@ async def test_get_independent_signup_info() -> None:
     assert "independent_teacher" in data["roles"]
     assert "independent_student" in data["roles"]
     assert "en" in data["languages"]
+    # T-238: exam-framework catalog now rides the public signup-info payload
+    # instead of a `/me/`-prefixed PUBLIC_PATHS bypass.
+    assert data["exam_frameworks"] == [
+        {
+            "id": "syl-1",
+            "name": "Matric Science",
+            "exam_board": "FBISE",
+            "language": "en",
+        }
+    ]
 
 
 @pytest.mark.asyncio

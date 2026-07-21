@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
-import { independentSignupApi, independentStudentOnboardingApi } from "@/lib/api";
+import { independentSignupApi } from "@/lib/api";
 import { clearToken, getLoginUrl } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -70,8 +70,10 @@ export function IndependentSignupClient() {
   useEffect(() => {
     void independentSignupApi.getInfo().then((info) => {
       if (info.languages.length > 0) setLanguages(info.languages);
+      // T-238: exam-framework catalog is served on the public signup-info
+      // payload (not a `/me/`-prefixed public endpoint).
+      setExamFrameworks(info.exam_frameworks);
     });
-    void independentStudentOnboardingApi.listExamFrameworks().then(setExamFrameworks);
   }, []);
 
   async function onSubmit(values: SignupFormValues) {

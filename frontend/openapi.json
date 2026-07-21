@@ -2016,6 +2016,13 @@
       },
       "IndependentSignupInfo": {
         "properties": {
+          "exam_frameworks": {
+            "items": {
+              "$ref": "#/components/schemas/ExamFrameworkOption"
+            },
+            "title": "Exam Frameworks",
+            "type": "array"
+          },
           "languages": {
             "items": {
               "type": "string"
@@ -2033,7 +2040,8 @@
         },
         "required": [
           "roles",
-          "languages"
+          "languages",
+          "exam_frameworks"
         ],
         "title": "IndependentSignupInfo",
         "type": "object"
@@ -5290,27 +5298,6 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[EligibleTeacherRead]]",
-        "type": "object"
-      },
-      "SuccessEnvelope_list_ExamFrameworkOption__": {
-        "properties": {
-          "data": {
-            "items": {
-              "$ref": "#/components/schemas/ExamFrameworkOption"
-            },
-            "title": "Data",
-            "type": "array"
-          },
-          "message": {
-            "default": "ok",
-            "title": "Message",
-            "type": "string"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "title": "SuccessEnvelope[list[ExamFrameworkOption]]",
         "type": "object"
       },
       "SuccessEnvelope_list_ExamFrameworkRead__": {
@@ -10033,27 +10020,6 @@
         "summary": "Self-signup for independent teachers and students",
         "tags": [
           "independent-signup"
-        ]
-      }
-    },
-    "/api/v1/independent/students/me/exam-frameworks": {
-      "get": {
-        "operationId": "list_independent_exam_frameworks",
-        "responses": {
-          "200": {
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/SuccessEnvelope_list_ExamFrameworkOption__"
-                }
-              }
-            },
-            "description": "Successful Response"
-          }
-        },
-        "summary": "List exam frameworks available for independent student signup",
-        "tags": [
-          "independent-student-onboarding"
         ]
       }
     },

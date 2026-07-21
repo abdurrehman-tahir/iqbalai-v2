@@ -10,25 +10,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.responses import SuccessEnvelope, success
 from app.features.independent_student_onboarding.schemas import (
-    ExamFrameworkOption,
     IndependentStudentOnboardingRead,
     IndependentStudentProfileComplete,
 )
 from app.features.independent_student_onboarding.service import IndependentStudentOnboardingService
 
 router = APIRouter(prefix="/independent/students/me", tags=["independent-student-onboarding"])
-
-
-@router.get(
-    "/exam-frameworks",
-    response_model=SuccessEnvelope[list[ExamFrameworkOption]],
-    operation_id="list_independent_exam_frameworks",
-    summary="List exam frameworks available for independent student signup",
-)
-async def list_exam_frameworks(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
-    svc = IndependentStudentOnboardingService(db)
-    options = await svc.list_exam_frameworks()
-    return success([ExamFrameworkOption.model_validate(o).model_dump() for o in options])
 
 
 @router.get(

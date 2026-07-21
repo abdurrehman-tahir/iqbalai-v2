@@ -15,14 +15,13 @@ const signupMock = vi.fn().mockResolvedValue({
 
 vi.mock("@/lib/api", () => ({
   independentSignupApi: {
+    // T-238: exam-framework catalog is served on the public signup-info payload.
     getInfo: vi.fn().mockResolvedValue({
       roles: ["independent_teacher", "independent_student"],
       languages: ["en", "ur"],
+      exam_frameworks: [],
     }),
     signup: (...args: unknown[]) => signupMock(...args),
-  },
-  independentStudentOnboardingApi: {
-    listExamFrameworks: vi.fn().mockResolvedValue([]),
   },
 }));
 

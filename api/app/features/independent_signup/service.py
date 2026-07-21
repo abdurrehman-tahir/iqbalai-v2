@@ -16,6 +16,7 @@ from app.features.independent_student_onboarding.models import IndependentStuden
 from app.features.independent_student_onboarding.repository import (
     IndependentStudentProfileRepository,
 )
+from app.features.independent_student_onboarding.schemas import ExamFrameworkOption
 from app.features.independent_users.models import (
     IndependentUser,
     IndependentUserAccountStatus,
@@ -46,23 +47,27 @@ class IndependentSignupService:
         self._school_users = UserRepository(session)
         self._authentik = authentik or get_authentik_client()
 
-    def get_signup_info(self) -> IndependentSignupInfo:
+    async def get_signup_info(self) -> IndependentSignupInfo:
+        # Exam frameworks are the public catalog the signup form needs pre-auth
+        # (T-238): served here rather than via a `/me/`-prefixed public path.
+        syllabi = await self._syllabi.list_syllabi()
+        frameworks = [
+            ExamFrameworkOption(
+                id=s.id,
+                name=s.name,
+                exam_board=s.exam_board,
+                language=s.language,
+            )
+            for s in syllabi
+            if s.deleted_at is None
+        ]
         return IndependentSignupInfo(
             roles=[
                 IndependentUserRole.INDEPENDENT_TEACHER.value,
                 IndependentUserRole.INDEPENDENT_STUDENT.value,
             ],
             languages=list(SUPPORTED_LANGUAGES),
-        )
-
-    @staticmethod
-    def signup_info() -> IndependentSignupInfo:
-        return IndependentSignupInfo(
-            roles=[
-                IndependentUserRole.INDEPENDENT_TEACHER.value,
-                IndependentUserRole.INDEPENDENT_STUDENT.value,
-            ],
-            languages=list(SUPPORTED_LANGUAGES),
+            exam_frameworks=frameworks,
         )
 
     async def _ensure_email_available(self, email: str) -> None:

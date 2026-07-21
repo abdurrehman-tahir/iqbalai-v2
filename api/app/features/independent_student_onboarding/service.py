@@ -8,13 +8,11 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, PreconditionFailedError
-from app.features.exam_syllabi.repository import ExamSyllabiRepository
 from app.features.independent_student_onboarding.models import IndependentStudentProfile
 from app.features.independent_student_onboarding.repository import (
     IndependentStudentProfileRepository,
 )
 from app.features.independent_student_onboarding.schemas import (
-    ExamFrameworkOption,
     IndependentStudentOnboardingRead,
     IndependentStudentOnboardingState,
     IndependentStudentProfileComplete,
@@ -64,20 +62,6 @@ class IndependentStudentOnboardingService:
         self._session = session
         self._profile_repo = IndependentStudentProfileRepository(session)
         self._user_repo = IndependentUserRepository(session)
-        self._syllabi_repo = ExamSyllabiRepository(session)
-
-    async def list_exam_frameworks(self) -> list[ExamFrameworkOption]:
-        syllabi = await self._syllabi_repo.list_syllabi()
-        return [
-            ExamFrameworkOption(
-                id=s.id,
-                name=s.name,
-                exam_board=s.exam_board,
-                language=s.language,
-            )
-            for s in syllabi
-            if s.deleted_at is None
-        ]
 
     async def _require_independent_student(self, claims: dict[str, object]) -> IndependentUser:
         user = await self._user_repo.get_by_authentik_id(str(claims.get("sub", "")))

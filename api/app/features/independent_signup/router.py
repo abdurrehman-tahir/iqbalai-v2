@@ -25,8 +25,9 @@ router = APIRouter(prefix="/independent/signup", tags=["independent-signup"])
     operation_id="get_independent_signup_info",
     summary="Independent signup form metadata",
 )
-async def get_independent_signup_info() -> dict[str, Any]:
-    info = IndependentSignupService.signup_info()
+async def get_independent_signup_info(db: AsyncSession = Depends(get_db)) -> dict[str, Any]:
+    svc = IndependentSignupService(db)
+    info = await svc.get_signup_info()
     return success(IndependentSignupInfo.model_validate(info).model_dump())
 
 

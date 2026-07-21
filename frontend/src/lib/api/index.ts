@@ -68,7 +68,6 @@ import type {
   IndependentTeacherProfileComplete,
   IndependentStudentOnboardingRead,
   IndependentStudentProfileComplete,
-  ExamFrameworkOption,
 } from "./types";
 
 const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -385,8 +384,6 @@ export type {
 } from "./types";
 
 export const independentStudentOnboardingApi = {
-  listExamFrameworks: () =>
-    request<ExamFrameworkOption[]>("/independent/students/me/exam-frameworks"),
   getOnboarding: (token: string) =>
     request<IndependentStudentOnboardingRead>(
       "/independent/students/me/onboarding",

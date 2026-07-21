@@ -12,17 +12,6 @@ function envelope<T>(data: T) {
 
 async function installIndependentSignupMocks(page: Page) {
   await page.route(
-    (url) => url.pathname.includes("/api/v1/independent/students/me/exam-frameworks"),
-    async (route: Route) => {
-      await route.fulfill({
-        status: 200,
-        contentType: "application/json",
-        body: envelope([]),
-      });
-    },
-  );
-
-  await page.route(
     (url) => url.pathname.includes("/api/v1/independent/signup"),
     async (route: Route) => {
       const method = route.request().method();
@@ -30,9 +19,11 @@ async function installIndependentSignupMocks(page: Page) {
         await route.fulfill({
           status: 200,
           contentType: "application/json",
+          // T-238: exam-framework catalog now rides the public signup-info payload.
           body: envelope({
             roles: ["independent_teacher", "independent_student"],
             languages: ["en", "ur", "sd", "ps"],
+            exam_frameworks: [],
           }),
         });
         return;

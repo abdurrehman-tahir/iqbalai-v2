@@ -49,6 +49,49 @@ def test_public_paths_includes_auth_callback() -> None:
     assert "/api/v1/auth/callback" in PUBLIC_PATHS
 
 
+# T-238 (audit C6): PUBLIC_PATHS is a governed auth surface (ARCH §6.6 / §22 —
+# "the only way to bypass AuthMiddleware. Small and audited."). This snapshot
+# pins the exact allowlist so ANY future addition/removal fails loudly and must
+# be justified in review. The set is the §6.6 auth/health/docs core PLUS the
+# spec-governed pre-auth onboarding endpoints (independent/parent self-signup and
+# invite acceptance — public by necessity per §6.20 / A-001 / Flow-2/Flow-4, since
+# a signing-up user has no token yet) PLUS the ops/docs aliases. It intentionally
+# does NOT contain any `/me/`-prefixed route: a `/me/` path cannot resolve a user
+# without auth, so exempting one is an auth-bypass, not a feature.
+_EXPECTED_PUBLIC_PATHS = frozenset(
+    {
+        # Health / readiness probes
+        "/health",
+        "/health/ready",
+        "/api/v1/health",
+        "/api/v1/health/ready",
+        # Docs / schema
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        # OIDC redirect-flow entry points (§6.4)
+        "/api/v1/auth/callback",
+        "/api/v1/auth/login",
+        # Pre-auth onboarding (§6.20 / A-001 / Flow-2 / Flow-4)
+        "/api/v1/auth/accept-invite",
+        "/api/v1/independent/signup",
+        "/api/v1/parents/signup",
+        # Ops metrics scrape
+        "/metrics",
+    }
+)
+
+
+def test_public_paths_snapshot_is_exactly_the_governed_allowlist() -> None:
+    assert PUBLIC_PATHS == _EXPECTED_PUBLIC_PATHS
+
+
+def test_public_paths_excludes_me_scoped_exam_frameworks() -> None:
+    # The removed audit-C6 bypass — must never reappear.
+    assert "/api/v1/independent/students/me/exam-frameworks" not in PUBLIC_PATHS
+    assert not any(path.endswith("/me/exam-frameworks") for path in PUBLIC_PATHS)
+
+
 # ---------------------------------------------------------------------------
 # Public path — no auth required
 # ---------------------------------------------------------------------------

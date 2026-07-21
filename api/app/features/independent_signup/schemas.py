@@ -4,12 +4,18 @@ from __future__ import annotations
 
 from pydantic import BaseModel, Field
 
+from app.features.independent_student_onboarding.schemas import ExamFrameworkOption
 from app.features.independent_users.models import IndependentUserRole
 
 
 class IndependentSignupInfo(BaseModel):
     roles: list[str]
     languages: list[str]
+    # Public exam-framework catalog surfaced on the signup form (T-238): the
+    # independent-student signup picks a required framework pre-auth, so the
+    # catalog rides on this already-public signup-info endpoint instead of a
+    # `/me/`-prefixed PUBLIC_PATHS bypass (audit C6 / ARCH §6.6).
+    exam_frameworks: list[ExamFrameworkOption]
 
 
 class IndependentSignupCreate(BaseModel):
