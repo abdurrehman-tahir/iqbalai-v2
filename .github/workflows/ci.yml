@@ -187,6 +187,12 @@ jobs:
       - name: Build
         if: steps.detect.outputs.exists == 'true'
         working-directory: frontend
+        # Build-time public placeholders prove the production config guard works
+        # without baking staging credentials into CI artifacts.
+        env:
+          NEXT_PUBLIC_AUTHENTIK_URL: https://auth.example.com/idp
+          NEXT_PUBLIC_APP_URL: https://app.example.com
+          NEXT_PUBLIC_AUTHENTIK_CLIENT_ID: ci-build-client
         run: pnpm build
 
   frontend-tests:
