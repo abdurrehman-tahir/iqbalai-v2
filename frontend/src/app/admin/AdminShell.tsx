@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -21,7 +21,8 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/admin/NotificationBell";
-import { clearToken, getUser, getLogoutUrl, type StoredUser } from "@/lib/auth";
+import { getLogoutUrl } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 // useRouter import removed — logout uses window.location directly
 
@@ -105,18 +106,11 @@ function SidebarNav({ role, onNavigate }: { role: string | null; onNavigate?: ()
 
 export function AdminShell({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  // Defer sessionStorage read to after hydration — avoids SSR/client mismatch
-  // (server has no sessionStorage, so getUser() returns null there)
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const { user } = useCurrentUser();
   const t = useTranslations("admin");
   const tNav = useTranslations("admin.nav");
 
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
-
   function handleLogout() {
-    clearToken();
     window.location.href = getLogoutUrl();
   }
 

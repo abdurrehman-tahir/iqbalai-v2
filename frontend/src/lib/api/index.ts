@@ -24,6 +24,7 @@ import type {
   StudentStudyPlanRead,
   LibraryUploadParams,
   LibraryUploadResponse,
+  MeResponse,
   Notification,
   PersonaRead,
   PersonaUpdate,
@@ -71,7 +72,7 @@ import type {
   ExamFrameworkOption,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
 export type {
   Notification,
@@ -175,17 +176,25 @@ function parseApiErrorBody(
   };
 }
 
+/**
+ * `token` is accepted but unused (T-245): the session is an HttpOnly cookie
+ * the browser attaches automatically via `credentials: "include"`, never a
+ * JS-held credential. The parameter stays so the ~50 existing call sites
+ * (which read it from `useClientAuth()`) don't all need touching in this
+ * change — a follow-up can drop it once that hook itself is retired.
+ */
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
+  void token;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> | undefined),
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 
   if (!res.ok) {
     let errorJson: {
@@ -215,15 +224,11 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 }
 
 async function requestFormData<T>(path: string, formData: FormData, token?: string): Promise<T> {
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
+  void token; // T-245: cookie-based session now — see `request()`'s docstring
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers,
     body: formData,
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -244,6 +249,9 @@ async function requestFormData<T>(path: string, formData: FormData, token?: stri
 export const authApi = {
   postLogin: (token: string) =>
     request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
+
+  /** Current session's display state (T-245) — cookie-authenticated. */
+  me: () => request<MeResponse>("/auth/me"),
 
   acceptInvite: (data: AcceptInviteRequest) =>
     request<{ status: string; email?: string; message: string }>("/auth/accept-invite", {
@@ -945,10 +953,11 @@ export interface BulkImportJob {
 }
 
 async function uploadRequest<T>(path: string, formData: FormData, token: string): Promise<T> {
+  void token; // T-245: cookie-based session now — see `request()`'s docstring
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
     body: formData,
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -1088,9 +1097,8 @@ export interface DataRightsStatusRead {
 }
 
 async function downloadRequest(path: string, token: string): Promise<Blob> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  void token; // T-245: cookie-based session now — see `request()`'s docstring
+  const res = await fetch(`${API_BASE}${path}`, { credentials: "include" });
   if (!res.ok) {
     let message = `Request failed with status ${res.status}`;
     try {

@@ -104,17 +104,24 @@ def test_options_request_bypasses_auth(client: TestClient) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Protected path — missing / malformed Authorization header
+# Protected path — missing / rejected credential
 # ---------------------------------------------------------------------------
 
 
-def test_missing_authorization_header_returns_401(client: TestClient) -> None:
+def test_missing_cookie_returns_401(client: TestClient) -> None:
     response = client.get("/secret")
     assert response.status_code == 401
 
 
-def test_wrong_auth_scheme_returns_401(client: TestClient) -> None:
-    response = client.get("/secret", headers={"Authorization": "Basic dXNlcjpwYXNz"})
+def test_authorization_header_alone_no_longer_works(client: TestClient) -> None:
+    """T-245: the Bearer-header fallback T-244 kept for one milestone is gone
+    — only the iqbalai_access cookie is accepted now (ARCH §6.6/§6.17)."""
+    with patch(
+        "app.core.middleware.decode_jwt",
+        new_callable=AsyncMock,
+        return_value={"sub": "user-123", "role": "teacher"},
+    ):
+        response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
     assert response.status_code == 401
 
 
@@ -131,13 +138,13 @@ def test_401_body_has_authentication_required_code(client: TestClient) -> None:
 
 def test_invalid_token_returns_401(client: TestClient) -> None:
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=None):
-        response = client.get("/secret", headers={"Authorization": "Bearer bad.token.here"})
+        response = client.get("/secret", cookies={"iqbalai_access": "bad.token.here"})
     assert response.status_code == 401
 
 
 def test_invalid_token_body_has_error_code(client: TestClient) -> None:
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=None):
-        response = client.get("/secret", headers={"Authorization": "Bearer bad.token.here"})
+        response = client.get("/secret", cookies={"iqbalai_access": "bad.token.here"})
     assert response.json()["error"]["code"] == "AUTHENTICATION_REQUIRED"
 
 
@@ -169,7 +176,7 @@ def test_valid_token_passes_through(client: TestClient) -> None:
             new_callable=AsyncMock,
             return_value=_db_user(),
         ):
-            response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+            response = client.get("/secret", cookies={"iqbalai_access": "valid.token.here"})
     assert response.status_code == 200
 
 
@@ -181,7 +188,7 @@ def test_valid_token_claims_enriched_from_database(client: TestClient) -> None:
             new_callable=AsyncMock,
             return_value=_db_user(),
         ):
-            response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+            response = client.get("/secret", cookies={"iqbalai_access": "valid.token.here"})
     body = response.json()
     assert body["claims"]["sub"] == "user-123"
     assert body["claims"]["role"] == "district_admin"
@@ -197,7 +204,7 @@ def test_suspended_user_returns_403(client: TestClient) -> None:
             new_callable=AsyncMock,
             return_value=_db_user(status=UserAccountStatus.SUSPENDED),
         ):
-            response = client.get("/secret", headers={"Authorization": "Bearer valid.token.here"})
+            response = client.get("/secret", cookies={"iqbalai_access": "valid.token.here"})
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "ACCOUNT_SUSPENDED"
 
@@ -207,12 +214,12 @@ def test_suspended_user_returns_403(client: TestClient) -> None:
 # ---------------------------------------------------------------------------
 
 
-def _auth_headers_and_mocks() -> tuple[dict[str, str], dict[str, object]]:
-    return {"Authorization": "Bearer valid.token.here"}, {"sub": "user-123", "role": "teacher"}
+def _auth_cookies_and_mocks() -> tuple[dict[str, str], dict[str, object]]:
+    return {"iqbalai_access": "valid.token.here"}, {"sub": "user-123", "role": "teacher"}
 
 
 def test_post_blocked_when_tos_not_accepted(client: TestClient) -> None:
-    headers, fake_claims = _auth_headers_and_mocks()
+    cookies, fake_claims = _auth_cookies_and_mocks()
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
         with patch(
             "app.core.middleware._resolve_active_user",
@@ -224,14 +231,14 @@ def test_post_blocked_when_tos_not_accepted(client: TestClient) -> None:
                 new_callable=AsyncMock,
                 return_value=True,
             ):
-                response = client.post("/secret", headers=headers)
+                response = client.post("/secret", cookies=cookies)
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "TOS_ACCEPTANCE_REQUIRED"
 
 
 def test_get_allowed_when_tos_not_accepted(client: TestClient) -> None:
     """GET stays readable so the FE can render the modal + content."""
-    headers, fake_claims = _auth_headers_and_mocks()
+    cookies, fake_claims = _auth_cookies_and_mocks()
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
         with patch(
             "app.core.middleware._resolve_active_user",
@@ -243,12 +250,12 @@ def test_get_allowed_when_tos_not_accepted(client: TestClient) -> None:
                 new_callable=AsyncMock,
                 return_value=True,
             ):
-                response = client.get("/secret", headers=headers)
+                response = client.get("/secret", cookies=cookies)
     assert response.status_code == 200
 
 
 def test_post_succeeds_after_tos_accepted(client: TestClient) -> None:
-    headers, fake_claims = _auth_headers_and_mocks()
+    cookies, fake_claims = _auth_cookies_and_mocks()
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
         with patch(
             "app.core.middleware._resolve_active_user",
@@ -260,14 +267,14 @@ def test_post_succeeds_after_tos_accepted(client: TestClient) -> None:
                 new_callable=AsyncMock,
                 return_value=False,
             ):
-                response = client.post("/secret", headers=headers)
+                response = client.post("/secret", cookies=cookies)
     assert response.status_code == 200
 
 
 def test_accept_tos_endpoint_reachable_despite_gate(client: TestClient) -> None:
     """The accept-tos POST itself must never be blocked by its own gate."""
     assert "/api/v1/users/me/accept-tos" in TOS_ALLOWED_PATHS
-    headers, fake_claims = _auth_headers_and_mocks()
+    cookies, fake_claims = _auth_cookies_and_mocks()
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
         with patch(
             "app.core.middleware._resolve_active_user",
@@ -279,21 +286,21 @@ def test_accept_tos_endpoint_reachable_despite_gate(client: TestClient) -> None:
                 new_callable=AsyncMock,
                 return_value=True,
             ) as tos_check:
-                response = client.post("/api/v1/users/me/accept-tos", headers=headers)
+                response = client.post("/api/v1/users/me/accept-tos", cookies=cookies)
     assert response.status_code == 200
     tos_check.assert_not_called()
 
 
 def test_suspended_user_still_blocked_before_tos_check(client: TestClient) -> None:
     """Decline path (suspended) is unchanged — account-status block runs first."""
-    headers, fake_claims = _auth_headers_and_mocks()
+    cookies, fake_claims = _auth_cookies_and_mocks()
     with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
         with patch(
             "app.core.middleware._resolve_active_user",
             new_callable=AsyncMock,
             return_value=_db_user(status=UserAccountStatus.SUSPENDED),
         ):
-            response = client.post("/secret", headers=headers)
+            response = client.post("/secret", cookies=cookies)
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "ACCOUNT_SUSPENDED"
 
@@ -328,10 +335,8 @@ def test_cross_origin_post_with_valid_cookie_is_still_rejected(client: TestClien
         ):
             response = client.post(
                 "/secret",
-                headers={
-                    "Origin": "http://evil.example",
-                    "Authorization": "Bearer valid.token.here",
-                },
+                headers={"Origin": "http://evil.example"},
+                cookies={"iqbalai_access": "valid.token.here"},
             )
     assert response.status_code == 403
     assert response.json()["error"]["code"] == "ORIGIN_NOT_ALLOWED"

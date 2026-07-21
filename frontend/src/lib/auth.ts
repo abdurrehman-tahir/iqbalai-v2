@@ -1,82 +1,44 @@
 /**
- * Auth helpers — token storage and retrieval.
- * The frontend stores the Authentik JWT in sessionStorage after OIDC callback.
+ * Auth helpers — role routing + login/logout redirect URLs.
+ *
+ * T-245: the session lives entirely in HttpOnly cookies the browser attaches
+ * automatically (ARCH §6.4/§6.17). There is no JS-readable token or user
+ * object here anymore — for "who am I" (display name/role in a shell, an
+ * ownership check), fetch `GET /api/v1/auth/me` via `authApi.me()` /
+ * `useCurrentUser()`, don't reach for browser-local storage.
  */
 
+import { API_BASE } from "@/lib/api";
 import type { IndependentUserRole, UserRole } from "@/lib/api/types";
 
-export const TOKEN_KEY = "iqbalai_access_token";
-export const USER_KEY = "iqbalai_user";
-
-export interface StoredUser {
-  user_id: string;
-  email: string;
-  role: string;
-  district_id?: string | null;
-  school_id?: string | null;
-  tos_acceptance_required: boolean;
-  current_tos_version_id: string | null;
-}
-
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return sessionStorage.getItem(TOKEN_KEY);
-}
-
-export function setToken(token: string): void {
-  sessionStorage.setItem(TOKEN_KEY, token);
-}
-
-export function clearToken(): void {
-  sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(USER_KEY);
-}
-
-export function getUser(): StoredUser | null {
-  if (typeof window === "undefined") return null;
-  const raw = sessionStorage.getItem(USER_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as StoredUser;
-  } catch {
-    return null;
-  }
-}
-
-export function setUser(user: StoredUser): void {
-  sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-}
-
-export interface LoginUrlOptions {
+export interface LoginRedirectOptions {
   /** Force Authentik to show the login form (avoids reusing another user's SSO session). */
   promptLogin?: boolean;
-  /** Pre-fill the invited user's email on the Authentik login screen. */
+  /** Pre-fill the invited/signed-up user's email on the Authentik login screen. */
   loginHint?: string;
+  /** Relative path to land on after a successful login (validated server-side). */
+  next?: string;
 }
 
-/** Authentik OIDC login URL (triggers browser redirect). */
-export function getLoginUrl(options: LoginUrlOptions = {}): string {
-  const authentikBase =
-    process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
-  const clientId =
-    process.env.NEXT_PUBLIC_AUTHENTIK_CLIENT_ID ?? "iqbalai-frontend";
-  const redirectUri = encodeURIComponent(
-    (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") +
-      "/auth/callback",
-  );
-  const params = new URLSearchParams({
-    client_id: clientId,
-    response_type: "code",
-    scope: "openid profile email",
-    redirect_uri: decodeURIComponent(redirectUri),
-  });
+/**
+ * API-owned OIDC login redirect (ARCH §6.4 step 1). The API generates
+ * state/nonce/PKCE and redirects on to Authentik itself — the browser's only
+ * job is navigating here, never building the authorize URL or touching a
+ * code/token directly.
+ */
+export function getLoginRedirectUrl(options: LoginRedirectOptions = {}): string {
+  const params = new URLSearchParams();
   if (options.promptLogin) {
-    params.set("prompt", "login");
+    params.set("prompt_login", "true");
   }
   if (options.loginHint) {
     params.set("login_hint", options.loginHint);
   }
-  return `${authentikBase}/application/o/authorize/?${params.toString()}`;
+  if (options.next) {
+    params.set("next", options.next);
+  }
+  const query = params.toString();
+  return `${API_BASE}/auth/login${query ? `?${query}` : ""}`;
 }
 
 /** Every role a JWT `role` claim can carry — school tenant + independent tenant. */

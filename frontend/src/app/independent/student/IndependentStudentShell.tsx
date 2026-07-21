@@ -6,9 +6,8 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
-import { useEffect, useState } from "react";
-import type { StoredUser } from "@/lib/auth";
+import { getLogoutUrl } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { IndependentStudentOnboardingGate } from "./IndependentStudentOnboardingGate";
 
 const NAV = [{ key: "dashboard", href: "/independent/student", icon: LayoutDashboard }] as const;
@@ -16,12 +15,8 @@ const NAV = [{ key: "dashboard", href: "/independent/student", icon: LayoutDashb
 export function IndependentStudentShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("independent.student");
   const pathname = usePathname();
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const { user } = useCurrentUser();
   const onOnboardingPage = pathname.startsWith("/independent/student/onboarding");
-
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-50">
@@ -56,7 +51,6 @@ export function IndependentStudentShell({ children }: { children: React.ReactNod
               size="md"
               className="w-full justify-start gap-3"
               onClick={() => {
-                clearToken();
                 window.location.href = getLogoutUrl();
               }}
             >

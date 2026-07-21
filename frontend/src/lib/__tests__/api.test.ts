@@ -316,7 +316,10 @@ describe("auditApi + libraryApi", () => {
     expect(url).toContain("title=guide");
     expect(url).toContain("content_type=curriculum");
     expect(init.body).toBeInstanceOf(FormData);
-    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
-    expect((init.headers as Record<string, string>)["Content-Type"]).toBeUndefined();
+    // T-245: the session is a cookie the browser attaches automatically, not
+    // a header the client builds — no Authorization header, no Content-Type
+    // override (the browser sets the multipart boundary itself).
+    expect(init.headers).toBeUndefined();
+    expect(init.credentials).toBe("include");
   });
 });

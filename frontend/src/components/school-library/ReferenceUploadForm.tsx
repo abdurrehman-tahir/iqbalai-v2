@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { gradesApi, schoolLibraryApi, subjectsApi, ApiError } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
-import { getUser } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -31,11 +31,8 @@ export function ReferenceUploadForm({ detailBasePath }: ReferenceUploadFormProps
   const [makePublic, setMakePublic] = useState(false);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-
-  useEffect(() => {
-    setUserRole(getUser()?.role ?? null);
-  }, []);
+  const { user } = useCurrentUser();
+  const userRole = user?.role ?? null;
 
   const autoPublic = userRole !== null && AUTO_PUBLIC_ROLES.has(userRole);
 

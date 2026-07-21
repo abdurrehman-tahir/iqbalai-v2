@@ -4,7 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { authApi, tosApi, ApiError } from "@/lib/api";
-import { setToken, setUser, getPostLoginPath } from "@/lib/auth";
+import { getPostLoginPath } from "@/lib/auth";
+import { useClientAuth } from "@/hooks/use-client-auth";
 import { TosModal } from "./TosModal";
 
 type Phase = "loading" | "tos" | "suspended" | "error";
@@ -15,98 +16,47 @@ interface TosData {
   content: string;
 }
 
+/**
+ * T-245: the OIDC code+PKCE exchange happens entirely server-side now
+ * (T-244's GET /api/v1/auth/callback) — the browser is redirected straight
+ * to the role dashboard, or here with `?tos_required=1` if the just-logged-in
+ * user still needs to accept the current ToS. This page's only job is
+ * resolving that one case; it never sees a `code` or exchanges anything.
+ */
 export function OidcCallbackClient() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const t = useTranslations("auth.callback");
+  const { token } = useClientAuth();
 
   const [phase, setPhase] = useState<Phase>("loading");
   const [errorMsg, setErrorMsg] = useState("");
   const [tosData, setTosData] = useState<TosData | null>(null);
-  const [pendingToken, setPendingToken] = useState<string | null>(null);
-  // Guard against React 18 StrictMode double-invocation: authorization codes are single-use.
-  const exchangeAttempted = useRef(false);
+  const [role, setRole] = useState<string | null>(null);
+  const loadAttempted = useRef(false);
 
   useEffect(() => {
-    if (exchangeAttempted.current) return;
-    exchangeAttempted.current = true;
+    if (loadAttempted.current) return;
+    loadAttempted.current = true;
 
-    const code = searchParams.get("code");
-    const error = searchParams.get("error");
-
-    if (error) {
-      setErrorMsg(t("error.auth_denied"));
-      setPhase("error");
+    if (searchParams.get("tos_required") !== "1") {
+      router.replace("/login");
       return;
     }
 
-    if (!code) {
-      setErrorMsg(t("error.no_code"));
-      setPhase("error");
-      return;
-    }
-
-    // Exchange code for token via Authentik token endpoint, then call post-login
-    void exchangeCode(code);
+    void loadTos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  async function exchangeCode(code: string) {
+  async function loadTos() {
     try {
-      const authentikBase = process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
-      const clientId = process.env.NEXT_PUBLIC_AUTHENTIK_CLIENT_ID ?? "iqbalai-frontend";
-      const redirectUri =
-        (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") + "/auth/callback";
-
-      const res = await fetch(`${authentikBase}/application/o/token/`, {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: new URLSearchParams({
-          grant_type: "authorization_code",
-          code,
-          client_id: clientId,
-          redirect_uri: redirectUri,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Token exchange failed");
-      const tokenData = (await res.json()) as { access_token: string };
-      const token = tokenData.access_token;
-
-      setToken(token);
-      setPendingToken(token);
-
-      // Post-login to create/update user record
-      const user = await authApi.postLogin(token);
-      setUser({
-        user_id: user.user_id,
-        email: user.email,
-        role: user.role,
-        district_id: user.district_id,
-        school_id: user.school_id,
-        tos_acceptance_required: user.tos_acceptance_required,
-        current_tos_version_id: user.current_tos_version_id,
-      });
-
-      if (user.account_status === "suspended" && !user.tos_acceptance_required) {
-        setPhase("suspended");
-        return;
-      }
-
-      if (user.tos_acceptance_required && user.current_tos_version_id) {
-        // Fetch ToS content to display in modal
-        const tos = await tosApi.getCurrent(token);
-        setTosData({
-          id: tos.id,
-          version: tos.version,
-          content: tos.content,
-        });
-        setPhase("tos");
-      } else {
-        router.replace(getPostLoginPath(user.role));
-      }
+      const me = await authApi.me();
+      setRole(me.role);
+      const tos = await tosApi.getCurrent(token ?? "");
+      setTosData({ id: tos.id, version: tos.version, content: tos.content });
+      setPhase("tos");
     } catch (err) {
-      console.error("OIDC callback error:", err);
+      console.error("OIDC callback ToS load error:", err);
       if (err instanceof ApiError && err.code === "ACCOUNT_SUSPENDED") {
         setErrorMsg(t("error.account_suspended"));
         setPhase("suspended");
@@ -118,13 +68,10 @@ export function OidcCallbackClient() {
   }
 
   async function handleTosAccept() {
-    if (!pendingToken || !tosData) return;
+    if (!tosData) return;
     try {
-      await tosApi.acceptTos(pendingToken, tosData.id);
-      const stored = JSON.parse(sessionStorage.getItem("iqbalai_user") ?? "{}") as {
-        role?: string;
-      };
-      router.replace(getPostLoginPath(stored.role ?? "platform_admin"));
+      await tosApi.acceptTos(token ?? "", tosData.id);
+      router.replace(getPostLoginPath(role ?? "platform_admin"));
     } catch {
       setErrorMsg(t("error.tos_accept_failed"));
       setPhase("error");
@@ -132,10 +79,8 @@ export function OidcCallbackClient() {
   }
 
   async function handleTosDecline() {
-    if (!pendingToken) return;
     try {
-      await tosApi.declineTos(pendingToken);
-      import("@/lib/auth").then(({ clearToken }) => clearToken());
+      await tosApi.declineTos(token ?? "");
       setPhase("suspended");
     } catch {
       setErrorMsg(t("error.tos_decline_failed"));

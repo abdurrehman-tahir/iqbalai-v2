@@ -154,7 +154,7 @@ async def test_exam_syllabus_create_accepts_ui_payload(authed_client: AsyncClien
     response = await authed_client.post(
         "/api/v1/admin/exam-syllabi/",
         json=payload,
-        headers={"Authorization": "Bearer phase1-test-token"},
+        cookies={"iqbalai_access": "phase1-test-token"},
     )
     _assert_create_succeeds(response, "exam_syllabus")
 
@@ -168,7 +168,7 @@ async def test_subscription_tier_create_accepts_ui_payload(authed_client: AsyncC
     response = await authed_client.post(
         "/api/v1/admin/subscription-tiers/",
         json=payload,
-        headers={"Authorization": "Bearer phase1-test-token"},
+        cookies={"iqbalai_access": "phase1-test-token"},
     )
     _assert_create_succeeds(response, "subscription_tier")
 
@@ -195,7 +195,7 @@ def test_live_exam_syllabus_create_accepts_ui_payload() -> None:
     response = httpx.post(
         f"{REAL_BACKEND_URL}/admin/exam-syllabi",
         json=EXAM_SYLLABUS_CREATE_FROM_UI,
-        headers={"Authorization": f"Bearer {token}"},
+        cookies={"iqbalai_access": token},
         timeout=10.0,
     )
     _assert_create_succeeds(response, "live exam_syllabus")

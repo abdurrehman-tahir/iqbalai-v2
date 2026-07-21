@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { parentSignupApi } from "@/lib/api";
-import { clearToken, getLoginUrl } from "@/lib/auth";
+import { getLoginRedirectUrl } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -62,7 +62,6 @@ export function ParentSignupClient() {
         display_name: values.display_name,
         language_preference: values.language_preference,
       });
-      clearToken();
       setSignedUpEmail(result.email);
       setDone(true);
     } catch (err) {
@@ -80,7 +79,7 @@ export function ParentSignupClient() {
           type="button"
           className="inline-flex h-10 items-center justify-center rounded-md bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700"
           onClick={() => {
-            window.location.href = getLoginUrl({
+            window.location.href = getLoginRedirectUrl({
               promptLogin: true,
               loginHint: signedUpEmail ?? undefined,
             });

@@ -24,8 +24,7 @@ vi.mock("@/lib/api", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
-  clearToken: vi.fn(),
-  getLoginUrl: vi.fn(() => "/login"),
+  getLoginRedirectUrl: vi.fn(() => "/login"),
 }));
 
 function renderSignup() {

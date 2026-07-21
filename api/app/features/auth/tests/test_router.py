@@ -18,7 +18,7 @@ from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
 from app.api.v1.router import router as v1_router
-from app.core.dependencies import get_db
+from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import setup_exception_handlers
 from app.features.auth import oidc_session as oidc_session_module
 from app.features.auth import refresh_session as refresh_session_module
@@ -49,7 +49,7 @@ def fake_redis(monkeypatch: pytest.MonkeyPatch) -> _FakeRedis:
     return redis
 
 
-def _build_client() -> AsyncClient:
+def _build_client(claims: dict[str, object] | None = None) -> AsyncClient:
     app = FastAPI()
     app.include_router(v1_router, prefix="/api/v1")
     setup_exception_handlers(app)
@@ -58,9 +58,66 @@ def _build_client() -> AsyncClient:
         yield None
 
     app.dependency_overrides[get_db] = _override_db
+    if claims is not None:
+        app.dependency_overrides[get_current_user] = lambda: claims
     return AsyncClient(
         transport=ASGITransport(app=app), base_url="http://testserver", follow_redirects=False
     )
+
+
+# ---------------------------------------------------------------------------
+# GET /auth/me
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_me_requires_auth() -> None:
+    async with _build_client() as client:
+        resp = await client.get("/api/v1/auth/me")
+    assert resp.status_code == 401
+
+
+@pytest.mark.asyncio
+async def test_me_returns_enriched_claims() -> None:
+    claims: dict[str, object] = {
+        "sub": "authentik-1",
+        "email": "t@school.pk",
+        "role": "teacher",
+        "user_id": "u-1",
+        "tenant_type": "school",
+        "district_id": "d-1",
+        "school_id": "s-1",
+    }
+    async with _build_client(claims=claims) as client:
+        resp = await client.get("/api/v1/auth/me")
+
+    assert resp.status_code == 200
+    data = resp.json()["data"]
+    assert data == {
+        "user_id": "u-1",
+        "email": "t@school.pk",
+        "role": "teacher",
+        "tenant_type": "school",
+        "district_id": "d-1",
+        "school_id": "s-1",
+    }
+
+
+@pytest.mark.asyncio
+async def test_me_omits_district_school_when_absent() -> None:
+    claims: dict[str, object] = {
+        "sub": "authentik-2",
+        "email": "indep@example.com",
+        "role": "independent_teacher",
+        "user_id": "u-2",
+        "tenant_type": "independent",
+    }
+    async with _build_client(claims=claims) as client:
+        resp = await client.get("/api/v1/auth/me")
+
+    data = resp.json()["data"]
+    assert data["district_id"] is None
+    assert data["school_id"] is None
 
 
 # ---------------------------------------------------------------------------
@@ -108,6 +165,33 @@ async def test_login_stores_matching_state_in_redis(fake_redis: _FakeRedis) -> N
     stored_values = list(fake_redis.store.values())
     assert len(stored_values) == 1
     assert location_state in stored_values[0]
+
+
+@pytest.mark.asyncio
+async def test_login_passes_through_prompt_and_login_hint(fake_redis: _FakeRedis) -> None:
+    """Post-invite/post-signup flows force a fresh login pre-filled with the
+    verified email, instead of silently reusing an unrelated SSO session."""
+    async with _build_client() as client:
+        resp = await client.get(
+            "/api/v1/auth/login",
+            params={"prompt_login": "true", "login_hint": "new-teacher@school.edu"},
+        )
+
+    params = parse_qs(urlparse(resp.headers["location"]).query)
+    assert params["prompt"] == ["login"]
+    assert params["login_hint"] == ["new-teacher@school.edu"]
+
+
+@pytest.mark.asyncio
+async def test_login_omits_prompt_and_login_hint_when_not_requested(
+    fake_redis: _FakeRedis,
+) -> None:
+    async with _build_client() as client:
+        resp = await client.get("/api/v1/auth/login")
+
+    params = parse_qs(urlparse(resp.headers["location"]).query)
+    assert "prompt" not in params
+    assert "login_hint" not in params
 
 
 # ---------------------------------------------------------------------------

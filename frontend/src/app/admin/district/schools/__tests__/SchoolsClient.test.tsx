@@ -15,14 +15,17 @@ vi.mock("@/hooks/use-client-auth", () => ({
   useClientAuth: () => mockAuth(),
 }));
 
-vi.mock("@/lib/auth", () => ({
-  getUser: () => ({
-    user_id: "u1",
-    email: "da@test.com",
-    role: "district_admin",
-    district_id: "dist-1",
-    tos_acceptance_required: false,
-    current_tos_version_id: null,
+// T-245: SchoolsClient reads "who am I" via useCurrentUser() (GET /auth/me),
+// not sessionStorage.
+vi.mock("@/hooks/use-current-user", () => ({
+  useCurrentUser: () => ({
+    user: {
+      user_id: "u1",
+      email: "da@test.com",
+      role: "district_admin",
+      district_id: "dist-1",
+    },
+    isLoading: false,
   }),
 }));
 

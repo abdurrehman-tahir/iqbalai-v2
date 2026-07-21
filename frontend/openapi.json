@@ -2485,6 +2485,57 @@
         "title": "LibraryUploadResponse",
         "type": "object"
       },
+      "MeResponse": {
+        "description": "Response from GET /api/v1/auth/me (T-245).\n\nTokens are HttpOnly cookies now \u2014 the frontend can't decode them for\ndisplay state (name/role in the shell nav, ownership checks). This is\nthat read: the same claims AuthMiddleware already enriched from the DB\non every authenticated request, just handed back as JSON.",
+        "properties": {
+          "district_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District Id"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
+          },
+          "tenant_type": {
+            "default": "school",
+            "title": "Tenant Type",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "role"
+        ],
+        "title": "MeResponse",
+        "type": "object"
+      },
       "NotificationListResponse": {
         "description": "Paginated notification list with unread counter for the bell badge.",
         "properties": {
@@ -4730,6 +4781,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LibraryBookRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_MeResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MeResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[MeResponse]",
         "type": "object"
       },
       "SuccessEnvelope_OfferingRead_": {
@@ -8255,7 +8323,7 @@
     },
     "/api/v1/auth/login": {
       "get": {
-        "description": "Generates state (CSRF), nonce, and a PKCE S256 challenge; stores them server-side in Redis keyed by a transient cookie; redirects the browser to Authentik's authorize endpoint. No response body \u2014 always a 302.",
+        "description": "Generates state (CSRF), nonce, and a PKCE S256 challenge; stores them server-side in Redis keyed by a transient cookie; redirects the browser to Authentik's authorize endpoint. No response body \u2014 always a 302. `prompt_login`/`login_hint` are for post-invite and post-signup flows that need to force a fresh login pre-filled with the verified email, rather than silently reusing an unrelated existing SSO session.",
         "operationId": "auth_login",
         "parameters": [
           {
@@ -8272,6 +8340,32 @@
                 }
               ],
               "title": "Next"
+            }
+          },
+          {
+            "in": "query",
+            "name": "prompt_login",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Prompt Login",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "login_hint",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Login Hint"
             }
           }
         ],
@@ -8299,6 +8393,28 @@
           }
         },
         "summary": "Start the OIDC login redirect (ARCH \u00a76.4 step 1-2)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "description": "Tokens are HttpOnly cookies now \u2014 the frontend can't decode them for display state. Returns the same claims AuthMiddleware already enriched from the DB on every authenticated request.",
+        "operationId": "auth_me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_MeResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Current user's display state (T-245)",
         "tags": [
           "auth"
         ]

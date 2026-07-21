@@ -23,8 +23,22 @@ __all__ = [
 ]
 
 
-def build_authorize_url(*, redirect_uri: str, state: str, nonce: str, code_verifier: str) -> str:
-    """Build the Authentik authorize redirect (ARCH §6.4 step 2)."""
+def build_authorize_url(
+    *,
+    redirect_uri: str,
+    state: str,
+    nonce: str,
+    code_verifier: str,
+    prompt_login: bool = False,
+    login_hint: str | None = None,
+) -> str:
+    """Build the Authentik authorize redirect (ARCH §6.4 step 2).
+
+    `prompt_login`/`login_hint` preserve the pre-T-245 UX for post-invite and
+    post-signup flows (accept-invite, independent/parent signup): force
+    Authentik to show the login form pre-filled with the just-verified email,
+    rather than silently reusing an unrelated existing SSO session.
+    """
     settings = get_settings()
     params = {
         "response_type": "code",
@@ -36,6 +50,10 @@ def build_authorize_url(*, redirect_uri: str, state: str, nonce: str, code_verif
         "code_challenge": create_s256_code_challenge(code_verifier),
         "code_challenge_method": "S256",
     }
+    if prompt_login:
+        params["prompt"] = "login"
+    if login_hint:
+        params["login_hint"] = login_hint
     return f"{settings.OIDC_AUTHORIZE_URL}?{urlencode(params)}"
 
 

@@ -522,9 +522,29 @@ export interface paths {
         };
         /**
          * Start the OIDC login redirect (ARCH §6.4 step 1-2)
-         * @description Generates state (CSRF), nonce, and a PKCE S256 challenge; stores them server-side in Redis keyed by a transient cookie; redirects the browser to Authentik's authorize endpoint. No response body — always a 302.
+         * @description Generates state (CSRF), nonce, and a PKCE S256 challenge; stores them server-side in Redis keyed by a transient cookie; redirects the browser to Authentik's authorize endpoint. No response body — always a 302. `prompt_login`/`login_hint` are for post-invite and post-signup flows that need to force a fresh login pre-filled with the verified email, rather than silently reusing an unrelated existing SSO session.
          */
         get: operations["auth_login"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Current user's display state (T-245)
+         * @description Tokens are HttpOnly cookies now — the frontend can't decode them for display state. Returns the same claims AuthMiddleware already enriched from the DB on every authenticated request.
+         */
+        get: operations["auth_me"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3252,6 +3272,32 @@ export interface components {
             upload_id: string;
         };
         /**
+         * MeResponse
+         * @description Response from GET /api/v1/auth/me (T-245).
+         *
+         *     Tokens are HttpOnly cookies now — the frontend can't decode them for
+         *     display state (name/role in the shell nav, ownership checks). This is
+         *     that read: the same claims AuthMiddleware already enriched from the DB
+         *     on every authenticated request, just handed back as JSON.
+         */
+        MeResponse: {
+            /** District Id */
+            district_id?: string | null;
+            /** Email */
+            email: string;
+            /** Role */
+            role: string;
+            /** School Id */
+            school_id?: string | null;
+            /**
+             * Tenant Type
+             * @default school
+             */
+            tenant_type: string;
+            /** User Id */
+            user_id: string;
+        };
+        /**
          * NotificationListResponse
          * @description Paginated notification list with unread counter for the bell badge.
          */
@@ -4221,6 +4267,15 @@ export interface components {
         /** SuccessEnvelope[LibraryBookRead] */
         SuccessEnvelope_LibraryBookRead_: {
             data: components["schemas"]["LibraryBookRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[MeResponse] */
+        SuccessEnvelope_MeResponse_: {
+            data: components["schemas"]["MeResponse"];
             /**
              * Message
              * @default ok
@@ -6400,6 +6455,8 @@ export interface operations {
         parameters: {
             query?: {
                 next?: string | null;
+                prompt_login?: boolean;
+                login_hint?: string | null;
             };
             header?: never;
             path?: never;
@@ -6430,6 +6487,26 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auth_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_MeResponse_"];
                 };
             };
         };

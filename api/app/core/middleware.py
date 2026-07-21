@@ -106,19 +106,15 @@ def _origin_rejected_response() -> JSONResponse:
 
 
 def _extract_access_token(request: Request) -> str | None:
-    """Cookie first (T-244, ARCH §6.6), then Authorization header.
+    """Read the access token from the `iqbalai_access` cookie (ARCH §6.6).
 
-    Header support stays for tooling through this milestone only — T-245's
-    frontend cutover removes the header path from the browser client.
+    T-244 briefly kept an `Authorization: Bearer` fallback for tooling; T-245
+    (the frontend cutover to cookies) removes it — the cookie is the only
+    credential path now, matching §6.17 ("never JS-accessible" — a header the
+    browser client sets would mean the token was readable by JS in the first
+    place, defeating the point of HttpOnly cookies).
     """
-    cookie_token = request.cookies.get(ACCESS_COOKIE)
-    if cookie_token:
-        return cookie_token
-
-    authorization = request.headers.get("Authorization", "")
-    if authorization.startswith("Bearer "):
-        return authorization.removeprefix("Bearer ")
-    return None
+    return request.cookies.get(ACCESS_COOKIE) or None
 
 
 def _enrich_claims_from_user(

@@ -34,7 +34,7 @@ from app.features.auth.oidc_session import (
     safe_next_path,
 )
 from app.features.auth.refresh_session import resolve_and_rotate, store_refresh_token
-from app.features.auth.schemas import PostLoginResponse
+from app.features.auth.schemas import MeResponse, PostLoginResponse
 from app.features.auth.service import AuthService, get_post_login_path
 
 logger = structlog.get_logger(__name__)
@@ -75,6 +75,32 @@ async def post_login(
 
 
 @router.get(
+    "/me",
+    response_model=SuccessEnvelope[MeResponse],
+    operation_id="auth_me",
+    summary="Current user's display state (T-245)",
+    description=(
+        "Tokens are HttpOnly cookies now — the frontend can't decode them for "
+        "display state. Returns the same claims AuthMiddleware already "
+        "enriched from the DB on every authenticated request."
+    ),
+)
+async def me(claims: dict[str, object] = Depends(get_current_user)) -> dict[str, Any]:
+    district_id = claims.get("district_id")
+    school_id = claims.get("school_id")
+    return success(
+        MeResponse(
+            user_id=str(claims.get("user_id", "")),
+            email=str(claims.get("email", "")),
+            role=str(claims.get("role", "")),
+            tenant_type=str(claims.get("tenant_type", "school")),
+            district_id=district_id if isinstance(district_id, str) else None,
+            school_id=school_id if isinstance(school_id, str) else None,
+        ).model_dump()
+    )
+
+
+@router.get(
     "/login",
     response_model=None,
     operation_id="auth_login",
@@ -82,11 +108,19 @@ async def post_login(
     description=(
         "Generates state (CSRF), nonce, and a PKCE S256 challenge; stores them "
         "server-side in Redis keyed by a transient cookie; redirects the browser "
-        "to Authentik's authorize endpoint. No response body — always a 302."
+        "to Authentik's authorize endpoint. No response body — always a 302. "
+        "`prompt_login`/`login_hint` are for post-invite and post-signup flows "
+        "that need to force a fresh login pre-filled with the verified email, "
+        "rather than silently reusing an unrelated existing SSO session."
     ),
     responses={302: {"description": "Redirect to Authentik's authorize endpoint"}},
 )
-async def login(request: Request, next: str | None = None) -> RedirectResponse:
+async def login(
+    request: Request,
+    next: str | None = None,
+    prompt_login: bool = False,
+    login_hint: str | None = None,
+) -> RedirectResponse:
     # "" (not "/") means "nothing requested" — callback must be able to tell
     # that apart from an explicit `next=/`, so it can fall back to the role
     # dashboard instead of always landing on the site root.
@@ -98,6 +132,8 @@ async def login(request: Request, next: str | None = None) -> RedirectResponse:
         state=session.state,
         nonce=session.nonce,
         code_verifier=session.code_verifier,
+        prompt_login=prompt_login,
+        login_hint=login_hint,
     )
 
     response = RedirectResponse(url=authorize_url, status_code=302)

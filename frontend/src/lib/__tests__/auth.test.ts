@@ -1,83 +1,44 @@
-import { describe, it, expect, beforeEach } from "vitest";
-import {
-  TOKEN_KEY,
-  USER_KEY,
-  getToken,
-  setToken,
-  clearToken,
-  getUser,
-  setUser,
-  getLoginUrl,
-  getPostLoginPath,
-  ALL_ROLES,
-  type Role,
-  type StoredUser,
-} from "../auth";
+import { readFileSync } from "node:fs";
+import { dirname, join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { describe, it, expect } from "vitest";
+import { getLoginRedirectUrl, getPostLoginPath, ALL_ROLES, type Role } from "../auth";
 
-const MOCK_USER: StoredUser = {
-  user_id: "u-001",
-  email: "admin@iqbalai.com",
-  role: "platform_admin",
-  tos_acceptance_required: false,
-  current_tos_version_id: "tos-v1",
-};
-
-beforeEach(() => {
-  sessionStorage.clear();
-});
-
-describe("getToken", () => {
-  it("returns null when no token is stored", () => {
-    expect(getToken()).toBeNull();
-  });
-
-  it("returns the stored token", () => {
-    sessionStorage.setItem(TOKEN_KEY, "my-jwt");
-    expect(getToken()).toBe("my-jwt");
+describe("no sessionStorage token usage (T-245, ARCH §6.4/§6.17)", () => {
+  it("lib/auth.ts never reads or writes sessionStorage", () => {
+    const thisFile = fileURLToPath(import.meta.url);
+    const authTsPath = join(dirname(thisFile), "..", "auth.ts");
+    const source = readFileSync(authTsPath, "utf-8");
+    expect(source).not.toMatch(/sessionStorage/);
   });
 });
 
-describe("setToken / clearToken", () => {
-  it("stores and then clears the token", () => {
-    setToken("abc.def.ghi");
-    expect(getToken()).toBe("abc.def.ghi");
-
-    clearToken();
-    expect(getToken()).toBeNull();
+describe("getLoginRedirectUrl", () => {
+  it("points at the API's own /auth/login, not Authentik directly (T-245, ARCH §6.4)", () => {
+    const url = getLoginRedirectUrl();
+    expect(url).toContain("/auth/login");
+    expect(url).not.toContain("authentik");
   });
 
-  it("clearToken also removes the stored user", () => {
-    setToken("tok");
-    setUser(MOCK_USER);
-    clearToken();
-    expect(getUser()).toBeNull();
-  });
-});
-
-describe("getUser / setUser", () => {
-  it("returns null when nothing stored", () => {
-    expect(getUser()).toBeNull();
-  });
-
-  it("round-trips a user object through sessionStorage", () => {
-    setUser(MOCK_USER);
-    expect(getUser()).toEqual(MOCK_USER);
-  });
-
-  it("returns null when sessionStorage contains malformed JSON", () => {
-    sessionStorage.setItem(USER_KEY, "{bad json");
-    expect(getUser()).toBeNull();
-  });
-});
-
-describe("getLoginUrl", () => {
-  it("adds prompt=login and login_hint for post-invite sign-in", () => {
-    const url = getLoginUrl({
+  it("adds prompt_login and login_hint for post-invite sign-in", () => {
+    const url = getLoginRedirectUrl({
       promptLogin: true,
       loginHint: "district@school.edu",
     });
-    expect(url).toContain("prompt=login");
+    expect(url).toContain("prompt_login=true");
     expect(url).toContain("login_hint=district%40school.edu");
+  });
+
+  it("adds next when provided", () => {
+    const url = getLoginRedirectUrl({ next: "/coordinator/grades" });
+    expect(url).toContain("next=%2Fcoordinator%2Fgrades");
+  });
+
+  it("omits optional params when not requested", () => {
+    const url = getLoginRedirectUrl();
+    expect(url).not.toContain("prompt_login");
+    expect(url).not.toContain("login_hint");
+    expect(url).not.toContain("next=");
   });
 });
 

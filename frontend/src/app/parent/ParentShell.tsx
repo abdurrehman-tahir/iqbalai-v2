@@ -4,22 +4,16 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
-import { useEffect, useState } from "react";
-import type { StoredUser } from "@/lib/auth";
+import { getLogoutUrl } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function ParentShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("parent.home");
   const pathname = usePathname();
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const { user } = useCurrentUser();
   const onSignupPage = pathname.startsWith("/parent/signup");
 
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
-
   function handleLogout() {
-    clearToken();
     window.location.href = getLogoutUrl();
   }
 
