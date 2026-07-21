@@ -8157,6 +8157,169 @@
         ]
       }
     },
+    "/api/v1/auth/callback": {
+      "get": {
+        "description": "Validate callback state/nonce, provision the user, then create cookie session.",
+        "operationId": "oidc_callback",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Callback",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "get": {
+        "description": "Create server-side state/nonce/PKCE and redirect to Authentik.",
+        "operationId": "oidc_login",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Login",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Revoke refresh state and remove browser cookies.",
+        "operationId": "logout_cookie_session",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "additionalProperties": {
+                      "type": "boolean"
+                    },
+                    "type": "object"
+                  },
+                  "title": "Response Logout Cookie Session",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Logout",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "description": "Return cookie-session user state for the frontend shell and ToS modal.",
+        "operationId": "get_authenticated_user",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_PostLoginResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Me",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/auth/post-login": {
       "post": {
         "description": "Called by the frontend after every successful Authentik OIDC callback. Creates a User row on first login. Returns ToS acceptance status so the frontend can show the acceptance modal if needed.",
@@ -8174,6 +8337,35 @@
           }
         },
         "summary": "Post-OIDC-login handler",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "description": "Rotate the opaque refresh reference and replace the access cookie.",
+        "operationId": "refresh_cookie_session",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "additionalProperties": {
+                    "additionalProperties": {
+                      "type": "boolean"
+                    },
+                    "type": "object"
+                  },
+                  "title": "Response Refresh Cookie Session",
+                  "type": "object"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Refresh",
         "tags": [
           "auth"
         ]
