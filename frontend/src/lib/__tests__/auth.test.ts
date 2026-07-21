@@ -1,8 +1,21 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { describe, it, expect } from "vitest";
-import { getLoginRedirectUrl, getPostLoginPath, ALL_ROLES, type Role } from "../auth";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+import {
+  getLoginRedirectUrl,
+  getPostLoginPath,
+  getLogoutUrl,
+  performLogout,
+  ALL_ROLES,
+  type Role,
+} from "../auth";
+
+const mockLogout = vi.fn();
+vi.mock("@/lib/api", () => ({
+  authApi: { logout: (...args: unknown[]) => mockLogout(...args) },
+  API_BASE: "http://localhost:8000/api/v1",
+}));
 
 describe("no sessionStorage token usage (T-245, ARCH §6.4/§6.17)", () => {
   it("lib/auth.ts never reads or writes sessionStorage", () => {
@@ -68,5 +81,30 @@ describe("getPostLoginPath", () => {
 
   it("throws for an unrecognized role instead of silently falling through", () => {
     expect(() => getPostLoginPath("not_a_real_role")).toThrow(/unhandled role/i);
+  });
+});
+
+// T-246: server-side logout must run before the Authentik end-session
+// redirect, and a backend failure must never strand the user mid-logout.
+describe("performLogout (T-246, ARCH §6.8)", () => {
+  beforeEach(() => {
+    mockLogout.mockReset();
+    Object.defineProperty(window, "location", {
+      value: { href: "" },
+      writable: true,
+    });
+  });
+
+  it("calls the backend logout endpoint before redirecting to Authentik end-session", async () => {
+    mockLogout.mockResolvedValue(undefined);
+    await performLogout();
+    expect(mockLogout).toHaveBeenCalledTimes(1);
+    expect(window.location.href).toBe(getLogoutUrl());
+  });
+
+  it("still redirects to Authentik end-session when the backend call fails", async () => {
+    mockLogout.mockRejectedValue(new Error("network error"));
+    await performLogout();
+    expect(window.location.href).toBe(getLogoutUrl());
   });
 });

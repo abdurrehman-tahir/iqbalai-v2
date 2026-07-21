@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { BookOpen, GraduationCap, LayoutDashboard, Library, LogOut, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { getLogoutUrl } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
@@ -34,7 +34,7 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
   });
 
   function handleLogout() {
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   const scopeLabel = profile?.scoped_ids?.split(",").join(", ") ?? null;

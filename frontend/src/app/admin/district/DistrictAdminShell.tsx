@@ -7,7 +7,7 @@ import { usePathname } from "next/navigation";
 import { School, Menu, X, LogOut, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { getLogoutUrl } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
@@ -24,7 +24,7 @@ export function DistrictAdminShell({ children }: { children: React.ReactNode }) 
   const tNav = useTranslations("district_admin.nav");
 
   function handleLogout() {
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

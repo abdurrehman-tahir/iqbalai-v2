@@ -20,6 +20,7 @@ __all__ = [
     "build_authorize_url",
     "exchange_code_for_token",
     "exchange_refresh_token",
+    "revoke_refresh_token",
 ]
 
 
@@ -96,3 +97,26 @@ async def exchange_refresh_token(refresh_token: str) -> dict[str, object]:
             refresh_token=refresh_token,
         )
     return token
+
+
+async def revoke_refresh_token(refresh_token: str) -> None:
+    """Revoke the refresh token at Authentik (ARCH §6.8, RFC 7009).
+
+    Best-effort by design: the caller decides whether a failure here should
+    block logout. Our own state is already torn down by the time this would
+    be called — the opaque `iqbalai_refresh` reference is deleted the moment
+    it's resolved (refresh_session.resolve_and_rotate), so the token can't be
+    replayed through our own /refresh endpoint even if Authentik's revoke
+    call fails or times out.
+    """
+    settings = get_settings()
+    client = AsyncOAuth2Client(
+        client_id=settings.OIDC_CLIENT_ID,
+        client_secret=settings.OIDC_CLIENT_SECRET or None,
+    )
+    async with client:
+        await client.revoke_token(
+            settings.OIDC_REVOKE_URL,
+            token=refresh_token,
+            token_type_hint="refresh_token",
+        )

@@ -39,6 +39,20 @@ def client() -> TestClient:
     return TestClient(_make_test_app(), raise_server_exceptions=False)
 
 
+@pytest.fixture(autouse=True)
+def _not_blacklisted_by_default() -> object:
+    """Every pre-T-246 test exercises a token that was never logged out.
+
+    Without this, dispatch()'s new blacklist check would hit real Redis for
+    every valid-token test in this file — the tests that specifically care
+    about the blacklist behavior override this with their own patch.
+    """
+    with patch(
+        "app.core.middleware.is_jti_blacklisted", new_callable=AsyncMock, return_value=False
+    ):
+        yield
+
+
 # ---------------------------------------------------------------------------
 # PUBLIC_PATHS sanity checks
 # ---------------------------------------------------------------------------
@@ -80,6 +94,7 @@ def test_public_paths_is_exactly_the_locked_allowlist() -> None:
             "/api/v1/auth/callback",
             "/api/v1/auth/login",
             "/api/v1/auth/refresh",
+            "/api/v1/auth/logout",
             "/api/v1/auth/accept-invite",
             "/api/v1/independent/signup",
             "/api/v1/parents/signup",
@@ -194,6 +209,53 @@ def test_valid_token_claims_enriched_from_database(client: TestClient) -> None:
     assert body["claims"]["role"] == "district_admin"
     assert body["claims"]["district_id"] == "district-abc"
     assert body["claims"]["user_id"] == "user-db-1"
+
+
+# ---------------------------------------------------------------------------
+# Logout blacklist (T-246, ARCH §6.8) — a signature-valid, unexpired token
+# can still be dead if its owner already logged out with it.
+# ---------------------------------------------------------------------------
+
+
+def test_blacklisted_token_returns_401(client: TestClient) -> None:
+    fake_claims = {"sub": "user-123", "role": "teacher", "jti": "the-jti"}
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware.is_jti_blacklisted", new_callable=AsyncMock, return_value=True
+        ):
+            response = client.get("/secret", cookies={"iqbalai_access": "logged.out.token"})
+    assert response.status_code == 401
+    assert response.json()["error"]["code"] == "AUTHENTICATION_REQUIRED"
+
+
+def test_blacklisted_token_checked_before_user_lookup(client: TestClient) -> None:
+    """A blacklist hit must short-circuit before hitting the DB for the user."""
+    fake_claims = {"sub": "user-123", "role": "teacher", "jti": "the-jti"}
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware.is_jti_blacklisted", new_callable=AsyncMock, return_value=True
+        ):
+            with patch(
+                "app.core.middleware._resolve_active_user", new_callable=AsyncMock
+            ) as resolve_mock:
+                response = client.get("/secret", cookies={"iqbalai_access": "logged.out.token"})
+    assert response.status_code == 401
+    resolve_mock.assert_not_called()
+
+
+def test_non_blacklisted_token_still_passes_through(client: TestClient) -> None:
+    fake_claims = {"sub": "user-123", "role": "teacher", "jti": "a-live-jti"}
+    with patch("app.core.middleware.decode_jwt", new_callable=AsyncMock, return_value=fake_claims):
+        with patch(
+            "app.core.middleware.is_jti_blacklisted", new_callable=AsyncMock, return_value=False
+        ):
+            with patch(
+                "app.core.middleware._resolve_active_user",
+                new_callable=AsyncMock,
+                return_value=_db_user(),
+            ):
+                response = client.get("/secret", cookies={"iqbalai_access": "live.token.here"})
+    assert response.status_code == 200
 
 
 def test_suspended_user_returns_403(client: TestClient) -> None:

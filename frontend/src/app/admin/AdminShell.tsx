@@ -21,7 +21,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { NotificationBell } from "@/components/admin/NotificationBell";
-import { getLogoutUrl } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 // useRouter import removed — logout uses window.location directly
@@ -111,7 +111,7 @@ export function AdminShell({ children }: { children: React.ReactNode }) {
   const tNav = useTranslations("admin.nav");
 
   function handleLogout() {
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   return (

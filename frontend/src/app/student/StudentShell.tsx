@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getLogoutUrl } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { StudentOnboardingGate } from "./StudentOnboardingGate";
 
@@ -15,7 +15,7 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
   const onOnboardingPage = pathname.startsWith("/student/onboarding");
 
   function handleLogout() {
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   return (

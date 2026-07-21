@@ -253,6 +253,15 @@ export const authApi = {
   /** Current session's display state (T-245) — cookie-authenticated. */
   me: () => request<MeResponse>("/auth/me"),
 
+  /**
+   * Server-side logout (T-246, ARCH §6.8): revokes the refresh token at
+   * Authentik, blacklists the access token's jti, and clears both session
+   * cookies. Always resolves — the backend 204s even with a dying/absent
+   * session, so this never blocks the caller from proceeding to the
+   * Authentik end-session redirect.
+   */
+  logout: () => request<void>("/auth/logout", { method: "POST" }),
+
   acceptInvite: (data: AcceptInviteRequest) =>
     request<{ status: string; email?: string; message: string }>("/auth/accept-invite", {
       method: "POST",

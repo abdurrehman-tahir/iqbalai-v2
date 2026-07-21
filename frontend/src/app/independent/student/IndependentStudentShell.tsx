@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { getLogoutUrl } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { IndependentStudentOnboardingGate } from "./IndependentStudentOnboardingGate";
 
@@ -51,7 +51,7 @@ export function IndependentStudentShell({ children }: { children: React.ReactNod
               size="md"
               className="w-full justify-start gap-3"
               onClick={() => {
-                window.location.href = getLogoutUrl();
+                void performLogout();
               }}
             >
               <LogOut className="size-5" aria-hidden="true" />

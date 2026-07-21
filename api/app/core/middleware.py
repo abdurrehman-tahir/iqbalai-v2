@@ -11,7 +11,7 @@ from starlette.responses import JSONResponse, Response
 
 from app.config import get_settings
 from app.core.cookies import ACCESS_COOKIE
-from app.core.security import decode_jwt
+from app.core.security import blacklist_id_for, decode_jwt, is_jti_blacklisted
 from app.core.tenant import get_tenant_type
 from app.db.session import async_session_factory
 from app.features.independent_users.models import IndependentUser, IndependentUserAccountStatus
@@ -39,6 +39,12 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         # require a valid access token itself. Validates the iqbalai_refresh
         # cookie internally instead (T-244, ARCH §6.9).
         "/api/v1/auth/refresh",
+        # Must work "with a dying session" (T-246, ARCH §6.8) — an expired or
+        # already-invalid access cookie can't gate the one request whose job
+        # is clearing that exact cookie. The route decodes the token itself
+        # (best-effort) to blacklist its jti; a token that's already garbage
+        # has nothing to blacklist, but cookies still get cleared either way.
+        "/api/v1/auth/logout",
         "/api/v1/auth/accept-invite",
         "/api/v1/independent/signup",
         "/api/v1/parents/signup",
@@ -51,15 +57,13 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
 _STATE_CHANGING_METHODS: frozenset[str] = frozenset({"POST", "PUT", "PATCH", "DELETE"})
 
 # Authenticated paths a caller with an unaccepted ToS must still be able to
-# reach: post-login (runs before the FE even knows tos_acceptance_required),
-# the accept/decline endpoints themselves (the only way out of the gate), and
-# logout (a user must always be able to sign out). `/auth/logout` doesn't
-# exist yet (T-246) — listed proactively so that ticket doesn't need to
-# re-touch this set.
+# reach: post-login (runs before the FE even knows tos_acceptance_required)
+# and the accept/decline endpoints themselves (the only way out of the gate).
+# `/auth/logout` doesn't need an entry here (T-246) — it's in PUBLIC_PATHS
+# instead, which short-circuits dispatch before this check ever runs.
 TOS_ALLOWED_PATHS: frozenset[str] = frozenset(
     {
         "/api/v1/auth/post-login",
-        "/api/v1/auth/logout",
         "/api/v1/users/me/accept-tos",
         "/api/v1/users/me/decline-tos",
     }
@@ -309,6 +313,20 @@ class AuthMiddleware(BaseHTTPMiddleware):
                     "error": {
                         "code": "AUTHENTICATION_REQUIRED",
                         "message": "Invalid or expired token",
+                    }
+                },
+            )
+
+        # Logout blacklists the jti until natural expiry (T-246, ARCH §6.8) —
+        # a signature-valid, unexpired token can still be dead if its owner
+        # already logged out with it.
+        if await is_jti_blacklisted(blacklist_id_for(token, claims)):
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": {
+                        "code": "AUTHENTICATION_REQUIRED",
+                        "message": "Session has been logged out",
                     }
                 },
             )

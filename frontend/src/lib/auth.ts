@@ -8,7 +8,7 @@
  * `useCurrentUser()`, don't reach for browser-local storage.
  */
 
-import { API_BASE } from "@/lib/api";
+import { authApi, API_BASE } from "@/lib/api";
 import type { IndependentUserRole, UserRole } from "@/lib/api/types";
 
 export interface LoginRedirectOptions {
@@ -107,4 +107,24 @@ export function getLogoutUrl(): string {
     (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") + "/login",
   );
   return `${authentikBase}/application/o/iqbalai-frontend/end-session/?redirect_uri=${redirectUri}`;
+}
+
+/**
+ * Full logout flow (T-246, ARCH §6.8): calls the API's server-side logout
+ * first — it revokes the Authentik refresh token, blacklists the access
+ * token's jti, and clears both session cookies — then forwards to
+ * Authentik's end-session endpoint to close the SSO session too.
+ *
+ * The backend call is best-effort: a network failure here must not strand
+ * the user in a logged-in-looking state, so this always navigates on to
+ * Authentik's end-session regardless of whether the API call succeeded.
+ */
+export async function performLogout(): Promise<void> {
+  try {
+    await authApi.logout();
+  } catch {
+    // Best-effort — the cookies may already be gone/expired; the end-session
+    // redirect below is what actually ends the user's visible session.
+  }
+  window.location.href = getLogoutUrl();
 }

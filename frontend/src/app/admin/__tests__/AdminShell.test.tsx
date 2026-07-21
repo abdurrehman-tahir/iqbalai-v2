@@ -15,7 +15,7 @@ vi.mock("next/link", () => ({
 }));
 
 vi.mock("@/lib/auth", () => ({
-  getLogoutUrl: vi.fn(() => "http://localhost:9000/logout"),
+  performLogout: vi.fn(() => Promise.resolve()),
 }));
 
 // T-245: AdminShell reads "who am I" via useCurrentUser() (GET /auth/me),

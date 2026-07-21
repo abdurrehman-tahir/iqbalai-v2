@@ -2,8 +2,10 @@
 
 from __future__ import annotations
 
+import time
 from typing import Any
 
+import httpx
 import structlog
 from fastapi import APIRouter, Depends, Request, Response
 from fastapi.responses import RedirectResponse
@@ -11,7 +13,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import get_settings
 from app.core.cookies import (
+    ACCESS_COOKIE,
     REFRESH_COOKIE,
+    clear_session_cookies,
     set_access_cookie,
     set_refresh_cookie,
     set_session_cookies,
@@ -19,13 +23,14 @@ from app.core.cookies import (
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import AuthenticationError
 from app.core.responses import SuccessEnvelope, success
-from app.core.security import decode_jwt
+from app.core.security import blacklist_id_for, blacklist_jti, decode_jwt
 from app.core.tenant import get_tenant_type
 from app.features.auth.oidc_client import (
     OAuthError,
     build_authorize_url,
     exchange_code_for_token,
     exchange_refresh_token,
+    revoke_refresh_token,
 )
 from app.features.auth.oidc_session import (
     OIDC_SESSION_COOKIE,
@@ -277,4 +282,43 @@ async def refresh(request: Request, response: Response) -> None:
     if isinstance(new_refresh_token, str) and new_refresh_token:
         new_ref = await store_refresh_token(new_refresh_token)
         set_refresh_cookie(response, refresh_ref=new_ref)
+    return None
+
+
+@router.post(
+    "/logout",
+    response_model=None,
+    operation_id="auth_logout",
+    summary="Server-side logout (ARCH §6.8)",
+    description=(
+        "Revokes the refresh token at Authentik, clears both session cookies, "
+        "and blacklists the access token's jti until it would have naturally "
+        "expired. Works even with an already-expired or invalid access cookie "
+        "— logout must always succeed. No request body, no response body."
+    ),
+    status_code=204,
+)
+async def logout(request: Request, response: Response) -> None:
+    access_token = request.cookies.get(ACCESS_COOKIE)
+    if access_token:
+        claims = await decode_jwt(access_token)
+        if claims is not None:
+            exp = claims.get("exp")
+            if isinstance(exp, (int, float)):
+                ttl = int(exp - time.time())
+                await blacklist_jti(blacklist_id_for(access_token, claims), ttl)
+
+    refresh_ref = request.cookies.get(REFRESH_COOKIE)
+    if refresh_ref:
+        real_refresh_token = await resolve_and_rotate(refresh_ref)
+        if real_refresh_token:
+            try:
+                await revoke_refresh_token(real_refresh_token)
+            except OAuthError as exc:
+                logger.warning("logout_revoke_failed", reason=exc.error)
+            except httpx.HTTPError as exc:
+                logger.warning("logout_revoke_network_error", reason=str(exc))
+
+    clear_session_cookies(response)
+    logger.info("logout_succeeded")
     return None

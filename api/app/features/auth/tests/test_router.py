@@ -40,6 +40,9 @@ class _FakeRedis:
     async def delete(self, key: str) -> int:
         return 1 if self.store.pop(key, None) is not None else 0
 
+    async def exists(self, key: str) -> int:
+        return 1 if key in self.store else 0
+
 
 @pytest.fixture()
 def fake_redis(monkeypatch: pytest.MonkeyPatch) -> _FakeRedis:
@@ -433,3 +436,131 @@ async def test_refresh_rotates_access_and_refresh_cookies(
 
     # Old reference is now dead (rotation, single-use).
     assert opaque_ref not in fake_redis.store
+
+
+# ---------------------------------------------------------------------------
+# POST /auth/logout (T-246, ARCH §6.8)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_logout_with_no_cookies_still_succeeds(fake_redis: _FakeRedis) -> None:
+    """Logout must always succeed, even with a dying/absent session (ARCH §6.8)."""
+    async with _build_client() as client:
+        resp = await client.post("/api/v1/auth/logout")
+
+    assert resp.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_logout_clears_both_session_cookies(fake_redis: _FakeRedis) -> None:
+    async with _build_client() as client:
+        client.cookies.set("iqbalai_access", "some.access.token")
+        client.cookies.set("iqbalai_refresh", "some-opaque-ref")
+        resp = await client.post("/api/v1/auth/logout")
+
+    assert resp.status_code == 204
+    set_cookie_headers = resp.headers.get_list("set-cookie")
+    access_clear = next(c for c in set_cookie_headers if c.startswith("iqbalai_access="))
+    refresh_clear = next(c for c in set_cookie_headers if c.startswith("iqbalai_refresh="))
+    for cleared in (access_clear, refresh_clear):
+        lowered = cleared.lower()
+        assert "max-age=0" in lowered or "expires=thu, 01 jan 1970" in lowered
+
+
+@pytest.mark.asyncio
+async def test_logout_blacklists_the_access_token_jti(
+    fake_redis: _FakeRedis, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """After logout, the same token's jti must read back as blacklisted."""
+    import time as time_module
+
+    from app.core.security import blacklist_id_for, is_jti_blacklisted
+
+    monkeypatch.setattr("app.core.security.get_redis", lambda: fake_redis)
+
+    async def _fake_decode(token: str) -> dict[str, object]:
+        return {
+            "sub": "u-1",
+            "role": "teacher",
+            "jti": "jti-under-test",
+            "exp": time_module.time() + 3600,
+        }
+
+    monkeypatch.setattr("app.features.auth.router.decode_jwt", _fake_decode)
+
+    async with _build_client() as client:
+        client.cookies.set("iqbalai_access", "some.access.token")
+        resp = await client.post("/api/v1/auth/logout")
+
+    assert resp.status_code == 204
+    claims: dict[str, object] = {"jti": "jti-under-test"}
+    assert await is_jti_blacklisted(blacklist_id_for("some.access.token", claims)) is True
+
+
+@pytest.mark.asyncio
+async def test_logout_already_expired_access_token_does_not_error(
+    fake_redis: _FakeRedis, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """An expired/garbage access cookie has nothing to blacklist — logout still 204s."""
+    monkeypatch.setattr("app.core.security.get_redis", lambda: fake_redis)
+
+    async def _fake_decode(token: str) -> dict[str, object] | None:
+        return None
+
+    monkeypatch.setattr("app.features.auth.router.decode_jwt", _fake_decode)
+
+    async with _build_client() as client:
+        client.cookies.set("iqbalai_access", "garbage.token.here")
+        resp = await client.post("/api/v1/auth/logout")
+
+    assert resp.status_code == 204
+
+
+@pytest.mark.asyncio
+async def test_logout_revokes_and_rotates_out_the_refresh_reference(
+    fake_redis: _FakeRedis, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """The opaque refresh reference must be consumed so a stolen cookie can't
+    be replayed against /auth/refresh after logout."""
+    from app.features.auth.refresh_session import store_refresh_token
+
+    revoked: dict[str, str] = {}
+
+    async def _fake_revoke(refresh_token: str) -> None:
+        revoked["token"] = refresh_token
+
+    monkeypatch.setattr("app.features.auth.router.revoke_refresh_token", _fake_revoke)
+
+    opaque_ref = await store_refresh_token("real-authentik-refresh-token")
+
+    async with _build_client() as client:
+        client.cookies.set("iqbalai_refresh", opaque_ref)
+        resp = await client.post("/api/v1/auth/logout")
+
+    assert resp.status_code == 204
+    assert revoked["token"] == "real-authentik-refresh-token"
+    assert opaque_ref not in fake_redis.store
+
+
+@pytest.mark.asyncio
+async def test_logout_succeeds_even_when_authentik_revoke_fails(
+    fake_redis: _FakeRedis, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """A revoke-endpoint failure at Authentik must not block logout — our own
+    state (cookies, opaque reference) is already torn down regardless."""
+    from app.features.auth.oidc_client import OAuthError
+    from app.features.auth.refresh_session import store_refresh_token
+
+    async def _fake_revoke(refresh_token: str) -> None:
+        raise OAuthError(error="server_error")
+
+    monkeypatch.setattr("app.features.auth.router.revoke_refresh_token", _fake_revoke)
+
+    opaque_ref = await store_refresh_token("real-authentik-refresh-token")
+
+    async with _build_client() as client:
+        client.cookies.set("iqbalai_refresh", opaque_ref)
+        resp = await client.post("/api/v1/auth/logout")
+
+    assert resp.status_code == 204

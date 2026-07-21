@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { Users, GraduationCap, LayoutDashboard, LogOut, UserCog, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { getLogoutUrl } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { schoolAdminApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
@@ -33,7 +33,7 @@ export function SchoolAdminShell({ children }: { children: React.ReactNode }) {
   });
 
   function handleLogout() {
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   const headerTitle = school?.name ?? t("header_title");

@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getLogoutUrl } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 
 export function ParentShell({ children }: { children: React.ReactNode }) {
@@ -14,7 +14,7 @@ export function ParentShell({ children }: { children: React.ReactNode }) {
   const onSignupPage = pathname.startsWith("/parent/signup");
 
   function handleLogout() {
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   if (onSignupPage) {

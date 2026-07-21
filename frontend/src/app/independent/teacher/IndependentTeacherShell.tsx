@@ -6,7 +6,7 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { getLogoutUrl } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { IndependentTeacherOnboardingGate } from "./IndependentTeacherOnboardingGate";
 
@@ -19,7 +19,7 @@ export function IndependentTeacherShell({ children }: { children: React.ReactNod
   const onOnboardingPage = pathname.startsWith("/independent/teacher/onboarding");
 
   function handleLogout() {
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   return (

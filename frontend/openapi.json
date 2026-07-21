@@ -8398,6 +8398,21 @@
         ]
       }
     },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Revokes the refresh token at Authentik, clears both session cookies, and blacklists the access token's jti until it would have naturally expired. Works even with an already-expired or invalid access cookie \u2014 logout must always succeed. No request body, no response body.",
+        "operationId": "auth_logout",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Server-side logout (ARCH \u00a76.8)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/auth/me": {
       "get": {
         "description": "Tokens are HttpOnly cookies now \u2014 the frontend can't decode them for display state. Returns the same claims AuthMiddleware already enriched from the DB on every authenticated request.",

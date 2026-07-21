@@ -48,6 +48,9 @@ class Settings(BaseSettings):
     # slugged per-application like the issuer/JWKS above) — T-244, ARCH §6.4.
     OIDC_AUTHORIZE_URL: str = "http://localhost:9000/application/o/authorize/"
     OIDC_TOKEN_URL: str = "http://localhost:9000/application/o/token/"
+    # RFC 7009 revoke endpoint, called at logout (T-246, ARCH §6.8) — also
+    # shared/unslugged, same as authorize/token above.
+    OIDC_REVOKE_URL: str = "http://localhost:9000/application/o/revoke/"
     AUTHENTIK_API_URL: str = "http://localhost:9000/api/v3"
     AUTHENTIK_API_TOKEN: str = ""
 

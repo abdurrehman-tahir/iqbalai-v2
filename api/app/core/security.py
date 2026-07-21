@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import hashlib
 import time
 from typing import Any
 
@@ -10,8 +11,11 @@ import structlog
 from jose import JWTError, jwk, jwt
 
 from app.config import get_settings
+from app.infrastructure.cache.client import get_redis
 
 logger = structlog.get_logger(__name__)
+
+_BLACKLIST_KEY_PREFIX = "jti_blacklist:"
 
 _jwks_cache: dict[str, Any] | None = None
 _jwks_cache_expires_at: float = 0.0
@@ -89,3 +93,39 @@ async def decode_jwt(token: str) -> dict[str, object] | None:
     except (JWTError, httpx.HTTPError, httpx.TransportError) as exc:
         logger.debug("jwt_decode_failed", reason=str(exc))
         return None
+
+
+def blacklist_id_for(token: str, claims: dict[str, object]) -> str:
+    """Stable identifier for `token` in the logout blacklist (ARCH §6.8).
+
+    Prefers the JWT's `jti` claim (the spec-intended mechanism the ARCH
+    section names). `jti` isn't in decode_jwt's required-claims list — this
+    codebase can't assert Authentik always issues one — so when it's absent,
+    falls back to a SHA-256 hash of the raw token string. Both are stable
+    (same token → same id every time), which is all the blacklist needs:
+    the logout route and AuthMiddleware must independently derive the same
+    id from the same token to agree on a hit.
+    """
+    jti = claims.get("jti")
+    if isinstance(jti, str) and jti:
+        return jti
+    return hashlib.sha256(token.encode()).hexdigest()
+
+
+async def is_jti_blacklisted(blacklist_id: str) -> bool:
+    """True if `blacklist_id` was blacklisted at logout and hasn't expired."""
+    redis = get_redis()
+    return bool(await redis.exists(f"{_BLACKLIST_KEY_PREFIX}{blacklist_id}"))
+
+
+async def blacklist_jti(blacklist_id: str, ttl_seconds: int) -> None:
+    """Blacklist `blacklist_id` until the token would have naturally expired.
+
+    A non-positive TTL means the token is already expired (or within the
+    validator's clock-skew leeway of it) — decode_jwt would reject it anyway,
+    so there's nothing worth blacklisting.
+    """
+    if ttl_seconds <= 0:
+        return
+    redis = get_redis()
+    await redis.set(f"{_BLACKLIST_KEY_PREFIX}{blacklist_id}", "1", ex=ttl_seconds)
