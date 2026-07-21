@@ -162,6 +162,7 @@ function parseApiErrorBody(
 }
 
 async function request<T>(path: string, options: RequestInit = {}, _token?: string): Promise<T> {
+  void _token;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> | undefined),
@@ -201,6 +202,7 @@ async function request<T>(path: string, options: RequestInit = {}, _token?: stri
 }
 
 async function requestFormData<T>(path: string, formData: FormData, _token?: string): Promise<T> {
+  void _token;
   const headers: Record<string, string> = {};
 
   const res = await fetch(`${API_BASE}${path}`, {
@@ -929,6 +931,7 @@ export interface BulkImportJob {
 }
 
 async function uploadRequest<T>(path: string, formData: FormData, _token: string): Promise<T> {
+  void _token;
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     credentials: "include",
@@ -1072,6 +1075,7 @@ export interface DataRightsStatusRead {
 }
 
 async function downloadRequest(path: string, _token: string): Promise<Blob> {
+  void _token;
   const res = await fetch(`${API_BASE}${path}`, {
     credentials: "include",
   });

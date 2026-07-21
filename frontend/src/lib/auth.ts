@@ -24,6 +24,7 @@ export function getToken(): string | null {
 
 export function setToken(_token: string): void {
   // Compatibility no-op while feature callers migrate to cookie credentials.
+  void _token;
 }
 
 export function clearToken(): void {
