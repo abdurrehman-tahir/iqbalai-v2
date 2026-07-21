@@ -141,6 +141,16 @@ jobs:
     if: needs.detect-changes.outputs.code-changed == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # T-240 env-guard (frontend/src/lib/env-guard.ts) is imported by next.config.ts at
+    # module load and THROWS on a production NODE_ENV run when these are unset. Both
+    # `next lint` and `next build` set NODE_ENV=production, so this job needs the vars
+    # present. These CI placeholders only satisfy the guard for lint/build; the real
+    # deploy values are set on the staging/prod box (the guard's true protection
+    # surface). Mirrors the NEXT_PUBLIC_AUTHENTIK_URL already set on the e2e job. [env-fallback]
+    env:
+      NEXT_PUBLIC_AUTHENTIK_URL: http://localhost:9000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_PUBLIC_AUTHENTIK_CLIENT_ID: iqbalai-frontend
     steps:
       - name: Checkout
         uses: actions/checkout@v4

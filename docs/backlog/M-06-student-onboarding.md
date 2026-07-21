@@ -497,7 +497,7 @@ A Coordinator enrolls students into a Grade + Section (M-03 structure), the stud
 **Layer:** 6
 **Milestone:** M-06
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-4-student-onboarding.md` v3 (school-student + parent portions)
