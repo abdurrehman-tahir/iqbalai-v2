@@ -473,6 +473,16 @@ jobs:
           # literal Authentik minted at init (matches the CI .env).
           AUTHENTIK_API_URL: http://localhost:9000/api/v3
           AUTHENTIK_API_TOKEN: ci-only-not-a-real-secret-bootstrap-token
+      - name: Alias authentik-server -> localhost for the browser (T-247)
+        if: steps.detect.outputs.fe == 'yes'
+        # The API 302-redirects the BROWSER to OIDC_AUTHORIZE_URL, whose host is the
+        # compose-internal `authentik-server` (build_authorize_url, oidc_client.py).
+        # Playwright's chromium runs on the runner host and can't resolve compose
+        # DNS — alias it to 127.0.0.1 so the single issuer host (authentik-server:9000,
+        # published 9000:9000) resolves from BOTH the api (compose network) and the
+        # browser (host), with no issuer/token host mismatch. Without this, every
+        # @auth @real login times out waiting for Authentik's login form.
+        run: echo "127.0.0.1 authentik-server" | sudo tee -a /etc/hosts
       - name: Playwright smoke (@smoke mock + @real backend, incl. @auth @real)
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
