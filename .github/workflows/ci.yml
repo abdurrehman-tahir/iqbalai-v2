@@ -449,12 +449,18 @@ jobs:
         # provider + application are what OIDC_ISSUER_URL/JWKS point at.
         run: |
           docker compose up -d postgres redis authentik-redis authentik-server authentik-worker --wait
-          # alembic runs on the HOST, so it reaches postgres via the published port
-          # (localhost), not the compose-internal `postgres` host in the root .env.
-          # The `docker compose up api` below keeps using .env (container talks to
-          # `postgres:5432` on the compose network). Same override as the seed step.
-          DB_URL=postgresql+asyncpg://iqbalai:ci-only-not-a-real-secret@localhost:5432/iqbalai \
-            uv run --project api alembic -c api/alembic.ini upgrade head
+          # Dual-tenant schemas must exist before the schema-scoped migrations run
+          # (identical to the alembic-check job). Create them in the compose postgres
+          # via its published port.
+          PGPASSWORD=ci-only-not-a-real-secret psql -h localhost -U iqbalai -d iqbalai \
+            -c "CREATE SCHEMA IF NOT EXISTS school; CREATE SCHEMA IF NOT EXISTS independent; GRANT ALL ON SCHEMA school TO iqbalai; GRANT ALL ON SCHEMA independent TO iqbalai;"
+          # alembic runs on the HOST from api/ (so script_location=alembic resolves),
+          # reaches postgres via the published port (localhost, not the compose
+          # `postgres` host in .env), and upgrades BOTH dual-tenant heads (plural).
+          # The `docker compose up api` below still uses .env, so the container talks
+          # to `postgres:5432` on the compose network.
+          (cd api && DB_URL=postgresql+asyncpg://iqbalai:ci-only-not-a-real-secret@localhost:5432/iqbalai \
+            uv run alembic upgrade heads)
           docker compose up -d api --wait
       - name: Seed demo data + real Authentik E2E identities
         if: steps.detect.outputs.fe == 'yes'
