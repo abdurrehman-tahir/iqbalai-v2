@@ -377,6 +377,13 @@ jobs:
       - id: detect
         run: |
           if [ -f frontend/package.json ]; then echo "fe=yes" >> "$GITHUB_OUTPUT"; else echo "fe=no" >> "$GITHUB_OUTPUT"; fi
+      # The @real bring-up runs `uv run --project api alembic|python` on the HOST
+      # (migrations + seed against the published compose ports), so uv MUST be
+      # installed before those tools run (inv.1) — same as typed-client-drift.
+      - uses: astral-sh/setup-uv@v5
+        if: steps.detect.outputs.fe == 'yes'
+        with:
+          version: "latest"
       - uses: pnpm/action-setup@v4
         with:
           version: 9
@@ -384,6 +391,10 @@ jobs:
       - uses: actions/setup-node@v4
         if: steps.detect.outputs.fe == 'yes'
         with: { node-version: "20", cache: pnpm, cache-dependency-path: frontend/pnpm-lock.yaml }
+      - name: Sync api venv (deps before tools — inv.1)
+        if: steps.detect.outputs.fe == 'yes'
+        working-directory: api
+        run: uv sync --all-extras --dev
       - name: Install + Playwright browsers (deps before tools — inv.1)
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
@@ -438,7 +449,12 @@ jobs:
         # provider + application are what OIDC_ISSUER_URL/JWKS point at.
         run: |
           docker compose up -d postgres redis authentik-redis authentik-server authentik-worker --wait
-          uv run --project api alembic -c api/alembic.ini upgrade head
+          # alembic runs on the HOST, so it reaches postgres via the published port
+          # (localhost), not the compose-internal `postgres` host in the root .env.
+          # The `docker compose up api` below keeps using .env (container talks to
+          # `postgres:5432` on the compose network). Same override as the seed step.
+          DB_URL=postgresql+asyncpg://iqbalai:ci-only-not-a-real-secret@localhost:5432/iqbalai \
+            uv run --project api alembic -c api/alembic.ini upgrade head
           docker compose up -d api --wait
       - name: Seed demo data + real Authentik E2E identities
         if: steps.detect.outputs.fe == 'yes'
