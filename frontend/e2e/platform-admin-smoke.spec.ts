@@ -12,7 +12,7 @@ import { installPlatformAdminMocks } from "./helpers/mock-api";
 async function bootstrapAdmin(page: Page) {
   const state = await installPlatformAdminMocks(page);
   state.tosAccepted = false;
-  await page.goto("/auth/callback?code=e2e-test-code");
+  await page.goto("/auth/callback?tos_required=1");
   return state;
 }
 

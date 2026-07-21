@@ -14,7 +14,7 @@ test.describe("ToS flows (T-232) @smoke @mock", () => {
     state.tosContent = LONG_TOS;
     state.tosAccepted = false;
 
-    await page.goto("/auth/callback?code=e2e-test-code");
+    await page.goto("/auth/callback?tos_required=1");
 
     const dialog = page.getByRole("dialog", { name: /terms of service/i });
     await expect(dialog).toBeVisible({ timeout: 10_000 });
@@ -44,7 +44,7 @@ test.describe("ToS flows (T-232) @smoke @mock", () => {
       });
     });
 
-    await page.goto("/auth/callback?code=e2e-test-code");
+    await page.goto("/auth/callback?tos_required=1");
 
     await expect(page.getByRole("dialog")).toBeVisible({ timeout: 10_000 });
     await page.getByRole("button", { name: /decline/i }).click();
