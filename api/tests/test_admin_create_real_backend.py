@@ -119,10 +119,21 @@ async def authed_client(monkeypatch: pytest.MonkeyPatch) -> AsyncGenerator[Async
     await _dispose_engine()
     _rebind_async_session_factory()
 
-    with patch(
-        "app.core.middleware.decode_jwt",
-        new_callable=AsyncMock,
-        return_value=_PLATFORM_ADMIN_CLAIMS,
+    # Auth is mocked only at the middleware boundary (see module docstring): both
+    # decode_jwt AND the jti-denylist check live there. The denylist check hits
+    # Redis (T-246), which the backend-tests job intentionally does not run — mock
+    # it to a miss so the real service/repository/validation path stays exercised.
+    with (
+        patch(
+            "app.core.middleware.decode_jwt",
+            new_callable=AsyncMock,
+            return_value=_PLATFORM_ADMIN_CLAIMS,
+        ),
+        patch(
+            "app.core.middleware.is_jti_blacklisted",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
     ):
         transport = ASGITransport(app=create_app())
         async with AsyncClient(transport=transport, base_url="http://test") as client:
