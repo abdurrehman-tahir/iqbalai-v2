@@ -22,6 +22,24 @@ async function installCoordinatorMocks(page: Page) {
       if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
       const method = request.method();
 
+      // T-247: shell resolves "who am I" via GET /auth/me (cookie session)
+      // since T-245 — mock it or useCurrentUser() never resolves.
+      if (method === "GET" && path === "/auth/me") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            user_id: "coord-1",
+            email: "coord@test.com",
+            role: "coordinator",
+            tenant_type: "school",
+            school_id: "school-1",
+            district_id: null,
+          }),
+        });
+        return;
+      }
+
       if (method === "GET" && path === "/subjects") {
         await route.fulfill({
           status: 200,
@@ -116,17 +134,6 @@ async function installCoordinatorMocks(page: Page) {
 
 test.describe("Coordinator curriculum upload @smoke", () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      sessionStorage.setItem("iqbalai_access_token", "e2e-coordinator-token");
-      sessionStorage.setItem(
-        "iqbalai_user",
-        JSON.stringify({
-          email: "coord@test.com",
-          role: "coordinator",
-          school_id: "school-1",
-        }),
-      );
-    });
     await installCoordinatorMocks(page);
   });
 

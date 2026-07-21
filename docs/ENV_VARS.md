@@ -80,6 +80,13 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 | `STRIPE_API_KEY` | (placeholder; empty at launch) | Stripe Secret Key for the subscription module. At launch: env var EXISTS as placeholder; NOT used (no Stripe SDK installed). Phase 2: real Stripe key required. | Flow 13 + ARCH §3.17 + §11.20 |
 | `STRIPE_WEBHOOK_SECRET` | (placeholder; empty at launch) | Stripe webhook signing secret. At launch: env var EXISTS as placeholder. Phase 2: required for webhook signature verification per ARCH §11.20. | Flow 13 + ARCH §11.20 |
 
+### Authentik OIDC bootstrap (M-07a T-247, ARCH §6.4)
+
+| Variable | Default | Purpose | Source |
+|---|---|---|---|
+| `AUTHENTIK_BOOTSTRAP_TOKEN` | (dev/CI only; empty in prod) | Consumed by Authentik at first container init to mint an akadmin API token with this exact value. Set `AUTHENTIK_API_TOKEN` equal to it so the API + `scripts/seed_e2e_auth_users.py` provision users with no manual `ak shell` step. Dev/CI only — generate a fresh random value per environment. | M-07a T-247 + Authentik docs |
+| `OIDC_REDIRECT_URI` | `http://localhost:8000/api/v1/auth/callback` | Redirect target Authentik returns the browser to after login. Per ARCH §6.4 the API owns the code exchange, so this is the API callback route. Consumed by the OIDC blueprint (`infrastructure/authentik/blueprints/iqbalai-oidc.yaml`) and must match the provider's registered redirect URI. | M-07a T-247 + ARCH §6.4 |
+
 ---
 
 ## Validation rules

@@ -68,6 +68,16 @@ services:
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
       AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL}
       AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD}
+      # T-247: consumed by Authentik at first init to mint an akadmin API token
+      # with this exact value — so AUTHENTIK_API_TOKEN can equal it and the API +
+      # seed scripts provision users with zero manual `ak shell` step (CI + local).
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-}
+      # T-247: NOT read by Authentik itself (only AUTHENTIK_* is) — exposed so the
+      # OIDC blueprint's `!Env` tags resolve the client id/secret + redirect URI to
+      # the SAME values the API uses, keeping provider config and API config in sync.
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-iqbalai-api}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-change_me_after_authentik_bootstrap}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-http://localhost:8000/api/v1/auth/callback}
       AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
       # SMTP for Authentik-sent mail (password recovery). Values from .env.
       # Port 465 = implicit SSL → USE_SSL=true / USE_TLS=false.
@@ -92,6 +102,10 @@ services:
       # Login flow background (two-panel "Join us for free" art). Bind-mounted into
       # the media volume so the flow's background field can point at it.
       - ./infrastructure/authentik/login-bg.png:/media/public/login-bg.png:ro
+      # T-247: OIDC provider + application blueprint. Authentik auto-discovers and
+      # applies everything under /blueprints on boot (idempotent), so the OIDC app
+      # self-provisions in a fresh container — no manual setup / stub script.
+      - ./infrastructure/authentik/blueprints:/blueprints/iqbalai:ro
     ports:
       - "9000:9000"
       - "9443:9443"
@@ -122,6 +136,12 @@ services:
       AUTHENTIK_POSTGRESQL__PASSWORD: ${POSTGRES_PASSWORD}
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      # T-247: the worker runs blueprint-apply tasks — same bootstrap token +
+      # OIDC `!Env` inputs as the server so the applied provider matches API config.
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-iqbalai-api}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-change_me_after_authentik_bootstrap}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-http://localhost:8000/api/v1/auth/callback}
       # The worker sends the mail — it needs the same SMTP config as the server.
       AUTHENTIK_EMAIL__HOST: ${SMTP_HOST}
       AUTHENTIK_EMAIL__PORT: ${SMTP_PORT}
@@ -135,6 +155,8 @@ services:
       - authentik_media:/media
       - authentik_certs:/certs
       - authentik_templates:/templates
+      # T-247: the worker applies blueprints — mount the same OIDC blueprint dir.
+      - ./infrastructure/authentik/blueprints:/blueprints/iqbalai:ro
     networks:
       - iqbalai_net
     depends_on:

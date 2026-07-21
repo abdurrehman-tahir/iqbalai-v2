@@ -25,6 +25,8 @@ class AuthentikClientProtocol(Protocol):
 
     async def set_password(self, authentik_id: str, password: str) -> None: ...
 
+    async def set_attributes(self, authentik_id: str, attributes: dict[str, str]) -> None: ...
+
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None: ...
 
     async def set_tenant_type(self, authentik_id: str, tenant_type: str) -> None: ...
@@ -66,6 +68,11 @@ class DevAuthentikClient:
             pk=authentik_id,
             hint="Set AUTHENTIK_API_TOKEN so invites update real Authentik users",
         )
+
+    async def set_attributes(self, authentik_id: str, attributes: dict[str, str]) -> None:
+        if authentik_id in self._users:
+            self._users[authentik_id]["attributes"] = dict(attributes)
+        logger.info("dev_authentik_attributes_set", pk=authentik_id, attributes=attributes)
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None:
         logger.info("dev_authentik_group_added", pk=authentik_id, group=group_slug)
@@ -179,6 +186,19 @@ class AuthentikClient:
             "POST",
             f"/core/users/{authentik_id}/set_password/",
             json={"password": password},
+        )
+
+    async def set_attributes(self, authentik_id: str, attributes: dict[str, str]) -> None:
+        """Set the user's `attributes` JSON (T-247).
+
+        Used to stamp `role`/`tenant_type` so the OIDC blueprint's claims mapping
+        can emit them into the token for tenant routing (ARCH §3.16/§6.4). PATCH
+        replaces the whole `attributes` object — callers pass the full desired set.
+        """
+        await self._request(
+            "PATCH",
+            f"/core/users/{authentik_id}/",
+            json={"attributes": attributes},
         )
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None:

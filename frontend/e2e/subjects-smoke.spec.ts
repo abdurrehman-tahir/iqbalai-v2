@@ -1,9 +1,10 @@
 /**
  * T-041 — Coordinator Subjects smoke test (E2E, @smoke).
  *
- * Self-contained: the Subjects + /users/me API is mocked inline (no live backend),
- * and the session is seeded directly into sessionStorage so we skip the OIDC
- * round-trip. Exercises the create flow and asserts the new subject renders.
+ * Self-contained: the Subjects + /auth/me API is mocked inline (no live backend).
+ * Since T-245 the session is an HttpOnly cookie and the shell reads "who am I"
+ * from GET /auth/me (mocked here), so no sessionStorage seeding is needed (T-247).
+ * Exercises the create flow and asserts the new subject renders.
  *
  * Run:
  *   pnpm exec playwright test e2e/subjects-smoke.spec.ts
@@ -37,6 +38,24 @@ async function installCoordinatorMocks(page: Page) {
       let path = url.pathname.replace("/api/v1", "");
       if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
       const method = request.method();
+
+      // T-247: shell resolves "who am I" via GET /auth/me (cookie session)
+      // since T-245 — mock it or useCurrentUser() never resolves.
+      if (method === "GET" && path === "/auth/me") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            user_id: "user-coordinator-1",
+            email: "coordinator@iqbalai.test",
+            role: "coordinator",
+            tenant_type: "school",
+            school_id: "school-1",
+            district_id: null,
+          }),
+        });
+        return;
+      }
 
       if (method === "GET" && path === "/users/me") {
         await route.fulfill({
@@ -96,26 +115,9 @@ async function installCoordinatorMocks(page: Page) {
   );
 }
 
-async function seedSession(page: Page) {
-  await page.addInitScript(() => {
-    sessionStorage.setItem("iqbalai_access_token", "e2e-test-access-token");
-    sessionStorage.setItem(
-      "iqbalai_user",
-      JSON.stringify({
-        user_id: "user-coordinator-1",
-        email: "coordinator@iqbalai.test",
-        role: "coordinator",
-        tos_acceptance_required: false,
-        current_tos_version_id: null,
-      })
-    );
-  });
-}
-
 test.describe("Coordinator Subjects @smoke", () => {
   test("Coordinator creates a subject and sees it listed", async ({ page }) => {
     await installCoordinatorMocks(page);
-    await seedSession(page);
 
     await page.goto(`${BASE_URL}/coordinator/subjects`);
 

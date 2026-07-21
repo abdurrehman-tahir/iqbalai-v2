@@ -41,6 +41,7 @@ class _FakeAuthentikClient:
     def __init__(self) -> None:
         self.by_email: dict[str, str] = {}
         self.passwords: dict[str, str] = {}
+        self.attributes: dict[str, dict[str, str]] = {}
         self.active: set[str] = set()
         self._next_pk = 1
 
@@ -63,6 +64,9 @@ class _FakeAuthentikClient:
 
     async def set_password(self, authentik_id: str, password: str) -> None:
         self.passwords[authentik_id] = password
+
+    async def set_attributes(self, authentik_id: str, attributes: dict[str, str]) -> None:
+        self.attributes[authentik_id] = dict(attributes)
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None:
         pass
@@ -88,6 +92,12 @@ async def test_provision_school_users_creates_real_identities_for_every_seed_use
         # Every provisioned identity has a password set + is active (loginable).
         assert client.passwords[result.authentik_id] == seed_e2e.E2E_SEED_PASSWORD
         assert result.authentik_id in client.active
+        # T-247: role + tenant_type stamped as attributes so the OIDC claims
+        # mapping can emit them (school-tenant users → tenant_type "school").
+        assert client.attributes[result.authentik_id] == {
+            "role": result.role.value,
+            "tenant_type": "school",
+        }
 
 
 @pytest.mark.asyncio
@@ -101,6 +111,12 @@ async def test_provision_independent_users_creates_real_identities() -> None:
     for result in provisioned:
         assert result.authentik_id.startswith("real-authentik-pk-")
         assert result.authentik_id in client.active
+        # Independent-tenant users must carry tenant_type "independent" so the
+        # API routes them to the independent schema (ARCH §3.16).
+        assert client.attributes[result.authentik_id] == {
+            "role": result.role.value,
+            "tenant_type": "independent",
+        }
 
 
 @pytest.mark.asyncio

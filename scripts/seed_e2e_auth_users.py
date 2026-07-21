@@ -84,7 +84,12 @@ E2E_SEED_PASSWORD = os.environ.get(
 
 
 async def _provision_authentik_identity(
-    client: AuthentikClientProtocol, *, email: str, display_name: str
+    client: AuthentikClientProtocol,
+    *,
+    email: str,
+    display_name: str,
+    role: str,
+    tenant_type: str,
 ) -> str:
     """Create-or-reuse a real, active, password-set Authentik identity.
 
@@ -106,6 +111,13 @@ async def _provision_authentik_identity(
     # password and ensure the account is active, so a re-run always leaves a
     # loginable identity even if a prior partial run left it half-provisioned.
     await client.set_password(authentik_id, E2E_SEED_PASSWORD)
+    # T-247: stamp role + tenant_type so the OIDC blueprint's claims mapping emits
+    # them into the token — the API routes the login to the school vs independent
+    # schema from these claims (app/core/tenant.py). Without this the 2 independent
+    # journeys misroute to the school schema and fail.
+    await client.set_attributes(
+        authentik_id, {"role": role, "tenant_type": tenant_type}
+    )
     await client.activate_user(authentik_id)
     return authentik_id
 
@@ -117,7 +129,11 @@ async def provision_school_users(
     provisioned = []
     for spec in seed_dev.SEED_USERS:
         real_id = await _provision_authentik_identity(
-            client, email=spec.email, display_name=spec.display_name
+            client,
+            email=spec.email,
+            display_name=spec.display_name,
+            role=spec.role.value,
+            tenant_type="school",
         )
         provisioned.append(dataclasses.replace(spec, authentik_id=real_id))
     return tuple(provisioned)
@@ -130,7 +146,11 @@ async def provision_independent_users(
     provisioned = []
     for spec in seed_dev.SEED_INDEPENDENT_USERS:
         real_id = await _provision_authentik_identity(
-            client, email=spec.email, display_name=spec.display_name
+            client,
+            email=spec.email,
+            display_name=spec.display_name,
+            role=spec.role.value,
+            tenant_type="independent",
         )
         provisioned.append(dataclasses.replace(spec, authentik_id=real_id))
     return tuple(provisioned)

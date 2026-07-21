@@ -32,6 +32,24 @@ async function installMocks(page: Page) {
       if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
       const method = request.method();
 
+      // T-247: shell resolves "who am I" via GET /auth/me (cookie session)
+      // since T-245 — mock it or useCurrentUser() never resolves.
+      if (method === "GET" && path === "/auth/me") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            user_id: "user-coordinator-1",
+            email: "coordinator@iqbalai.test",
+            role: "coordinator",
+            tenant_type: "school",
+            school_id: "school-1",
+            district_id: null,
+          }),
+        });
+        return;
+      }
+
       if (method === "GET" && path === "/users/me") {
         await route.fulfill({
           status: 200,
@@ -104,26 +122,9 @@ async function installMocks(page: Page) {
   );
 }
 
-function seedSession(page: Page) {
-  return page.addInitScript(() => {
-    sessionStorage.setItem("iqbalai_access_token", "e2e-test-access-token");
-    sessionStorage.setItem(
-      "iqbalai_user",
-      JSON.stringify({
-        user_id: "user-coordinator-1",
-        email: "coordinator@iqbalai.test",
-        role: "coordinator",
-        tos_acceptance_required: false,
-        current_tos_version_id: null,
-      })
-    );
-  });
-}
-
 test.describe("Coordinator academic sessions @smoke", () => {
   test("create and display active session", async ({ page }) => {
     await installMocks(page);
-    await seedSession(page);
     await page.goto(`${BASE_URL}/coordinator/subjects`);
 
     await expect(page.getByText(/no active session/i)).toBeVisible();

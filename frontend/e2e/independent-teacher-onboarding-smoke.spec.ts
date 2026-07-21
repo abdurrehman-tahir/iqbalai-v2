@@ -13,6 +13,27 @@ function envelope<T>(data: T) {
 async function installIndependentTeacherMocks(page: Page) {
   let profileComplete = false;
 
+  // T-247: the shell resolves "who am I" via GET /auth/me (cookie session)
+  // since T-245. The onboarding route below is scoped to /independent/teachers/me
+  // and won't match /auth/me, so register a dedicated handler for it.
+  await page.route(
+    (url) => url.pathname.endsWith("/api/v1/auth/me"),
+    async (route: Route) => {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({
+          user_id: "ind-teacher-1",
+          email: "teacher@example.com",
+          role: "independent_teacher",
+          tenant_type: "independent",
+          school_id: null,
+          district_id: null,
+        }),
+      });
+    },
+  );
+
   await page.route(
     (url) => url.pathname.includes("/api/v1/independent/teachers/me"),
     async (route: Route) => {
@@ -69,19 +90,6 @@ async function installIndependentTeacherMocks(page: Page) {
 
 test.describe("@smoke independent teacher onboarding", () => {
   test.beforeEach(async ({ page }) => {
-    await page.addInitScript(() => {
-      sessionStorage.setItem("iqbalai_access_token", "mock-token");
-      sessionStorage.setItem(
-        "iqbalai_user",
-        JSON.stringify({
-          user_id: "ind-teacher-1",
-          email: "teacher@example.com",
-          role: "independent_teacher",
-          tos_acceptance_required: false,
-          current_tos_version_id: null,
-        }),
-      );
-    });
     await installIndependentTeacherMocks(page);
   });
 

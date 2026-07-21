@@ -222,6 +222,25 @@ async function handleApiRoute(state: MockState, route: Route) {
     return;
   }
 
+  // T-247: since T-245 the shell reads "who am I" from GET /auth/me (cookie
+  // session), not sessionStorage — this mock must answer it or useCurrentUser()
+  // never resolves and the shell nav/ownership checks break.
+  if (method === "GET" && path === "/auth/me") {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: envelope({
+        user_id: state.userId,
+        email: state.email,
+        role: "platform_admin",
+        tenant_type: "school",
+        school_id: null,
+        district_id: null,
+      }),
+    });
+    return;
+  }
+
   if (method === "GET" && path === "/tos/current") {
     await route.fulfill({
       status: 200,

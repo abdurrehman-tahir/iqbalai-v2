@@ -1,9 +1,10 @@
 /**
  * T-092 — Platform Admin Exam Frameworks smoke test (E2E, @smoke).
  *
- * Self-contained: the frameworks + /users/me API is mocked inline (no live
- * backend), and the session is seeded into sessionStorage to skip the OIDC
- * round-trip. Drives nav → create → row-visible, asserting the page is
+ * Self-contained: the frameworks + /auth/me API is mocked inline (no live
+ * backend). Since T-245 the session is an HttpOnly cookie and the shell reads
+ * "who am I" from GET /auth/me (mocked here), so no sessionStorage seeding is
+ * needed (T-247). Drives nav → create → row-visible, asserting the page is
  * reachable and renders real content. The real-backend create contract lives
  * in admin-create-real.spec.ts (@real).
  *
@@ -59,6 +60,24 @@ async function installAdminMocks(page: Page, seed: MockFramework[] = []) {
       let path = url.pathname.replace("/api/v1", "");
       if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
       const method = request.method();
+
+      // T-247: shell resolves "who am I" via GET /auth/me (cookie session)
+      // since T-245 — mock it or useCurrentUser() never resolves.
+      if (method === "GET" && path === "/auth/me") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            user_id: "user-platform-admin-1",
+            email: "admin@iqbalai.test",
+            role: "platform_admin",
+            tenant_type: "school",
+            school_id: null,
+            district_id: null,
+          }),
+        });
+        return;
+      }
 
       if (method === "GET" && path === "/users/me") {
         await route.fulfill({
@@ -200,26 +219,9 @@ async function installAdminMocks(page: Page, seed: MockFramework[] = []) {
   );
 }
 
-async function seedSession(page: Page) {
-  await page.addInitScript(() => {
-    sessionStorage.setItem("iqbalai_access_token", "e2e-test-access-token");
-    sessionStorage.setItem(
-      "iqbalai_user",
-      JSON.stringify({
-        user_id: "user-platform-admin-1",
-        email: "admin@iqbalai.test",
-        role: "platform_admin",
-        tos_acceptance_required: false,
-        current_tos_version_id: null,
-      })
-    );
-  });
-}
-
 test.describe("Platform Admin Exam Frameworks @smoke", () => {
   test("Admin reaches frameworks from nav, creates one, and sees it listed", async ({ page }) => {
     await installAdminMocks(page);
-    await seedSession(page);
 
     await page.goto(`${BASE_URL}/admin/exam-frameworks`);
 
@@ -264,7 +266,6 @@ test.describe("Platform Admin Exam Frameworks @smoke", () => {
       created_at: new Date().toISOString(),
     };
     await installAdminMocks(page, [pending]);
-    await seedSession(page);
 
     await page.goto(`${BASE_URL}/admin/exam-frameworks`);
     await expect(

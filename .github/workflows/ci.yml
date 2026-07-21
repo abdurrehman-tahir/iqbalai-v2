@@ -378,15 +378,21 @@ jobs:
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
         run: pnpm install --frozen-lockfile && pnpm exec playwright install --with-deps chromium
-      # The @smoke specs run offline: they stub the API via route mocks + seeded
-      # sessionStorage, and Playwright boots its own Next dev server
-      # (playwright.config.ts `webServer: pnpm dev`). No backend/docker/seed needed
-      # for those.
+      # The @smoke specs run offline: they stub the API via route mocks (incl. a
+      # mocked GET /auth/me for the cookie-session shell — T-247, no sessionStorage),
+      # and Playwright boots its own Next dev server (playwright.config.ts
+      # `webServer: pnpm dev`). No backend/docker/seed needed for those.
       #
       # @real (including @auth @real, T-247) needs the actual composed backend —
-      # postgres + redis + Authentik (server+worker) + api — plus seeded users.
-      # Minimal subset only (api's own compose deps are just postgres+redis;
-      # nats/minio/qdrant/infinity stay off per the core-only boot pattern).
+      # postgres + redis + Authentik (server+worker) + api — plus seeded users AND
+      # the OIDC application, which the Authentik blueprint self-provisions on boot
+      # (infrastructure/authentik/blueprints). Minimal subset only (api's own compose
+      # deps are just postgres+redis; nats/minio/qdrant/infinity stay off).
+      #
+      # AUTHENTIK_BOOTSTRAP_TOKEN is a fixed CI-only literal (fresh DB every run, so
+      # never a real secret) — Authentik mints an akadmin API token with this value
+      # at init, and AUTHENTIK_API_TOKEN reuses it so the seed script + api provision
+      # users with no manual `ak shell` step (T-247).
       - name: Write CI .env for docker compose
         if: steps.detect.outputs.fe == 'yes'
         run: |
@@ -399,25 +405,31 @@ jobs:
           AUTHENTIK_SECRET_KEY=$(openssl rand -hex 32)
           AUTHENTIK_BOOTSTRAP_EMAIL=admin@iqbalai.dev
           AUTHENTIK_BOOTSTRAP_PASSWORD=$(openssl rand -hex 16)
+          AUTHENTIK_BOOTSTRAP_TOKEN=ci-only-not-a-real-secret-bootstrap-token
+          AUTHENTIK_API_URL=http://authentik-server:9000/api/v3
+          AUTHENTIK_API_TOKEN=ci-only-not-a-real-secret-bootstrap-token
+          OIDC_ISSUER_URL=http://authentik-server:9000/application/o/iqbalai/
+          OIDC_CLIENT_ID=iqbalai-api
+          OIDC_CLIENT_SECRET=ci-only-not-a-real-secret-oidc-client
+          OIDC_JWKS_URL=http://authentik-server:9000/application/o/iqbalai/jwks/
+          OIDC_AUTHORIZE_URL=http://authentik-server:9000/application/o/authorize/
+          OIDC_TOKEN_URL=http://authentik-server:9000/application/o/token/
+          OIDC_REVOKE_URL=http://authentik-server:9000/application/o/revoke/
+          OIDC_REDIRECT_URI=http://localhost:8000/api/v1/auth/callback
           COOKIE_SECURE=false
           APP_URL=http://localhost:3000
           CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000
           EOF
       - name: Bring up postgres + redis + Authentik + api
         if: steps.detect.outputs.fe == 'yes'
+        # AUTHENTIK_API_TOKEN + OIDC_* come from the CI .env above (compose reads it),
+        # so the api boots with a valid OIDC config and the Authentik blueprint
+        # self-provisions the `iqbalai` OIDC application (T-247). The `iqbalai-api`
+        # provider + application are what OIDC_ISSUER_URL/JWKS point at.
         run: |
           docker compose up -d postgres redis authentik-redis authentik-server authentik-worker --wait
           uv run --project api alembic -c api/alembic.ini upgrade head
           docker compose up -d api --wait
-        env:
-          # AUTHENTIK_API_TOKEN stays unset here — bootstrap_authentik.py is a
-          # stub (no automated Authentik application/token provisioning exists
-          # yet, T-247 dossier finding). Until that lands, this step brings the
-          # stack up but the OIDC application itself is NOT configured, so the
-          # @auth @real specs below will correctly skip via their own
-          # apiReachable()-adjacent Authentik-reachability guards rather than
-          # hang or false-fail. Flagged in the T-247 PR description.
-          AUTHENTIK_API_TOKEN: ""
       - name: Seed demo data + real Authentik E2E identities
         if: steps.detect.outputs.fe == 'yes'
         run: |
@@ -425,8 +437,10 @@ jobs:
           uv run --project api python scripts/seed_e2e_auth_users.py
         env:
           DB_URL: postgresql+asyncpg://iqbalai:ci-only-not-a-real-secret@localhost:5432/iqbalai
+          # Host reaches Authentik via the published port; token = the bootstrap
+          # literal Authentik minted at init (matches the CI .env).
           AUTHENTIK_API_URL: http://localhost:9000/api/v3
-          AUTHENTIK_API_TOKEN: ""
+          AUTHENTIK_API_TOKEN: ci-only-not-a-real-secret-bootstrap-token
       - name: Playwright smoke (@smoke mock + @real backend, incl. @auth @real)
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
