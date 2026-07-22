@@ -462,6 +462,31 @@ jobs:
           (cd api && DB_URL=postgresql+asyncpg://iqbalai:ci-only-not-a-real-secret@localhost:5432/iqbalai \
             uv run alembic upgrade heads)
           docker compose up -d api --wait
+          # Fail fast if the OIDC blueprint did not apply (otherwise @auth @real
+          # burns ~26m timing out on input[name=uidField] against a 404 authorize).
+          echo "Waiting for OIDC discovery (blueprint applied)..."
+          for i in $(seq 1 60); do
+            if curl -fsS "http://localhost:9000/application/o/iqbalai/.well-known/openid-configuration" >/dev/null; then
+              echo "OIDC discovery OK"
+              break
+            fi
+            if [ "$i" -eq 60 ]; then
+              echo "::error::OIDC application missing after 5m — check authentik-worker blueprint logs"
+              docker compose logs authentik-worker --tail 200
+              docker compose exec -T authentik-server ak shell -c \
+                "from authentik.blueprints.models import BlueprintInstance as B; \
+                 b=B.objects.filter(path__endswith='iqbalai-oidc.yaml').first(); \
+                 print('blueprint', getattr(b,'status',None), getattr(b,'path',None))"
+              exit 1
+            fi
+            sleep 5
+          done
+      - name: Verify Authentik OIDC bootstrap (blueprint applied)
+        if: steps.detect.outputs.fe == 'yes'
+        run: uv run --project api python scripts/bootstrap_authentik.py
+        env:
+          AUTHENTIK_API_URL: http://localhost:9000/api/v3
+          AUTHENTIK_API_TOKEN: ci-only-not-a-real-secret-bootstrap-token
       - name: Seed demo data + real Authentik E2E identities
         if: steps.detect.outputs.fe == 'yes'
         run: |
@@ -473,6 +498,7 @@ jobs:
           # literal Authentik minted at init (matches the CI .env).
           AUTHENTIK_API_URL: http://localhost:9000/api/v3
           AUTHENTIK_API_TOKEN: ci-only-not-a-real-secret-bootstrap-token
+          E2E_SEED_PASSWORD: IqbalAI-E2E-Seed-Dev-Only-2026!
       - name: Alias authentik-server -> localhost for the browser (T-247)
         if: steps.detect.outputs.fe == 'yes'
         # The API 302-redirects the BROWSER to OIDC_AUTHORIZE_URL, whose host is the
@@ -492,6 +518,7 @@ jobs:
         env:
           REAL_BACKEND_URL: http://localhost:8000/api/v1
           NEXT_PUBLIC_AUTHENTIK_URL: http://localhost:9000
+          E2E_SEED_PASSWORD: IqbalAI-E2E-Seed-Dev-Only-2026!
 
   e2e-full:
     name: Playwright E2E (full suite, nightly)

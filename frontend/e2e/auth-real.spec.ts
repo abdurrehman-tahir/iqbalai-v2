@@ -8,22 +8,22 @@
  * login can never ride a green PR again.
  *
  * Requires the composed stack (postgres + redis + authentik-server/worker +
- * api) up, Authentik bootstrapped, and `scripts/seed_e2e_auth_users.py` run
- * against it (provisions real, loginable Authentik identities for all 9
- * roles — see that script's docstring). See `.github/workflows/ci.yml`'s
+ * api) up, Authentik bootstrapped (OIDC blueprint applied — see
+ * infrastructure/authentik/blueprints/iqbalai-oidc.yaml), and
+ * `scripts/seed_e2e_auth_users.py` run against it. See `.github/workflows/ci.yml`'s
  * `e2e-smoke` job for how CI wires this.
  *
- * UNVERIFIED: no Docker/Authentik was available in the environment this file
- * was written in. `loginViaAuthentik()`'s form-field selectors are written to
- * Authentik's documented default identification-stage + password-stage flow
- * (`input[name="uidField"]` then `input[name="password"]`, each followed by a
- * "Log in" submit) — confirm against a real Authentik instance on first run
- * and adjust the selectors if the deployed flow differs.
+ * Authentik form selectors (Playwright pierces shadow DOM by default):
+ * identification `input[name="uidField"]`, password `input[name="password"]`,
+ * submit via `button[type="submit"]` (label is "Log in" / "Continue" depending
+ * on stage/locale).
  */
 import { test, expect, type Page } from "@playwright/test";
 
 const API_BASE = process.env.REAL_BACKEND_URL ?? "http://localhost:8000/api/v1";
 const E2E_SEED_PASSWORD = process.env.E2E_SEED_PASSWORD ?? "IqbalAI-E2E-Seed-Dev-Only-2026!";
+/** Wall-clock budget for a full OIDC round-trip (authorize + 2 stages + callback). */
+const AUTH_FLOW_TIMEOUT_MS = 90_000;
 
 // Mirrors scripts/seed_dev.py's SEED_USERS / SEED_INDEPENDENT_USERS emails and
 // frontend/src/lib/auth.ts's getPostLoginPath (T-239) — the single source of
@@ -71,23 +71,37 @@ async function apiReachable(): Promise<boolean> {
  */
 async function loginViaAuthentik(page: Page, email: string, password: string): Promise<void> {
   await page.goto("/login");
+  // Capture the app origin BEFORE leaving for Authentik — waitForURL must
+  // compare against this fixed origin (not page.url() at callback time).
+  const appOrigin = new URL(page.url()).origin;
+
   await page.getByRole("button", { name: /sign in/i }).click();
 
-  // Authentik's default flow: identification stage (email/username), then a
-  // separate password stage. Field names per Authentik's stock login template.
-  await page.locator('input[name="uidField"]').fill(email);
-  await page.getByRole("button", { name: /log in/i }).click();
+  // Land on Authentik (flow executor or authorize → flow redirect). Without a
+  // working OIDC application this never happens and uidField never appears.
+  await page.waitForURL(/\/(if\/flow|application\/o)\//, { timeout: AUTH_FLOW_TIMEOUT_MS });
 
-  await page.locator('input[name="password"]').fill(password);
-  await page.getByRole("button", { name: /log in/i }).click();
+  const uidField = page.locator('input[name="uidField"]');
+  await uidField.waitFor({ state: "visible", timeout: AUTH_FLOW_TIMEOUT_MS });
+  await uidField.fill(email);
+  // Identification / password stage primary action is locale-dependent
+  // ("Log in" vs "Continue") — submit by type, not label.
+  await page.locator('button[type="submit"]').click();
+
+  const passwordField = page.locator('input[name="password"]');
+  await passwordField.waitFor({ state: "visible", timeout: AUTH_FLOW_TIMEOUT_MS });
+  await passwordField.fill(password);
+  await page.locator('button[type="submit"]').click();
 
   // Callback redirect lands back on the app — either the role dashboard
   // directly, or /auth/callback?tos_required=1 on first login (handled by
   // the ToS test below).
-  await page.waitForURL((url) => url.origin === new URL(page.url()).origin, { timeout: 30_000 });
+  await page.waitForURL((url) => url.origin === appOrigin, { timeout: AUTH_FLOW_TIMEOUT_MS });
 }
 
 test.describe("Per-role real login journeys (T-247) @auth @real", () => {
+  test.describe.configure({ timeout: AUTH_FLOW_TIMEOUT_MS + 30_000 });
+
   test.beforeEach(async () => {
     test.skip(!(await apiReachable()), `API not reachable at ${API_BASE}`);
   });
@@ -112,6 +126,8 @@ test.describe("Per-role real login journeys (T-247) @auth @real", () => {
 });
 
 test.describe("ToS acceptance gate blocks mutation until accepted (T-242) @auth @real", () => {
+  test.describe.configure({ timeout: AUTH_FLOW_TIMEOUT_MS + 30_000 });
+
   test.beforeEach(async () => {
     test.skip(!(await apiReachable()), `API not reachable at ${API_BASE}`);
   });
@@ -166,6 +182,8 @@ test.describe("Tampered OIDC callback (T-244) @auth @real", () => {
 });
 
 test.describe("Logout kills the session (T-246) @auth @real", () => {
+  test.describe.configure({ timeout: AUTH_FLOW_TIMEOUT_MS + 30_000 });
+
   test.beforeEach(async () => {
     test.skip(!(await apiReachable()), `API not reachable at ${API_BASE}`);
   });
