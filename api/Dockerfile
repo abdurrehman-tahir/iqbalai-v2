@@ -4,11 +4,14 @@ WORKDIR /app
 
 RUN apt-get update && apt-get install -y --no-install-recommends curl && rm -rf /var/lib/apt/lists/*
 
-RUN pip install uv
+# Generous timeout + retries so slow/flaky networks resume downloads instead of aborting.
+RUN pip install --timeout 300 --retries 15 uv
 
 COPY pyproject.toml uv.lock ./
 
-# Install into system Python so the volume mount doesn't overwrite site-packages
+# Install into system Python so the volume mount doesn't overwrite site-packages.
+# UV_HTTP_TIMEOUT widens uv's per-request timeout for the same slow-network resilience.
+ENV UV_HTTP_TIMEOUT=300
 RUN uv pip install --system . \
     && uv pip install --system "numpy>=1.26.0,<2" "fastapi>=0.111.0,<0.137" --force-reinstall
 
