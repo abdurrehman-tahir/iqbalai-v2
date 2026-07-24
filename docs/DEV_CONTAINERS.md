@@ -9,19 +9,21 @@
 Core services carry **no** profile, so they always start. Optional groups are tagged with a profile and start only when that profile is on.
 
 - **core (always on, ~7):** `postgres`, `redis`, `authentik-server`, `authentik-worker`, `authentik-redis`, `api`, `frontend` — enough to log in + do CRUD/UI.
-- **`rag`:** `qdrant`, `infinity`, `minio` — with `EMBEDDING_PROVIDER=local` (default in compose), **infinity is optional** for library upload; Celery embeds in-process via fastembed/ONNX (~150 MB).
+- **`rag`:** `qdrant`, `infinity`, `minio`, `searxng` — with `EMBEDDING_PROVIDER=local` (default in compose), **infinity is optional** for library upload; Celery embeds in-process via fastembed/ONNX (~150 MB). **searxng** is required for exam-framework AI research and RAG tier-3 web fallback (`WEBSEARCH_URL=http://searxng:8080`).
 - **`workers`:** `celery-worker`, `celery-beat`
 - **`events`:** `nats` (also needs `EVENTS_ENABLED=true` — see note)
 - **`observability`:** `prometheus`, `grafana`, `loki` (off by default; only for perf/dashboards)
 
 ```bash
 docker compose up                              # core only (~7 containers)
-docker compose --profile rag --profile workers up    # core + qdrant/infinity/minio + celery
+docker compose --profile rag --profile workers up    # core + qdrant/infinity/minio/searxng + celery
 COMPOSE_PROFILES=rag,workers docker compose up        # same, via env (put in .env per session)
+# Exam-framework research only needs SearXNG + worker (skip heavy qdrant/infinity pulls):
+docker compose --profile rag --profile workers up -d searxng celery-worker
 ```
 
 ### `EVENTS_ENABLED` note
-NATS connects **eagerly** at app startup (`init_nats()` in the §16.1 lifespan), so it can't just be profiled off — a core-only boot would hang. The `EVENTS_ENABLED` env flag (default `false`) makes `init_nats()` a no-op. To use events: set `EVENTS_ENABLED=true` **and** turn on the `events` profile (from M-12). Postgres/Redis are also eager but are always in core; qdrant/minio are lazy (connect on first use), so they need no flag.
+NATS connects **eagerly** at app startup (`init_nats()` in the §16.1 lifespan), so it can't just be profiled off — a core-only boot would hang. The `EVENTS_ENABLED` env flag (default `false`) makes `init_nats()` **and** `publisher.publish()` no-ops. Without the publish guard, library/grade mutations still dial `nats://nats:4222` and spam `Name or service not known` when the `events` profile is off. To use events: set `EVENTS_ENABLED=true` **and** turn on the `events` profile (from M-12). Postgres/Redis are also eager but are always in core; qdrant/minio are lazy (connect on first use), so they need no flag.
 
 ## Milestone → profiles (add on top of core)
 
@@ -30,7 +32,7 @@ NATS connects **eagerly** at app startup (`init_nats()` in the §16.1 lifespan),
 | M-00 | (run all once) | foundation smoke-test must prove every service works |
 | M-01, M-01a, M-02, M-03, M-05, M-06 | none — core only | auth + CRUD + UI; no files/RAG/events |
 | M-04 | `rag` + `workers` | curriculum upload (minio) + ingest (qdrant/infinity) + async |
-| M-07, M-08 | `workers` | agentic/async + beat jobs |
+| M-07, M-08 | `rag` + `workers` | agentic research needs SearXNG (`rag`) + Celery (`workers`) |
 | M-09, M-10, M-11, M-13, M-15 | `rag` + `workers` | RAG generation / scoring / enrichment |
 | M-12 | `rag` + `events` (`EVENTS_ENABLED=true`) | RAG Q&A + first real-time |
 | M-14, M-16, M-17 | `rag` + `workers` + `events` | full event pipeline / reviews |

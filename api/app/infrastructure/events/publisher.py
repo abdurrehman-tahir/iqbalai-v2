@@ -50,8 +50,20 @@ async def publish(
     """Publish a JetStream event to the given subject.
 
     Per ARCH §9.9: publish AFTER the DB transaction commits.
+    When ``EVENTS_ENABLED`` is false (core-only compose, no ``nats`` container),
+    skip — same guard as ``init_nats()`` (T-236). Callers treat publish as
+    best-effort and must not depend on delivery for correctness.
     """
     settings = get_settings()
+    if not settings.EVENTS_ENABLED:
+        logger.debug(
+            "event_publish_skipped",
+            reason="EVENTS_ENABLED=false",
+            subject=subject,
+            event_type=event_type,
+        )
+        return
+
     envelope = _build_envelope(
         event_type=event_type,
         payload=payload,
