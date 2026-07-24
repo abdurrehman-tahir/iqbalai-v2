@@ -81,7 +81,12 @@ class SeedUser:
     role: UserRole
     school_id: str | None = None
     district_id: str | None = None
+    # Coordinator scope = comma-separated grade names (flow-2); required to create grades.
+    scoped_ids: str | None = None
 
+
+# Demo coordinator may create/manage common K-12 grade names (Authentik seed matches).
+DEMO_COORDINATOR_SCOPE = ",".join(f"Grade {n}" for n in range(1, 13))
 
 # The reproducible demo set: bootstrap admin + one full district/school chain.
 SEED_USERS: tuple[SeedUser, ...] = (
@@ -113,6 +118,7 @@ SEED_USERS: tuple[SeedUser, ...] = (
         role=UserRole.COORDINATOR,
         school_id=DEMO_SCHOOL_ID,
         district_id=DEMO_DISTRICT_ID,
+        scoped_ids=DEMO_COORDINATOR_SCOPE,
     ),
     SeedUser(
         authentik_id="seed-teacher",
@@ -297,6 +303,7 @@ async def seed_users(
                 role=spec.role,
                 school_id=spec.school_id,
                 district_id=spec.district_id,
+                scoped_ids=spec.scoped_ids,
             )
             await persist(user)
             result.created += 1
@@ -308,6 +315,7 @@ async def seed_users(
             existing.role = spec.role
             existing.school_id = spec.school_id
             existing.district_id = spec.district_id
+            existing.scoped_ids = spec.scoped_ids
             await persist(existing)
             result.updated += 1
     return result

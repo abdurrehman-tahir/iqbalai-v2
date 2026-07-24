@@ -96,6 +96,8 @@ class UserService:
         district_claim_present: bool,
         claimed_school: str | None,
         school_claim_present: bool,
+        claimed_scoped_ids: str | None,
+        scoped_ids_claim_present: bool,
     ) -> User:
         """Apply JWT role/org-scope onto an existing user when claims are present."""
         changed = False
@@ -108,6 +110,9 @@ class UserService:
         if school_claim_present and user.school_id != claimed_school:
             user.school_id = claimed_school
             changed = True
+        if scoped_ids_claim_present and user.scoped_ids != claimed_scoped_ids:
+            user.scoped_ids = claimed_scoped_ids
+            changed = True
         if not changed:
             return user
         updated = await self._repo.update(user)
@@ -117,6 +122,7 @@ class UserService:
             role=updated.role.value,
             district_id=updated.district_id,
             school_id=updated.school_id,
+            scoped_ids=updated.scoped_ids,
         )
         return updated
 
@@ -136,8 +142,10 @@ class UserService:
         role_claim_present = bool(str(claims.get("role") or "").strip())
         claimed_district = str(claims.get("district_id") or "").strip() or None
         claimed_school = str(claims.get("school_id") or "").strip() or None
+        claimed_scoped = str(claims.get("scoped_ids") or "").strip() or None
         district_claim_present = "district_id" in claims
         school_claim_present = "school_id" in claims
+        scoped_ids_claim_present = "scoped_ids" in claims
 
         existing = await self._repo.get_by_authentik_id(authentik_id)
         if existing:
@@ -150,6 +158,8 @@ class UserService:
                     district_claim_present=district_claim_present,
                     claimed_school=claimed_school,
                     school_claim_present=school_claim_present,
+                    claimed_scoped_ids=claimed_scoped,
+                    scoped_ids_claim_present=scoped_ids_claim_present,
                 ),
                 False,
             )
@@ -169,6 +179,8 @@ class UserService:
                         district_claim_present=district_claim_present,
                         claimed_school=claimed_school,
                         school_claim_present=school_claim_present,
+                        claimed_scoped_ids=claimed_scoped,
+                        scoped_ids_claim_present=scoped_ids_claim_present,
                     ),
                     False,
                 )
@@ -181,6 +193,7 @@ class UserService:
             status=UserAccountStatus.ACTIVE,
             school_id=claimed_school,
             district_id=claimed_district,
+            scoped_ids=claimed_scoped,
         )
         created = await self._repo.create(user)
         logger.info("user_created", user_id=created.id, role=created.role.value)

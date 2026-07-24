@@ -87,6 +87,9 @@ session** on Sample School. Run `uv run python scripts/seed_dev.py` (or insert
 session `2025-2026` for school `00000000-0000-0000-0000-00000005c001`) so
 `GET /api/v1/grades/` does not 422 with "No active academic session".
 
+The seeded coordinator is assigned grades **Grade 1–12** via `scoped_ids`
+(flow-2). Without that, creating a grade returns "outside your assigned scope".
+
 ## Flow configuration (to approach the two-panel mockup)
 
 These are **admin/DB changes**, not files — they live in Authentik's database, so

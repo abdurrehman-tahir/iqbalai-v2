@@ -37,16 +37,19 @@ PROVIDER_NAMES = ("iqbalai-api", "IqbalAI Frontend")
 # Match alembic school/0015 sample district + school — always present after migrate.
 SAMPLE_DISTRICT_ID = "00000000-0000-0000-0000-0000000d1571"
 SAMPLE_SCHOOL_ID = "00000000-0000-0000-0000-00000005c001"
+# Coordinator may create grades only within scoped_ids (flow-2); empty ⇒ deny all.
+COORDINATOR_SCOPE = ",".join(f"Grade {n}" for n in range(1, 13))
 
-# (email, display name, role claim, tenant_type, district_id, school_id)
+# (email, display name, role, tenant_type, district_id, school_id, scoped_ids)
 ACCOUNTS = [
-    ("platform.admin@iqbalai.dev", "Platform Admin", "platform_admin", "school", None, None),
+    ("platform.admin@iqbalai.dev", "Platform Admin", "platform_admin", "school", None, None, None),
     (
         "district.admin@iqbalai.dev",
         "District Admin",
         "district_admin",
         "school",
         SAMPLE_DISTRICT_ID,
+        None,
         None,
     ),
     (
@@ -56,6 +59,7 @@ ACCOUNTS = [
         "school",
         SAMPLE_DISTRICT_ID,
         SAMPLE_SCHOOL_ID,
+        None,
     ),
     (
         "coordinator@iqbalai.dev",
@@ -64,6 +68,7 @@ ACCOUNTS = [
         "school",
         SAMPLE_DISTRICT_ID,
         SAMPLE_SCHOOL_ID,
+        COORDINATOR_SCOPE,
     ),
     (
         "teacher@iqbalai.dev",
@@ -72,6 +77,7 @@ ACCOUNTS = [
         "school",
         SAMPLE_DISTRICT_ID,
         SAMPLE_SCHOOL_ID,
+        None,
     ),
     (
         "student@iqbalai.dev",
@@ -80,13 +86,14 @@ ACCOUNTS = [
         "school",
         SAMPLE_DISTRICT_ID,
         SAMPLE_SCHOOL_ID,
+        None,
     ),
-    ("parent@iqbalai.dev", "Parent", "parent", "school", None, None),
-    ("ind.teacher@iqbalai.dev", "Independent Teacher", "independent_teacher", "independent", None, None),
-    ("ind.student@iqbalai.dev", "Independent Student", "independent_student", "independent", None, None),
+    ("parent@iqbalai.dev", "Parent", "parent", "school", None, None, None),
+    ("ind.teacher@iqbalai.dev", "Independent Teacher", "independent_teacher", "independent", None, None, None),
+    ("ind.student@iqbalai.dev", "Independent Student", "independent_student", "independent", None, None, None),
 ]
 
-# 1) Scope mapping that emits role + tenant_type + org scope into the access/id token.
+# 1) Scope mapping that emits role + tenant_type + org/grade scope into the token.
 # Prefer the blueprint mapping (`scope_name=iqbalai`) — the API authorize URL
 # must request that scope. Keep a profile-scoped backup for older clients.
 # Use `request.user` (Authentik expression context), not bare `user`.
@@ -95,7 +102,8 @@ EXPRESSION = (
     'return {"role": request.user.attributes.get("role", ""), '
     '"tenant_type": request.user.attributes.get("tenant_type", "school"), '
     '"district_id": request.user.attributes.get("district_id") or None, '
-    '"school_id": request.user.attributes.get("school_id") or None}'
+    '"school_id": request.user.attributes.get("school_id") or None, '
+    '"scoped_ids": request.user.attributes.get("scoped_ids") or None}'
 )
 provider = None
 for _pname in PROVIDER_NAMES:
@@ -137,7 +145,7 @@ print(
 
 # 2) One user per role.
 made, refreshed = 0, 0
-for email, name, role, tenant, district_id, school_id in ACCOUNTS:
+for email, name, role, tenant, district_id, school_id, scoped_ids in ACCOUNTS:
     user, was_created = User.objects.get_or_create(
         username=email, defaults={"email": email, "name": name}
     )
@@ -155,6 +163,10 @@ for email, name, role, tenant, district_id, school_id in ACCOUNTS:
         attrs["school_id"] = school_id
     else:
         attrs.pop("school_id", None)
+    if scoped_ids:
+        attrs["scoped_ids"] = scoped_ids
+    else:
+        attrs.pop("scoped_ids", None)
     user.attributes = attrs
     user.set_password(PASSWORD)
     user.save()
@@ -171,6 +183,8 @@ for email, name, role, tenant, district_id, school_id in ACCOUNTS:
         district_id,
         "school=",
         school_id,
+        "scoped=",
+        scoped_ids,
     )
 
 print(f"SEED_DONE created={made} updated={refreshed} total={len(ACCOUNTS)}")
