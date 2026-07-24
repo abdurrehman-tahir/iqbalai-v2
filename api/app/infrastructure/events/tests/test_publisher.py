@@ -111,9 +111,7 @@ async def test_publish_skips_when_events_disabled() -> None:
         patch("app.infrastructure.events.publisher.get_settings") as mock_settings,
         patch("app.infrastructure.events.publisher.nats.connect") as mock_connect,
     ):
-        mock_settings.return_value = MagicMock(
-            NATS_URL="nats://nats:4222", EVENTS_ENABLED=False
-        )
+        mock_settings.return_value = MagicMock(NATS_URL="nats://nats:4222", EVENTS_ENABLED=False)
         await publish("users.content_library.uploaded", "content_library.uploaded", {})
 
     mock_connect.assert_not_called()
