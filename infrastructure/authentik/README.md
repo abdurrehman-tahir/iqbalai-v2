@@ -82,6 +82,11 @@ every login). Lives in Authentik's DB — reset on `down -v`; re-run the seed to
 restore. After reseeding scoped claims, sign out and sign in once so the app DB
 picks up `district_id`/`school_id`.
 
+School-scoped pages (`/grades`, subjects, …) also need an **active academic
+session** on Sample School. Run `uv run python scripts/seed_dev.py` (or insert
+session `2025-2026` for school `00000000-0000-0000-0000-00000005c001`) so
+`GET /api/v1/grades/` does not 422 with "No active academic session".
+
 ## Flow configuration (to approach the two-panel mockup)
 
 These are **admin/DB changes**, not files — they live in Authentik's database, so

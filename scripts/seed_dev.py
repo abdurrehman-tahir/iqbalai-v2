@@ -62,6 +62,12 @@ DEMO_SESSION_LABEL = "2025-2026"
 DEMO_DISTRICT_NAME = "Demo District"
 DEMO_SCHOOL_NAME = "Demo School"
 
+# Alembic school/0015 sample district + school (Authentik seed_dev_accounts points here).
+# Without an active session on this school, OIDC school-scoped logins get 422 on /grades.
+SAMPLE_DISTRICT_ID = "00000000-0000-0000-0000-0000000d1571"
+SAMPLE_SCHOOL_ID = "00000000-0000-0000-0000-00000005c001"
+SAMPLE_SESSION_ID = "00000000-0000-0000-0000-00000005e551"
+
 OrgRow = District | School | AcademicSession
 
 
@@ -241,6 +247,31 @@ async def seed_org(
         session_row.is_active = True
         await persist(session_row)
         result.updated += 1
+
+    # Authentik local accounts (district.admin@…, school.admin@…) use the alembic
+    # Sample School IDs — ensure that school also has an active session when present.
+    sample_school = await get_school(SAMPLE_SCHOOL_ID)
+    if sample_school is not None:
+        sample_school.active_academic_session = DEMO_SESSION_LABEL
+        await persist(sample_school)
+        result.updated += 1
+        sample_session = await get_session(SAMPLE_SESSION_ID)
+        if sample_session is None:
+            await persist(
+                AcademicSession(
+                    id=SAMPLE_SESSION_ID,
+                    school_id=SAMPLE_SCHOOL_ID,
+                    label=DEMO_SESSION_LABEL,
+                    is_active=True,
+                )
+            )
+            result.created += 1
+        else:
+            sample_session.school_id = SAMPLE_SCHOOL_ID
+            sample_session.label = DEMO_SESSION_LABEL
+            sample_session.is_active = True
+            await persist(sample_session)
+            result.updated += 1
 
     return result
 
