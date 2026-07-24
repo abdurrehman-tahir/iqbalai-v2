@@ -86,6 +86,40 @@ class UserService:
             )
         return primary
 
+    async def _reconcile_claims_onto_user(
+        self,
+        user: User,
+        *,
+        claimed_role: UserRole,
+        role_claim_present: bool,
+        claimed_district: str | None,
+        district_claim_present: bool,
+        claimed_school: str | None,
+        school_claim_present: bool,
+    ) -> User:
+        """Apply JWT role/org-scope onto an existing user when claims are present."""
+        changed = False
+        if role_claim_present and user.role != claimed_role:
+            user.role = claimed_role
+            changed = True
+        if district_claim_present and user.district_id != claimed_district:
+            user.district_id = claimed_district
+            changed = True
+        if school_claim_present and user.school_id != claimed_school:
+            user.school_id = claimed_school
+            changed = True
+        if not changed:
+            return user
+        updated = await self._repo.update(user)
+        logger.info(
+            "user_claims_reconciled_from_jwt",
+            user_id=updated.id,
+            role=updated.role.value,
+            district_id=updated.district_id,
+            school_id=updated.school_id,
+        )
+        return updated
+
     async def get_or_create_from_jwt(self, claims: dict[str, object]) -> tuple[User, bool]:
         """Upsert a user record from JWT claims on first OIDC login.
 
@@ -94,9 +128,31 @@ class UserService:
         authentik_id = str(claims.get("sub", ""))
         email = str(claims.get("email", "")).strip().lower()
 
+        claimed_role = parse_user_role(claims.get("role", "student"))
+        # Authentik is source of truth for role/scope when the `iqbalai` scope
+        # mapping emits them. Reconcile on every login so a missing-scope first
+        # login (defaults to student / no district) does not permanently trap
+        # the user on wrong-role pages or 403 district-scoped routes.
+        role_claim_present = bool(str(claims.get("role") or "").strip())
+        claimed_district = str(claims.get("district_id") or "").strip() or None
+        claimed_school = str(claims.get("school_id") or "").strip() or None
+        district_claim_present = "district_id" in claims
+        school_claim_present = "school_id" in claims
+
         existing = await self._repo.get_by_authentik_id(authentik_id)
         if existing:
-            return existing, False
+            return (
+                await self._reconcile_claims_onto_user(
+                    existing,
+                    claimed_role=claimed_role,
+                    role_claim_present=role_claim_present,
+                    claimed_district=claimed_district,
+                    district_claim_present=district_claim_present,
+                    claimed_school=claimed_school,
+                    school_claim_present=school_claim_present,
+                ),
+                False,
+            )
 
         if email:
             reconciled = await self._reconcile_authentik_id_by_email(
@@ -104,16 +160,27 @@ class UserService:
                 email=email,
             )
             if reconciled is not None:
-                return reconciled, False
+                return (
+                    await self._reconcile_claims_onto_user(
+                        reconciled,
+                        claimed_role=claimed_role,
+                        role_claim_present=role_claim_present,
+                        claimed_district=claimed_district,
+                        district_claim_present=district_claim_present,
+                        claimed_school=claimed_school,
+                        school_claim_present=school_claim_present,
+                    ),
+                    False,
+                )
 
         user = User(
             authentik_id=authentik_id,
             email=email,
             display_name=str(claims.get("name", claims.get("email", ""))),
-            role=parse_user_role(claims.get("role", "student")),
+            role=claimed_role,
             status=UserAccountStatus.ACTIVE,
-            school_id=str(claims.get("school_id", "")) or None,
-            district_id=str(claims.get("district_id", "")) or None,
+            school_id=claimed_school,
+            district_id=claimed_district,
         )
         created = await self._repo.create(user)
         logger.info("user_created", user_id=created.id, role=created.role.value)

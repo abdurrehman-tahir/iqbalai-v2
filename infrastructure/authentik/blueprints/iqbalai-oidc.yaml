@@ -39,19 +39,22 @@ metadata:
     blueprints.goauthentik.io/instantiate: "true"
 
 entries:
-  # 1. Custom scope mapping — copies role + tenant_type from the user's Authentik
-  #    attributes into the id_token/userinfo so the API can route the tenant.
+  # 1. Custom scope mapping — copies role + tenant_type + org scope from the
+  #    user's Authentik attributes into the id_token/userinfo so the API can
+  #    route the tenant and enforce district/school scope (ARCH §3.16/§6.4/§6.7).
   - id: iqbalai-claims-mapping
     model: authentik_providers_oauth2.scopemapping
     identifiers:
       name: "IqbalAI Claims (role + tenant_type)"
     attrs:
       scope_name: iqbalai
-      description: "IqbalAI role + tenant_type claims for API tenant routing (ARCH §3.16/§6.4)."
+      description: "IqbalAI role + tenant_type + district/school claims (ARCH §3.16/§6.4/§6.7)."
       expression: |
         return {
             "role": request.user.attributes.get("role", ""),
             "tenant_type": request.user.attributes.get("tenant_type", "school"),
+            "district_id": request.user.attributes.get("district_id") or None,
+            "school_id": request.user.attributes.get("school_id") or None,
         }
 
   # 2. OAuth2 / OIDC provider — the confidential client the API uses.
@@ -105,3 +108,7 @@ entries:
     attrs:
       name: IqbalAI
       provider: !KeyOf iqbalai-api-provider
+      # User-portal "Launch" tile — open the Next app, not the API (API / returns
+      # AUTHENTICATION_REQUIRED JSON). Real login still starts at /login → API
+      # /auth/login (ARCH §6.4); this URL is only for the Authentik my-apps click.
+      meta_launch_url: !Env [APP_URL, "http://localhost:3000"]
