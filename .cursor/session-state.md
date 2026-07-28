@@ -1,6 +1,6 @@
 # Session state (Cursor)
 
-- Ticket: T-107 exam countdown delivery
-- Status: ready to commit
+- Ticket: T-107 done (`3dc456d`)
+- Status: done
 - Branch: milestone/M-08-mode-diagnostic
-- Next: commit then T-108 via ticket-loader
+- Next: Implement T-108 via ticket-loader
