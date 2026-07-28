@@ -52,6 +52,8 @@ import type {
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
+  StudentModeRead,
+  StudentModeUpdate,
   SchoolCreate,
   SchoolUpdate,
   SubscriptionTierCreate,
@@ -1081,6 +1083,16 @@ export const studentOnboardingApi = {
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/exam-date",
       { method: "PUT", body: JSON.stringify({ exam_date }) },
+      token
+    ),
+};
+
+export const studentModeApi = {
+  getMode: (token: string) => request<StudentModeRead>("/students/me/mode", {}, token),
+  setMode: (token: string, data: StudentModeUpdate) =>
+    request<StudentModeRead>(
+      "/students/me/mode",
+      { method: "PUT", body: JSON.stringify(data) },
       token
     ),
 };

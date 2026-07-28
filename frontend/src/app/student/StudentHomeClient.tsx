@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { studentOnboardingApi, parentChildLinksApi } from "@/lib/api";
+import { studentOnboardingApi, parentChildLinksApi, studentModeApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,12 @@ export function StudentHomeClient() {
   const { data: onboarding } = useQuery({
     queryKey: ["student", "onboarding"],
     queryFn: () => studentOnboardingApi.getOnboarding(token!),
+    enabled: mounted && !!token,
+  });
+
+  const { data: mode } = useQuery({
+    queryKey: ["student", "mode"],
+    queryFn: () => studentModeApi.getMode(token!),
     enabled: mounted && !!token,
   });
 
@@ -80,6 +86,26 @@ export function StudentHomeClient() {
           </a>
         </p>
       </div>
+
+      {mode?.active_mode === "lecture" && (
+        <section
+          className="rounded-lg border border-gray-200 bg-white p-4 space-y-2"
+          data-testid="lecture-section"
+        >
+          <h3 className="text-lg font-medium text-gray-900">{t("lecture_section_title")}</h3>
+          <p className="text-sm text-gray-600">{t("lecture_section_body")}</p>
+        </section>
+      )}
+
+      {mode?.active_mode === "self_study" && (
+        <section
+          className="rounded-lg border border-gray-200 bg-white p-4 space-y-2"
+          data-testid="self-study-section"
+        >
+          <h3 className="text-lg font-medium text-gray-900">{t("self_study_section_title")}</h3>
+          <p className="text-sm text-gray-600">{t("self_study_section_body")}</p>
+        </section>
+      )}
 
       {onboarding?.school_read_only && onboarding.graduation_message && (
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-2">

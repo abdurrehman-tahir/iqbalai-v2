@@ -261,6 +261,15 @@ class StudentOnboardingService:
         profile.self_study_mode_enabled = payload.self_study_mode
         profile = await self._profile_repo.update(profile)
 
+        # T-101: seed user_settings so the Mode Switcher has an active mode immediately.
+        from app.features.student_mode.service import StudentModeService
+
+        await StudentModeService(self._session).ensure_settings_for_onboarding(
+            user_id=user.id,
+            lecture_mode=payload.lecture_mode,
+            self_study_mode=payload.self_study_mode,
+        )
+
         await audit(
             session=self._session,
             action="student.modes_selected",

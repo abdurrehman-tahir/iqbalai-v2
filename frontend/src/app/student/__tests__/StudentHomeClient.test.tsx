@@ -24,6 +24,15 @@ vi.mock("@/lib/api", () => ({
       profile: { exam_date: "2026-12-01" },
     }),
   },
+  studentModeApi: {
+    getMode: vi.fn().mockResolvedValue({
+      active_mode: "lecture",
+      mode_state: { lecture: {}, self_study: {} },
+      lecture_mode_enabled: true,
+      self_study_mode_enabled: true,
+    }),
+    setMode: vi.fn(),
+  },
   parentChildLinksApi: {
     listStudentPending: vi.fn().mockResolvedValue({
       pending: [{ id: "link-1", parent_name: "Parent One", status: "pending" }],
@@ -67,5 +76,24 @@ describe("StudentHomeClient link requests (T-081)", () => {
     await waitFor(() => {
       expect(parentChildLinksApi.approveLinkRequest).toHaveBeenCalledWith("tok", "link-1");
     });
+  });
+
+  it("shows Lecture section when active_mode is lecture", async () => {
+    renderHome();
+    expect(await screen.findByTestId("lecture-section")).toBeInTheDocument();
+    expect(screen.queryByTestId("self-study-section")).not.toBeInTheDocument();
+  });
+
+  it("hides Lecture section in Self-Study mode", async () => {
+    const { studentModeApi } = await import("@/lib/api");
+    vi.mocked(studentModeApi.getMode).mockResolvedValueOnce({
+      active_mode: "self_study",
+      mode_state: { lecture: {}, self_study: {} },
+      lecture_mode_enabled: true,
+      self_study_mode_enabled: true,
+    });
+    renderHome();
+    expect(await screen.findByTestId("self-study-section")).toBeInTheDocument();
+    expect(screen.queryByTestId("lecture-section")).not.toBeInTheDocument();
   });
 });

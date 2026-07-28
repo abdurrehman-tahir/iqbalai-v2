@@ -2007,6 +2007,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/mode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get school student active study mode */
+        get: operations["student_get_mode"];
+        /** Switch school student Lecture ⇄ Self-Study mode */
+        put: operations["student_set_mode"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/onboarding": {
         parameters: {
             query?: never;
@@ -3318,6 +3336,20 @@ export interface components {
             user_id: string;
         };
         /**
+         * ModeStateBlob
+         * @description Per-mode UI restore state (flow-4 §3.4 — no data loss across switches).
+         */
+        ModeStateBlob: {
+            /** Lecture */
+            lecture?: {
+                [key: string]: unknown;
+            };
+            /** Self Study */
+            self_study?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
          * NotificationListResponse
          * @description Paginated notification list with unread counter for the bell badge.
          */
@@ -3872,6 +3904,22 @@ export interface components {
             /** Pending */
             pending: components["schemas"]["ParentChildLinkRead"][];
         };
+        /**
+         * StudentModeRead
+         * @description Current mode + restore blob for the school student dashboard.
+         */
+        StudentModeRead: {
+            /**
+             * Active Mode
+             * @enum {string}
+             */
+            active_mode: "lecture" | "self_study";
+            /** Lecture Mode Enabled */
+            lecture_mode_enabled: boolean;
+            mode_state: components["schemas"]["ModeStateBlob"];
+            /** Self Study Mode Enabled */
+            self_study_mode_enabled: boolean;
+        };
         /** StudentModeSelect */
         StudentModeSelect: {
             /**
@@ -3884,6 +3932,21 @@ export interface components {
              * @default false
              */
             self_study_mode: boolean;
+        };
+        /**
+         * StudentModeUpdate
+         * @description Switch active mode; optionally snapshot the mode being left.
+         */
+        StudentModeUpdate: {
+            /**
+             * Active Mode
+             * @enum {string}
+             */
+            active_mode: "lecture" | "self_study";
+            /** Leaving Mode State */
+            leaving_mode_state?: {
+                [key: string]: unknown;
+            } | null;
         };
         /** StudentProfileBasicComplete */
         StudentProfileBasicComplete: {
@@ -4449,6 +4512,15 @@ export interface components {
         /** SuccessEnvelope[StudentLinkRequestList] */
         SuccessEnvelope_StudentLinkRequestList_: {
             data: components["schemas"]["StudentLinkRequestList"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentModeRead] */
+        SuccessEnvelope_StudentModeRead_: {
+            data: components["schemas"]["StudentModeRead"];
             /**
              * Message
              * @default ok
@@ -9313,6 +9385,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_ParentChildLinkRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_mode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentModeRead_"];
+                };
+            };
+        };
+    };
+    student_set_mode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentModeUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentModeRead_"];
                 };
             };
             /** @description Validation Error */

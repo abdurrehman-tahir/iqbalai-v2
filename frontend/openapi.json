@@ -2536,6 +2536,24 @@
         "title": "MeResponse",
         "type": "object"
       },
+      "ModeStateBlob": {
+        "additionalProperties": false,
+        "description": "Per-mode UI restore state (flow-4 \u00a73.4 \u2014 no data loss across switches).",
+        "properties": {
+          "lecture": {
+            "additionalProperties": true,
+            "title": "Lecture",
+            "type": "object"
+          },
+          "self_study": {
+            "additionalProperties": true,
+            "title": "Self Study",
+            "type": "object"
+          }
+        },
+        "title": "ModeStateBlob",
+        "type": "object"
+      },
       "NotificationListResponse": {
         "description": "Paginated notification list with unread counter for the bell badge.",
         "properties": {
@@ -3887,6 +3905,38 @@
         "title": "StudentLinkRequestList",
         "type": "object"
       },
+      "StudentModeRead": {
+        "description": "Current mode + restore blob for the school student dashboard.",
+        "properties": {
+          "active_mode": {
+            "enum": [
+              "lecture",
+              "self_study"
+            ],
+            "title": "Active Mode",
+            "type": "string"
+          },
+          "lecture_mode_enabled": {
+            "title": "Lecture Mode Enabled",
+            "type": "boolean"
+          },
+          "mode_state": {
+            "$ref": "#/components/schemas/ModeStateBlob"
+          },
+          "self_study_mode_enabled": {
+            "title": "Self Study Mode Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "active_mode",
+          "mode_state",
+          "lecture_mode_enabled",
+          "self_study_mode_enabled"
+        ],
+        "title": "StudentModeRead",
+        "type": "object"
+      },
       "StudentModeSelect": {
         "properties": {
           "lecture_mode": {
@@ -3901,6 +3951,36 @@
           }
         },
         "title": "StudentModeSelect",
+        "type": "object"
+      },
+      "StudentModeUpdate": {
+        "description": "Switch active mode; optionally snapshot the mode being left.",
+        "properties": {
+          "active_mode": {
+            "enum": [
+              "lecture",
+              "self_study"
+            ],
+            "title": "Active Mode",
+            "type": "string"
+          },
+          "leaving_mode_state": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Leaving Mode State"
+          }
+        },
+        "required": [
+          "active_mode"
+        ],
+        "title": "StudentModeUpdate",
         "type": "object"
       },
       "StudentProfileBasicComplete": {
@@ -5087,6 +5167,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[StudentLinkRequestList]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentModeRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentModeRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentModeRead]",
         "type": "object"
       },
       "SuccessEnvelope_StudentSelectionRead_": {
@@ -12451,6 +12548,66 @@
         "summary": "Revoke an approved parent link",
         "tags": [
           "student-parent-links"
+        ]
+      }
+    },
+    "/api/v1/students/me/mode": {
+      "get": {
+        "operationId": "student_get_mode",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentModeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get school student active study mode",
+        "tags": [
+          "student-mode"
+        ]
+      },
+      "put": {
+        "operationId": "student_set_mode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentModeUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentModeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Switch school student Lecture \u21c4 Self-Study mode",
+        "tags": [
+          "student-mode"
         ]
       }
     },

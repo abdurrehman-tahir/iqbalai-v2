@@ -443,6 +443,15 @@
       "modes_submit": "Start studying",
       "error_generic": "Something went wrong. Please try again."
     },
+    "mode": {
+      "label": "Study mode",
+      "lecture": "Lecture",
+      "self_study": "Self-Study",
+      "loading": "Loading study mode…",
+      "error": "Could not load study mode. Try again.",
+      "retry": "Retry",
+      "switch_error": "Could not switch mode. Please try again."
+    },
     "dashboard": {
       "title": "Welcome, Student",
       "subtitle": "Your student dashboard. Lectures and study tools arrive in upcoming milestones.",
@@ -468,7 +477,11 @@
       "graduation_banner_title": "You've graduated",
       "graduation_banner_body": "Lecture mode is read-only. Self-Study stays fully available until your account moves to Independent mode.",
       "graduation_migration_date": "Independent migration scheduled: {date}",
-      "exam_frameworks_link": "Exam frameworks"
+      "exam_frameworks_link": "Exam frameworks",
+      "lecture_section_title": "Lecture",
+      "lecture_section_body": "Class lectures and teacher Q&A will appear here in upcoming milestones.",
+      "self_study_section_title": "Self-Study",
+      "self_study_section_body": "Your self-study goals and plans will appear here in upcoming milestones."
     },
     "data_rights": {
       "title": "Data & privacy",
