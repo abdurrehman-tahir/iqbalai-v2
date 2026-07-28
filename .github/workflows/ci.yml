@@ -516,7 +516,7 @@ jobs:
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
         run: |
-          pnpm e2e --grep @smoke --grep-invert @real
+          PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE=1 pnpm e2e --grep @smoke --grep-invert @real
           pnpm e2e --grep @real
         env:
           REAL_BACKEND_URL: http://localhost:8000/api/v1

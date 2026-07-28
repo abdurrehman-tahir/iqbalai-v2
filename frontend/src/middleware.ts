@@ -20,6 +20,7 @@ import { NextResponse, type NextRequest } from "next/server";
  * handling; this layer only closes the "no cookie at all" gap.
  */
 const SESSION_COOKIE = "iqbalai_access";
+const PLAYWRIGHT_MOCK_BYPASS_ENV = "PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE";
 
 /**
  * Exact-match public routes — reachable with no session at all.
@@ -54,6 +55,14 @@ export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
   if (isPublicPath(pathname)) {
+    return NextResponse.next();
+  }
+
+  // Playwright's @smoke @mock suite stubs `/auth/me` and related APIs in the
+  // browser without establishing a real cookie session first. Allow CI/local
+  // mock runs to opt out explicitly, while keeping the real route guard active
+  // for product traffic and the @auth @real suite.
+  if (process.env[PLAYWRIGHT_MOCK_BYPASS_ENV] === "1") {
     return NextResponse.next();
   }
 

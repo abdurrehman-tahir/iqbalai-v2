@@ -48,6 +48,16 @@ describe("middleware", () => {
     expect(res.headers.get("location")).toBeNull();
   });
 
+  it("lets mock Playwright smoke runs through when bypass env is set", () => {
+    process.env.PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE = "1";
+    try {
+      const res = middleware(requestFor("/teacher"));
+      expect(res.headers.get("location")).toBeNull();
+    } finally {
+      delete process.env.PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE;
+    }
+  });
+
   it("redirects /auth/callback's sibling protected routes but not /auth/callback itself", () => {
     expect(middleware(requestFor("/auth/callback")).headers.get("location")).toBeNull();
     expect(middleware(requestFor("/admin")).status).toBe(307);
