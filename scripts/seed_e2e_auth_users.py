@@ -90,6 +90,9 @@ async def _provision_authentik_identity(
     display_name: str,
     role: str,
     tenant_type: str,
+    district_id: str | None = None,
+    school_id: str | None = None,
+    scoped_ids: str | None = None,
 ) -> str:
     """Create-or-reuse a real, active, password-set Authentik identity.
 
@@ -107,18 +110,22 @@ async def _provision_authentik_identity(
             "e2e_authentik_user_created", email=email, authentik_id=authentik_id
         )
 
-    # Idempotent regardless of create-vs-reuse: always (re-)set the known
-    # password and ensure the account is active, so a re-run always leaves a
-    # loginable identity even if a prior partial run left it half-provisioned.
-    await client.set_password(authentik_id, E2E_SEED_PASSWORD)
-    # T-247: stamp role + tenant_type so the OIDC blueprint's claims mapping emits
-    # them into the token — the API routes the login to the school vs independent
-    # schema from these claims (app/core/tenant.py). Without this the 2 independent
-    # journeys misroute to the school schema and fail.
-    await client.set_attributes(
-        authentik_id, {"role": role, "tenant_type": tenant_type}
-    )
+    # Activate first, then set password — some Authentik builds no-op
+    # set_password while the user is still inactive.
     await client.activate_user(authentik_id)
+    await client.set_password(authentik_id, E2E_SEED_PASSWORD)
+    # T-247: stamp role + tenant_type (+ org scope) so the OIDC blueprint's
+    # claims mapping emits them into the token — the API routes the login to
+    # the school vs independent schema from these claims (app/core/tenant.py)
+    # and enforces district/school/coordinator scope from the same claims.
+    attrs: dict[str, str] = {"role": role, "tenant_type": tenant_type}
+    if district_id:
+        attrs["district_id"] = district_id
+    if school_id:
+        attrs["school_id"] = school_id
+    if scoped_ids:
+        attrs["scoped_ids"] = scoped_ids
+    await client.set_attributes(authentik_id, attrs)
     return authentik_id
 
 
@@ -134,6 +141,9 @@ async def provision_school_users(
             display_name=spec.display_name,
             role=spec.role.value,
             tenant_type="school",
+            district_id=spec.district_id,
+            school_id=spec.school_id,
+            scoped_ids=spec.scoped_ids,
         )
         provisioned.append(dataclasses.replace(spec, authentik_id=real_id))
     return tuple(provisioned)

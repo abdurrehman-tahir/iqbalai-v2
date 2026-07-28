@@ -92,12 +92,19 @@ async def test_provision_school_users_creates_real_identities_for_every_seed_use
         # Every provisioned identity has a password set + is active (loginable).
         assert client.passwords[result.authentik_id] == seed_e2e.E2E_SEED_PASSWORD
         assert result.authentik_id in client.active
-        # T-247: role + tenant_type stamped as attributes so the OIDC claims
-        # mapping can emit them (school-tenant users → tenant_type "school").
-        assert client.attributes[result.authentik_id] == {
+        # T-247: role + tenant_type (+ org scope when present) stamped as
+        # attributes so the OIDC claims mapping can emit them.
+        expected_attrs: dict[str, str] = {
             "role": result.role.value,
             "tenant_type": "school",
         }
+        if result.district_id:
+            expected_attrs["district_id"] = result.district_id
+        if result.school_id:
+            expected_attrs["school_id"] = result.school_id
+        if result.scoped_ids:
+            expected_attrs["scoped_ids"] = result.scoped_ids
+        assert client.attributes[result.authentik_id] == expected_attrs
 
 
 @pytest.mark.asyncio

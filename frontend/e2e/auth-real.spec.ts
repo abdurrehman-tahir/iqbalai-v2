@@ -69,6 +69,13 @@ async function apiReachable(): Promise<boolean> {
  * fills the identification + password stages, and waits for the callback
  * redirect to land the browser back on the app.
  */
+/** Primary action inside Authentik's flow executor (identification / password). */
+function authentikSubmit(page: Page) {
+  // Scope to the flow executor and take the last visible submit — stale stage
+  // buttons can remain in the DOM across Authentik's lit stage transitions.
+  return page.locator("ak-flow-executor").locator('button[type="submit"]').last();
+}
+
 async function loginViaAuthentik(page: Page, email: string, password: string): Promise<void> {
   await page.goto("/login");
   // Capture the app origin BEFORE leaving for Authentik — waitForURL must
@@ -79,24 +86,116 @@ async function loginViaAuthentik(page: Page, email: string, password: string): P
 
   // Land on Authentik (flow executor or authorize → flow redirect). Without a
   // working OIDC application this never happens and uidField never appears.
-  await page.waitForURL(/\/(if\/flow|application\/o)\//, { timeout: AUTH_FLOW_TIMEOUT_MS });
+  await failWithDiagnostics(
+    page,
+    () => page.waitForURL(/\/(if\/flow|application\/o)\//, { timeout: AUTH_FLOW_TIMEOUT_MS }),
+    "never left the app for Authentik's authorize/flow endpoint after clicking Sign in",
+  );
 
   const uidField = page.locator('input[name="uidField"]');
   await uidField.waitFor({ state: "visible", timeout: AUTH_FLOW_TIMEOUT_MS });
   await uidField.fill(email);
   // Identification / password stage primary action is locale-dependent
   // ("Log in" vs "Continue") — submit by type, not label.
-  await page.locator('button[type="submit"]').click();
+  await authentikSubmit(page).click();
 
   const passwordField = page.locator('input[name="password"]');
   await passwordField.waitFor({ state: "visible", timeout: AUTH_FLOW_TIMEOUT_MS });
   await passwordField.fill(password);
-  await page.locator('button[type="submit"]').click();
 
-  // Callback redirect lands back on the app — either the role dashboard
-  // directly, or /auth/callback?tos_required=1 on first login (handled by
-  // the ToS test below).
-  await page.waitForURL((url) => url.origin === appOrigin, { timeout: AUTH_FLOW_TIMEOUT_MS });
+  // Race the post-password redirect against an inline Authentik error (wrong
+  // password / policy denial). Without this, a failed password stage burns the
+  // full 90s waitForURL budget with no useful signal.
+  await failWithDiagnostics(
+    page,
+    async () => {
+      await Promise.all([
+        Promise.race([
+          page.waitForURL(
+            (url) =>
+              url.origin === appOrigin ||
+              // Intermediate API callback host — proves Authentik finished.
+              url.href.includes("/api/v1/auth/callback"),
+            {
+              timeout: AUTH_FLOW_TIMEOUT_MS,
+              // Commit is enough: Next's `pnpm dev` webServer can delay `load`
+              // long after the callback redirect has already landed.
+              waitUntil: "commit",
+            },
+          ),
+          page
+            .locator(".pf-c-alert.pf-m-danger, [role='alert']")
+            .first()
+            .waitFor({ state: "visible", timeout: AUTH_FLOW_TIMEOUT_MS })
+            .then(async () => {
+              const alertText = await page
+                .locator(".pf-c-alert.pf-m-danger, [role='alert']")
+                .first()
+                .innerText()
+                .catch(() => "Authentik alert visible");
+              throw new Error(`Authentik rejected the login: ${alertText}`);
+            }),
+        ]),
+        authentikSubmit(page).click(),
+      ]);
+
+      // If we only reached the API callback host, wait for the final app hop.
+      if (new URL(page.url()).origin !== appOrigin) {
+        await page.waitForURL((url) => url.origin === appOrigin, {
+          timeout: AUTH_FLOW_TIMEOUT_MS,
+          waitUntil: "commit",
+        });
+      }
+    },
+    "never returned to the app after submitting the password",
+  );
+}
+
+/**
+ * Run `action`; on failure, re-throw with the current URL + a snippet of
+ * visible page text appended, so a CI failure immediately shows *where* the
+ * browser got stuck (still on Authentik vs. back on the app) instead of a
+ * bare Playwright timeout that has to be re-run locally to diagnose (M-07a).
+ */
+async function failWithDiagnostics(
+  page: Page,
+  action: () => Promise<unknown>,
+  context: string,
+): Promise<void> {
+  try {
+    await action();
+  } catch (err) {
+    const url = page.url();
+    const bodyText = await page
+      .locator("body")
+      .innerText()
+      .then((text) => text.slice(0, 500).replace(/\s+/g, " ").trim())
+      .catch(() => "<could not read body text>");
+    const message = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `loginViaAuthentik: ${context}\n  stuck at: ${url}\n  visible text: "${bodyText}"\n  original error: ${message}`,
+    );
+  }
+}
+
+/**
+ * Accept the ToS gate if the callback redirected here on first login (T-242).
+ *
+ * TosModal (src/app/auth/callback/TosModal.tsx) deliberately keeps "I Accept"
+ * disabled until the ToS body is scrolled to the end — a real user scrolls
+ * before clicking; a script has to do it explicitly or the button never
+ * becomes clickable and the first-login journey times out.
+ */
+async function acceptTosIfPresent(page: Page): Promise<void> {
+  if (!page.url().includes("tos_required=1")) return;
+
+  const tosContent = page.locator('[role="dialog"] .overflow-y-auto');
+  await tosContent.waitFor({ state: "visible", timeout: 15_000 });
+  await tosContent.evaluate((el) => el.scrollTo(0, el.scrollHeight));
+
+  const acceptButton = page.getByRole("button", { name: /accept/i });
+  await expect(acceptButton).toBeEnabled({ timeout: 5_000 });
+  await acceptButton.click();
 }
 
 test.describe("Per-role real login journeys (T-247) @auth @real", () => {
@@ -113,9 +212,7 @@ test.describe("Per-role real login journeys (T-247) @auth @real", () => {
       // First-login ToS gate (T-242): accept it before asserting the
       // dashboard, so this journey stays green across both first-run and
       // already-accepted re-runs against a persistent dev Authentik.
-      if (page.url().includes("tos_required=1")) {
-        await page.getByRole("button", { name: /accept/i }).click();
-      }
+      await acceptTosIfPresent(page);
 
       await page.waitForURL(`**${dashboardPath}`, { timeout: 15_000 });
       await expect(
@@ -193,7 +290,7 @@ test.describe("Logout kills the session (T-246) @auth @real", () => {
   }) => {
     await loginViaAuthentik(page, "teacher@iqbalai.dev", E2E_SEED_PASSWORD);
     if (page.url().includes("tos_required=1")) {
-      await page.getByRole("button", { name: /accept/i }).click();
+      await acceptTosIfPresent(page);
       await page.waitForURL("**/teacher", { timeout: 15_000 });
     }
 

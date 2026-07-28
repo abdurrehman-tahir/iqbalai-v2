@@ -424,7 +424,10 @@ jobs:
           DB_URL=postgresql+asyncpg://iqbalai:ci-only-not-a-real-secret@postgres:5432/iqbalai
           REDIS_URL=redis://redis:6379/0
           AUTHENTIK_SECRET_KEY=$(openssl rand -hex 32)
-          AUTHENTIK_BOOTSTRAP_EMAIL=admin@iqbalai.dev
+          # Must NOT collide with scripts/seed_dev.py's platform_admin email
+          # (admin@iqbalai.dev) — otherwise identification can match the
+          # bootstrap akadmin (random password) instead of the E2E-seeded user.
+          AUTHENTIK_BOOTSTRAP_EMAIL=akadmin@iqbalai.dev
           AUTHENTIK_BOOTSTRAP_PASSWORD=$(openssl rand -hex 16)
           AUTHENTIK_BOOTSTRAP_TOKEN=ci-only-not-a-real-secret-bootstrap-token
           AUTHENTIK_API_URL=http://authentik-server:9000/api/v3
@@ -518,7 +521,19 @@ jobs:
         env:
           REAL_BACKEND_URL: http://localhost:8000/api/v1
           NEXT_PUBLIC_AUTHENTIK_URL: http://localhost:9000
+          NEXT_PUBLIC_APP_URL: http://localhost:3000
+          NEXT_PUBLIC_AUTHENTIK_CLIENT_ID: iqbalai-api
           E2E_SEED_PASSWORD: IqbalAI-E2E-Seed-Dev-Only-2026!
+      - name: Upload Playwright artifacts on failure
+        if: failure() && steps.detect.outputs.fe == 'yes'
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-auth-real-artifacts
+          path: |
+            frontend/test-results/**
+            frontend/playwright-report/**
+          if-no-files-found: ignore
+          retention-days: 7
 
   e2e-full:
     name: Playwright E2E (full suite, nightly)

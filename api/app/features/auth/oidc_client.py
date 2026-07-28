@@ -45,7 +45,10 @@ def build_authorize_url(
         "response_type": "code",
         "client_id": settings.OIDC_CLIENT_ID,
         "redirect_uri": redirect_uri,
-        "scope": "openid profile email",
+        # `iqbalai` is required: the blueprint scope mapping that emits
+        # role + tenant_type only runs when this scope is requested. Without
+        # it, get_or_create_from_jwt defaults everyone to student.
+        "scope": "openid profile email iqbalai",
         "state": state,
         "nonce": nonce,
         "code_challenge": create_s256_code_challenge(code_verifier),

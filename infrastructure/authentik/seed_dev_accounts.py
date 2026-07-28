@@ -99,11 +99,13 @@ ACCOUNTS = [
 # Use `request.user` (Authentik expression context), not bare `user`.
 # Single-line expression: `ak shell < file` mis-parses multi-line strings.
 EXPRESSION = (
-    'return {"role": request.user.attributes.get("role", ""), '
-    '"tenant_type": request.user.attributes.get("tenant_type", "school"), '
-    '"district_id": request.user.attributes.get("district_id") or None, '
-    '"school_id": request.user.attributes.get("school_id") or None, '
-    '"scoped_ids": request.user.attributes.get("scoped_ids") or None}'
+    'claims={"role": request.user.attributes.get("role", ""), '
+    '"tenant_type": request.user.attributes.get("tenant_type", "school")}; '
+    'd=request.user.attributes.get("district_id"); '
+    's=request.user.attributes.get("school_id"); '
+    'g=request.user.attributes.get("scoped_ids"); '
+    'claims.update({k: v for k, v in (("district_id", d), ("school_id", s), ("scoped_ids", g)) if v}); '
+    "return claims"
 )
 provider = None
 for _pname in PROVIDER_NAMES:

@@ -50,13 +50,23 @@ entries:
       scope_name: iqbalai
       description: "IqbalAI role + tenant_type + district/school claims (ARCH §3.16/§6.4/§6.7)."
       expression: |
-        return {
+        claims = {
             "role": request.user.attributes.get("role", ""),
             "tenant_type": request.user.attributes.get("tenant_type", "school"),
-            "district_id": request.user.attributes.get("district_id") or None,
-            "school_id": request.user.attributes.get("school_id") or None,
-            "scoped_ids": request.user.attributes.get("scoped_ids") or None,
         }
+        # Only emit org-scope keys when present. Emitting null would make
+        # "district_id" in claims True and the login reconciler would wipe a
+        # correctly seeded Postgres district_id/school_id/scoped_ids.
+        district_id = request.user.attributes.get("district_id")
+        school_id = request.user.attributes.get("school_id")
+        scoped_ids = request.user.attributes.get("scoped_ids")
+        if district_id:
+            claims["district_id"] = district_id
+        if school_id:
+            claims["school_id"] = school_id
+        if scoped_ids:
+            claims["scoped_ids"] = scoped_ids
+        return claims
 
   # 2. OAuth2 / OIDC provider — the confidential client the API uses.
   - id: iqbalai-api-provider

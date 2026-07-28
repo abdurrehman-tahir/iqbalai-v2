@@ -149,23 +149,28 @@ class AuthentikClient:
     async def find_user_by_email(self, email: str) -> str | None:
         """Look up an existing user's pk by email, for idempotent provisioning.
 
-        UNVERIFIED against a live Authentik instance (T-247, ARCH §6.4 real-backend
-        E2E suite) — Authentik's `/core/users/` is a standard DRF ViewSet and its
-        OpenAPI schema documents an `email` query filter, but this exact call has
-        not been exercised against a running Authentik here. Confirm/adjust once
-        run against a real instance.
+        Tries the dedicated `email` filter first, then falls back to Authentik's
+        free-text `search` (some 2024.12 builds ignore `?email=` for akadmin /
+        bootstrap users). Without a working lookup, seed_e2e_auth_users can
+        create a second row for the same address — or fail to reuse the
+        bootstrap identity — and Playwright then authenticates against the
+        wrong password.
         """
         async with httpx.AsyncClient(timeout=30.0) as client:
-            resp = await client.get(
-                f"{self._base_url}/core/users/",
-                params={"email": email},
-                headers=self._auth_headers(),
-            )
-        self._raise_for_response(resp, path="/core/users/")
-        results = resp.json().get("results", [])
-        if not results:
-            return None
-        return str(results[0]["pk"])
+            for params in ({"email": email}, {"search": email}):
+                resp = await client.get(
+                    f"{self._base_url}/core/users/",
+                    params=params,
+                    headers=self._auth_headers(),
+                )
+                self._raise_for_response(resp, path="/core/users/")
+                results = resp.json().get("results", [])
+                for row in results:
+                    if str(row.get("email", "")).lower() == email.lower():
+                        return str(row["pk"])
+                    if str(row.get("username", "")).lower() == email.lower():
+                        return str(row["pk"])
+        return None
 
     async def activate_user(self, authentik_id: str) -> None:
         await self._request(
