@@ -51,6 +51,18 @@ def set_session_cookies(response: Response, *, access_token: str, refresh_ref: s
 
 
 def clear_session_cookies(response: Response) -> None:
-    """Clear both session cookies (also used by T-246 logout)."""
-    response.delete_cookie(ACCESS_COOKIE, path="/")
-    response.delete_cookie(REFRESH_COOKIE, path="/")
+    """Clear both session cookies (also used by T-246 logout).
+
+    Attributes must match ``set_*_cookie`` — browsers ignore a delete that
+    disagrees on Path/Secure/SameSite, which would leave a "logged out" UI
+    still holding a live HttpOnly session cookie (T-246).
+    """
+    settings = get_settings()
+    for key in (ACCESS_COOKIE, REFRESH_COOKIE):
+        response.delete_cookie(
+            key,
+            path="/",
+            secure=settings.COOKIE_SECURE,
+            httponly=True,
+            samesite="lax",
+        )

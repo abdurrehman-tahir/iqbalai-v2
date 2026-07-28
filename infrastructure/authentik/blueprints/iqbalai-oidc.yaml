@@ -110,6 +110,11 @@ entries:
       redirect_uris:
         - matching_mode: strict
           url: !Env [OIDC_REDIRECT_URI, "http://localhost:8000/api/v1/auth/callback"]
+        # Post-logout landing (T-246): Authentik's end-session `redirect_uri`
+        # must be an allowed redirect on this provider or the browser stays on
+        # the IdP and Back after a later /login hop never returns to /login.
+        - matching_mode: strict
+          url: !Env [OIDC_POST_LOGOUT_REDIRECT_URI, "http://localhost:3000/login"]
       # sub = a stable per-user id → used as the app-DB authentik_id.
       sub_mode: hashed_user_id
       include_claims_in_id_token: true

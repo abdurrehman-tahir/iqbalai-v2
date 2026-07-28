@@ -84,13 +84,25 @@ describe("getPostLoginPath", () => {
   });
 });
 
+describe("getLogoutUrl", () => {
+  it("targets the iqbalai application slug from ARCH §6.3, not the OAuth client_id", () => {
+    const url = getLogoutUrl();
+    expect(url).toContain("/application/o/iqbalai/end-session/");
+    expect(url).not.toContain("iqbalai-frontend");
+    expect(url).toContain("redirect_uri=");
+  });
+});
+
 // T-246: server-side logout must run before the Authentik end-session
 // redirect, and a backend failure must never strand the user mid-logout.
 describe("performLogout (T-246, ARCH §6.8)", () => {
+  const replace = vi.fn();
+
   beforeEach(() => {
     mockLogout.mockReset();
+    replace.mockReset();
     Object.defineProperty(window, "location", {
-      value: { href: "" },
+      value: { href: "", replace },
       writable: true,
     });
   });
@@ -99,12 +111,12 @@ describe("performLogout (T-246, ARCH §6.8)", () => {
     mockLogout.mockResolvedValue(undefined);
     await performLogout();
     expect(mockLogout).toHaveBeenCalledTimes(1);
-    expect(window.location.href).toBe(getLogoutUrl());
+    expect(replace).toHaveBeenCalledWith(getLogoutUrl());
   });
 
   it("still redirects to Authentik end-session when the backend call fails", async () => {
     mockLogout.mockRejectedValue(new Error("network error"));
     await performLogout();
-    expect(window.location.href).toBe(getLogoutUrl());
+    expect(replace).toHaveBeenCalledWith(getLogoutUrl());
   });
 });

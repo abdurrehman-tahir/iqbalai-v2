@@ -1,7 +1,7 @@
 # Session state (Cursor)
 
-- Ticket: M-07a @auth @real CI fix (no new T-ID)
-- Status: committing frontend middleware + Authentik login E2E harden
-- Last: auth-real hang after password + missing /teacher→/login middleware
-- Next: push and watch Playwright @real on PR
-- Dossier: n/a (CI remediation)
+- Ticket: M-07a T-246 logout back-button (app fix)
+- Status: Cache-Control no-store + location.replace + end-session slug + cookie clear attrs
+- Last: middleware/auth/cookies/blueprint/ENV for post-logout redirect
+- Next: commit/push when Hamza asks; Playwright T-246 should pass unchanged
+- Dossier: n/a (CI/app remediation)

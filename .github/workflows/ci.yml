@@ -440,6 +440,7 @@ jobs:
           OIDC_TOKEN_URL=http://authentik-server:9000/application/o/token/
           OIDC_REVOKE_URL=http://authentik-server:9000/application/o/revoke/
           OIDC_REDIRECT_URI=http://localhost:8000/api/v1/auth/callback
+          OIDC_POST_LOGOUT_REDIRECT_URI=http://localhost:3000/login
           COOKIE_SECURE=false
           APP_URL=http://localhost:3000
           CORS_ALLOWED_ORIGINS=http://localhost:3000,http://127.0.0.1:3000

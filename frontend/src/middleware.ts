@@ -50,6 +50,21 @@ export function isPublicPath(pathname: string): boolean {
   return PUBLIC_PATH_PREFIXES.some((prefix) => pathname.startsWith(prefix));
 }
 
+/**
+ * Protected HTML must never enter the HTTP cache or the browser's back/forward
+ * cache (BFCache). Without `no-store`, Back after logout can restore a prior
+ * authenticated document from memory with zero network I/O — middleware never
+ * runs, cookies are irrelevant, and T-246's "back-button doesn't resurrect
+ * the session" contract fails even though the server session is dead.
+ */
+function withNoStore(response: NextResponse): NextResponse {
+  response.headers.set(
+    "Cache-Control",
+    "no-store, no-cache, must-revalidate, private",
+  );
+  return response;
+}
+
 export function middleware(request: NextRequest): NextResponse {
   const { pathname } = request.nextUrl;
 
@@ -71,12 +86,12 @@ export function middleware(request: NextRequest): NextResponse {
   }
 
   if (request.cookies.has(SESSION_COOKIE)) {
-    return NextResponse.next();
+    return withNoStore(NextResponse.next());
   }
 
   const loginUrl = new URL("/login", request.url);
   loginUrl.searchParams.set("next", `${pathname}${request.nextUrl.search}`);
-  return NextResponse.redirect(loginUrl);
+  return withNoStore(NextResponse.redirect(loginUrl));
 }
 
 export const config = {

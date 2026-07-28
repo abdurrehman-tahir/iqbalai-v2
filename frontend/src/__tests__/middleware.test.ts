@@ -41,11 +41,15 @@ describe("middleware", () => {
     const location = res.headers.get("location");
     expect(location).toContain("/login");
     expect(location).toContain("next=%2Fteacher");
+    expect(res.headers.get("Cache-Control")).toContain("no-store");
   });
 
   it("lets a protected path through when the iqbalai_access cookie is present", () => {
     const res = middleware(requestFor("/teacher", "iqbalai_access=some-jwt-value"));
     expect(res.headers.get("location")).toBeNull();
+    // T-246: authenticated shells must be ineligible for BFCache / HTTP cache
+    // so Back after logout cannot resurrect a logged-in document.
+    expect(res.headers.get("Cache-Control")).toContain("no-store");
   });
 
   it("lets mock Playwright smoke runs through when bypass env is set", () => {

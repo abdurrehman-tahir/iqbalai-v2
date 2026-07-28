@@ -106,7 +106,11 @@ export function getLogoutUrl(): string {
   const redirectUri = encodeURIComponent(
     (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") + "/login",
   );
-  return `${authentikBase}/application/o/iqbalai-frontend/end-session/?redirect_uri=${redirectUri}`;
+  // Application slug must match the OIDC blueprint (`iqbalai`, ARCH §6.3) —
+  // NOT the OAuth client_id (`iqbalai-api`). A wrong slug 404s Authentik's
+  // end-session and leaves the browser on a non-/login history entry, so
+  // Back after a later protected-route redirect never lands on /login (T-246).
+  return `${authentikBase}/application/o/iqbalai/end-session/?redirect_uri=${redirectUri}`;
 }
 
 /**
@@ -118,6 +122,9 @@ export function getLogoutUrl(): string {
  * The backend call is best-effort: a network failure here must not strand
  * the user in a logged-in-looking state, so this always navigates on to
  * Authentik's end-session regardless of whether the API call succeeded.
+ *
+ * Uses `location.replace` (not `href` assignment) so the authenticated page
+ * is removed from session history — Back after logout cannot restore it.
  */
 export async function performLogout(): Promise<void> {
   try {
@@ -126,5 +133,5 @@ export async function performLogout(): Promise<void> {
     // Best-effort — the cookies may already be gone/expired; the end-session
     // redirect below is what actually ends the user's visible session.
   }
-  window.location.href = getLogoutUrl();
+  window.location.replace(getLogoutUrl());
 }

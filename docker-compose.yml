@@ -78,6 +78,7 @@ services:
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-iqbalai-api}
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-change_me_after_authentik_bootstrap}
       OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-http://localhost:8000/api/v1/auth/callback}
+      OIDC_POST_LOGOUT_REDIRECT_URI: ${OIDC_POST_LOGOUT_REDIRECT_URI:-http://localhost:3000/login}
       AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
       # SMTP for Authentik-sent mail (password recovery). Values from .env.
       # Port 465 = implicit SSL → USE_SSL=true / USE_TLS=false.
@@ -145,6 +146,7 @@ services:
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-iqbalai-api}
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-change_me_after_authentik_bootstrap}
       OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-http://localhost:8000/api/v1/auth/callback}
+      OIDC_POST_LOGOUT_REDIRECT_URI: ${OIDC_POST_LOGOUT_REDIRECT_URI:-http://localhost:3000/login}
       # The worker sends the mail — it needs the same SMTP config as the server.
       AUTHENTIK_EMAIL__HOST: ${SMTP_HOST}
       AUTHENTIK_EMAIL__PORT: ${SMTP_PORT}
