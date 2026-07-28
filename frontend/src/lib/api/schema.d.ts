@@ -1939,6 +1939,91 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/diagnostics/start": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start or resume a diagnostic (optionally generate questions) */
+        post: operations["student_start_diagnostic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/diagnostics/{diagnostic_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get diagnostic attempt (for resume) */
+        get: operations["student_get_diagnostic"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/diagnostics/{diagnostic_id}/answers": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Save diagnostic answers (pause / progress) */
+        put: operations["student_save_diagnostic_answers"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/diagnostics/{diagnostic_id}/complete": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Complete diagnostic and return coaching focus areas (never a grade) */
+        post: operations["student_complete_diagnostic"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/diagnostics/{diagnostic_id}/finalize-timeout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Gracefully finalize an expired diagnostic with coaching focus areas */
+        post: operations["student_finalize_diagnostic_timeout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/graduation": {
         parameters: {
             query?: never;
@@ -2660,6 +2745,129 @@ export interface components {
             deleted: boolean;
         };
         /**
+         * DiagnosticQuestion
+         * @description One diagnostic item (filled by T-104 generation / Question Bank hook).
+         */
+        DiagnosticQuestion: {
+            /** Choices */
+            choices?: string[];
+            /** Id */
+            id: string;
+            /**
+             * Prompt
+             * @default
+             */
+            prompt: string;
+            /**
+             * Topic
+             * @default
+             */
+            topic: string;
+        };
+        /** DiagnosticRead */
+        DiagnosticRead: {
+            /** Answers */
+            answers: {
+                [key: string]: unknown;
+            };
+            /** Completed At */
+            completed_at?: string | null;
+            /** Expires At */
+            expires_at?: string | null;
+            /** Framework Id */
+            framework_id?: string | null;
+            /** Id */
+            id: string;
+            /** Questions */
+            questions: components["schemas"]["DiagnosticQuestion"][];
+            /** Started At */
+            started_at?: string | null;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "not_taken" | "in_progress" | "completed";
+            /** Student User Id */
+            student_user_id: string;
+            /** Subject Id */
+            subject_id?: string | null;
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
+        };
+        /**
+         * DiagnosticResultRead
+         * @description Completion payload for the taking UI. No score/percentage/grade fields.
+         */
+        DiagnosticResultRead: {
+            /** Coaching Summary */
+            coaching_summary: string;
+            diagnostic: components["schemas"]["DiagnosticRead"];
+            /** Focus Areas */
+            focus_areas: components["schemas"]["FocusAreaRead"][];
+            /**
+             * Timed Out
+             * @default false
+             */
+            timed_out: boolean;
+        };
+        /** DiagnosticSaveAnswers */
+        DiagnosticSaveAnswers: {
+            /** Answers */
+            answers?: {
+                [key: string]: unknown;
+            };
+        };
+        /**
+         * DiagnosticStartRequest
+         * @description Start (or resume active) diagnostic; optionally LLM-generate questions.
+         */
+        DiagnosticStartRequest: {
+            /** Context Json */
+            context_json?: {
+                [key: string]: unknown;
+            };
+            /** Framework Id */
+            framework_id?: string | null;
+            /**
+             * Framework Name
+             * @default
+             */
+            framework_name: string;
+            /**
+             * Generate
+             * @default true
+             */
+            generate: boolean;
+            /**
+             * Grade Label
+             * @default
+             */
+            grade_label: string;
+            /**
+             * Language
+             * @default en
+             * @enum {string}
+             */
+            language: "en" | "ur" | "sd" | "ps";
+            /**
+             * Question Count
+             * @default 20
+             */
+            question_count: number;
+            /** Questions */
+            questions?: components["schemas"]["DiagnosticQuestion"][] | null;
+            /** Subject Id */
+            subject_id?: string | null;
+            /**
+             * Subject Name
+             * @default
+             */
+            subject_name: string;
+        };
+        /**
          * DisclaimerVersionCreate
          * @description Publish a new Disclaimer version (Platform Admin only). 500-char limit.
          */
@@ -2882,6 +3090,16 @@ export interface components {
             name?: string | null;
             /** Region */
             region?: string | null;
+        };
+        /**
+         * FocusAreaRead
+         * @description Coaching focus area — never a grade/score (Flow 4 §3.6 / T-105).
+         */
+        FocusAreaRead: {
+            /** Suggestion */
+            suggestion: string;
+            /** Topic */
+            topic: string;
         };
         /**
          * FrameworkRejectRequest
@@ -4206,6 +4424,24 @@ export interface components {
         /** SuccessEnvelope[DeletedResponse] */
         SuccessEnvelope_DeletedResponse_: {
             data: components["schemas"]["DeletedResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[DiagnosticRead] */
+        SuccessEnvelope_DiagnosticRead_: {
+            data: components["schemas"]["DiagnosticRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[DiagnosticResultRead] */
+        SuccessEnvelope_DiagnosticResultRead_: {
+            data: components["schemas"]["DiagnosticResultRead"];
             /**
              * Message
              * @default ok
@@ -9283,6 +9519,167 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_start_diagnostic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiagnosticStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DiagnosticRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_diagnostic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                diagnostic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DiagnosticRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_save_diagnostic_answers: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                diagnostic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiagnosticSaveAnswers"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DiagnosticRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_complete_diagnostic: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                diagnostic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DiagnosticResultRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_finalize_diagnostic_timeout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                diagnostic_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DiagnosticResultRead_"];
                 };
             };
             /** @description Validation Error */

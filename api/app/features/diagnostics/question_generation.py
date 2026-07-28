@@ -43,6 +43,7 @@ def _to_schema_questions(output: DiagnosticGenerateOutput) -> list[object]:
             id=q.id,
             prompt=q.prompt,
             choices=list(q.choices),
+            topic=q.topic,
         ).model_dump()
         for q in output.questions
     ]

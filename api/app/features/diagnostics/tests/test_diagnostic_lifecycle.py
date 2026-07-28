@@ -80,7 +80,13 @@ def test_status_enum_values() -> None:
 @pytest.mark.asyncio
 async def test_school_start_save_resume_complete() -> None:
     svc = DiagnosticService(session=AsyncMock(), tenant_type="school")
-    started = await svc.start(student_user_id="stu-1", subject_id="subj-physics")
+    started = await svc.start(
+        student_user_id="stu-1",
+        subject_id="subj-physics",
+        questions=[
+            {"id": "q1", "prompt": "Force?", "choices": ["A"], "topic": "Newton's Laws"},
+        ],
+    )
     assert started.status == "in_progress"
     assert started.subject_id == "subj-physics"
     assert started.framework_id is None
@@ -93,8 +99,11 @@ async def test_school_start_save_resume_complete() -> None:
     assert resumed.answers == {"q1": "A", "q2": "B"}
 
     done = await svc.complete(diagnostic_id=started.id)
-    assert done.status == "completed"
-    assert done.completed_at is not None
+    assert done.diagnostic.status == "completed"
+    assert done.diagnostic.completed_at is not None
+    assert done.focus_areas
+    assert "%" not in done.coaching_summary
+    assert "failed" not in done.coaching_summary.lower()
 
 
 @pytest.mark.asyncio
@@ -118,6 +127,29 @@ async def test_expired_blocks_resume_and_save(monkeypatch: pytest.MonkeyPatch) -
         await svc.resume(diagnostic_id=started.id)
     with pytest.raises(PreconditionFailedError, match="expired"):
         await svc.save_answers(diagnostic_id=started.id, answers={"q1": "A"})
+
+
+@pytest.mark.asyncio
+async def test_timeout_finalizes_with_coaching_focus_areas() -> None:
+    svc = DiagnosticService(session=AsyncMock(), tenant_type="school")
+    started = await svc.start(
+        student_user_id="stu-1",
+        subject_id="subj-1",
+        questions=[
+            {"id": "q1", "prompt": "Newton?", "choices": ["A"], "topic": "Newton's Laws"},
+            {"id": "q2", "prompt": "Optics?", "choices": ["B"], "topic": "Optics"},
+        ],
+    )
+    await svc.save_answers(diagnostic_id=started.id, answers={"q1": "A"})
+    row = _FakeRepo.store[started.id]
+    row.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+
+    result = await svc.finalize_timeout(diagnostic_id=started.id)
+    assert result.timed_out is True
+    assert result.diagnostic.status == "completed"
+    assert any("Newton" in a.topic or "Optics" in a.topic for a in result.focus_areas)
+    assert "%" not in result.coaching_summary
+    assert "failed" not in result.coaching_summary.lower()
 
 
 @pytest.mark.asyncio

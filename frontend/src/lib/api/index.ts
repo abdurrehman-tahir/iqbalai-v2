@@ -54,6 +54,10 @@ import type {
   StudentModeSelect,
   StudentModeRead,
   StudentModeUpdate,
+  DiagnosticRead,
+  DiagnosticResultRead,
+  DiagnosticStartRequest,
+  DiagnosticSaveAnswers,
   SchoolCreate,
   SchoolUpdate,
   SubscriptionTierCreate,
@@ -1093,6 +1097,35 @@ export const studentModeApi = {
     request<StudentModeRead>(
       "/students/me/mode",
       { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+export const diagnosticsApi = {
+  start: (token: string, data: DiagnosticStartRequest) =>
+    request<DiagnosticRead>(
+      "/students/me/diagnostics/start",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  get: (token: string, diagnosticId: string) =>
+    request<DiagnosticRead>(`/students/me/diagnostics/${diagnosticId}`, {}, token),
+  saveAnswers: (token: string, diagnosticId: string, data: DiagnosticSaveAnswers) =>
+    request<DiagnosticRead>(
+      `/students/me/diagnostics/${diagnosticId}/answers`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  complete: (token: string, diagnosticId: string) =>
+    request<DiagnosticResultRead>(
+      `/students/me/diagnostics/${diagnosticId}/complete`,
+      { method: "POST" },
+      token
+    ),
+  finalizeTimeout: (token: string, diagnosticId: string) =>
+    request<DiagnosticResultRead>(
+      `/students/me/diagnostics/${diagnosticId}/finalize-timeout`,
+      { method: "POST" },
       token
     ),
 };

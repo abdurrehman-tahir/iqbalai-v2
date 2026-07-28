@@ -1,4 +1,4 @@
-"""Pydantic shapes for diagnostic JSONB + lifecycle I/O — T-103."""
+"""Pydantic shapes for diagnostic JSONB + lifecycle I/O — T-103/T-105."""
 
 from __future__ import annotations
 
@@ -16,6 +16,7 @@ class DiagnosticQuestion(BaseModel):
     id: str = Field(min_length=1, max_length=64)
     prompt: str = Field(default="", max_length=4000)
     choices: list[str] = Field(default_factory=list)
+    topic: str = Field(default="", max_length=255)
 
 
 class DiagnosticQuestionsBlob(BaseModel):
@@ -73,3 +74,35 @@ class DiagnosticRead(BaseModel):
 
 class DiagnosticSaveAnswers(BaseModel):
     answers: dict[str, Any] = Field(default_factory=dict)
+
+
+class DiagnosticStartRequest(BaseModel):
+    """Start (or resume active) diagnostic; optionally LLM-generate questions."""
+
+    subject_id: str | None = None
+    framework_id: str | None = None
+    grade_label: str = ""
+    subject_name: str = ""
+    framework_name: str = ""
+    context_json: dict[str, Any] = Field(default_factory=dict)
+    question_count: int = Field(default=20, ge=15, le=25)
+    language: Literal["en", "ur", "sd", "ps"] = "en"
+    generate: bool = True
+    # When generate=False, optional prebuilt questions (demos / tests — not DNA seeding).
+    questions: list[DiagnosticQuestion] | None = None
+
+
+class FocusAreaRead(BaseModel):
+    """Coaching focus area — never a grade/score (Flow 4 §3.6 / T-105)."""
+
+    topic: str = Field(min_length=1, max_length=255)
+    suggestion: str = Field(min_length=1, max_length=500)
+
+
+class DiagnosticResultRead(BaseModel):
+    """Completion payload for the taking UI. No score/percentage/grade fields."""
+
+    diagnostic: DiagnosticRead
+    focus_areas: list[FocusAreaRead]
+    timed_out: bool = False
+    coaching_summary: str

@@ -13,6 +13,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import PreconditionFailedError, ValidationError
 from app.core.tenant import TenantType
+from app.features.diagnostics.focus_areas import derive_focus_areas
 from app.features.diagnostics.models import (
     DiagnosticStatus,
     DiagnosticTenantType,
@@ -25,6 +26,7 @@ from app.features.diagnostics.schemas import (
     DiagnosticAnswersBlob,
     DiagnosticQuestionsBlob,
     DiagnosticRead,
+    DiagnosticResultRead,
 )
 
 RESUME_WINDOW = timedelta(days=7)
@@ -210,20 +212,61 @@ class DiagnosticService:
             raise PreconditionFailedError("Diagnostic expired — start a new attempt")
         return self._to_read(row)
 
-    async def complete(self, *, diagnostic_id: str) -> DiagnosticRead:
+    async def complete(self, *, diagnostic_id: str) -> DiagnosticResultRead:
         row = await self._repo.get_by_id(diagnostic_id)
         if row is None:
             raise PreconditionFailedError("Diagnostic not found or expired")
         now = _utcnow()
+        if row.status == DiagnosticStatus.COMPLETED:
+            return self._to_result(row, timed_out=False)
         if row.status != DiagnosticStatus.IN_PROGRESS:
             raise PreconditionFailedError("Diagnostic is not in progress")
         if self._is_expired(row, now):
-            raise PreconditionFailedError("Diagnostic expired — start a new attempt")
+            return await self.finalize_timeout(diagnostic_id=diagnostic_id)
 
         row.status = DiagnosticStatus.COMPLETED
         row.completed_at = now
         updated = await self._repo.update(row)
-        return self._to_read(updated)
+        return self._to_result(updated, timed_out=False)
+
+    async def finalize_timeout(self, *, diagnostic_id: str) -> DiagnosticResultRead:
+        """Gracefully complete an expired in-progress diagnostic (T-105 acceptance)."""
+        row = await self._repo.get_by_id(diagnostic_id)
+        if row is None:
+            raise PreconditionFailedError("Diagnostic not found or expired")
+        if row.status == DiagnosticStatus.COMPLETED:
+            return self._to_result(row, timed_out=True)
+        if row.status != DiagnosticStatus.IN_PROGRESS:
+            raise PreconditionFailedError("Diagnostic is not in progress")
+
+        row.status = DiagnosticStatus.COMPLETED
+        row.completed_at = _utcnow()
+        updated = await self._repo.update(row)
+        return self._to_result(updated, timed_out=True)
+
+    def _to_result(self, row: DiagnosticRow, *, timed_out: bool) -> DiagnosticResultRead:
+        read = self._to_read(row)
+        areas, summary = derive_focus_areas(
+            questions=read.questions,
+            answers=read.answers,
+            timed_out=timed_out,
+        )
+        return DiagnosticResultRead(
+            diagnostic=read,
+            focus_areas=areas,
+            timed_out=timed_out,
+            coaching_summary=summary,
+        )
+
+    async def get(self, *, diagnostic_id: str) -> DiagnosticRead:
+        row = await self._repo.get_by_id(diagnostic_id)
+        if row is None:
+            raise PreconditionFailedError("Diagnostic not found or expired")
+        now = _utcnow()
+        if row.status == DiagnosticStatus.IN_PROGRESS and self._is_expired(row, now):
+            # Surface as still readable so FE can call finalize-timeout.
+            return self._to_read(row)
+        return self._to_read(row)
 
     async def start_with_generated_questions(
         self,

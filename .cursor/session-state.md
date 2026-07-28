@@ -1,7 +1,7 @@
 # Session state (Cursor)
 
-- Ticket: T-104 done (`7f55135`)
-- Status: ready for T-105
+- Ticket: T-105 Diagnostic UI (M-08)
+- Status: ready to commit
 - Branch: milestone/M-08-mode-diagnostic
-- Next: ticket-loader T-105 Diagnostic UI
-- Prior: T-101–T-104 done
+- Next: commit T-105 then T-106 via ticket-loader
+- Dossier: ticket-loader T-105 (flow-4 §3.6; no DNA — T-106)

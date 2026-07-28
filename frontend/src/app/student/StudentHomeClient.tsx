@@ -81,6 +81,9 @@ export function StudentHomeClient() {
           <a href="/student/exam-frameworks" className="text-sm text-blue-600 hover:underline">
             {t("exam_frameworks_link")}
           </a>
+          <a href="/student/diagnostics" className="text-sm text-blue-600 hover:underline">
+            {t("diagnostics_link")}
+          </a>
           <a href="/student/data-rights" className="text-sm text-blue-600 hover:underline">
             {t("data_rights_link")}
           </a>

@@ -478,6 +478,7 @@
       "graduation_banner_body": "Lecture mode is read-only. Self-Study stays fully available until your account moves to Independent mode.",
       "graduation_migration_date": "Independent migration scheduled: {date}",
       "exam_frameworks_link": "Exam frameworks",
+      "diagnostics_link": "Take a diagnostic",
       "lecture_section_title": "Lecture",
       "lecture_section_body": "Class lectures and teacher Q&A will appear here in upcoming milestones.",
       "self_study_section_title": "Self-Study",
@@ -1454,7 +1455,8 @@
       "home": {
         "ready_banner": "You are ready to study.",
         "self_study_only": "Self-Study Mode is your only mode — no lecture mode switcher.",
-        "diagnostic_deferred": "Diagnostic: coming soon (M-08 hook present)."
+        "diagnostic_deferred": "Diagnostic: coming soon (M-08 hook present).",
+        "diagnostics_link": "Take a diagnostic"
       }
     }
   },
@@ -1521,5 +1523,26 @@
       "download_started": "Download started.",
       "error_generic": "Something went wrong. Please try again."
     }
+  },
+  "diagnostics": {
+    "title": "Diagnostic check-in",
+    "subtitle": "Answer one question at a time. You can pause and resume within 7 days.",
+    "loading": "Preparing your diagnostic…",
+    "error_generic": "Something went wrong. Please try again.",
+    "retry": "Retry",
+    "progress": "Question {current} of {total} ({percent}%)",
+    "progress_bar_label": "Diagnostic progress",
+    "choices_legend": "Answer choices",
+    "open_answer_label": "Your answer",
+    "previous": "Previous",
+    "next": "Next",
+    "save_pause": "Save and pause",
+    "finish": "Finish",
+    "empty_questions": "No questions yet. You can finish to see focus areas.",
+    "results_title": "Areas to focus on",
+    "focus_areas_title": "Suggested focus",
+    "focus_areas_empty": "Keep exploring your topics — we will refine suggestions as you study.",
+    "timeout_notice": "Time ran out, so we saved your progress.",
+    "no_grades_disclaimer": "This diagnostic never shows marks, scores, or percentages — only coaching guidance."
   }
 }

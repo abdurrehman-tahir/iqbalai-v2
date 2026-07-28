@@ -23,9 +23,9 @@ export function IndependentStudentHomeClient() {
         <p className="text-sm font-medium text-green-800">{t("ready_banner")}</p>
       </div>
       <p className="text-sm text-gray-600">{t("self_study_only")}</p>
-      {onboarding.profile?.diagnostic_available && (
-        <p className="text-sm text-gray-500">{t("diagnostic_deferred")}</p>
-      )}
+      <a href="/independent/student/diagnostics" className="text-sm text-blue-600 hover:underline">
+        {t("diagnostics_link")}
+      </a>
     </div>
   );
 }
