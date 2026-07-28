@@ -60,9 +60,9 @@ _SCRIPTS_DIR = Path(__file__).resolve().parent
 if str(_SCRIPTS_DIR) not in sys.path:
     sys.path.insert(0, str(_SCRIPTS_DIR))
 
+import seed_dev  # noqa: E402
 import structlog  # noqa: E402
 
-import seed_dev  # noqa: E402
 from app.features.academic_sessions.models import AcademicSession  # noqa: E402
 from app.features.independent_users.models import IndependentUser  # noqa: E402
 from app.features.schools.models import District, School  # noqa: E402
@@ -78,9 +78,7 @@ logger = structlog.get_logger(__name__)
 # ever targets ephemeral dev/CI Authentik instances (never production), so a
 # labeled fallback default is acceptable (same convention as
 # POSTGRES_PASSWORD=change_me_in_production in .env.example).
-E2E_SEED_PASSWORD = os.environ.get(
-    "E2E_SEED_PASSWORD", "IqbalAI-E2E-Seed-Dev-Only-2026!"
-)
+E2E_SEED_PASSWORD = os.environ.get("E2E_SEED_PASSWORD", "IqbalAI-E2E-Seed-Dev-Only-2026!")
 
 
 async def _provision_authentik_identity(
@@ -103,12 +101,8 @@ async def _provision_authentik_identity(
         authentik_id = existing_id
         logger.info("e2e_authentik_user_reused", email=email, authentik_id=authentik_id)
     else:
-        authentik_id = await client.create_user(
-            email=email, name=display_name, is_active=False
-        )
-        logger.info(
-            "e2e_authentik_user_created", email=email, authentik_id=authentik_id
-        )
+        authentik_id = await client.create_user(email=email, name=display_name, is_active=False)
+        logger.info("e2e_authentik_user_created", email=email, authentik_id=authentik_id)
 
     # Activate first, then set password — some Authentik builds no-op
     # set_password while the user is still inactive.
@@ -181,9 +175,7 @@ async def run() -> None:
     async with async_session_factory() as session:
 
         async def get_district(district_id: str) -> District | None:
-            res = await session.execute(
-                select(District).where(District.id == district_id)
-            )
+            res = await session.execute(select(District).where(District.id == district_id))
             return res.scalar_one_or_none()
 
         async def get_school(school_id: str) -> School | None:
@@ -200,28 +192,20 @@ async def run() -> None:
             session.add(row)
             await session.flush()
 
-        org_result = await seed_dev.seed_org(
-            get_district, get_school, get_session_row, persist_org
-        )
+        org_result = await seed_dev.seed_org(get_district, get_school, get_session_row, persist_org)
 
-        async def get_existing_user(authentik_id: str) -> User | None:
-            res = await session.execute(
-                select(User).where(User.authentik_id == authentik_id)
-            )
+        async def get_existing_user(email: str) -> User | None:
+            res = await session.execute(select(User).where(User.email == email))
             return res.scalar_one_or_none()
 
         async def persist_user(user: User) -> None:
             session.add(user)
 
-        user_result = await seed_dev.seed_users(
-            school_users, get_existing_user, persist_user
-        )
+        user_result = await seed_dev.seed_users(school_users, get_existing_user, persist_user)
 
-        async def get_existing_independent(authentik_id: str) -> IndependentUser | None:
+        async def get_existing_independent(email: str) -> IndependentUser | None:
             res = await session.execute(
-                select(IndependentUser).where(
-                    IndependentUser.authentik_id == authentik_id
-                )
+                select(IndependentUser).where(IndependentUser.email == email)
             )
             return res.scalar_one_or_none()
 

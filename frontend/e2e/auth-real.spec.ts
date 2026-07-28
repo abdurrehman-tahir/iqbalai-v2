@@ -101,7 +101,16 @@ async function loginViaAuthentik(page: Page, email: string, password: string): P
 
   const passwordField = page.locator('input[name="password"]');
   await passwordField.waitFor({ state: "visible", timeout: AUTH_FLOW_TIMEOUT_MS });
-  await passwordField.fill(password);
+  // `.fill()` sets the DOM value + a synthetic input event directly, which
+  // Authentik's Lit-backed ak-stage-password component doesn't reliably pick
+  // up into its own reactive state (repro'd locally: the field visually
+  // showed the password, but the live DOM value — and the form's validity —
+  // was still empty at submit time, so the click below silently no-opped
+  // with zero network activity and the flow hung on this same URL for the
+  // full timeout). Per-key events via pressSequentially are what the
+  // component's input handler actually observes.
+  await passwordField.click();
+  await passwordField.pressSequentially(password, { delay: 20 });
 
   // Race the post-password redirect against an inline Authentik error (wrong
   // password / policy denial). Without this, a failed password stage burns the

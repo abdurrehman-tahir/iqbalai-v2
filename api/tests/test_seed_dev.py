@@ -7,6 +7,7 @@ in-memory fake store — so idempotency is verified without a live Postgres.
 
 from __future__ import annotations
 
+import dataclasses
 import importlib.util
 import sys
 from pathlib import Path
@@ -29,17 +30,17 @@ def _load_seed() -> ModuleType:
 
 
 class _FakeStore:
-    """In-memory stand-in for the users table keyed on authentik_id."""
+    """In-memory stand-in for the users table keyed on email."""
 
     def __init__(self) -> None:
-        self.by_authentik: dict[str, object] = {}
+        self.by_email: dict[str, object] = {}
 
-    async def get_existing(self, authentik_id: str) -> object | None:
-        return self.by_authentik.get(authentik_id)
+    async def get_existing(self, email: str) -> object | None:
+        return self.by_email.get(email)
 
     async def persist(self, user: object) -> None:
-        # mypy: User has an authentik_id attribute at runtime.
-        self.by_authentik[user.authentik_id] = user  # type: ignore[attr-defined]
+        # mypy: User has an email attribute at runtime.
+        self.by_email[user.email] = user  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -51,7 +52,7 @@ async def test_first_run_creates_full_demo_set() -> None:
 
     assert result.created == len(seed.SEED_USERS)
     assert result.updated == 0
-    assert len(store.by_authentik) == len(seed.SEED_USERS)
+    assert len(store.by_email) == len(seed.SEED_USERS)
 
 
 @pytest.mark.asyncio
@@ -65,7 +66,32 @@ async def test_rerun_is_idempotent_no_duplicates() -> None:
     # Second run upserts in place — nothing new created, row count unchanged.
     assert second.created == 0
     assert second.updated == len(seed.SEED_USERS)
-    assert len(store.by_authentik) == len(seed.SEED_USERS)
+    assert len(store.by_email) == len(seed.SEED_USERS)
+
+
+@pytest.mark.asyncio
+async def test_rerun_with_different_authentik_id_updates_in_place() -> None:
+    """T-247 regression: `seed_e2e_auth_users.py` reruns with the SAME email
+    but a real Authentik pk swapped in for this script's placeholder
+    `authentik_id`. Keying the lookup on email (not authentik_id) must reuse
+    the existing row and refresh its authentik_id — not insert a duplicate
+    row for the same email (which crashed independent-tenant login with
+    `MultipleResultsFound`)."""
+    seed = _load_seed()
+    store = _FakeStore()
+
+    await seed.seed_users(seed.SEED_USERS, store.get_existing, store.persist)
+    reprovisioned = tuple(
+        dataclasses.replace(spec, authentik_id=f"real-{i}")
+        for i, spec in enumerate(seed.SEED_USERS)
+    )
+    second = await seed.seed_users(reprovisioned, store.get_existing, store.persist)
+
+    assert second.created == 0
+    assert second.updated == len(seed.SEED_USERS)
+    assert len(store.by_email) == len(seed.SEED_USERS)
+    for i, spec in enumerate(reprovisioned):
+        assert store.by_email[spec.email].authentik_id == f"real-{i}"  # type: ignore[attr-defined]
 
 
 class _FakeOrgStore:
@@ -177,16 +203,16 @@ def test_parent_has_no_school_or_district_scope() -> None:
 
 
 class _FakeIndependentStore:
-    """In-memory stand-in for the `independent.users` table."""
+    """In-memory stand-in for the `independent.users` table, keyed on email."""
 
     def __init__(self) -> None:
-        self.by_authentik: dict[str, object] = {}
+        self.by_email: dict[str, object] = {}
 
-    async def get_existing(self, authentik_id: str) -> object | None:
-        return self.by_authentik.get(authentik_id)
+    async def get_existing(self, email: str) -> object | None:
+        return self.by_email.get(email)
 
     async def persist(self, user: object) -> None:
-        self.by_authentik[user.authentik_id] = user  # type: ignore[attr-defined]
+        self.by_email[user.email] = user  # type: ignore[attr-defined]
 
 
 @pytest.mark.asyncio
@@ -200,7 +226,7 @@ async def test_independent_users_first_run_creates_full_set() -> None:
 
     assert result.created == len(seed.SEED_INDEPENDENT_USERS)
     assert result.updated == 0
-    assert len(store.by_authentik) == len(seed.SEED_INDEPENDENT_USERS)
+    assert len(store.by_email) == len(seed.SEED_INDEPENDENT_USERS)
 
 
 @pytest.mark.asyncio
@@ -217,7 +243,31 @@ async def test_independent_users_rerun_is_idempotent() -> None:
 
     assert second.created == 0
     assert second.updated == len(seed.SEED_INDEPENDENT_USERS)
-    assert len(store.by_authentik) == len(seed.SEED_INDEPENDENT_USERS)
+    assert len(store.by_email) == len(seed.SEED_INDEPENDENT_USERS)
+
+
+@pytest.mark.asyncio
+async def test_independent_rerun_with_different_authentik_id_updates_in_place() -> None:
+    """T-247 regression: same email, real Authentik pk swapped in — must
+    update the existing row, not insert a duplicate (see the school-user
+    version of this test for the failure this guards against)."""
+    seed = _load_seed()
+    store = _FakeIndependentStore()
+
+    await seed.seed_independent_users(
+        seed.SEED_INDEPENDENT_USERS, store.get_existing, store.persist
+    )
+    reprovisioned = tuple(
+        dataclasses.replace(spec, authentik_id=f"real-{i}")
+        for i, spec in enumerate(seed.SEED_INDEPENDENT_USERS)
+    )
+    second = await seed.seed_independent_users(reprovisioned, store.get_existing, store.persist)
+
+    assert second.created == 0
+    assert second.updated == len(seed.SEED_INDEPENDENT_USERS)
+    assert len(store.by_email) == len(seed.SEED_INDEPENDENT_USERS)
+    for i, spec in enumerate(reprovisioned):
+        assert store.by_email[spec.email].authentik_id == f"real-{i}"  # type: ignore[attr-defined]
 
 
 def test_independent_set_covers_both_independent_roles() -> None:

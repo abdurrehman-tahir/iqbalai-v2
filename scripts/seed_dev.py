@@ -14,9 +14,17 @@ the T-247 `@auth @real` suite (which drives an actual Authentik login form),
 see `scripts/seed_e2e_auth_users.py` — it provisions real Authentik identities
 and seeds the matching DB rows keyed on Authentik's own assigned pk instead.
 
-Idempotent: keyed on the unique ``authentik_id``. Re-running upserts (create if
+Idempotent: keyed on the unique ``email``. Re-running upserts (create if
 missing, otherwise refresh mutable fields) so the DB ends in the same state no
 matter how many times it runs — see ``test_seed_dev.py``.
+
+Email, not authentik_id, is the idempotency key: `seed_e2e_auth_users.py`
+reruns `seed_users`/`seed_independent_users` with the SAME email but a real
+Authentik pk swapped in for this script's placeholder `authentik_id`. Keying
+on authentik_id would never match that placeholder row, so it would insert a
+second row for the same email instead of updating the first — which is
+exactly what happened before this fix (T-247 CI: independent-tenant logins
+crashed with `MultipleResultsFound`, since two rows shared one email).
 
 Run (from repo root):
     uv run python scripts/seed_dev.py
@@ -294,7 +302,7 @@ async def seed_users(
     """
     result = SeedResult()
     for spec in seeds:
-        existing = await get_existing(spec.authentik_id)
+        existing = await get_existing(spec.email)
         if existing is None:
             user = User(
                 authentik_id=spec.authentik_id,
@@ -309,7 +317,10 @@ async def seed_users(
             result.created += 1
         else:
             # Refresh mutable fields so a changed spec converges (still idempotent
-            # for an unchanged spec — same input ⇒ same end state).
+            # for an unchanged spec — same input ⇒ same end state). Includes
+            # authentik_id: seed_e2e_auth_users.py reuses this row (matched by
+            # email) to swap this script's placeholder id for a real one.
+            existing.authentik_id = spec.authentik_id
             existing.email = spec.email
             existing.display_name = spec.display_name
             existing.role = spec.role
@@ -330,7 +341,7 @@ async def seed_independent_users(
     decoupled from the DB session for unit testability."""
     result = SeedResult()
     for spec in seeds:
-        existing = await get_existing(spec.authentik_id)
+        existing = await get_existing(spec.email)
         if existing is None:
             user = IndependentUser(
                 authentik_id=spec.authentik_id,
@@ -341,6 +352,7 @@ async def seed_independent_users(
             await persist(user)
             result.created += 1
         else:
+            existing.authentik_id = spec.authentik_id
             existing.email = spec.email
             existing.display_name = spec.display_name
             existing.role = spec.role
@@ -363,9 +375,7 @@ async def run_seed() -> tuple[SeedResult, SeedResult, SeedResult]:
     async with async_session_factory() as session:
 
         async def get_district(district_id: str) -> District | None:
-            res = await session.execute(
-                select(District).where(District.id == district_id)
-            )
+            res = await session.execute(select(District).where(District.id == district_id))
             return res.scalar_one_or_none()
 
         async def get_school(school_id: str) -> School | None:
@@ -387,14 +397,10 @@ async def run_seed() -> tuple[SeedResult, SeedResult, SeedResult]:
             session.add(row)
             await session.flush()
 
-        org_result = await seed_org(
-            get_district, get_school, get_session_row, persist_org
-        )
+        org_result = await seed_org(get_district, get_school, get_session_row, persist_org)
 
-        async def get_existing(authentik_id: str) -> User | None:
-            res = await session.execute(
-                select(User).where(User.authentik_id == authentik_id)
-            )
+        async def get_existing(email: str) -> User | None:
+            res = await session.execute(select(User).where(User.email == email))
             return res.scalar_one_or_none()
 
         async def persist(user: User) -> None:
@@ -402,11 +408,9 @@ async def run_seed() -> tuple[SeedResult, SeedResult, SeedResult]:
 
         user_result = await seed_users(SEED_USERS, get_existing, persist)
 
-        async def get_existing_independent(authentik_id: str) -> IndependentUser | None:
+        async def get_existing_independent(email: str) -> IndependentUser | None:
             res = await session.execute(
-                select(IndependentUser).where(
-                    IndependentUser.authentik_id == authentik_id
-                )
+                select(IndependentUser).where(IndependentUser.email == email)
             )
             return res.scalar_one_or_none()
 
