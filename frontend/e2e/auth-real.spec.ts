@@ -224,9 +224,11 @@ test.describe("Per-role real login journeys (T-247) @auth @real", () => {
       await acceptTosIfPresent(page);
 
       await page.waitForURL(`**${dashboardPath}`, { timeout: 15_000 });
-      await expect(
-        page.getByRole("main").getByRole("heading", { level: 1 }).first(),
-      ).toBeVisible();
+      // Role shells put the page title in <header><h1>, with <main> holding
+      // the body — only platform/district admin pages nest an h1 inside main.
+      // Assert both landmarks so we still prove real shell content rendered.
+      await expect(page.getByRole("heading", { level: 1 }).first()).toBeVisible();
+      await expect(page.getByRole("main")).toBeVisible();
     });
   }
 });
@@ -297,13 +299,20 @@ test.describe("Logout kills the session (T-246) @auth @real", () => {
   test("after logout, a protected page redirects to /login and back-button doesn't resurrect it", async ({
     page,
   }) => {
-    await loginViaAuthentik(page, "teacher@iqbalai.dev", E2E_SEED_PASSWORD);
+    // Student shell keeps Sign out in the header even on /student/onboarding;
+    // teacher shell only mounts it in the desktop aside, which is hidden while
+    // onboarding is incomplete — so a fresh seed teacher can never click it.
+    await loginViaAuthentik(page, "student@iqbalai.dev", E2E_SEED_PASSWORD);
     if (page.url().includes("tos_required=1")) {
       await acceptTosIfPresent(page);
-      await page.waitForURL("**/teacher", { timeout: 15_000 });
     }
+    await page.waitForURL(/\/student(\/|$)/, { timeout: 15_000 });
+    await expect(page.getByRole("button", { name: /sign out/i })).toBeVisible({
+      timeout: 15_000,
+    });
 
-    await page.getByRole("button", { name: /log out/i }).click();
+    // Shell copy is "Sign out" (messages/*/common.json) — not "Log out".
+    await page.getByRole("button", { name: /sign out/i }).click();
     await page.waitForURL(/login|end-session/i, { timeout: 15_000 });
 
     await page.goto("/teacher");
