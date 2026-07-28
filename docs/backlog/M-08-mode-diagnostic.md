@@ -189,6 +189,7 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Milestone:** M-08
 **Estimate:** 2 days
 **Status:** done
+**Commit:** `7eaddec`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (results as "areas to focus on", never grades; coaching principle)

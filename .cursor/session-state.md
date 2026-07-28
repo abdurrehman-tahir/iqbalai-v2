@@ -1,7 +1,7 @@
 # Session state (Cursor)
 
-- Ticket: T-105 Diagnostic UI (M-08)
-- Status: ready to commit
+- Ticket: T-105 done (`7eaddec`)
+- Status: done
 - Branch: milestone/M-08-mode-diagnostic
-- Next: commit T-105 then T-106 via ticket-loader
-- Dossier: ticket-loader T-105 (flow-4 §3.6; no DNA — T-106)
+- Next: Implement T-106 via ticket-loader
+- Dossier: prior T-105; DNA seeding is T-106
