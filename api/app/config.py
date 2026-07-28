@@ -74,7 +74,7 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "groq"
     LLM_BASE_URL: str = "https://api.groq.com/openai/v1"
     LLM_API_KEY: str = ""
-    LLM_MODEL: str = "llama-3.1-70b-versatile"
+    LLM_MODEL: str = "qwen/qwen3.6-27b"
     LLM_FALLBACK_PROVIDER: str = "openai"
     LLM_FALLBACK_BASE_URL: str = "https://api.openai.com/v1"
     LLM_FALLBACK_API_KEY: str = ""

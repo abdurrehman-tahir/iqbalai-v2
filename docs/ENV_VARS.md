@@ -27,6 +27,7 @@ These are already documented in ARCHITECTURE.md §15.2 and `infrastructure/confi
 | `NATS_URL` | `nats://nats:4222` | NATS JetStream connection |
 | `QDRANT_URL` | `http://qdrant:6333` | Qdrant vector DB |
 | `MINIO_ENDPOINT` | `minio:9000` | MinIO S3-compatible storage |
+| `WEBSEARCH_URL` | `http://searxng:8080` (compose) / `http://localhost:8888` (host API) | Self-hosted SearXNG base URL for RAG tier-3 + exam-framework research (ARCH §7.12) |
 | `AUTHENTIK_URL` | (required) | Authentik IDP base URL |
 | `AUTHENTIK_CLIENT_ID` | (required) | OIDC client ID |
 | `AUTHENTIK_CLIENT_SECRET` | (required) | OIDC client secret |

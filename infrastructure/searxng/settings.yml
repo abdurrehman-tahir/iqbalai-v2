@@ -1,0 +1,27 @@
+# IqbalAI local SearXNG — ARCH §7.12 / STACK_LOCK §Web-search.
+# JSON format MUST be enabled for api/celery Pattern-A research (T-093).
+use_default_settings: true
+
+general:
+  instance_name: "IqbalAI SearXNG"
+  enable_metrics: false
+
+server:
+  # Local-dev only; override via SEARXNG_SECRET_KEY / regenerated settings in prod.
+  secret_key: "iqbalai-dev-searxng-change-me"
+  limiter: false
+  image_proxy: false
+  # Bind inside the container; Compose maps host :8888 -> :8080.
+  port: 8080
+  bind_address: "0.0.0.0"
+
+search:
+  safe_search: 0
+  autocomplete: ""
+  default_lang: "en"
+  formats:
+    - html
+    - json
+
+ui:
+  static_use_hash: true
