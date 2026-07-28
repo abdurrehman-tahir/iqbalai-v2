@@ -226,6 +226,7 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Milestone:** M-08
 **Estimate:** 1 day
 **Status:** done
+**Commit:** `6c7205d`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (results seed Cognitive DNA; 30-day retake)
