@@ -37,6 +37,7 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Milestone:** M-08
 **Estimate:** 2 days
 **Status:** done
+**Commit:** `1ab1253`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.4 (Mode selection #53)
