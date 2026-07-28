@@ -116,7 +116,7 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Milestone:** M-08
 **Estimate:** 2 days
 **Status:** done
-**Commit:** pending
+**Commit:** `9c04c15`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (NOT_TAKEN→IN_PROGRESS→COMPLETED→RETAKEN; save/resume 7d; 30d cooldown)
