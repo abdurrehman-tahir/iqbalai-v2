@@ -13,6 +13,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import PreconditionFailedError, ValidationError
 from app.core.tenant import TenantType
+from app.features.cognitive_dna.repository import CognitiveDnaRepository
+from app.features.diagnostics.dna_seed import build_topic_confidence, focus_areas_to_jsonb
+from app.features.diagnostics.events import publish_diagnostic_completed
 from app.features.diagnostics.focus_areas import derive_focus_areas
 from app.features.diagnostics.models import (
     DiagnosticStatus,
@@ -45,6 +48,7 @@ class DiagnosticService:
         self._session = session
         self._tenant_type = tenant_type
         self._repo = DiagnosticRepository(session, tenant_type)
+        self._dna_repo = CognitiveDnaRepository(session, tenant_type)
 
     def _validate_scope(self, subject_id: str | None, framework_id: str | None) -> None:
         if self._tenant_type == "school":
@@ -227,7 +231,7 @@ class DiagnosticService:
         row.status = DiagnosticStatus.COMPLETED
         row.completed_at = now
         updated = await self._repo.update(row)
-        return self._to_result(updated, timed_out=False)
+        return await self._seed_dna_and_result(updated, timed_out=False)
 
     async def finalize_timeout(self, *, diagnostic_id: str) -> DiagnosticResultRead:
         """Gracefully complete an expired in-progress diagnostic (T-105 acceptance)."""
@@ -242,7 +246,39 @@ class DiagnosticService:
         row.status = DiagnosticStatus.COMPLETED
         row.completed_at = _utcnow()
         updated = await self._repo.update(row)
-        return self._to_result(updated, timed_out=True)
+        return await self._seed_dna_and_result(updated, timed_out=True)
+
+    async def _seed_dna_and_result(
+        self, row: DiagnosticRow, *, timed_out: bool
+    ) -> DiagnosticResultRead:
+        """After COMPLETED commit: upsert Cognitive DNA + emit NATS (T-106)."""
+        result = self._to_result(row, timed_out=timed_out)
+        confidence = build_topic_confidence(
+            questions=result.diagnostic.questions,
+            answers=result.diagnostic.answers,
+        )
+        await self._dna_repo.upsert_from_diagnostic(
+            student_user_id=row.student_user_id,
+            subject_id=row.subject_id,
+            framework_id=row.framework_id,
+            topic_confidence_jsonb=confidence,
+            focus_areas_jsonb=focus_areas_to_jsonb(result.focus_areas),
+            now=row.completed_at or _utcnow(),
+        )
+        tenant_kind: Literal["school", "independent"] = (
+            "independent" if self._tenant_type == "independent" else "school"
+        )
+        completed_iso = row.completed_at.isoformat() if row.completed_at else None
+        await publish_diagnostic_completed(
+            diagnostic_id=row.id,
+            student_user_id=row.student_user_id,
+            tenant_type=tenant_kind,
+            subject_id=row.subject_id,
+            framework_id=row.framework_id,
+            completed_at=completed_iso,
+            timed_out=timed_out,
+        )
+        return result
 
     def _to_result(self, row: DiagnosticRow, *, timed_out: bool) -> DiagnosticResultRead:
         read = self._to_read(row)

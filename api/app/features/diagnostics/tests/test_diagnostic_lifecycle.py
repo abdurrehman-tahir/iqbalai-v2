@@ -57,10 +57,53 @@ class _FakeRepo:
         return row
 
 
+class _FakeDnaRepo:
+    store: dict[str, Any] = {}
+
+    def __init__(self, session: Any, tenant_type: str) -> None:
+        self.tenant_type = tenant_type
+
+    async def upsert_from_diagnostic(
+        self,
+        *,
+        student_user_id: str,
+        subject_id: str | None,
+        framework_id: str | None,
+        topic_confidence_jsonb: dict[str, object],
+        focus_areas_jsonb: list[object],
+        now: Any = None,
+    ) -> Any:
+        key = f"{student_user_id}:{subject_id}:{framework_id}"
+        existing = self.store.get(key)
+        if existing is not None:
+            existing["topic_confidence_jsonb"] = topic_confidence_jsonb
+            existing["focus_areas_jsonb"] = focus_areas_jsonb
+            existing["last_updated_at"] = now
+            return existing
+        row = {
+            "id": f"dna-{len(self.store) + 1}",
+            "student_user_id": student_user_id,
+            "subject_id": subject_id,
+            "framework_id": framework_id,
+            "topic_confidence_jsonb": topic_confidence_jsonb,
+            "focus_areas_jsonb": focus_areas_jsonb,
+            "last_updated_at": now,
+            "tenant_type": self.tenant_type,
+        }
+        self.store[key] = row
+        return row
+
+
 @pytest.fixture(autouse=True)
 def _patch_repo(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeRepo.store = {}
+    _FakeDnaRepo.store = {}
     monkeypatch.setattr("app.features.diagnostics.service.DiagnosticRepository", _FakeRepo)
+    monkeypatch.setattr("app.features.diagnostics.service.CognitiveDnaRepository", _FakeDnaRepo)
+    monkeypatch.setattr(
+        "app.features.diagnostics.service.publish_diagnostic_completed",
+        AsyncMock(),
+    )
 
 
 def test_tables_in_separate_schemas() -> None:

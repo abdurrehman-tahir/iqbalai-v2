@@ -1,7 +1,7 @@
 # Session state (Cursor)
 
-- Ticket: T-105 done (`7eaddec`)
-- Status: done
+- Ticket: T-106 DNA seeding (M-08)
+- Status: ready to commit
 - Branch: milestone/M-08-mode-diagnostic
-- Next: Implement T-106 via ticket-loader
-- Dossier: prior T-105; DNA seeding is T-106
+- Next: commit T-106 then T-107 via ticket-loader
+- Event subject: student.diagnostic_completed (ARCH also lists diagnostic.completed)
