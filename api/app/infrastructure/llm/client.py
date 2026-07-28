@@ -61,6 +61,8 @@ def _resolve_model(task: str = "") -> str:
         "student_qa": settings.STUDENT_QA_MODEL,
         "va": settings.VA_MODEL,
         "scoring": settings.SCORING_MODEL,
+        # T-104: diagnostic questions share scoring-tier routing until a dedicated env exists.
+        "diagnostic_generate": settings.SCORING_MODEL,
     }
     override = task_overrides.get(task, "")
     return override if override else settings.LLM_MODEL

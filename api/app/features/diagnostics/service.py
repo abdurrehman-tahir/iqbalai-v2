@@ -7,7 +7,7 @@ Save/resume within 7 days (expires_at). Retake = new attempt after 30-day cooldo
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -19,6 +19,7 @@ from app.features.diagnostics.models import (
     IndependentDiagnostic,
     SchoolDiagnostic,
 )
+from app.features.diagnostics.question_generation import generate_diagnostic_questions
 from app.features.diagnostics.repository import DiagnosticRepository, DiagnosticRow
 from app.features.diagnostics.schemas import (
     DiagnosticAnswersBlob,
@@ -223,3 +224,39 @@ class DiagnosticService:
         row.completed_at = now
         updated = await self._repo.update(row)
         return self._to_read(updated)
+
+    async def start_with_generated_questions(
+        self,
+        *,
+        student_user_id: str,
+        subject_id: str | None = None,
+        framework_id: str | None = None,
+        target_language: Literal["en", "ur", "sd", "ps"] = "en",
+        grade_label: str = "",
+        subject_name: str = "",
+        framework_name: str = "",
+        context_json: dict[str, Any] | None = None,
+        question_count: int = 20,
+    ) -> DiagnosticRead:
+        """Generate 15–25 questions (bank hook / LLM) then start the attempt (T-104)."""
+        self._validate_scope(subject_id, framework_id)
+        tenant_kind: Literal["school", "independent"] = (
+            "independent" if self._tenant_type == "independent" else "school"
+        )
+        questions = await generate_diagnostic_questions(
+            tenant_kind=tenant_kind,
+            target_language=target_language,
+            grade_label=grade_label,
+            subject_name=subject_name,
+            subject_id=subject_id,
+            framework_name=framework_name,
+            framework_id=framework_id,
+            context_json=context_json,
+            question_count=question_count,
+        )
+        return await self.start(
+            student_user_id=student_user_id,
+            subject_id=subject_id,
+            framework_id=framework_id,
+            questions=questions,
+        )

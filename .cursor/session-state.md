@@ -1,7 +1,7 @@
 # Session state (Cursor)
 
-- Ticket: T-103 done
-- Status: ready for T-104
+- Ticket: T-104 Diagnostic question generation (M-08)
+- Status: dossier loaded; implementing LLM prompt + generator
 - Branch: milestone/M-08-mode-diagnostic
-- Next: ticket-loader T-104 Diagnostic question generation
-- Prior: T-101, T-102, T-103 done
+- Next: prompt + service wire + tests → commit
+- Dossier: ticket-loader T-104 (flow-4 §3.6; ARCH §8.6; stack-enforcer)

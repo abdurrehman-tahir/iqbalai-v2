@@ -9,7 +9,7 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class DiagnosticQuestion(BaseModel):
-    """Placeholder question shape — T-104 fills real content."""
+    """One diagnostic item (filled by T-104 generation / Question Bank hook)."""
 
     model_config = ConfigDict(extra="forbid")
 
