@@ -435,6 +435,12 @@ export const independentStudentOnboardingApi = {
       { method: "PUT", body: JSON.stringify(data) },
       token
     ),
+  setExamDate: (token: string, exam_date: string) =>
+    request<IndependentStudentOnboardingRead>(
+      "/independent/students/me/exam-date",
+      { method: "PUT", body: JSON.stringify({ exam_date }) },
+      token
+    ),
 };
 
 // ── Users ─────────────────────────────────────────────────────────────────────

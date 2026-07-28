@@ -15,6 +15,7 @@ vi.mock("@/lib/api", () => ({
     getOnboarding: vi.fn().mockResolvedValue({
       show_complete_profile_banner: true,
       exam_date_set: false,
+      exam_date_passed: false,
       profile: null,
     }),
     dismissBanner: vi.fn(),
@@ -95,5 +96,18 @@ describe("StudentHomeClient link requests (T-081)", () => {
     renderHome();
     expect(await screen.findByTestId("self-study-section")).toBeInTheDocument();
     expect(screen.queryByTestId("lecture-section")).not.toBeInTheDocument();
+  });
+
+  it("shows set-new-exam prompt when exam_date_passed (T-107)", async () => {
+    const { studentOnboardingApi } = await import("@/lib/api");
+    vi.mocked(studentOnboardingApi.getOnboarding).mockResolvedValueOnce({
+      show_complete_profile_banner: false,
+      exam_date_set: true,
+      exam_date_passed: true,
+      profile: { exam_date: "2020-01-01" },
+    } as never);
+    renderHome();
+    expect(await screen.findByTestId("exam-date-passed-banner")).toBeInTheDocument();
+    expect(screen.getByText(/exam date has passed/i)).toBeInTheDocument();
   });
 });

@@ -2367,8 +2367,40 @@
         "title": "IndependentSignupResponse",
         "type": "object"
       },
+      "IndependentStudentExamDateUpdate": {
+        "description": "Update exam date after profile complete (T-107 EXAM_PASSED re-set).",
+        "properties": {
+          "exam_date": {
+            "description": "Target exam date",
+            "format": "date",
+            "title": "Exam Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exam_date"
+        ],
+        "title": "IndependentStudentExamDateUpdate",
+        "type": "object"
+      },
       "IndependentStudentOnboardingRead": {
         "properties": {
+          "exam_date_passed": {
+            "default": false,
+            "title": "Exam Date Passed",
+            "type": "boolean"
+          },
+          "future_date_warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Future Date Warning"
+          },
           "profile": {
             "anyOf": [
               {
@@ -3760,6 +3792,11 @@
               }
             ],
             "title": "Enrollment Grade Id"
+          },
+          "exam_date_passed": {
+            "default": false,
+            "title": "Exam Date Passed",
+            "type": "boolean"
           },
           "exam_date_set": {
             "default": false,
@@ -10740,6 +10777,47 @@
         "summary": "Self-signup for independent teachers and students",
         "tags": [
           "independent-signup"
+        ]
+      }
+    },
+    "/api/v1/independent/students/me/exam-date": {
+      "put": {
+        "operationId": "independent_student_set_exam_date",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IndependentStudentExamDateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_IndependentStudentOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update exam date (including after exam date has passed)",
+        "tags": [
+          "independent-student-onboarding"
         ]
       }
     },

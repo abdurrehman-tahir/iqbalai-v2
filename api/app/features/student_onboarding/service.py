@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import date, datetime, timedelta, timezone
+from datetime import date, datetime, timezone
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -13,7 +13,17 @@ from app.core.exceptions import (
     PreconditionFailedError,
     ValidationError,
 )
+from app.features.parent_child_links.repository import ParentChildLinkRepository
 from app.features.student_enrollments.models import StudentEnrollment, StudentEnrollmentStatus
+from app.features.student_onboarding.exam_countdown import (
+    EXAM_COUNTDOWN_DAYS,
+    FUTURE_DATE_WARNING,
+    format_countdown_sent,
+    future_date_warning,
+    has_exam_passed_notified,
+    mark_exam_passed_notified,
+    parse_countdown_sent,
+)
 from app.features.student_onboarding.models import StudentProfile
 from app.features.student_onboarding.repository import StudentProfileRepository
 from app.features.student_onboarding.schemas import (
@@ -32,34 +42,14 @@ from app.infrastructure.audit.log import audit
 logger = structlog.get_logger(__name__)
 
 SUPPORTED_LANGUAGES = frozenset({"en", "ur", "sd", "ps"})
-EXAM_DATE_MAX_YEARS = 5
-EXAM_COUNTDOWN_DAYS = (30, 14, 7, 1)
-FUTURE_DATE_WARNING = (
-    "Exam date is more than 5 years away — you can update it anytime before your exam"
-)
 
-
-def _future_date_warning(exam_date: date) -> str | None:
-    if exam_date > date.today() + timedelta(days=365 * EXAM_DATE_MAX_YEARS):
-        return FUTURE_DATE_WARNING
-    return None
-
-
-def _parse_countdown_sent(raw: str | None) -> set[int]:
-    if not raw:
-        return set()
-    sent: set[int] = set()
-    for part in raw.split(","):
-        part = part.strip()
-        if part.isdigit():
-            sent.add(int(part))
-    return sent
-
-
-def _format_countdown_sent(sent: set[int]) -> str | None:
-    if not sent:
-        return None
-    return ",".join(str(day) for day in sorted(sent))
+# Re-export for existing tests that import from service.
+__all__ = [
+    "EXAM_COUNTDOWN_DAYS",
+    "FUTURE_DATE_WARNING",
+    "StudentOnboardingService",
+    "derive_school_student_state",
+]
 
 
 def derive_school_student_state(
@@ -118,6 +108,9 @@ def derive_school_student_state(
 
     profile_read = StudentProfileRead.model_validate(profile) if profile else None
     exam_date_set = profile is not None and profile.exam_date is not None
+    exam_date_passed = (
+        profile is not None and profile.exam_date is not None and profile.exam_date < date.today()
+    )
     show_banner = (
         ready_to_study
         and profile is not None
@@ -131,6 +124,7 @@ def derive_school_student_state(
         ready_to_study=ready_to_study,
         show_complete_profile_banner=show_banner,
         exam_date_set=exam_date_set,
+        exam_date_passed=exam_date_passed,
         enrollment_grade_id=enrollment_grade_id,
         profile=profile_read,
     )
@@ -310,7 +304,7 @@ class StudentOnboardingService:
         if profile is None or not (profile.lecture_mode_enabled or profile.self_study_mode_enabled):
             raise PreconditionFailedError("Complete onboarding before setting an exam date")
 
-        warning = _future_date_warning(payload.exam_date)
+        warning = future_date_warning(payload.exam_date)
         profile.exam_date = payload.exam_date
         profile.exam_countdown_sent_days = None
         profile = await self._profile_repo.update(profile)
@@ -336,26 +330,54 @@ class StudentOnboardingService:
         return state
 
     async def send_exam_countdown_notifications(self) -> int:
-        """Fire 30/14/7/1-day countdown notifications for school students."""
+        """Fire countdown + exam-passed notifications for school students (T-107)."""
         from app.infrastructure.notifications.self_study import notify_self_study_event
 
         today = date.today()
         count = 0
         profiles = await self._profile_repo.list_with_exam_dates()
+        links_repo = ParentChildLinkRepository(self._session)
+
         for profile in profiles:
             if profile.exam_date is None:
                 continue
             days_until = (profile.exam_date - today).days
-            if days_until not in EXAM_COUNTDOWN_DAYS:
-                continue
-
-            sent = _parse_countdown_sent(profile.exam_countdown_sent_days)
-            if days_until in sent:
-                continue
-
             user = await self._user_repo.get_by_id(profile.user_id)
             if user is None or user.deleted_at is not None:
                 continue
+
+            if days_until < 0:
+                if has_exam_passed_notified(profile.exam_countdown_sent_days):
+                    continue
+                await notify_self_study_event(
+                    session=self._session,
+                    template_key="self_study.exam_passed",
+                    recipient_user_id=user.authentik_id,
+                    school_id=user.school_id,
+                    locale=profile.language_preference,
+                    params={"exam_date": profile.exam_date.isoformat()},
+                    metadata={"exam_date": profile.exam_date.isoformat(), "event": "exam_passed"},
+                )
+                profile.exam_countdown_sent_days = mark_exam_passed_notified(
+                    profile.exam_countdown_sent_days
+                )
+                await self._profile_repo.update(profile)
+                count += 1
+                logger.info("exam_passed_notification_sent", user_id=user.id)
+                continue
+
+            if days_until not in EXAM_COUNTDOWN_DAYS:
+                continue
+
+            sent = parse_countdown_sent(profile.exam_countdown_sent_days)
+            if days_until in sent:
+                continue
+
+            params = {
+                "days_remaining": str(days_until),
+                "exam_date": profile.exam_date.isoformat(),
+            }
+            meta = {"days_remaining": days_until, "exam_date": profile.exam_date.isoformat()}
 
             await notify_self_study_event(
                 session=self._session,
@@ -363,19 +385,36 @@ class StudentOnboardingService:
                 recipient_user_id=user.authentik_id,
                 school_id=user.school_id,
                 locale=profile.language_preference,
-                params={
-                    "days_remaining": str(days_until),
-                    "exam_date": profile.exam_date.isoformat(),
-                },
-                metadata={"days_remaining": days_until, "exam_date": profile.exam_date.isoformat()},
+                params=params,
+                metadata=meta,
             )
-            sent.add(days_until)
-            profile.exam_countdown_sent_days = _format_countdown_sent(sent)
-            await self._profile_repo.update(profile)
             count += 1
+
+            # Spec: approach notifies student + linked parents (in-app; push/email deferred).
+            parent_links = await links_repo.list_approved_for_student(user.id)
+            for link in parent_links:
+                parent = await self._user_repo.get_by_id(link.parent_user_id)
+                if parent is None or parent.deleted_at is not None:
+                    continue
+                await notify_self_study_event(
+                    session=self._session,
+                    template_key="self_study.exam_countdown",
+                    recipient_user_id=parent.authentik_id,
+                    school_id=user.school_id,
+                    locale=profile.language_preference,
+                    params=params,
+                    metadata={**meta, "for_student_user_id": user.id},
+                )
+                count += 1
+
+            sent.add(days_until)
+            passed = has_exam_passed_notified(profile.exam_countdown_sent_days)
+            profile.exam_countdown_sent_days = format_countdown_sent(sent, passed=passed)
+            await self._profile_repo.update(profile)
             logger.info(
                 "exam_countdown_notification_sent",
                 user_id=user.id,
                 days_remaining=days_until,
+                parent_recipients=len(parent_links),
             )
         return count

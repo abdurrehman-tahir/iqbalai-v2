@@ -1,28 +1,37 @@
-"""Exam countdown notification sweep — T-083."""
+"""Exam countdown notification sweep — T-083 / T-107."""
 
 from __future__ import annotations
 
-import asyncio
-
 import structlog
 from celery import shared_task
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.db.celery_async import run_db
 
 logger = structlog.get_logger(__name__)
 
 
 @shared_task(name="self_study.exam_countdown_sweep", queue="notifications")  # type: ignore[misc]
 def exam_countdown_sweep() -> int:
-    """Send 30/14/7/1-day exam countdown notifications to school students."""
-    return asyncio.run(_exam_countdown_sweep_async())
+    """Send countdown + exam-passed notifications (school + independent)."""
+    return run_db(_exam_countdown_sweep_async)
 
 
-async def _exam_countdown_sweep_async() -> int:
-    from app.db.session import async_session_factory
+async def _exam_countdown_sweep_async(session: AsyncSession) -> int:
+    from app.features.independent_student_onboarding.service import (
+        IndependentStudentOnboardingService,
+    )
     from app.features.student_onboarding.service import StudentOnboardingService
 
-    count = 0
-    async with async_session_factory() as session:
-        svc = StudentOnboardingService(session)
-        count = await svc.send_exam_countdown_notifications()
-    logger.info("exam_countdown_sweep_complete", notification_count=count)
-    return count
+    school = await StudentOnboardingService(session).send_exam_countdown_notifications()
+    independent = await IndependentStudentOnboardingService(
+        session
+    ).send_exam_countdown_notifications()
+    total = school + independent
+    logger.info(
+        "exam_countdown_sweep_complete",
+        school_notification_count=school,
+        independent_notification_count=independent,
+        notification_count=total,
+    )
+    return total

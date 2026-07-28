@@ -28,10 +28,32 @@ SELF_STUDY_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "self_study.exam_passed": {
+        "default": {
+            "en": {
+                "title": "Set a new exam date",
+                "body": "Your exam date ({exam_date}) has passed. Update your exam date to keep pacing on track.",  # noqa: E501
+            },
+            "ur": {
+                "title": "نیا امتحان کی تاریخ مقرر کریں",
+                "body": "آپ کی امتحان کی تاریخ ({exam_date}) گزر چکی ہے۔ شیڈول برقرار رکھنے کے لیے نئی تاریخ مقرر کریں۔",  # noqa: E501
+            },
+            "sd": {
+                "title": "نئين امتحان جي تاريخ مقرر ڪريو",
+                "body": "توهان جي امتحان جي تاريخ ({exam_date}) گذري چڪي آهي۔ منصوبو جاري رکڻ لاءِ نئين تاريخ مقرر ڪريو۔",  # noqa: E501
+            },
+            "ps": {
+                "title": "نوې د امتحان نېټه وټاکئ",
+                "body": "ستاسو د امتحان نېټه ({exam_date}) تېره شوې ده۔ د پلان ساتلو لپاره نوې نېټه وټاکئ۔",  # noqa: E501
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
+    # in_app only — FCM push / email channel publishers deferred (T-023 / Phase 2).
     "self_study.exam_countdown": frozenset({"in_app"}),
+    "self_study.exam_passed": frozenset({"in_app"}),
 }
 
 

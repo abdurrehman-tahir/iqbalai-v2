@@ -1146,6 +1146,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/independent/students/me/exam-date": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        /** Update exam date (including after exam date has passed) */
+        put: operations["independent_student_set_exam_date"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/independent/students/me/exam-frameworks": {
         parameters: {
             query?: never;
@@ -3363,8 +3380,27 @@ export interface components {
             /** User Id */
             user_id: string;
         };
+        /**
+         * IndependentStudentExamDateUpdate
+         * @description Update exam date after profile complete (T-107 EXAM_PASSED re-set).
+         */
+        IndependentStudentExamDateUpdate: {
+            /**
+             * Exam Date
+             * Format: date
+             * @description Target exam date
+             */
+            exam_date: string;
+        };
         /** IndependentStudentOnboardingRead */
         IndependentStudentOnboardingRead: {
+            /**
+             * Exam Date Passed
+             * @default false
+             */
+            exam_date_passed: boolean;
+            /** Future Date Warning */
+            future_date_warning?: string | null;
             profile?: components["schemas"]["IndependentStudentProfileRead"] | null;
             /** Profile Complete */
             profile_complete: boolean;
@@ -3930,6 +3966,11 @@ export interface components {
         SchoolStudentOnboardingRead: {
             /** Enrollment Grade Id */
             enrollment_grade_id?: string | null;
+            /**
+             * Exam Date Passed
+             * @default false
+             */
+            exam_date_passed: boolean;
             /**
              * Exam Date Set
              * @default false
@@ -8160,6 +8201,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_IndependentSignupResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_student_set_exam_date: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IndependentStudentExamDateUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentStudentOnboardingRead_"];
                 };
             };
             /** @description Validation Error */

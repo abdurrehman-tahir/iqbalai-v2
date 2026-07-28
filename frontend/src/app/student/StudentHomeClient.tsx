@@ -124,7 +124,37 @@ export function StudentHomeClient() {
         </div>
       )}
 
-      {onboarding?.show_complete_profile_banner && (
+      {onboarding?.exam_date_passed && (
+        <div
+          className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-4"
+          data-testid="exam-date-passed-banner"
+        >
+          <p className="text-sm text-amber-900">{t("exam_date_passed_prompt")}</p>
+          <div className="space-y-2">
+            <Label htmlFor="exam-date-passed">{t("exam_date_label")}</Label>
+            <Input
+              id="exam-date-passed"
+              type="date"
+              value={examDate}
+              onChange={(event) => setExamDate(event.target.value)}
+            />
+          </div>
+          {examDateError && <p className="text-sm text-red-600">{examDateError}</p>}
+          {examDateSuccess && <p className="text-sm text-green-800">{examDateSuccess}</p>}
+          {futureWarning && <p className="text-sm text-amber-800">{t("exam_date_future_warning")}</p>}
+          <Button
+            variant="primary"
+            size="sm"
+            loading={examDateMutation.isPending}
+            disabled={!examDate}
+            onClick={() => examDateMutation.mutate(examDate)}
+          >
+            {t("exam_date_save")}
+          </Button>
+        </div>
+      )}
+
+      {onboarding?.show_complete_profile_banner && !onboarding.exam_date_passed && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-4">
           <p className="text-sm text-amber-900">{t("profile_banner")}</p>
           <div className="space-y-2">

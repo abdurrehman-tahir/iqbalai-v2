@@ -482,7 +482,8 @@
       "lecture_section_title": "Lecture",
       "lecture_section_body": "Class lectures and teacher Q&A will appear here in upcoming milestones.",
       "self_study_section_title": "Self-Study",
-      "self_study_section_body": "Your self-study goals and plans will appear here in upcoming milestones."
+      "self_study_section_body": "Your self-study goals and plans will appear here in upcoming milestones.",
+      "exam_date_passed_prompt": "Your exam date has passed. Set a new exam date to keep pacing on track."
     },
     "data_rights": {
       "title": "Data & privacy",
@@ -1456,7 +1457,12 @@
         "ready_banner": "You are ready to study.",
         "self_study_only": "Self-Study Mode is your only mode — no lecture mode switcher.",
         "diagnostic_deferred": "Diagnostic: coming soon (M-08 hook present).",
-        "diagnostics_link": "Take a diagnostic"
+        "diagnostics_link": "Take a diagnostic",
+        "exam_date_passed_prompt": "Your exam date has passed. Set a new exam date to keep pacing on track.",
+        "exam_date_label": "Target exam date",
+        "exam_date_save": "Save exam date",
+        "exam_date_error": "Could not save exam date. Please try again.",
+        "exam_date_future_warning": "Exam date is more than 5 years away — you can update it anytime before your exam."
       }
     }
   },
