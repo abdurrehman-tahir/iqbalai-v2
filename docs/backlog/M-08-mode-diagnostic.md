@@ -75,7 +75,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** pending
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (results seed Cognitive DNA per Flow 9 #83)
