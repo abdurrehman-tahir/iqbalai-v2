@@ -1,7 +1,7 @@
 ﻿# Session state (Cursor)
 
-- Ticket: T-102 Cognitive DNA seed (M-08)
-- Status: dossier loaded; implementing dual-schema model
+- Ticket: T-102 done (2dcd28c)
+- Status: ready for T-103
 - Branch: milestone/M-08-mode-diagnostic
-- Next: models + migrations + isolation tests → commit
-- Dossier: ticket-loader T-102 (flow-4 §3.6; ARCH §3.16/§4)
+- Next: ticket-loader T-103 Diagnostic data model + lifecycle
+- Dossier: T-102 closed
