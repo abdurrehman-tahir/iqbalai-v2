@@ -152,7 +152,7 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Milestone:** M-08
 **Estimate:** 2 days
 **Status:** done
-**Commit:** pending
+**Commit:** `7f55135`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (15-25 questions; per-subject/per-framework calibration; Question Bank #74 where available, LLM fallback)
