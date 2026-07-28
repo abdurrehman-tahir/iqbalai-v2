@@ -39,6 +39,33 @@ metadata:
     blueprints.goauthentik.io/instantiate: "true"
 
 entries:
+  # 0. Apply default/system blueprints FIRST. Authentik discovery dispatches
+  #    apply_blueprint concurrently with no ordering (goauthentik/authentik#19715);
+  #    without this, our !Find for flows / managed OAuth2 scopes races and the
+  #    instance lands in status=error — CI then 404s on
+  #    /application/o/iqbalai/.well-known/openid-configuration for the full
+  #    wait budget. metaapplyblueprint forces the deps to exist before we resolve.
+  - model: authentik_blueprints.metaapplyblueprint
+    attrs:
+      identifiers:
+        name: Default - Authentication flow
+      required: true
+  - model: authentik_blueprints.metaapplyblueprint
+    attrs:
+      identifiers:
+        name: Default - Provider authorization flow (implicit consent)
+      required: true
+  - model: authentik_blueprints.metaapplyblueprint
+    attrs:
+      identifiers:
+        name: Default - Provider invalidation flow
+      required: true
+  - model: authentik_blueprints.metaapplyblueprint
+    attrs:
+      identifiers:
+        name: System - OAuth2 Provider - Scopes
+      required: true
+
   # 1. Custom scope mapping — copies role + tenant_type + org scope from the
   #    user's Authentik attributes into the id_token/userinfo so the API can
   #    route the tenant and enforce district/school scope (ARCH §3.16/§6.4/§6.7).

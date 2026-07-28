@@ -467,19 +467,36 @@ jobs:
           docker compose up -d api --wait
           # Fail fast if the OIDC blueprint did not apply (otherwise @auth @real
           # burns ~26m timing out on input[name=uidField] against a 404 authorize).
+          # Fresh Authentik boots apply blueprints concurrently; the signing cert
+          # from certificate_discovery can also lag — re-trigger apply every ~30s
+          # so a transient !Find miss recovers without waiting out the full budget.
           echo "Waiting for OIDC discovery (blueprint applied)..."
           for i in $(seq 1 60); do
             if curl -fsS "http://localhost:9000/application/o/iqbalai/.well-known/openid-configuration" >/dev/null; then
               echo "OIDC discovery OK"
               break
             fi
+            if [ $((i % 6)) -eq 0 ]; then
+              echo "OIDC still missing — re-applying iqbalai-oidc blueprint (attempt $i)..."
+              docker compose exec -T authentik-worker ak shell -c \
+                "from authentik.blueprints.models import BlueprintInstance as B; \
+                 from authentik.blueprints.v1.tasks import apply_blueprint; \
+                 b=B.objects.filter(path__endswith='iqbalai-oidc.yaml').first(); \
+                 print('status', getattr(b,'status',None), 'path', getattr(b,'path',None)); \
+                 apply_blueprint.run(str(b.pk)) if b else print('blueprint missing')" \
+                || true
+            fi
             if [ "$i" -eq 60 ]; then
               echo "::error::OIDC application missing after 5m — check authentik-worker blueprint logs"
               docker compose logs authentik-worker --tail 200
               docker compose exec -T authentik-server ak shell -c \
                 "from authentik.blueprints.models import BlueprintInstance as B; \
+                 from authentik.crypto.models import CertificateKeyPair as C; \
+                 from authentik.flows.models import Flow; \
                  b=B.objects.filter(path__endswith='iqbalai-oidc.yaml').first(); \
-                 print('blueprint', getattr(b,'status',None), getattr(b,'path',None))"
+                 print('blueprint', getattr(b,'status',None), getattr(b,'path',None)); \
+                 print('certs', list(C.objects.values_list('name', flat=True))); \
+                 print('flows', list(Flow.objects.filter(slug__startswith='default-').values_list('slug', flat=True)))"
               exit 1
             fi
             sleep 5
