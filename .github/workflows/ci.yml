@@ -516,8 +516,12 @@ jobs:
         if: steps.detect.outputs.fe == 'yes'
         working-directory: frontend
         run: |
+          # Mock @smoke has no real session cookie — opt the Next middleware out
+          # for that run only. @real MUST keep the guard (T-244 unauthenticated
+          # redirect), so clear the bypass explicitly even though the shell-
+          # prefix form shouldn't leak across commands.
           PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE=1 pnpm e2e --grep @smoke --grep-invert @real
-          pnpm e2e --grep @real
+          PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE= pnpm e2e --grep @real
         env:
           REAL_BACKEND_URL: http://localhost:8000/api/v1
           NEXT_PUBLIC_AUTHENTIK_URL: http://localhost:9000

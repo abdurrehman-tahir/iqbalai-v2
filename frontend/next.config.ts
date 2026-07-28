@@ -14,6 +14,13 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
+  // Edge middleware only sees statically named env vars that Next inlines at
+  // compile/start. Wire the Playwright mock-suite bypass through so
+  // `process.env.PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE` in middleware.ts is
+  // defined when the e2e webServer sets it (see playwright.config.ts).
+  env: {
+    PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE: process.env.PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE ?? "",
+  },
 };
 
 export default withNextIntl(nextConfig);

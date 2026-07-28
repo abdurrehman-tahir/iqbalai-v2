@@ -28,5 +28,14 @@ export default defineConfig({
     url: baseURL,
     reuseExistingServer: !process.env.CI,
     timeout: 120_000,
+    // Forward the mock-suite bypass into Next's process. Edge middleware only
+    // sees env vars present when `next dev` starts (static `process.env.X`
+    // access in middleware.ts); without this, a shell-prefix env on `pnpm e2e`
+    // would not reach the middleware and @smoke would keep redirecting.
+    env: {
+      ...process.env,
+      PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE:
+        process.env.PLAYWRIGHT_BYPASS_AUTH_MIDDLEWARE ?? "",
+    },
   },
 });
