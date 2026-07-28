@@ -39,11 +39,20 @@ export function IndependentStudentHomeClient() {
   if (!onboarding?.ready_to_study) return null;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4" data-testid="independent-self-study-dashboard">
       <div className="rounded-lg border border-green-200 bg-green-50 p-4">
         <p className="text-sm font-medium text-green-800">{t("ready_banner")}</p>
       </div>
       <p className="text-sm text-gray-600">{t("self_study_only")}</p>
+
+      <section
+        className="rounded-lg border border-gray-200 bg-white p-4 space-y-2"
+        data-testid="self-study-section"
+        aria-label={t("self_study_section_title")}
+      >
+        <h3 className="text-lg font-medium text-gray-900">{t("self_study_section_title")}</h3>
+        <p className="text-sm text-gray-600">{t("self_study_section_body")}</p>
+      </section>
 
       {onboarding.exam_date_passed && (
         <div

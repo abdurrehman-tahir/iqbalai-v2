@@ -57,6 +57,12 @@ class FocusAreasList(BaseModel):
             return cls()
         areas: list[FocusArea] = []
         for item in raw:
-            if isinstance(item, dict):
-                areas.append(FocusArea.model_validate(item))
+            if not isinstance(item, dict):
+                continue
+            topic = str(item.get("topic") or "").strip()
+            if not topic:
+                continue
+            # T-106 stores suggestion; schema field is reason — accept both.
+            reason = str(item.get("reason") or item.get("suggestion") or "")
+            areas.append(FocusArea(topic=topic, reason=reason))
         return cls(areas=areas)

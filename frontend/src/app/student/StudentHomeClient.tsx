@@ -94,9 +94,11 @@ export function StudentHomeClient() {
         <section
           className="rounded-lg border border-gray-200 bg-white p-4 space-y-2"
           data-testid="lecture-section"
+          aria-label={t("lecture_section_title")}
         >
           <h3 className="text-lg font-medium text-gray-900">{t("lecture_section_title")}</h3>
           <p className="text-sm text-gray-600">{t("lecture_section_body")}</p>
+          <p className="text-xs text-gray-500">{t("mode_hint_lecture")}</p>
         </section>
       )}
 
@@ -104,9 +106,11 @@ export function StudentHomeClient() {
         <section
           className="rounded-lg border border-gray-200 bg-white p-4 space-y-2"
           data-testid="self-study-section"
+          aria-label={t("self_study_section_title")}
         >
           <h3 className="text-lg font-medium text-gray-900">{t("self_study_section_title")}</h3>
           <p className="text-sm text-gray-600">{t("self_study_section_body")}</p>
+          <p className="text-xs text-gray-500">{t("mode_hint_self_study")}</p>
         </section>
       )}
 

@@ -530,7 +530,9 @@
   "student": {
     "dashboard": {
       "diagnostics_link": "__TODO__ Take a diagnostic",
-      "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date to keep pacing on track."
+      "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date to keep pacing on track.",
+      "mode_hint_lecture": "__TODO__ Lecture mode is active.",
+      "mode_hint_self_study": "__TODO__ Self-Study mode is active."
     }
   },
   "independent": {
@@ -541,7 +543,9 @@
         "exam_date_label": "__TODO__ Target exam date",
         "exam_date_save": "__TODO__ Save exam date",
         "exam_date_error": "__TODO__ Could not save exam date.",
-        "exam_date_future_warning": "__TODO__ Exam date is more than 5 years away."
+        "exam_date_future_warning": "__TODO__ Exam date is more than 5 years away.",
+        "self_study_section_title": "__TODO__ Self-Study",
+        "self_study_section_body": "__TODO__ Self-Study is your only mode."
       }
     }
   }

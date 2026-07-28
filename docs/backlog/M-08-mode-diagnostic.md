@@ -295,7 +295,7 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.4 (dashboard mode-conditional; AI personalization adapts per Flow 6 #61)

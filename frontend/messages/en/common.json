@@ -480,9 +480,11 @@
       "exam_frameworks_link": "Exam frameworks",
       "diagnostics_link": "Take a diagnostic",
       "lecture_section_title": "Lecture",
-      "lecture_section_body": "Class lectures and teacher Q&A will appear here in upcoming milestones.",
+      "lecture_section_body": "Class lectures, teacher Q&A, and assigned materials appear here while you are in Lecture mode.",
       "self_study_section_title": "Self-Study",
-      "self_study_section_body": "Your self-study goals and plans will appear here in upcoming milestones.",
+      "self_study_section_body": "Your self-study plan and diagnostic focus areas guide this mode. Full planning arrives in a later milestone — coaching focus from your diagnostic already seeds Cognitive DNA for AI personalization.",
+      "mode_hint_lecture": "Lecture mode is active — Self-Study tools are hidden until you switch.",
+      "mode_hint_self_study": "Self-Study mode is active — Lecture materials are hidden until you switch.",
       "exam_date_passed_prompt": "Your exam date has passed. Set a new exam date to keep pacing on track."
     },
     "data_rights": {
@@ -1462,7 +1464,9 @@
         "exam_date_label": "Target exam date",
         "exam_date_save": "Save exam date",
         "exam_date_error": "Could not save exam date. Please try again.",
-        "exam_date_future_warning": "Exam date is more than 5 years away — you can update it anytime before your exam."
+        "exam_date_future_warning": "Exam date is more than 5 years away — you can update it anytime before your exam.",
+        "self_study_section_title": "Self-Study",
+        "self_study_section_body": "Self-Study is your only mode. Diagnostic focus areas seed Cognitive DNA for future AI personalization — full planning comes later."
       }
     }
   },
