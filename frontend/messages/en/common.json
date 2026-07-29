@@ -250,7 +250,12 @@
         "graduation_requested": "Graduation requested",
         "graduation_approved": "Graduation approved",
         "graduation_migrated": "Student migrated to independent (elevated)",
-        "graduation_migration_failed": "Migration failed (elevated)"
+        "graduation_migration_failed": "Migration failed (elevated)",
+        "student_mode_changed": "Student mode switched",
+        "diagnostic_started": "Diagnostic started",
+        "diagnostic_completed": "Diagnostic completed",
+        "diagnostic_retaken": "Diagnostic retaken",
+        "cognitive_dna_seeded": "Cognitive DNA seeded from diagnostic"
       }
     }
   },

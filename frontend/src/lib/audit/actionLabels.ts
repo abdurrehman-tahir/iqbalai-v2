@@ -32,8 +32,16 @@ const M06_ACTION_KEYS: Record<string, string> = {
   "graduation.migration_failed": "graduation_migration_failed",
 };
 
+const M08_ACTION_KEYS: Record<string, string> = {
+  "student.mode_changed": "student_mode_changed",
+  "diagnostic.started": "diagnostic_started",
+  "diagnostic.completed": "diagnostic_completed",
+  "diagnostic.retaken": "diagnostic_retaken",
+  "cognitive_dna.seeded": "cognitive_dna_seeded",
+};
+
 export function auditActionLabelKey(action: string): string | null {
-  return M04_ACTION_KEYS[action] ?? M06_ACTION_KEYS[action] ?? null;
+  return M04_ACTION_KEYS[action] ?? M06_ACTION_KEYS[action] ?? M08_ACTION_KEYS[action] ?? null;
 }
 
 const ELEVATED_ACTIONS = new Set([

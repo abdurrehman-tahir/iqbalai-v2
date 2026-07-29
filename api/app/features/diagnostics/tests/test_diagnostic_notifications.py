@@ -75,6 +75,11 @@ def _patch_diag(monkeypatch: pytest.MonkeyPatch) -> None:
         "app.features.diagnostics.service.publish_diagnostic_completed",
         AsyncMock(),
     )
+    monkeypatch.setattr("app.features.diagnostics.service.audit", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.diagnostics.service.DiagnosticService._audit_lifecycle",
+        AsyncMock(),
+    )
 
 
 @pytest.mark.asyncio

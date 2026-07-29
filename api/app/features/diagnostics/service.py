@@ -13,6 +13,12 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import PreconditionFailedError, ValidationError
 from app.core.tenant import TenantType
+from app.features.audit.actions import (
+    COGNITIVE_DNA_SEEDED,
+    DIAGNOSTIC_COMPLETED,
+    DIAGNOSTIC_RETAKEN,
+    DIAGNOSTIC_STARTED,
+)
 from app.features.cognitive_dna.repository import CognitiveDnaRepository
 from app.features.diagnostics.dna_seed import build_topic_confidence, focus_areas_to_jsonb
 from app.features.diagnostics.events import publish_diagnostic_completed
@@ -31,6 +37,7 @@ from app.features.diagnostics.schemas import (
     DiagnosticRead,
     DiagnosticResultRead,
 )
+from app.infrastructure.audit.log import audit
 
 RESUME_WINDOW = timedelta(days=7)
 RETAKE_COOLDOWN = timedelta(days=30)
@@ -157,6 +164,7 @@ class DiagnosticService:
             framework_id=framework_id,
         )
         self._assert_cooldown(latest, now)
+        is_retake = latest is not None
 
         questions_blob = DiagnosticQuestionsBlob.from_jsonb(questions)
         if self._tenant_type == "school":
@@ -182,6 +190,14 @@ class DiagnosticService:
                 expires_at=now + RESUME_WINDOW,
             )
         created = await self._repo.create(row)
+        await self._audit_lifecycle(
+            action=DIAGNOSTIC_RETAKEN if is_retake else DIAGNOSTIC_STARTED,
+            student_user_id=student_user_id,
+            diagnostic_id=created.id,
+            subject_id=subject_id,
+            framework_id=framework_id,
+            extra={"retake": is_retake},
+        )
         return self._to_read(created)
 
     async def save_answers(
@@ -265,6 +281,25 @@ class DiagnosticService:
             focus_areas_jsonb=focus_areas_to_jsonb(result.focus_areas),
             now=row.completed_at or _utcnow(),
         )
+        await self._audit_lifecycle(
+            action=DIAGNOSTIC_COMPLETED,
+            student_user_id=row.student_user_id,
+            diagnostic_id=row.id,
+            subject_id=row.subject_id,
+            framework_id=row.framework_id,
+            extra={"timed_out": timed_out},
+        )
+        await self._audit_lifecycle(
+            action=COGNITIVE_DNA_SEEDED,
+            student_user_id=row.student_user_id,
+            diagnostic_id=row.id,
+            subject_id=row.subject_id,
+            framework_id=row.framework_id,
+            extra={
+                "focus_area_count": len(result.focus_areas),
+                "source": "diagnostic",
+            },
+        )
         tenant_kind: Literal["school", "independent"] = (
             "independent" if self._tenant_type == "independent" else "school"
         )
@@ -280,6 +315,41 @@ class DiagnosticService:
         )
         await self._notify_completed(row, result)
         return result
+
+    async def _audit_lifecycle(
+        self,
+        *,
+        action: str,
+        student_user_id: str,
+        diagnostic_id: str,
+        subject_id: str | None,
+        framework_id: str | None,
+        extra: dict[str, Any] | None = None,
+    ) -> None:
+        """Synchronous audit write for diagnostic/DNA transitions (T-110 / ARCH §14.10)."""
+        school_id: str | None = None
+        if self._tenant_type != "independent":
+            from app.features.users.repository import UserRepository
+
+            user = await UserRepository(self._session).get_by_id(student_user_id)
+            if user is not None:
+                school_id = user.school_id
+        metadata: dict[str, Any] = {
+            "tenant_type": ("independent" if self._tenant_type == "independent" else "school"),
+            "subject_id": subject_id,
+            "framework_id": framework_id,
+        }
+        if extra:
+            metadata.update(extra)
+        await audit(
+            session=self._session,
+            action=action,
+            actor_id=student_user_id,
+            target_type="diagnostic",
+            target_id=diagnostic_id,
+            school_id=school_id,
+            metadata=metadata,
+        )
 
     async def _resolve_notify_recipient(
         self, student_user_id: str

@@ -122,6 +122,11 @@ def _patch_repo(monkeypatch: pytest.MonkeyPatch) -> None:
         "app.features.diagnostics.service.DiagnosticService._notify_completed",
         AsyncMock(),
     )
+    monkeypatch.setattr("app.features.diagnostics.service.audit", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.diagnostics.service.DiagnosticService._audit_lifecycle",
+        AsyncMock(),
+    )
 
 
 def test_tables_in_separate_schemas() -> None:

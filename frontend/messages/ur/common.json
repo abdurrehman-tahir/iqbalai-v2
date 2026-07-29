@@ -548,5 +548,16 @@
         "self_study_section_body": "__TODO__ Self-Study is your only mode."
       }
     }
+  },
+  "school_admin": {
+    "audit_log": {
+      "actions": {
+        "student_mode_changed": "__TODO__ Student mode switched",
+        "diagnostic_started": "__TODO__ Diagnostic started",
+        "diagnostic_completed": "__TODO__ Diagnostic completed",
+        "diagnostic_retaken": "__TODO__ Diagnostic retaken",
+        "cognitive_dna_seeded": "__TODO__ Cognitive DNA seeded from diagnostic"
+      }
+    }
   }
 }

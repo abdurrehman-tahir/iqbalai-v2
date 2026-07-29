@@ -164,28 +164,32 @@ class StudentModeService:
         settings.mode_state_jsonb = state.model_dump()
         settings = await self._settings_repo.update(settings)
 
-        await audit(
-            session=self._session,
-            action="student.mode_changed",
-            actor_id=actor_id,
-            target_type="user_settings",
-            target_id=user.id,
-            school_id=user.school_id,
-            metadata={
-                "active_mode": target.value,
-                "previous_mode": previous.value if previous != target else None,
-            },
-        )
-        await publish_mode_changed(
-            user_id=user.id,
-            school_id=user.school_id or "",
-            active_mode=target.value,
-            previous_mode=previous.value if previous != target else None,
-        )
+        # Low-noise: skip audit/NATS when the active mode did not change (T-110).
+        if previous != target:
+            await audit(
+                session=self._session,
+                action="student.mode_changed",
+                actor_id=actor_id,
+                target_type="user_settings",
+                target_id=user.id,
+                school_id=user.school_id,
+                metadata={
+                    "active_mode": target.value,
+                    "previous_mode": previous.value,
+                    "verbosity": "low",
+                },
+            )
+            await publish_mode_changed(
+                user_id=user.id,
+                school_id=user.school_id or "",
+                active_mode=target.value,
+                previous_mode=previous.value,
+            )
         logger.info(
             "student_mode_changed",
             user_id=user.id,
             active_mode=target.value,
             previous_mode=previous.value,
+            audited=previous != target,
         )
         return self._to_read(settings, profile)

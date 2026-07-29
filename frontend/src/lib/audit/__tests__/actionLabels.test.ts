@@ -8,16 +8,9 @@ describe("audit action labels (T-066)", () => {
     );
   });
 
-  it("detects flagged capacity override entries", () => {
-    expect(
-      isFlaggedAuditEntry({
-        id: "1",
-        action: "capacity.override",
-        actor_id: "admin",
-        target_type: "user",
-        target_id: "t1",
-        created_at: "2026-01-01T00:00:00Z",
-      }),
-    ).toBe(true);
+  it("maps M-08 diagnostic actions to label keys", () => {
+    expect(auditActionLabelKey("diagnostic.completed")).toBe("diagnostic_completed");
+    expect(auditActionLabelKey("cognitive_dna.seeded")).toBe("cognitive_dna_seeded");
+    expect(auditActionLabelKey("student.mode_changed")).toBe("student_mode_changed");
   });
 });

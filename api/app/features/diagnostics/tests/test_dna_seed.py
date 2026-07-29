@@ -24,6 +24,11 @@ def _patch(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
         "app.features.diagnostics.service.DiagnosticService._notify_completed",
         AsyncMock(),
     )
+    monkeypatch.setattr("app.features.diagnostics.service.audit", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.diagnostics.service.DiagnosticService._audit_lifecycle",
+        AsyncMock(),
+    )
     return publish
 
 
