@@ -15,8 +15,13 @@ vi.mock("@/hooks/use-client-auth", () => ({
   useClientAuth: () => ({ mounted: true, token: "test-token" }),
 }));
 
-vi.mock("@/lib/auth", () => ({
-  getUser: () => ({ user_id: "teacher-1", role: "teacher" }),
+// T-245: ownership check now reads useCurrentUser() (GET /auth/me), not
+// sessionStorage.
+vi.mock("@/hooks/use-current-user", () => ({
+  useCurrentUser: () => ({
+    user: { user_id: "teacher-1", role: "teacher" },
+    isLoading: false,
+  }),
 }));
 
 const getMock = vi.fn();

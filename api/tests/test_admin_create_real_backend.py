@@ -119,10 +119,21 @@ async def authed_client(monkeypatch: pytest.MonkeyPatch) -> AsyncGenerator[Async
     await _dispose_engine()
     _rebind_async_session_factory()
 
-    with patch(
-        "app.core.middleware.decode_jwt",
-        new_callable=AsyncMock,
-        return_value=_PLATFORM_ADMIN_CLAIMS,
+    # Auth is mocked only at the middleware boundary (see module docstring): both
+    # decode_jwt AND the jti-denylist check live there. The denylist check hits
+    # Redis (T-246), which the backend-tests job intentionally does not run — mock
+    # it to a miss so the real service/repository/validation path stays exercised.
+    with (
+        patch(
+            "app.core.middleware.decode_jwt",
+            new_callable=AsyncMock,
+            return_value=_PLATFORM_ADMIN_CLAIMS,
+        ),
+        patch(
+            "app.core.middleware.is_jti_blacklisted",
+            new_callable=AsyncMock,
+            return_value=False,
+        ),
     ):
         transport = ASGITransport(app=create_app())
         async with AsyncClient(transport=transport, base_url="http://test") as client:
@@ -154,7 +165,7 @@ async def test_exam_syllabus_create_accepts_ui_payload(authed_client: AsyncClien
     response = await authed_client.post(
         "/api/v1/admin/exam-syllabi/",
         json=payload,
-        headers={"Authorization": "Bearer phase1-test-token"},
+        cookies={"iqbalai_access": "phase1-test-token"},
     )
     _assert_create_succeeds(response, "exam_syllabus")
 
@@ -168,7 +179,7 @@ async def test_subscription_tier_create_accepts_ui_payload(authed_client: AsyncC
     response = await authed_client.post(
         "/api/v1/admin/subscription-tiers/",
         json=payload,
-        headers={"Authorization": "Bearer phase1-test-token"},
+        cookies={"iqbalai_access": "phase1-test-token"},
     )
     _assert_create_succeeds(response, "subscription_tier")
 
@@ -195,7 +206,7 @@ def test_live_exam_syllabus_create_accepts_ui_payload() -> None:
     response = httpx.post(
         f"{REAL_BACKEND_URL}/admin/exam-syllabi",
         json=EXAM_SYLLABUS_CREATE_FROM_UI,
-        headers={"Authorization": f"Bearer {token}"},
+        cookies={"iqbalai_access": token},
         timeout=10.0,
     )
     _assert_create_succeeds(response, "live exam_syllabus")

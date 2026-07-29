@@ -17,20 +17,9 @@ const NAV = [
 ] as const;
 
 async function seedPlatformAdmin(page: Page) {
+  // T-247: cookie session + mocked GET /auth/me (in installPlatformAdminMocks)
+  // supply "who am I" now — the old sessionStorage seeding is dead since T-245.
   await installPlatformAdminMocks(page);
-  await page.addInitScript(() => {
-    sessionStorage.setItem("iqbalai_access_token", "e2e-test-access-token");
-    sessionStorage.setItem(
-      "iqbalai_user",
-      JSON.stringify({
-        user_id: "user-platform-admin-1",
-        email: "admin@iqbalai.test",
-        role: "platform_admin",
-        tos_acceptance_required: false,
-        current_tos_version_id: null,
-      }),
-    );
-  });
 }
 
 test.describe("M-01 admin navigation reachability (T-231) @smoke @mock", () => {

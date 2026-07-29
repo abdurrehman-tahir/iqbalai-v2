@@ -1,5 +1,6 @@
 # M-12 — Lecture Mode Viewer + Highlight + Q&A + Voice
 
+
 <!-- MODERNIZED: hardened-template gates apply (post-M-01a). Do not remove. -->
 > **Hardened-template note (post-M-01a).** This milestone was drafted before the hardened ticket template. The foundation gates apply to **every ticket here regardless of its wording**, enforced via `.claude/CLAUDE.md` + CI:
 > - **Data-model blocks are design intent, not literal DDL** — implement model-first (`alembic revision --autogenerate` → review; one concern per migration; ARCH §4.12).

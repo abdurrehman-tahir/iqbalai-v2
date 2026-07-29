@@ -1,15 +1,7 @@
-# Session state (live — Cursor agent updates this)
+# Session state (Cursor)
 
-**Current milestone:** M-05 — Independent Users (PR #19 opened → staging)
-**Branch:** milestone/M-05-independent-users
-**Current ticket:** T-076 — Milestone PR + demo — DONE (PR #19 opened)
-
-## Done this milestone
-- T-069 through T-076 — all implemented; backlog ledger + ROADMAP updated; PR opened.
-
-## Next milestone
-- M-06 — Student Onboarding (see `docs/backlog/M-06-student-onboarding.md`)
-
-## Carry-forward flags for the M-05 PR
-- i18n parity: `independent_*` keys in `en` only (ur/sd/ps backfill deferred).
-- Cross-tenant HTTP 404 integration test for independent endpoints — advisory follow-up.
+- Ticket: M-07a T-246 logout back-button (app fix)
+- Status: Cache-Control no-store + location.replace + end-session slug + cookie clear attrs
+- Last: middleware/auth/cookies/blueprint/ENV for post-logout redirect
+- Next: commit/push when Hamza asks; Playwright T-246 should pass unchanged
+- Dossier: n/a (CI/app remediation)

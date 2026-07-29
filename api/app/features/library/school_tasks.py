@@ -112,7 +112,11 @@ async def _load_item(
 
 
 async def _mark_ingesting(session: AsyncSession, library_item_id: str, school_id: str) -> bool:
-    """Transition pending/failed → ingesting. Returns False if already ingesting/available."""
+    """Transition pending/failed/stale-ingesting → ingesting.
+
+    Includes ``ingesting`` so a worker that died mid-run (HF model download, soft
+    time limit, OOM) does not permanently block Retry — the pipeline is idempotent.
+    """
     await apply_school_rls(session, school_id=school_id)
     result = await session.execute(
         update(SchoolLibraryItem)
@@ -120,12 +124,17 @@ async def _mark_ingesting(session: AsyncSession, library_item_id: str, school_id
             SchoolLibraryItem.id == library_item_id,
             SchoolLibraryItem.school_id == school_id,
             SchoolLibraryItem.ingestion_status.in_(
-                [LibraryIngestionStatus.PENDING, LibraryIngestionStatus.FAILED]
+                [
+                    LibraryIngestionStatus.PENDING,
+                    LibraryIngestionStatus.FAILED,
+                    LibraryIngestionStatus.INGESTING,
+                ]
             ),
         )
         .values(
             ingestion_status=LibraryIngestionStatus.INGESTING,
             updated_at=datetime.now(timezone.utc),
+            ingestion_error=None,
         )
         .returning(SchoolLibraryItem.id)
     )
@@ -298,9 +307,10 @@ def ingest_school_library_item(
         return {"library_item_id": library_item_id, "status": "available", "skipped": True}
 
     started = run_db(lambda session: _mark_ingesting(session, library_item_id, school_id))
-    if not started and item.ingestion_status == LibraryIngestionStatus.INGESTING:
-        logger.info("school_ingestion_already_running", library_item_id=library_item_id)
-        return {"library_item_id": library_item_id, "status": "ingesting", "skipped": True}
+    if not started:
+        # Only AVAILABLE (or deleted) races here after the claim above.
+        logger.info("school_ingestion_claim_lost", library_item_id=library_item_id)
+        return {"library_item_id": library_item_id, "status": "skipped", "skipped": True}
 
     content_type = item.content_type.value
     source_type = (

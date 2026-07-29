@@ -6,12 +6,11 @@ import { usePathname } from "next/navigation";
 import { Users, GraduationCap, LayoutDashboard, LogOut, UserCog, ClipboardList } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
-import { useEffect, useState } from "react";
-import type { StoredUser } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { schoolAdminApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 
 const NAV = [
   { key: "dashboard", href: "/school/admin", icon: LayoutDashboard },
@@ -25,7 +24,7 @@ export function SchoolAdminShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("school_admin");
   const pathname = usePathname();
   const { mounted, token } = useClientAuth();
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const { user } = useCurrentUser();
 
   const { data: school } = useQuery({
     queryKey: ["school-admin", "my-school"],
@@ -33,13 +32,8 @@ export function SchoolAdminShell({ children }: { children: React.ReactNode }) {
     enabled: mounted && !!token,
   });
 
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
-
   function handleLogout() {
-    clearToken();
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   const headerTitle = school?.name ?? t("header_title");

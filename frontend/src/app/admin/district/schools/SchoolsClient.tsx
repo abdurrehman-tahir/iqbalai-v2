@@ -9,7 +9,7 @@ import { z } from "zod";
 import { School as SchoolIcon, Plus, Trash2, UserPlus } from "lucide-react";
 import { schoolsApi, districtsApi, adminUsersApi, type School, type District } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
-import { getUser } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { Skeleton } from "@/components/ui/skeleton";
 import { EmptyState } from "@/components/empty-state";
 import { ErrorState } from "@/components/error-state";
@@ -37,7 +37,7 @@ export function SchoolsClient() {
   const format = useFormatter();
   const qc = useQueryClient();
   const { mounted, token } = useClientAuth();
-  const user = mounted ? getUser() : null;
+  const { user } = useCurrentUser();
   const isPlatformAdmin = user?.role === "platform_admin";
 
   const [showCreate, setShowCreate] = useState(false);

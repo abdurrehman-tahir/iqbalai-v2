@@ -6,9 +6,8 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
-import { useEffect, useState } from "react";
-import type { StoredUser } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { IndependentTeacherOnboardingGate } from "./IndependentTeacherOnboardingGate";
 
 const NAV = [{ key: "dashboard", href: "/independent/teacher", icon: LayoutDashboard }] as const;
@@ -16,16 +15,11 @@ const NAV = [{ key: "dashboard", href: "/independent/teacher", icon: LayoutDashb
 export function IndependentTeacherShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("independent.teacher");
   const pathname = usePathname();
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const { user } = useCurrentUser();
   const onOnboardingPage = pathname.startsWith("/independent/teacher/onboarding");
 
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
-
   function handleLogout() {
-    clearToken();
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   return (

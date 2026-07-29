@@ -6,12 +6,11 @@ import { usePathname } from "next/navigation";
 import { BookOpen, GraduationCap, LayoutDashboard, Library, LogOut, Upload } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
-import { useEffect, useState } from "react";
-import type { StoredUser } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
 import { useQuery } from "@tanstack/react-query";
 import { usersApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { AcademicSessionHeader } from "./AcademicSessionHeader";
 
 const NAV = [
@@ -26,7 +25,7 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("coordinator");
   const pathname = usePathname();
   const { mounted, token } = useClientAuth();
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const { user } = useCurrentUser();
 
   const { data: profile } = useQuery({
     queryKey: ["users", "me"],
@@ -34,13 +33,8 @@ export function CoordinatorShell({ children }: { children: React.ReactNode }) {
     enabled: mounted && !!token,
   });
 
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
-
   function handleLogout() {
-    clearToken();
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   const scopeLabel = profile?.scoped_ids?.split(",").join(", ") ?? null;

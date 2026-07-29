@@ -1,214 +1,446 @@
 /* =========================================================================
-   IQBAL AI — Authentik login/flow branding
-   Restyles the PatternFly 4 flow executor (login + enrollment) to match the
-   IqbalAI product design: green accent, rounded light-green card, pill button.
+   IQBAL AI — Authentik login (2024.12) — premium 50/50 SaaS layout
 
-   Where this loads:
-   - Mounted at /web/dist/custom.css (see docker-compose.yml), OR
-   - Pasted into Admin > System > Brands > <brand> > Branding > Custom CSS
+   Flow layout MUST be sidebar_left.
+   Flow background file (DB): flow-backgrounds/iqbalai-login-bg.png
+   → docker-compose bind-mounts the repo login-bg.png over that path.
 
-   Authentik controls the form HTML; this file only skins it. Logo, favicon,
-   title and background are set in Brand settings (see README.md).
-
-   Tested against authentik 2024.12 (PatternFly 4).
+   Critical bugs this file fixes:
+   1) Stale uploaded bg — also force Brand URL via CSS fallback.
+   2) Full-height white sidebar — .ak-login-container made transparent.
+   3) Stretched card / huge gap above Log in — PF uses flex + footer
+      margin-top:auto; we force the card to fit-content and kill that.
    ========================================================================= */
 
 :root {
-  /* Brand palette (edit these to retune the whole page) */
-  --iqbal-green:        #2e8b34;   /* primary accent: labels, links, icons  */
-  --iqbal-green-600:    #2e7d32;   /* button gradient end                    */
-  --iqbal-green-500:    #4caf50;   /* button gradient start                  */
-  --iqbal-green-700:    #1b5e20;   /* hover / active                         */
-  --iqbal-card:         #e9f7ec;   /* light-green card background            */
-  --iqbal-field:        #ffffff;   /* input background                       */
-  --iqbal-field-border: #cdeccd;   /* input border                          */
-  --iqbal-ink:          #16341a;   /* headings / body text                  */
-  --iqbal-muted:        #4b6b50;   /* secondary text                        */
-  --iqbal-radius:       18px;      /* card corner radius                    */
+  --iqbal-green: #2e8b34;
+  --iqbal-green-600: #2e7d32;
+  --iqbal-green-500: #4caf50;
+  --iqbal-green-700: #1b5e20;
+  --iqbal-ink: #122a16;
+  --iqbal-muted: #5a7a5e;
+  --iqbal-field-border: #c5e3c8;
+  --iqbal-glass: rgba(255, 255, 255, 0.92);
+  --iqbal-glass-border: rgba(255, 255, 255, 0.8);
+  --iqbal-overlay: rgba(255, 255, 255, 0.22);
+  --iqbal-card-w: 440px;
+  --iqbal-radius: 24px;
+  --iqbal-pad: 48px;
+  /* Repo art — always prefer this over a stale admin upload */
+  --iqbal-bg: url("/media/branding/login-bg.png");
+  --ak-global--background-image: url("/media/branding/login-bg.png");
 
-  /* Map authentik / PatternFly design tokens onto the brand palette */
-  --ak-accent:                              var(--iqbal-green);
-  --ak-global--Color--100:                  var(--iqbal-ink);
-  --pf-global--primary-color--100:          var(--iqbal-green);
-  --pf-global--primary-color--200:          var(--iqbal-green-700);
-  --pf-global--active-color--100:           var(--iqbal-green);
-  --pf-global--link--Color:                 var(--iqbal-green);
-  --pf-global--link--Color--hover:          var(--iqbal-green-700);
-  --pf-global--BackgroundColor--100:        var(--iqbal-field);
+  --pf-c-login__container--BackgroundColor: transparent;
+  --pf-c-login__main--BackgroundColor: transparent;
+  --pf-c-login__main--BoxShadow: none;
+  --pf-c-login__main-body--PaddingTop: 0;
+  --pf-c-login__main-body--PaddingBottom: 0;
+  --pf-c-login__main-body--PaddingLeft: 0;
+  --pf-c-login__main-body--PaddingRight: 0;
+  --pf-c-login__main-header--PaddingTop: 0;
+  --pf-c-login__main-header--PaddingBottom: 0;
+  --pf-c-login__main-header--PaddingLeft: 0;
+  --pf-c-login__main-header--PaddingRight: 0;
+  --pf-c-login__main-footer--PaddingBottom: 0;
+  --pf-c-login__main-footer-band--BackgroundColor: transparent;
+  --pf-c-login__main-footer-band--PaddingTop: 0;
+  --pf-c-login__main-footer-band--PaddingBottom: 0;
+  --pf-global--BackgroundColor--100: transparent;
+  --pf-global--primary-color--100: var(--iqbal-green);
+  --pf-global--primary-color--200: var(--iqbal-green-700);
+  --pf-global--active-color--100: var(--iqbal-green);
+  --pf-global--link--Color: var(--iqbal-green);
   --pf-global--FontFamily--sans-serif:
-      "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+    "Inter", "Segoe UI", system-ui, -apple-system, Roboto, Arial, sans-serif;
+
+  --ak-accent: var(--iqbal-green);
 }
 
-/* ---- Page background: the flow's two-panel background image ------------
-   The flow's `background` (login-bg.png) fills the viewport; content_left
-   layout floats the form over the empty LEFT panel of that image. */
-.pf-c-background-image {
-  background-size: cover !important;
-  background-position: center !important;
+html,
+body {
+  min-height: 100%;
+  height: 100%;
+  margin: 0 !important;
+  overflow-x: hidden !important;
+  background-color: #eef7f0 !important;
 }
 
-/* ---- The login card: blend onto the image's left panel ----------------
-   Transparent + borderless so the form sits directly on the frosted left
-   panel of the background art instead of showing a second card on top. */
-.pf-c-login__main {
+.pf-c-page,
+.pf-c-page__main,
+.pf-c-page__main-section,
+ak-flow-executor {
   background: transparent !important;
-  border: none !important;
+  background-color: transparent !important;
   box-shadow: none !important;
-  overflow: visible;
+}
+
+ak-flow-executor {
+  display: block !important;
+  position: relative !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+}
+
+/* ----- Full-bleed background (force repo art; ignore stale flow upload) ----- */
+.pf-c-background-image {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100% !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  background-color: #eef7f0 !important;
+  background-image: var(--iqbal-bg) !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  background-attachment: fixed !important;
+}
+
+/* PatternFly paints the Brand image on ::before — override that too */
+.pf-c-background-image::before {
+  background-image: var(--iqbal-bg) !important;
+  background-size: cover !important;
+  background-position: center center !important;
+  background-repeat: no-repeat !important;
+  filter: none !important;
+  opacity: 1 !important;
+}
+
+.pf-c-background-image::after {
+  content: "" !important;
+  position: absolute !important;
+  inset: 0 !important;
+  background: var(--iqbal-overlay) !important;
+  pointer-events: none !important;
+  z-index: 0 !important;
+}
+
+/* ----- 50/50 split shell ----- */
+.pf-c-login,
+.pf-c-login.sidebar_left,
+.pf-c-login.sidebar_right {
+  position: relative !important;
+  z-index: 1 !important;
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  max-width: none !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  box-sizing: border-box !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  box-shadow: none !important;
+}
+
+.pf-c-login__container,
+.ak-login-container,
+.pf-c-login.sidebar_left .ak-login-container,
+.pf-c-login.sidebar_left .pf-c-login__container,
+.pf-c-login.sidebar_right .ak-login-container {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+  width: 50% !important;
+  max-width: 50% !important;
+  min-width: 0 !important;
+  height: auto !important;
+  min-height: 100vh !important;
+  min-height: 100dvh !important;
+  margin: 0 !important;
+  padding: clamp(1.5rem, 4vh, 3rem) clamp(1.25rem, 3vw, 2.5rem) !important;
+  background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  /* Do not stretch children to full column height */
+  align-content: center !important;
+}
+
+.pf-c-login__header {
+  width: 100% !important;
+  max-width: var(--iqbal-card-w) !important;
+  flex: 0 0 auto !important;
+  margin: 0 0 1rem !important;
+  padding: 0 !important;
+  text-align: center !important;
+  background: transparent !important;
+}
+
+.pf-c-login__header .pf-c-brand,
+.pf-c-login__header img.pf-c-brand {
+  display: block !important;
+  max-height: 40px !important;
+  max-width: 140px !important;
+  margin: 0 auto !important;
+  object-fit: contain !important;
+}
+
+/* ----- Compact floating glass card (NOT full-height) ----- */
+.pf-c-login__main,
+.ak-login-container .pf-c-login__main,
+.pf-c-login.sidebar_left .pf-c-login__main {
+  display: block !important;
+  width: 100% !important;
+  max-width: var(--iqbal-card-w) !important;
+  flex: 0 0 auto !important;
+  flex-grow: 0 !important;
+  flex-shrink: 0 !important;
+  align-self: center !important;
+  height: fit-content !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  margin: 0 auto !important;
+  padding: var(--iqbal-pad) !important;
+  box-sizing: border-box !important;
+  background: var(--iqbal-glass) !important;
+  background-color: var(--iqbal-glass) !important;
+  border: 1px solid var(--iqbal-glass-border) !important;
+  border-radius: var(--iqbal-radius) !important;
+  box-shadow:
+    0 24px 56px rgba(18, 42, 22, 0.14),
+    0 6px 18px rgba(18, 42, 22, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+  backdrop-filter: blur(16px) saturate(1.1);
+  -webkit-backdrop-filter: blur(16px) saturate(1.1);
 }
 
 .pf-c-login__main-header,
 .pf-c-login__main-body,
-.pf-c-login__main-footer {
+.pf-c-login__main-footer,
+.pf-c-login__main-footer-band {
+  display: block !important;
   background: transparent !important;
+  background-color: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  /* Kill PatternFly's margin-top:auto that creates the huge empty gap */
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  flex: none !important;
 }
 
-/* Heading: "Sign In to Iqbal Ai" */
-.pf-c-login__main-header .pf-c-title,
-.pf-c-login__main-body .pf-c-title,
-h1.pf-c-title {
-  color: var(--iqbal-ink) !important;
-  font-weight: 700 !important;
-  letter-spacing: -0.01em;
+.pf-c-login__main-header {
+  text-align: center !important;
+  margin-bottom: 1.25rem !important;
 }
 
-/* Logo */
+.pf-c-login__main-body {
+  margin-bottom: 0.25rem !important;
+}
+
+.pf-c-login__main-footer,
+.pf-c-login__main-footer-band {
+  margin-top: 1rem !important;
+}
+
 .pf-c-brand,
 img.pf-c-brand {
-  max-height: 56px !important;
-  margin-bottom: 0.5rem;
+  display: block !important;
+  max-height: 44px !important;
+  max-width: 150px !important;
+  width: auto !important;
+  height: auto !important;
+  margin: 0 auto 0.75rem !important;
+  object-fit: contain !important;
 }
 
-/* ---- Form labels + inputs --------------------------------------------- */
+h1.pf-c-title,
+.pf-c-login__main-header .pf-c-title,
+.pf-c-login__main-header h1 {
+  color: var(--iqbal-ink) !important;
+  font-weight: 750 !important;
+  font-size: 1.5rem !important;
+  line-height: 1.25 !important;
+  letter-spacing: -0.03em !important;
+  margin: 0 0 0.35rem !important;
+}
+
+.pf-c-login__main-header p,
+.pf-c-login__main-header .pf-c-title + *,
+.ak-stage-header p {
+  color: var(--iqbal-muted) !important;
+  font-size: 0.92rem !important;
+  line-height: 1.45 !important;
+  margin: 0 !important;
+}
+
+.pf-c-form {
+  display: block !important;
+}
+
 .pf-c-form__label,
 .pf-c-form__label-text {
-  color: var(--iqbal-green) !important;
-  font-weight: 600 !important;
+  color: var(--iqbal-green-700) !important;
+  font-weight: 650 !important;
+  font-size: 0.875rem !important;
 }
 
-.pf-c-form-control {
-  background: var(--iqbal-field) !important;
+.pf-c-form__group {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  margin-bottom: 1rem !important;
+}
+
+.pf-c-form-control,
+input.pf-c-form-control,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[name="uidField"],
+input[name="password"] {
+  display: block !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  width: 100% !important;
+  min-height: 48px !important;
+  background: #fff !important;
   color: var(--iqbal-ink) !important;
   border: 1.5px solid var(--iqbal-field-border) !important;
   border-radius: 12px !important;
-  padding: 0.7rem 0.9rem !important;
-  min-height: 46px;
+  padding: 0.7rem 0.95rem !important;
   box-shadow: none !important;
-  transition: border-color .15s ease, box-shadow .15s ease;
-}
-.pf-c-form-control:hover {
-  border-color: #a9dcac !important;
-}
-.pf-c-form-control:focus {
-  border-color: var(--iqbal-green) !important;
-  box-shadow: 0 0 0 3px rgba(46, 139, 52, 0.18) !important;
-  outline: none !important;
-}
-.pf-c-form-control::placeholder {
-  color: #9bb59f !important;
+  box-sizing: border-box !important;
+  font-size: 0.95rem !important;
 }
 
-/* ---- Primary button: green gradient pill ("Sign In") ------------------ */
+.pf-c-form-control:focus,
+input.pf-c-form-control:focus,
+input[type="text"]:focus,
+input[type="email"]:focus,
+input[type="password"]:focus {
+  border-color: var(--iqbal-green) !important;
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(46, 139, 52, 0.16) !important;
+}
+
 .pf-c-button.pf-m-primary,
-button[type="submit"].pf-c-button {
-  background: linear-gradient(135deg, var(--iqbal-green-500) 0%, var(--iqbal-green-600) 100%) !important;
+button[type="submit"] {
+  width: 100% !important;
+  min-height: 50px !important;
+  margin-top: 0.35rem !important;
   border: none !important;
   border-radius: 999px !important;
+  background: linear-gradient(135deg, var(--iqbal-green-500), var(--iqbal-green-600)) !important;
   color: #fff !important;
-  font-weight: 700 !important;
-  letter-spacing: .01em;
-  padding: 0.85rem 1.25rem !important;
-  min-height: 50px;
-  box-shadow: 0 10px 22px rgba(46, 125, 50, 0.28) !important;
-  transition: transform .12s ease, box-shadow .12s ease, filter .12s ease;
+  font-weight: 750 !important;
+  font-size: 0.98rem !important;
+  letter-spacing: 0.01em !important;
+  box-shadow: 0 12px 24px rgba(46, 125, 50, 0.28) !important;
+  transition: transform 0.15s ease, box-shadow 0.15s ease !important;
 }
+
 .pf-c-button.pf-m-primary:hover,
-button[type="submit"].pf-c-button:hover {
-  filter: brightness(1.05);
-  transform: translateY(-1px);
-  box-shadow: 0 14px 28px rgba(46, 125, 50, 0.34) !important;
-}
-.pf-c-button.pf-m-primary:active {
-  transform: translateY(0);
+button[type="submit"]:hover {
+  transform: translateY(-1px) !important;
+  box-shadow: 0 16px 30px rgba(46, 125, 50, 0.34) !important;
 }
 
-/* ---- Social source buttons (Google, LinkedIn, GitHub) -----------------
-   Rendered by the identification stage when OAuth sources are configured.
-   Laid out as a horizontal row of rounded pills to match the mockup. */
-.pf-c-login__main-footer-links {
-  display: flex !important;
-  flex-wrap: wrap;
-  justify-content: center;
-  gap: 0.5rem !important;
-  padding: 0 !important;
-}
-.pf-c-login__main-footer-links-item {
-  flex: 1 1 0;
-  min-width: 96px;
-}
-.pf-c-login__main-footer-links-item a,
-.pf-c-button.pf-m-secondary {
-  display: flex !important;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  width: 100%;
-  background: #ffffff !important;
-  border: 1px solid #d6efd9 !important;
-  border-radius: 12px !important;
-  color: var(--iqbal-ink) !important;
-  padding: 0.55rem 0.75rem !important;
-  font-weight: 600;
-}
-.pf-c-login__main-footer-links-item a img,
-.pf-c-login__main-footer-links-item a i {
-  width: 20px;
-  height: 20px;
-}
-.pf-c-login__main-footer-links-item a:hover,
-.pf-c-button.pf-m-secondary:hover {
-  border-color: var(--iqbal-green) !important;
-  background: #f4faf5 !important;
-}
-
-/* ---- Links: "Forgot password?", enrollment, recovery ------------------ */
 a,
 .pf-c-button.pf-m-link {
   color: var(--iqbal-green) !important;
 }
-a:hover,
-.pf-c-button.pf-m-link:hover {
-  color: var(--iqbal-green-700) !important;
-}
 
-/* ---- Checkbox accent ("Remember this device") ------------------------- */
-.pf-c-check__input {
-  accent-color: var(--iqbal-green);
-}
-
-/* ---- Divider "OR SIGN IN WITH E-MAIL" --------------------------------- */
-.pf-c-divider,
-.pf-c-login__main-footer-band {
-  color: var(--iqbal-muted) !important;
-}
-
-/* ---- Footer text ------------------------------------------------------- */
 .pf-c-login__footer,
-.pf-c-login__footer a {
-  color: var(--iqbal-muted) !important;
-}
-
-/* ---- Kill Authentik chrome that breaks the two-panel illusion ---------- */
-/* "Powered by authentik" — overlaps the right panel art, hide it. */
-.pf-c-login__footer {
+.pf-c-list.pf-c-login__footer {
   display: none !important;
 }
-/* Grey band behind the "Forgot password?" link — make it blend. */
-.pf-c-login__main-footer,
-.pf-c-login__main-footer-band,
-.pf-c-login__main-footer-links,
-.pf-c-login__main-body + * {
-  background: transparent !important;
-  box-shadow: none !important;
-  border: none !important;
+
+/* ----- Tablet ----- */
+@media (max-width: 1100px) and (min-width: 769px) {
+  .pf-c-login__container,
+  .ak-login-container,
+  .pf-c-login.sidebar_left .ak-login-container,
+  .pf-c-login.sidebar_left .pf-c-login__container {
+    width: 46% !important;
+    max-width: 46% !important;
+  }
+
+  :root {
+    --iqbal-card-w: 420px;
+    --iqbal-pad: 40px;
+  }
+}
+
+/* ----- Mobile: form only ----- */
+@media (max-width: 768px) {
+  :root {
+    --iqbal-card-w: 100%;
+    --iqbal-pad: 32px;
+    --iqbal-radius: 20px;
+    --iqbal-bg: none;
+    --ak-global--background-image: none;
+  }
+
+  .pf-c-background-image {
+    background-image: none !important;
+    background-attachment: scroll !important;
+    background-color: #f3faf5 !important;
+  }
+
+  .pf-c-background-image::before {
+    opacity: 0 !important;
+    background-image: none !important;
+    visibility: hidden !important;
+  }
+
+  .pf-c-background-image::after {
+    background: linear-gradient(165deg, #f7fcf8 0%, #e7f4ea 100%) !important;
+  }
+
+  .pf-c-login,
+  .pf-c-login.sidebar_left {
+    justify-content: center !important;
+    align-items: center !important;
+    padding: clamp(1.5rem, 5vh, 2.5rem) 0 !important;
+  }
+
+  .pf-c-login__container,
+  .ak-login-container,
+  .pf-c-login.sidebar_left .ak-login-container,
+  .pf-c-login.sidebar_left .pf-c-login__container {
+    width: 100% !important;
+    max-width: 100% !important;
+    min-height: auto !important;
+    height: auto !important;
+    margin: 0 auto !important;
+    padding: 1.25rem 5vw !important;
+  }
+
+  .pf-c-login__header,
+  .pf-c-login__main,
+  .ak-login-container .pf-c-login__main {
+    width: 90% !important;
+    max-width: 440px !important;
+  }
+
+  .pf-c-login__main,
+  .ak-login-container .pf-c-login__main {
+    padding: 32px 24px !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .pf-c-login__header,
+  .pf-c-login__main,
+  .ak-login-container .pf-c-login__main {
+    width: 94% !important;
+  }
+
+  .pf-c-login__main,
+  .ak-login-container .pf-c-login__main {
+    padding: 28px 20px !important;
+    border-radius: 18px !important;
+  }
 }

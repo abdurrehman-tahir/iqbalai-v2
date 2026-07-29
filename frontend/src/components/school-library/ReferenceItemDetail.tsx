@@ -1,13 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { schoolLibraryApi, ApiError } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
-import { getUser } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/error-state";
@@ -36,13 +36,10 @@ export function ReferenceItemDetail({ itemId, uploadHref, libraryHref }: Referen
   const router = useRouter();
   const queryClient = useQueryClient();
   const { mounted, token } = useClientAuth();
-  const [userId, setUserId] = useState<string | null>(null);
+  const { user } = useCurrentUser();
+  const userId = user?.user_id ?? null;
   const [actionError, setActionError] = useState<string | null>(null);
   const [actionMessage, setActionMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    setUserId(getUser()?.user_id ?? null);
-  }, []);
 
   const { data, isLoading, isError, refetch } = useQuery({
     queryKey: ["school-library", "item", itemId],

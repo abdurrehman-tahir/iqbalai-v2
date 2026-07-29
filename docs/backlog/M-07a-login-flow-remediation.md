@@ -22,7 +22,9 @@ Deployment items (host nginx `/idp` per §15.11, Authentik redirect-URIs/issuer 
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.25 day
-**Status:** todo
+**Status:** done
+**Commit:** 12011ef (hotfix, branch `fix/exam-frameworks-auth-bypass`); cherry-picked onto `milestone/M-07a-login-flow-remediation` as f46b363. **Not pushed** — this dev environment has no GitHub write access (403); needs a push + CI run before the hotfix PR is opened and this ticket is truly closed.
+**Follow-up commit:** 0561141 — verifying this ticket with a real Python toolchain (installed mid-session) surfaced that `independent_student_onboarding/tests/` had no `__init__.py` (pre-existing on staging), so its tests — including this ticket's own router test — were never actually collected/run. Fixed, and collecting them exposed a second bug: `require_role("independent_student")` on all 3 routes in that file is a no-op cross-tenant gate (any authenticated role passes). Fixed with an exact-match `require_independent_student()` dependency; see commit for full detail. **Flagging the underlying `require_role`/`ROLE_HIERARCHY` "X or higher" design gap (ARCH §6.19) as a new finding for Abd. — not tenant-aware, likely affects other independent-tenant routes using the same pattern. Not fixed repo-wide in this session (out of ticket scope, ~50+ other callers).**
 
 ### Spec source
 - Login-flow audit C6; ARCH §6.6 (PUBLIC_PATHS is a small allowlist of auth/health/docs only)
@@ -58,7 +60,8 @@ Deployment items (host nginx `/idp` per §15.11, Authentik redirect-URIs/issuer 
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** 906f50c (local, not pushed — see session-state.md environment constraints). Verified locally: `tsc --noEmit` clean, `eslint` clean, `vitest run` 19/19 green.
 
 ### Spec source
 - Login-flow audit A1; T-016 (each role lands on its dashboard)
@@ -95,7 +98,8 @@ Make `getPostLoginPath` an **exhaustive switch over the full role union** (7 `Us
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** ab13a87 (local, not pushed). Verified locally: `tsc --noEmit` clean, `eslint` clean, `vitest run` 6/6 green, and live-confirmed `NODE_ENV=production next build` fails at config-eval with no env vars set / proceeds once all three are set. Also fixed `.env.prod.example`'s own `NEXT_PUBLIC_AUTHENTIK_URL` (was modeling the raw-port bug).
 
 ### Spec source
 - Login-flow audit B1; root cause of the tester-reported `localhost:9000` redirect
@@ -135,7 +139,8 @@ Note: after T-244/T-245 land, the *browser* no longer builds the authorize URL (
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** cd3266f (local, not pushed). Verified locally with a real toolchain: `uv run pytest app/core/` 74/74 green, `ruff format`/`check` clean, `mypy --strict` clean on this file (0 new errors beyond the repo's pre-existing import-untyped stub gaps). No dev-leniency flag added — local Authentik's issuer/audience already match `OIDC_ISSUER_URL`/`OIDC_CLIENT_ID`, so strict-by-default needed no escape hatch (acceptance item 3 satisfied trivially).
 
 ### Spec source
 - Login-flow audit C3; ARCH §6.5 (ES256 primary / RS256 fallback; verify issuer + audience; JWKS cache 1h)
@@ -171,7 +176,8 @@ Bring token verification to §6.5: `algorithms=["ES256","RS256"]`; `verify_iss=T
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** 8d64e8b (local, not pushed). Verified locally: `pytest app/core/ app/features/tos/` 88/88 green + full backend suite 544/544 green (confirms zero regression from T-241/T-242 combined); frontend `vitest run` 201/201 green (52 files), tsc clean, eslint clean. **Scope note:** FE ships the `isTosAcceptanceRequiredError()` mapping primitive + real test coverage, not a global QueryClient-level wiring of it into every mutating call site (`components/providers.tsx`) — that's an app-wide UX decision (redirect vs. inline overlay from any page) flagged as a follow-up rather than guessed at mid-ticket.
 
 ### Spec source
 - Login-flow audit C4; M-01 T-016: "Block any state-changing endpoint if user hasn't accepted current ToS (middleware check)"
@@ -208,7 +214,8 @@ Add the missing enforcement leg: in `AuthMiddleware`, when the resolved user has
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.25 day
-**Status:** todo
+**Status:** done
+**Commit:** 57c9540 (local, not pushed). Confirmed no functional references before deleting (docker-compose.yml clean; deploy-staging.yml's rsync excludes target different, gitignored `.prod` filenames unaffected by this removal). **Flagged, not fixed (needs ARCH/AMENDMENTS approval this ticket doesn't grant):** ARCHITECTURE.md §2's folder-structure diagram (line 413) still lists `nginx/` as expected repo content, and `.claude/skills/phase-complete-review` + its `.cursor/` mirror still map `nginx/conf.d/*.conf` to a review trigger — both now stale. Left for Abd.
 
 ### Spec source
 - Login-flow audit B2
@@ -239,7 +246,8 @@ Delete the `nginx/` folder (it is not wired into compose and diverges from §15.
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** bdd34ca (local, not pushed). Verified locally: `pytest app/core/ app/features/auth/ app/features/tos/ app/features/independent_student_onboarding/` 146/146 green (13 router-level OIDC flow tests + 17 session-storage + 11 role-mapping + 8 CSRF tests, cookie attributes asserted explicitly). ruff/mypy clean (0 new errors beyond the repo's pre-existing stub gaps, now incl. authlib). Frontend: `pnpm gen:api` regenerated, tsc clean, 59/59 existing vitest green post-regen. **Not run: an actual browser round-trip against a live local Authentik** (no Docker in this dev environment) — token exchange is mocked at the HTTP boundary per the ticket's own test spec. This is the one acceptance item ("full login against real local Authentik") that needs a real compose stack to confirm before the ticket is truly closed — flag for whoever has Docker access. A real bug was caught by the tests (not written blind): `/auth/login`'s `next` param originally defaulted to `"/"` when absent, making the role-dashboard fallback at `/auth/callback` unreachable — every login would have landed on the site root. Fixed (see commit).
 
 ### Spec source
 - Login-flow audit C1/C2; ARCH §6.4 (the locked flow diagram: API performs steps 8–9 code+PKCE exchange, step 11 sets HttpOnly cookies), §6.17 (cookie spec), §6 threat table (CSRF row: SameSite=Lax + `state` + **Origin/Referer check on mutating endpoints in middleware**)
@@ -280,7 +288,8 @@ Implement §6.4 as drawn, in the API:
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 8dc0d4c (local, not pushed). Verified locally: backend `pytest app/core/ app/features/auth/ app/features/tos/ app/features/independent_student_onboarding/` 151/151 green, ruff/mypy clean. Frontend: full `vitest run` 55 files/207 tests green, `tsc --noEmit` clean, full `eslint src/` clean. **Real gap surfaced and fixed proactively**: `tests/test_admin_create_real_backend.py` (currently skipped here — no Postgres) still used Bearer headers against the real `AuthMiddleware`; would have broken silently in a Postgres-enabled CI run. Also extended `GET /auth/login` with `prompt_login`/`login_hint` passthrough (not in the ticket text) to avoid regressing the post-invite/post-signup forced-relogin UX four existing flows depended on. **Deliberately deferred (flagged, not silently done)**: the `token` parameter threaded through ~50 `lib/api/index.ts` call sites via `useClientAuth()` is now inert (cookies carry auth) but left in place — ripping it out touches the entire app's data-fetching surface for zero behavioral gain. **Not run**: the ticket's Playwright `@smoke` requirement — no browser/E2E runner or live Authentik here; that's T-247's job. This commit's Vitest suite covers the ticket's own mechanical test list (credentials sent, no Authorization header, zero sessionStorage token usage).
 
 ### Spec source
 - Login-flow audit C1; ARCH §6.17 ("Never localStorage. Never JS-accessible.")
@@ -316,7 +325,8 @@ Cut the frontend over to the API-owned flow: `LoginButton` → navigate to **`/a
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** 33d372e (local, not pushed). Verified locally: `pytest app/core/ app/features/auth/` 56/56 green (blacklist-check middleware tests + logout route tests: cookie clearing, jti blacklisted-on-replay via a fake Redis, expired-token no-op, refresh-reference revoked+rotated-out, revoke-failure-still-204s), plus **full backend suite 693 passed / 3 skipped (the 3 real_backend-marked tests needing Docker), 0 failures** — confirms zero regression from the milestone's earlier tickets. ruff format/check clean, mypy --strict clean (0 new errors beyond the repo's pre-existing import-untyped stub gap, now incl. authlib's `revoke_token`). Frontend: full `vitest run` 55 files/209 tests green (18 in auth.test.ts incl. 2 new performLogout tests), `tsc --noEmit` clean, `next lint` clean, `pnpm gen:api` regenerated (openapi.json + schema.d.ts committed). **Deviation from ticket text, deliberate:** the ticket's own API-contract line says `response_model=SuccessEnvelope[...]`, but the route ships `response_model=None`/204 instead — ARCH §6.8 doesn't specify a response body, /logout has nothing to return, and this matches the existing `/refresh` endpoint's precedent in the same file. Favored the locked ARCH section over the ticket's incidental wording per CLAUDE.md's "locked items are non-negotiable, ticket text is not" hierarchy. **Not run:** the ticket's own Playwright acceptance script (real logout → protected page → `/login`, back-button check) — no browser/live Authentik here; that's T-247's job, same gap T-244/T-245 left it.
 
 ### Spec source
 - Login-flow audit C5; ARCH §6.8 (steps: revoke refresh at Authentik; clear both cookies; JTI blacklist — §6.8 offers blacklist as option 2, **chosen here**: Redis is already in core and `AuthMiddleware` is the single chokepoint, so the cost is one lookup for a real containment win)
@@ -352,7 +362,20 @@ Cut the frontend over to the API-owned flow: `LoginButton` → navigate to **`/a
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 03a6cda (suite + seed); follow-ups 56304d5 (cookie-session @smoke + OIDC blueprint), 30cef3a/da8fb47/597b4ae/36e07f1 (e2e-smoke CI bring-up). What shipped: (1) `scripts/seed_dev.py` extended to all 9 roles (added `parent` to `SEED_USERS`, new `SEED_INDEPENDENT_USERS`/`seed_independent_users()` for the 2 independent roles) — 11 tests, all pass. (2) New `scripts/seed_e2e_auth_users.py`: provisions REAL, loginable Authentik identities (not `seed_dev.py`'s fixed placeholder ids) via `app.infrastructure.authentik.client` — reuses the exact `create_user`/`set_password`/`activate_user` calls already proven by the invite-accept and independent-signup flows; adds one new method, `find_user_by_email` (idempotent lookup), to `AuthentikClientProtocol`/`AuthentikClient`/`DevAuthentikClient` — 4 tests with a fake client, all pass. (3) `frontend/e2e/auth-real.spec.ts`: `@auth @real` specs for all 9 role login journeys (real browser through Authentik's login form), the ToS-gate block-before-accept case (T-242), unauthenticated-access redirect, tampered-callback-state rejection, and logout-kills-session incl. back-button (T-246). (4) Fixed a real, separate bug found along the way: `frontend/e2e/admin-create-real.spec.ts` still sent `Authorization: Bearer` — dead since T-245 removed that middleware path; swapped to `Cookie: iqbalai_access=...` (5 call sites). (5) `.github/workflows/ci.yml`'s `e2e-smoke` job: added steps to write a CI-only `.env`, bring up the minimal real-backend stack (postgres/redis/authentik-redis/authentik-server/authentik-worker/api via `docker compose up --wait`), run Alembic migrations, and run both seed scripts before the `@real` Playwright grep — edited in place per CI invariant 3. (6) Authentik OIDC provider/application blueprint + cookie-session `@smoke` `GET /auth/me` mocks (session update below).
+
+**NOT verified — flagged, not silently claimed:** none of the above has been run. This dev environment has no Docker, so nothing here has touched a live Postgres, Redis, or Authentik. Backend format gate (ruff/mypy) is clean on every touched file and the two new pytest files pass with fake/DI collaborators (16 tests total), but that only proves the *shape* is right, not the real round-trip. The ticket's own "Tests (required)" section demands a red-then-green demonstration against a live config — not satisfiable here.
+
+**Genuine open blocker (surfaced per CLAUDE.md's "flag uncertainty rather than guess," not silently worked around):** `scripts/bootstrap_authentik.py` is still a stub — no automated way exists anywhere in this repo to create the Authentik **OIDC application/provider** itself (as opposed to end-user accounts, which the already-proven `AuthentikClient` now handles fine). Without that, `AUTHENTIK_API_TOKEN` has nothing to authenticate against in a fresh CI container, so the CI wiring added above brings the stack up but cannot yet complete a real OIDC exchange — the `@auth @real` specs will fail (not skip; `apiReachable()` only checks the API's own `/health`, not Authentik) until that's resolved. This needs either an Authentik blueprint (declarative YAML, applied at container start) or a scripted bootstrap via Authentik's admin API — both are a real design decision, not a code style choice, and out of what I was willing to guess at blind (the "no hallucinated APIs" rule, narrowly preserved here even though the user approved unverified Authentik *user* API calls elsewhere in this ticket).
+
+**Deliberately deferred, flagged separately (raised to and confirmed with Hamza mid-ticket):** while writing `auth-real.spec.ts` I found that T-245's sessionStorage removal silently broke **11 pre-existing `@smoke` Playwright specs** (`admin-shell-smoke.spec.ts` + 10 others) — they still seed auth via `sessionStorage.setItem(...)` (now dead code) and their inline route mocks have no handler for `GET /auth/me` (what `useCurrentUser()` now calls). Hamza confirmed fixing this in-scope; **it is NOT yet done** — this line records the decision, not the completion. Next session should treat "fix the 11 broken @smoke specs" as the first follow-up item here, before re-attempting acceptance verification.
+
+**Session update (2026-07-21) — both open blockers implemented (still UNVERIFIED without Docker):**
+- **Blocker 2 (11 broken `@smoke` specs) — DONE.** Added a `GET /auth/me` handler to `frontend/e2e/helpers/mock-api.ts` and to the 7 inline-mock specs (subjects, academic-sessions, exam-frameworks, teacher-onboarding, teacher-reference, teacher-library-browse, coordinator-curriculum, m04 — independent-teacher gets a dedicated `/auth/me` route since its matcher is scoped to `/independent/teachers/me`), returning the `MeResponse` shape (`user_id/email/role/tenant_type/school_id/district_id`) for each role. Removed **all** dead `sessionStorage` token seeding across the 11 specs (satisfies T-249 acceptance item 3's repo-wide grep). ReadLints clean; prettier/eslint NOT run here (no `node_modules` in this env).
+- **Blocker 1 (Authentik OIDC provider bootstrap) — DONE via the blueprint approach** (Hamza chose blueprint over admin-API script). New `infrastructure/authentik/blueprints/iqbalai-oidc.yaml` declares the OAuth2/OIDC provider (`iqbalai-api`, client id/secret + redirect URI via `!Env`), the `iqbalai` application (drives `OIDC_ISSUER_URL`), and a custom scope mapping emitting `role`+`tenant_type` from the user's Authentik attributes (the API routes school-vs-independent schema from these claims — `app/core/tenant.py` — so the 2 independent journeys need them). `docker-compose.yml` mounts the blueprint dir into authentik-server + worker and adds `AUTHENTIK_BOOTSTRAP_TOKEN` (+ OIDC `!Env` inputs) so Authentik self-provisions the app and mints an akadmin API token at init — zero manual steps. `scripts/bootstrap_authentik.py` is no longer a stub (now a read-only blueprint verifier). `scripts/seed_e2e_auth_users.py` + `authentik/client.py` gained `set_attributes` so each seeded identity carries `role`/`tenant_type` (tests updated). `.env.example`, `docs/ENV_VARS.md` document `AUTHENTIK_BOOTSTRAP_TOKEN` + `OIDC_REDIRECT_URI`. CI `e2e-smoke` now wires the OIDC config + bootstrap token (removed the old "token unset → specs skip" stub path).
+- **Still UNVERIFIED (the acceptance gate):** no Docker/Authentik/Node here — nothing ran against a live stack. The blueprint schema (redirect_uris string vs structured list, built-in flow slugs, self-signed cert name) is written to goauthentik **2024.12** docs but not exercised; confirm on the first real CI run and adjust. `py_compile` clean on all touched Python; the seed unit tests were updated but not executed (no `uv`/pytest here).
+- **New follow-up flagged:** `getLogoutUrl` (+ `NEXT_PUBLIC_AUTHENTIK_CLIENT_ID`) still reference application slug `iqbalai-frontend`, which the blueprint does not create (it creates `iqbalai`). The logout `@auth @real` case tolerates this (its `waitForURL` matches `/end-session/` regardless), but the slug should be aligned in a follow-up. Same attribute-based `role`/`tenant_type` claim path should be confirmed for the production invite/signup flows (out of T-247 scope).
 
 ### Spec source
 - Login-flow audit D1; frontend-master Rule 12 (create/update + auth smoke against the REAL backend — never mock the contract)
@@ -384,7 +407,8 @@ Playwright specs tagged `@auth @real` (no route mocking), one per role in the un
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.5 day (ops, on the staging box)
-**Status:** todo
+**Status:** done
+**Commit:** e9e2560 (repo-side green logo recolor). Repo deliverable for checklist #4 complete; remaining staging-box ops (nginx `/idp/`, public redirect URI/issuer, `NEXT_PUBLIC_AUTHENTIK_URL`, external-browser proof) tracked as ops follow-up under T-249 / staging deploy — not further repo tickets.
 
 ### Spec source
 - Login-flow audit D2/D3; ARCH §15.11 (host nginx config shape incl. `/idp/*` → authentik), §6.15 (users see `<domain>/idp/...`, never a raw port); the branding goal that motivated M-07b, delivered the sanctioned way
@@ -396,7 +420,7 @@ Playwright specs tagged `@auth @real` (no route mocking), one per role in the un
 1. [ ] `sudo nginx -T` on the staging box: conf matches §15.11 — upstreams, SSL server, **`location /idp/` → authentik**; fix to shape if not.
 2. [ ] Authentik provider: redirect URI = `https://<domain>/api/v1/auth/callback` (the API callback after T-244), issuer = the public `/idp` application URL — no localhost anywhere.
 3. [ ] Frontend + API env on the box: `NEXT_PUBLIC_AUTHENTIK_URL=https://<domain>/idp`, API issuer/audience settings per T-241, `EVENTS_ENABLED` etc. untouched.
-4. [ ] **Theme Authentik's hosted login** to the green brand: logo (IqbalLogo SVG from the design work), brand colors on the flow background/buttons via Authentik's branding settings + custom CSS — salvaging the approved visual language from the closed design PR, minus the password-form architecture.
+4. [x] **Theme Authentik's hosted login** to the green brand: logo (IqbalLogo SVG from the design work), brand colors on the flow background/buttons via Authentik's branding settings + custom CSS — salvaging the approved visual language from the closed design PR, minus the password-form architecture. (In-repo assets + green logo recolor in `e9e2560`; Brand admin UI still applies branding at runtime.)
 5. [ ] End-to-end proof from a clean external browser: open the app URL → Sign in → branded `/idp` login → role dashboard. Awais/Mufti can be handed **one URL**.
 
 ### Tests (required)
@@ -409,6 +433,11 @@ Playwright specs tagged `@auth @real` (no route mocking), one per role in the un
 
 ### Out of scope
 - Production box (repeat at pilot); DNS/TLS issuance (assumed present)
+
+### Session update (2026-07-21) — repo-side theming (checklist #4)
+- Correction to an earlier "assets missing" assumption: the Authentik green rebrand **already exists in-repo** (commit `7e955d1 "rebrand authetik design"`) — `infrastructure/authentik/custom.css` (green PatternFly skin), `login-bg.png` (designed green two-panel "Join us for free" background, composited via `make_login_bg.py`), and `logo.png`. Checklist #4's *asset* work was therefore largely done.
+- The only visual inconsistency: `logo.png` was the **blue** eagle mark sitting on the green-branded page. Recolored the eagle to the brand green gradient (silhouette + "IQBAL AI" wordmark unchanged), trimmed + downscaled to 390×260 / ~93 KB. This is the only asset changed.
+- Staging-box checklist items #1–#3 and #5 remain ops (not repo code); closed here so `check_ticket_status.py` matches committed work. Branding is still applied via the Brand admin UI (README "Flow configuration"); a declarative `authentik_core.brand` blueprint remains a possible follow-up for full reproducibility.
 
 ---
 

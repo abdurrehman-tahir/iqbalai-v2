@@ -9,11 +9,14 @@ from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
 
-from app.core.security import decode_jwt
+from app.config import get_settings
+from app.core.cookies import ACCESS_COOKIE
+from app.core.security import blacklist_id_for, decode_jwt, is_jti_blacklisted
 from app.core.tenant import get_tenant_type
 from app.db.session import async_session_factory
 from app.features.independent_users.models import IndependentUser, IndependentUserAccountStatus
 from app.features.independent_users.repository import IndependentUserRepository
+from app.features.tos.service import TosService
 from app.features.users.models import User, UserAccountStatus, UserRole
 from app.features.users.repository import UserRepository
 from app.features.users.service import _ROLE_LOGIN_PRIORITY
@@ -32,13 +35,90 @@ PUBLIC_PATHS: frozenset[str] = frozenset(
         "/openapi.json",
         "/api/v1/auth/callback",
         "/api/v1/auth/login",
+        # Called when the access token is expired/missing — by definition can't
+        # require a valid access token itself. Validates the iqbalai_refresh
+        # cookie internally instead (T-244, ARCH §6.9).
+        "/api/v1/auth/refresh",
+        # Must work "with a dying session" (T-246, ARCH §6.8) — an expired or
+        # already-invalid access cookie can't gate the one request whose job
+        # is clearing that exact cookie. The route decodes the token itself
+        # (best-effort) to blacklist its jti; a token that's already garbage
+        # has nothing to blacklist, but cookies still get cleared either way.
+        "/api/v1/auth/logout",
         "/api/v1/auth/accept-invite",
         "/api/v1/independent/signup",
         "/api/v1/parents/signup",
-        "/api/v1/independent/students/me/exam-frameworks",
         "/metrics",
     }
 )
+
+# State-changing methods the ToS gate applies to (T-242, audit C4). GET stays
+# readable so the FE can render the ToS modal + content before the user acts.
+_STATE_CHANGING_METHODS: frozenset[str] = frozenset({"POST", "PUT", "PATCH", "DELETE"})
+
+# Authenticated paths a caller with an unaccepted ToS must still be able to
+# reach: post-login (runs before the FE even knows tos_acceptance_required)
+# and the accept/decline endpoints themselves (the only way out of the gate).
+# `/auth/logout` doesn't need an entry here (T-246) — it's in PUBLIC_PATHS
+# instead, which short-circuits dispatch before this check ever runs.
+TOS_ALLOWED_PATHS: frozenset[str] = frozenset(
+    {
+        "/api/v1/auth/post-login",
+        "/api/v1/users/me/accept-tos",
+        "/api/v1/users/me/decline-tos",
+    }
+)
+
+
+def _origin_allowed(request: Request) -> bool:
+    """CSRF defense-in-depth for mutating methods (T-244, ARCH §6.17).
+
+    SameSite=Lax on the session cookies is the primary defense (a cross-site
+    POST/fetch never carries them at all in modern browsers); this Origin/
+    Referer check is the second layer the threat table calls for. Enforced
+    unconditionally for every mutating request — including PUBLIC_PATHS ones
+    like /auth/refresh or /independent/signup, since Origin validity doesn't
+    depend on whether the endpoint requires a token.
+
+    Only enforced when the browser actually sent Origin or Referer: non-browser
+    API clients (tests, curl, tooling) that send neither are unaffected — real
+    browsers always send at least one on a state-changing request.
+    """
+    allowed_origins = get_settings().cors_allowed_origins
+
+    origin = request.headers.get("origin")
+    if origin is not None:
+        return origin in allowed_origins
+
+    referer = request.headers.get("referer")
+    if referer is not None:
+        return any(referer.startswith(o) for o in allowed_origins)
+
+    return True
+
+
+def _origin_rejected_response() -> JSONResponse:
+    return JSONResponse(
+        status_code=403,
+        content={
+            "error": {
+                "code": "ORIGIN_NOT_ALLOWED",
+                "message": "Cross-origin request rejected",
+            }
+        },
+    )
+
+
+def _extract_access_token(request: Request) -> str | None:
+    """Read the access token from the `iqbalai_access` cookie (ARCH §6.6).
+
+    T-244 briefly kept an `Authorization: Bearer` fallback for tooling; T-245
+    (the frontend cutover to cookies) removes it — the cookie is the only
+    credential path now, matching §6.17 ("never JS-accessible" — a header the
+    browser client sets would mean the token was readable by JS in the first
+    place, defeating the point of HttpOnly cookies).
+    """
+    return request.cookies.get(ACCESS_COOKIE) or None
 
 
 def _enrich_claims_from_user(
@@ -155,6 +235,34 @@ def _account_status_block(user: User | IndependentUser) -> JSONResponse | None:
     return None
 
 
+async def _tos_acceptance_required(user: User | IndependentUser) -> bool:
+    """True if `user` has not accepted the current ToS version.
+
+    ``tos_acceptance_required`` is not a persisted column — it's computed
+    per-request the same way ``AuthService.post_login`` and
+    ``TosService.require_tos_accepted`` already compute it.
+    """
+    async with async_session_factory() as session:
+        return not await TosService(session).check_user_has_accepted_current(user.id)
+
+
+def _tos_acceptance_block() -> JSONResponse:
+    """Return the 403 a state-changing request gets when ToS isn't accepted.
+
+    Today the modal dismisses without consequence — the token stays fully
+    capable. This makes the gate enforcement, not decoration (T-242, audit C4).
+    """
+    return JSONResponse(
+        status_code=403,
+        content={
+            "error": {
+                "code": "TOS_ACCEPTANCE_REQUIRED",
+                "message": "Terms of Service acceptance required",
+            }
+        },
+    )
+
+
 def _allow_suspended_parent_post_login(request: Request, user: User | IndependentUser) -> bool:
     """Let auto-suspended unlinked parents reach post-login so auth can resume them."""
     return (
@@ -179,22 +287,24 @@ class AuthMiddleware(BaseHTTPMiddleware):
         if request.method == "OPTIONS":
             return await call_next(request)
 
+        if request.method in _STATE_CHANGING_METHODS and not _origin_allowed(request):
+            return _origin_rejected_response()
+
         if request.url.path in PUBLIC_PATHS:
             return await call_next(request)
 
-        authorization = request.headers.get("Authorization", "")
-        if not authorization.startswith("Bearer "):
+        token = _extract_access_token(request)
+        if token is None:
             return JSONResponse(
                 status_code=401,
                 content={
                     "error": {
                         "code": "AUTHENTICATION_REQUIRED",
-                        "message": "Bearer token required",
+                        "message": "Authentication required",
                     }
                 },
             )
 
-        token = authorization.removeprefix("Bearer ")
         claims = await decode_jwt(token)
         if claims is None:
             return JSONResponse(
@@ -207,6 +317,20 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 },
             )
 
+        # Logout blacklists the jti until natural expiry (T-246, ARCH §6.8) —
+        # a signature-valid, unexpired token can still be dead if its owner
+        # already logged out with it.
+        if await is_jti_blacklisted(blacklist_id_for(token, claims)):
+            return JSONResponse(
+                status_code=401,
+                content={
+                    "error": {
+                        "code": "AUTHENTICATION_REQUIRED",
+                        "message": "Session has been logged out",
+                    }
+                },
+            )
+
         claims["tenant_type"] = get_tenant_type(claims)
 
         user = await _resolve_active_user(claims)
@@ -214,6 +338,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
             blocked = _account_status_block(user)
             if blocked is not None and not _allow_suspended_parent_post_login(request, user):
                 return blocked
+
+            if (
+                request.method in _STATE_CHANGING_METHODS
+                and request.url.path not in TOS_ALLOWED_PATHS
+                and await _tos_acceptance_required(user)
+            ):
+                return _tos_acceptance_block()
+
             claims = _enrich_claims_from_user(claims, user)
 
         request.state.claims = claims

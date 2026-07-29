@@ -68,6 +68,17 @@ services:
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
       AUTHENTIK_BOOTSTRAP_EMAIL: ${AUTHENTIK_BOOTSTRAP_EMAIL}
       AUTHENTIK_BOOTSTRAP_PASSWORD: ${AUTHENTIK_BOOTSTRAP_PASSWORD}
+      # T-247: consumed by Authentik at first init to mint an akadmin API token
+      # with this exact value — so AUTHENTIK_API_TOKEN can equal it and the API +
+      # seed scripts provision users with zero manual `ak shell` step (CI + local).
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-}
+      # T-247: NOT read by Authentik itself (only AUTHENTIK_* is) — exposed so the
+      # OIDC blueprint's `!Env` tags resolve the client id/secret + redirect URI to
+      # the SAME values the API uses, keeping provider config and API config in sync.
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-iqbalai-api}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-change_me_after_authentik_bootstrap}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-http://localhost:8000/api/v1/auth/callback}
+      OIDC_POST_LOGOUT_REDIRECT_URI: ${OIDC_POST_LOGOUT_REDIRECT_URI:-http://localhost:3000/login}
       AUTHENTIK_ERROR_REPORTING__ENABLED: "false"
       # SMTP for Authentik-sent mail (password recovery). Values from .env.
       # Port 465 = implicit SSL → USE_SSL=true / USE_TLS=false.
@@ -89,9 +100,16 @@ services:
       # IqbalAI logo — served at /static/dist/assets/icons/iqbal-logo.png.
       # Reference this path in System > Brands > Branding logo.
       - ./infrastructure/authentik/logo.png:/web/dist/assets/icons/iqbal-logo.png:ro
-      # Login flow background (two-panel "Join us for free" art). Bind-mounted into
-      # the media volume so the flow's background field can point at it.
-      - ./infrastructure/authentik/login-bg.png:/media/public/login-bg.png:ro
+      # Login flow background. Flow DB points at flow-backgrounds/iqbalai-login-bg.png
+      # (set in admin); bind-mount the repo art over that exact path so redesigns
+      # show up without re-uploading. Also keep /media/branding/ for CSS fallback.
+      # Mounting a single FILE (not the directory) keeps other public uploads writable.
+      - ./infrastructure/authentik/login-bg.png:/media/public/flow-backgrounds/iqbalai-login-bg.png:ro
+      - ./infrastructure/authentik/login-bg.png:/media/branding/login-bg.png:ro
+      # T-247: OIDC provider + application blueprint. Authentik auto-discovers and
+      # applies everything under /blueprints on boot (idempotent), so the OIDC app
+      # self-provisions in a fresh container — no manual setup / stub script.
+      - ./infrastructure/authentik/blueprints:/blueprints/iqbalai:ro
     ports:
       - "9000:9000"
       - "9443:9443"
@@ -122,6 +140,13 @@ services:
       AUTHENTIK_POSTGRESQL__PASSWORD: ${POSTGRES_PASSWORD}
       AUTHENTIK_POSTGRESQL__NAME: authentik
       AUTHENTIK_SECRET_KEY: ${AUTHENTIK_SECRET_KEY}
+      # T-247: the worker runs blueprint-apply tasks — same bootstrap token +
+      # OIDC `!Env` inputs as the server so the applied provider matches API config.
+      AUTHENTIK_BOOTSTRAP_TOKEN: ${AUTHENTIK_BOOTSTRAP_TOKEN:-}
+      OIDC_CLIENT_ID: ${OIDC_CLIENT_ID:-iqbalai-api}
+      OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET:-change_me_after_authentik_bootstrap}
+      OIDC_REDIRECT_URI: ${OIDC_REDIRECT_URI:-http://localhost:8000/api/v1/auth/callback}
+      OIDC_POST_LOGOUT_REDIRECT_URI: ${OIDC_POST_LOGOUT_REDIRECT_URI:-http://localhost:3000/login}
       # The worker sends the mail — it needs the same SMTP config as the server.
       AUTHENTIK_EMAIL__HOST: ${SMTP_HOST}
       AUTHENTIK_EMAIL__PORT: ${SMTP_PORT}
@@ -135,6 +160,8 @@ services:
       - authentik_media:/media
       - authentik_certs:/certs
       - authentik_templates:/templates
+      # T-247: the worker applies blueprints — mount the same OIDC blueprint dir.
+      - ./infrastructure/authentik/blueprints:/blueprints/iqbalai:ro
     networks:
       - iqbalai_net
     depends_on:
@@ -195,6 +222,34 @@ services:
       timeout: 5s
       retries: 5
 
+  # Web search for RAG tier-3 + exam-framework Pattern-A research (ARCH §7.12 / T-093).
+  # JSON output is enabled in infrastructure/searxng/settings.yml (required by web_search).
+  searxng:
+    profiles: ["rag"]
+    image: searxng/searxng:latest
+    restart: unless-stopped
+    environment:
+      SEARXNG_BASE_URL: ${SEARXNG_BASE_URL:-http://localhost:8888/}
+      # Avoid ownership churn on the bind-mounted settings.yml (Windows/WSL hosts).
+      FORCE_OWNERSHIP: "false"
+    volumes:
+      - ./infrastructure/searxng:/etc/searxng:rw
+    ports:
+      # Host 8888 matches api/app/config.py default for non-Docker API runs.
+      - "8888:8080"
+    networks:
+      - iqbalai_net
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "wget -q -O - 'http://localhost:8080/search?q=iqbalai&format=json' | grep -q '\"results\"' || exit 1",
+        ]
+      interval: 20s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+
   qdrant:
     profiles: ["rag"]
     image: qdrant/qdrant:latest
@@ -252,10 +307,17 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       QDRANT_URL: ${QDRANT_URL}
-      OIDC_ISSUER_URL: ${OIDC_ISSUER_URL}
+      # Container DNS name — do not use localhost here (that is the API container itself).
+      WEBSEARCH_URL: ${WEBSEARCH_URL:-http://searxng:8080}
+      OIDC_ISSUER_URL: ${OIDC_ISSUER_URL:-http://authentik-server:9000/application/o/iqbalai/}
       OIDC_CLIENT_ID: ${OIDC_CLIENT_ID}
       OIDC_CLIENT_SECRET: ${OIDC_CLIENT_SECRET}
-      OIDC_JWKS_URL: ${OIDC_JWKS_URL}
+      OIDC_JWKS_URL: ${OIDC_JWKS_URL:-http://authentik-server:9000/application/o/iqbalai/jwks/}
+      # Browser hits AUTHORIZE on localhost:9000; API container hits TOKEN/REVOKE
+      # on authentik-server (localhost inside the API container is not Authentik).
+      OIDC_AUTHORIZE_URL: ${OIDC_AUTHORIZE_URL:-http://localhost:9000/application/o/authorize/}
+      OIDC_TOKEN_URL: ${OIDC_TOKEN_URL:-http://authentik-server:9000/application/o/token/}
+      OIDC_REVOKE_URL: ${OIDC_REVOKE_URL:-http://authentik-server:9000/application/o/revoke/}
       AUTHENTIK_API_URL: ${AUTHENTIK_API_URL:-http://authentik-server:9000/api/v3}
       AUTHENTIK_API_TOKEN: ${AUTHENTIK_API_TOKEN:-}
       LLM_PROVIDER: ${LLM_PROVIDER}
@@ -315,6 +377,7 @@ services:
       MINIO_ACCESS_KEY: ${MINIO_ACCESS_KEY}
       MINIO_SECRET_KEY: ${MINIO_SECRET_KEY}
       QDRANT_URL: ${QDRANT_URL}
+      WEBSEARCH_URL: ${WEBSEARCH_URL:-http://searxng:8080}
       EMBEDDING_PROVIDER: ${EMBEDDING_PROVIDER:-local}
       EMBEDDING_MODEL: ${EMBEDDING_MODEL:-}
       EMBEDDING_VECTOR_DIM: ${EMBEDDING_VECTOR_DIM:-0}

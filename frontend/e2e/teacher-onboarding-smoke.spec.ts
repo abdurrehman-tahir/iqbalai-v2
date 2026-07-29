@@ -23,6 +23,24 @@ async function installTeacherMocks(page: Page) {
       if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
       const method = request.method();
 
+      // T-247: shell resolves "who am I" via GET /auth/me (cookie session)
+      // since T-245 — mock it or useCurrentUser() never resolves.
+      if (method === "GET" && path === "/auth/me") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            user_id: "teacher-1",
+            email: "teacher@iqbalai.test",
+            role: "teacher",
+            tenant_type: "school",
+            school_id: "school-1",
+            district_id: null,
+          }),
+        });
+        return;
+      }
+
       if (method === "GET" && path === "/teachers/me/onboarding") {
         const ready = profileComplete && assignmentCount >= 1;
         await route.fulfill({
@@ -102,20 +120,6 @@ async function installTeacherMocks(page: Page) {
       await route.fulfill({ status: 404, body: "not mocked" });
     },
   );
-
-  await page.addInitScript(() => {
-    sessionStorage.setItem(
-      "iqbalai_user",
-      JSON.stringify({
-        user_id: "teacher-1",
-        email: "teacher@iqbalai.test",
-        role: "teacher",
-        tos_acceptance_required: false,
-        current_tos_version_id: null,
-      }),
-    );
-    sessionStorage.setItem("iqbalai_access_token", "e2e-teacher-token");
-  });
 }
 
 test.describe("Teacher onboarding @smoke", () => {

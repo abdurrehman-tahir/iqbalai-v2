@@ -159,3 +159,11 @@ class SchoolLibraryItemChunk(AuditMixin, Base):
     page_number: Mapped[int | None] = mapped_column(Integer, nullable=True)
     qdrant_point_id: Mapped[str] = mapped_column(String(36), nullable=False)
     chunk_text: Mapped[str] = mapped_column(Text, nullable=False)
+
+
+# Celery workers import this module without the API app's full model graph.
+# Register FK targets on Base.metadata so flush of library_item_chunks does not
+# raise NoReferencedTableError for school.schools / subjects / users.
+from app.features.schools.models import School as _School  # noqa: E402, F401
+from app.features.subjects.models import Subject as _Subject  # noqa: E402, F401
+from app.features.users.models import User as _User  # noqa: E402, F401

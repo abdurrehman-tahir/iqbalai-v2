@@ -8,10 +8,6 @@ import { NotificationBell } from "../NotificationBell";
 
 vi.mock("next-intl", () => import("@/test/mocks/next-intl"));
 
-vi.mock("@/lib/auth", () => ({
-  getToken: vi.fn(() => "mock-token"),
-}));
-
 const mockList = vi.fn();
 const mockMarkRead = vi.fn();
 
@@ -132,6 +128,8 @@ describe("NotificationBell — mark as read", () => {
     await userEvent.click(screen.getByRole("button", { name: "aria_label" }));
     await waitFor(() => screen.getByText("ToS Updated"));
     await userEvent.click(screen.getByText("ToS Updated"));
-    expect(mockMarkRead).toHaveBeenCalledWith("mock-token", "n1");
+    // T-245: `token` is now a non-secret sentinel (the cookie carries real
+    // auth) — assert the notification id, not the inert placeholder string.
+    expect(mockMarkRead).toHaveBeenCalledWith(expect.any(String), "n1");
   });
 });

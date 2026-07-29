@@ -115,6 +115,24 @@ async function installM04Mocks(page: Page, state: MilestoneState) {
       if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
       const method = request.method();
 
+      // T-247: shell resolves "who am I" via GET /auth/me (cookie session)
+      // since T-245 — mock it or useCurrentUser() never resolves.
+      if (method === "GET" && path === "/auth/me") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            user_id: "teacher-1",
+            email: "teacher@test.com",
+            role: "teacher",
+            tenant_type: "school",
+            school_id: "school-1",
+            district_id: null,
+          }),
+        });
+        return;
+      }
+
       if (method === "GET" && path === "/teachers/me/onboarding") {
         const ready = state.profileComplete && state.assignmentCount >= 1;
         await route.fulfill({
@@ -313,23 +331,6 @@ async function installM04Mocks(page: Page, state: MilestoneState) {
   );
 }
 
-function seedTeacherSession(page: Page) {
-  return page.addInitScript(() => {
-    sessionStorage.setItem("iqbalai_access_token", "e2e-m04-teacher-token");
-    sessionStorage.setItem(
-      "iqbalai_user",
-      JSON.stringify({
-        user_id: "teacher-1",
-        email: "teacher@test.com",
-        role: "teacher",
-        school_id: "school-1",
-        tos_acceptance_required: false,
-        current_tos_version_id: null,
-      }),
-    );
-  });
-}
-
 test.describe("M-04 teacher onboarding milestone @smoke", () => {
   test("full milestone demo flow", async ({ page }) => {
     const state: MilestoneState = {
@@ -340,7 +341,6 @@ test.describe("M-04 teacher onboarding milestone @smoke", () => {
       referenceStatus: "available",
     };
 
-    await seedTeacherSession(page);
     await installM04Mocks(page, state);
 
     const pdfBuffer = fs.readFileSync(FIXTURE_PDF);

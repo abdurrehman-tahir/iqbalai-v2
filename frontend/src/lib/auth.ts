@@ -1,85 +1,84 @@
 /**
- * Auth helpers — token storage and retrieval.
- * The frontend stores the Authentik JWT in sessionStorage after OIDC callback.
+ * Auth helpers — role routing + login/logout redirect URLs.
+ *
+ * T-245: the session lives entirely in HttpOnly cookies the browser attaches
+ * automatically (ARCH §6.4/§6.17). There is no JS-readable token or user
+ * object here anymore — for "who am I" (display name/role in a shell, an
+ * ownership check), fetch `GET /api/v1/auth/me` via `authApi.me()` /
+ * `useCurrentUser()`, don't reach for browser-local storage.
  */
 
-export const TOKEN_KEY = "iqbalai_access_token";
-export const USER_KEY = "iqbalai_user";
+import { authApi, API_BASE } from "@/lib/api";
+import type { IndependentUserRole, UserRole } from "@/lib/api/types";
 
-export interface StoredUser {
-  user_id: string;
-  email: string;
-  role: string;
-  district_id?: string | null;
-  school_id?: string | null;
-  tos_acceptance_required: boolean;
-  current_tos_version_id: string | null;
-}
-
-export function getToken(): string | null {
-  if (typeof window === "undefined") return null;
-  return sessionStorage.getItem(TOKEN_KEY);
-}
-
-export function setToken(token: string): void {
-  sessionStorage.setItem(TOKEN_KEY, token);
-}
-
-export function clearToken(): void {
-  sessionStorage.removeItem(TOKEN_KEY);
-  sessionStorage.removeItem(USER_KEY);
-}
-
-export function getUser(): StoredUser | null {
-  if (typeof window === "undefined") return null;
-  const raw = sessionStorage.getItem(USER_KEY);
-  if (!raw) return null;
-  try {
-    return JSON.parse(raw) as StoredUser;
-  } catch {
-    return null;
-  }
-}
-
-export function setUser(user: StoredUser): void {
-  sessionStorage.setItem(USER_KEY, JSON.stringify(user));
-}
-
-export interface LoginUrlOptions {
+export interface LoginRedirectOptions {
   /** Force Authentik to show the login form (avoids reusing another user's SSO session). */
   promptLogin?: boolean;
-  /** Pre-fill the invited user's email on the Authentik login screen. */
+  /** Pre-fill the invited/signed-up user's email on the Authentik login screen. */
   loginHint?: string;
+  /** Relative path to land on after a successful login (validated server-side). */
+  next?: string;
 }
 
-/** Authentik OIDC login URL (triggers browser redirect). */
-export function getLoginUrl(options: LoginUrlOptions = {}): string {
-  const authentikBase =
-    process.env.NEXT_PUBLIC_AUTHENTIK_URL ?? "http://localhost:9000";
-  const clientId =
-    process.env.NEXT_PUBLIC_AUTHENTIK_CLIENT_ID ?? "iqbalai-frontend";
-  const redirectUri = encodeURIComponent(
-    (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") +
-      "/auth/callback",
-  );
-  const params = new URLSearchParams({
-    client_id: clientId,
-    response_type: "code",
-    scope: "openid profile email",
-    redirect_uri: decodeURIComponent(redirectUri),
-  });
+/**
+ * API-owned OIDC login redirect (ARCH §6.4 step 1). The API generates
+ * state/nonce/PKCE and redirects on to Authentik itself — the browser's only
+ * job is navigating here, never building the authorize URL or touching a
+ * code/token directly.
+ */
+export function getLoginRedirectUrl(options: LoginRedirectOptions = {}): string {
+  const params = new URLSearchParams();
   if (options.promptLogin) {
-    params.set("prompt", "login");
+    params.set("prompt_login", "true");
   }
   if (options.loginHint) {
     params.set("login_hint", options.loginHint);
   }
-  return `${authentikBase}/application/o/authorize/?${params.toString()}`;
+  if (options.next) {
+    params.set("next", options.next);
+  }
+  const query = params.toString();
+  return `${API_BASE}/auth/login${query ? `?${query}` : ""}`;
+}
+
+/** Every role a JWT `role` claim can carry — school tenant + independent tenant. */
+export type Role = UserRole | IndependentUserRole;
+
+/**
+ * Complete, ordered list of `Role` members — the single source of truth both
+ * `getPostLoginPath` and its test derive their case coverage from (T-239: the
+ * prior switch and its test each hand-listed roles independently, so `student`/
+ * `parent` silently fell through in both without either catching the other).
+ */
+export const ALL_ROLES = [
+  "platform_admin",
+  "district_admin",
+  "school_admin",
+  "coordinator",
+  "teacher",
+  "student",
+  "parent",
+  "independent_teacher",
+  "independent_student",
+] as const satisfies readonly Role[];
+
+// Compile-time completeness check: if `Role` (driven by the generated OpenAPI
+// schema) ever gains a member missing from ALL_ROLES, this line fails to
+// typecheck (`Role` would no longer be assignable to `(typeof ALL_ROLES)[number]`).
+type _AllRolesCovered = Role extends (typeof ALL_ROLES)[number] ? true : never;
+const _allRolesCovered: _AllRolesCovered = true;
+void _allRolesCovered;
+
+function assertNeverRole(role: never): never {
+  throw new Error(`getPostLoginPath: unhandled role "${String(role)}"`);
 }
 
 /** Route a user lands on after login based on role (flow-2 §3.1). */
 export function getPostLoginPath(role: string): string {
-  switch (role) {
+  const typedRole = role as Role;
+  switch (typedRole) {
+    case "platform_admin":
+      return "/admin";
     case "district_admin":
       return "/admin/district/schools";
     case "school_admin":
@@ -88,12 +87,16 @@ export function getPostLoginPath(role: string): string {
       return "/coordinator";
     case "teacher":
       return "/teacher";
+    case "student":
+      return "/student";
+    case "parent":
+      return "/parent";
     case "independent_teacher":
       return "/independent/teacher";
     case "independent_student":
       return "/independent/student";
     default:
-      return "/admin";
+      return assertNeverRole(typedRole);
   }
 }
 
@@ -103,5 +106,32 @@ export function getLogoutUrl(): string {
   const redirectUri = encodeURIComponent(
     (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000") + "/login",
   );
-  return `${authentikBase}/application/o/iqbalai-frontend/end-session/?redirect_uri=${redirectUri}`;
+  // Application slug must match the OIDC blueprint (`iqbalai`, ARCH §6.3) —
+  // NOT the OAuth client_id (`iqbalai-api`). A wrong slug 404s Authentik's
+  // end-session and leaves the browser on a non-/login history entry, so
+  // Back after a later protected-route redirect never lands on /login (T-246).
+  return `${authentikBase}/application/o/iqbalai/end-session/?redirect_uri=${redirectUri}`;
+}
+
+/**
+ * Full logout flow (T-246, ARCH §6.8): calls the API's server-side logout
+ * first — it revokes the Authentik refresh token, blacklists the access
+ * token's jti, and clears both session cookies — then forwards to
+ * Authentik's end-session endpoint to close the SSO session too.
+ *
+ * The backend call is best-effort: a network failure here must not strand
+ * the user in a logged-in-looking state, so this always navigates on to
+ * Authentik's end-session regardless of whether the API call succeeded.
+ *
+ * Uses `location.replace` (not `href` assignment) so the authenticated page
+ * is removed from session history — Back after logout cannot restore it.
+ */
+export async function performLogout(): Promise<void> {
+  try {
+    await authApi.logout();
+  } catch {
+    // Best-effort — the cookies may already be gone/expired; the end-session
+    // redirect below is what actually ends the user's visible session.
+  }
+  window.location.replace(getLogoutUrl());
 }

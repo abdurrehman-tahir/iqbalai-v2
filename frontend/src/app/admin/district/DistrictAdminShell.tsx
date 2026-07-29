@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { School, Menu, X, LogOut, Users } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser, type StoredUser } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import LanguageSwitcher from "@/components/LanguageSwitcher";
 
 const NAV_ITEMS = [
@@ -17,18 +18,13 @@ const NAV_ITEMS = [
 
 export function DistrictAdminShell({ children }: { children: React.ReactNode }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const { user } = useCurrentUser();
   const pathname = usePathname();
   const t = useTranslations("district_admin");
   const tNav = useTranslations("district_admin.nav");
 
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
-
   function handleLogout() {
-    clearToken();
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   function NavLinks({ onNavigate }: { onNavigate?: () => void }) {

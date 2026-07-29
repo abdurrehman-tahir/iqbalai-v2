@@ -24,6 +24,7 @@ import type {
   StudentStudyPlanRead,
   LibraryUploadParams,
   LibraryUploadResponse,
+  MeResponse,
   Notification,
   PersonaRead,
   PersonaUpdate,
@@ -71,7 +72,7 @@ import type {
   ExamFrameworkOption,
 } from "./types";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
 export type {
   Notification,
@@ -106,6 +107,19 @@ export class ApiError extends Error {
     super(message);
     this.name = "ApiError";
   }
+}
+
+/**
+ * T-242 (audit C4): the backend now rejects any state-changing request with
+ * this code when the caller hasn't accepted the current ToS — previously the
+ * modal was decoration (dismissible with no consequence), now it's the only
+ * way past a 403 on the next mutating call. Callers should treat this as "go
+ * re-present the ToS acceptance flow", not a generic error toast.
+ */
+export const TOS_ACCEPTANCE_REQUIRED_CODE = "TOS_ACCEPTANCE_REQUIRED";
+
+export function isTosAcceptanceRequiredError(err: unknown): err is ApiError {
+  return err instanceof ApiError && err.code === TOS_ACCEPTANCE_REQUIRED_CODE;
 }
 
 type ValidationDetail = {
@@ -162,17 +176,25 @@ function parseApiErrorBody(
   };
 }
 
+/**
+ * `token` is accepted but unused (T-245): the session is an HttpOnly cookie
+ * the browser attaches automatically via `credentials: "include"`, never a
+ * JS-held credential. The parameter stays so the ~50 existing call sites
+ * (which read it from `useClientAuth()`) don't all need touching in this
+ * change — a follow-up can drop it once that hook itself is retired.
+ */
 async function request<T>(path: string, options: RequestInit = {}, token?: string): Promise<T> {
+  void token;
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(options.headers as Record<string, string> | undefined),
   };
 
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
-  const res = await fetch(`${API_BASE}${path}`, { ...options, headers });
+  const res = await fetch(`${API_BASE}${path}`, {
+    ...options,
+    headers,
+    credentials: "include",
+  });
 
   if (!res.ok) {
     let errorJson: {
@@ -202,15 +224,11 @@ async function request<T>(path: string, options: RequestInit = {}, token?: strin
 }
 
 async function requestFormData<T>(path: string, formData: FormData, token?: string): Promise<T> {
-  const headers: Record<string, string> = {};
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
-  }
-
+  void token; // T-245: cookie-based session now — see `request()`'s docstring
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers,
     body: formData,
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -231,6 +249,18 @@ async function requestFormData<T>(path: string, formData: FormData, token?: stri
 export const authApi = {
   postLogin: (token: string) =>
     request<PostLoginResponse>("/auth/post-login", { method: "POST" }, token),
+
+  /** Current session's display state (T-245) — cookie-authenticated. */
+  me: () => request<MeResponse>("/auth/me"),
+
+  /**
+   * Server-side logout (T-246, ARCH §6.8): revokes the refresh token at
+   * Authentik, blacklists the access token's jti, and clears both session
+   * cookies. Always resolves — the backend 204s even with a dying/absent
+   * session, so this never blocks the caller from proceeding to the
+   * Authentik end-session redirect.
+   */
+  logout: () => request<void>("/auth/logout", { method: "POST" }),
 
   acceptInvite: (data: AcceptInviteRequest) =>
     request<{ status: string; email?: string; message: string }>("/auth/accept-invite", {
@@ -932,10 +962,11 @@ export interface BulkImportJob {
 }
 
 async function uploadRequest<T>(path: string, formData: FormData, token: string): Promise<T> {
+  void token; // T-245: cookie-based session now — see `request()`'s docstring
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
-    headers: { Authorization: `Bearer ${token}` },
     body: formData,
+    credentials: "include",
   });
 
   if (!res.ok) {
@@ -1075,9 +1106,8 @@ export interface DataRightsStatusRead {
 }
 
 async function downloadRequest(path: string, token: string): Promise<Blob> {
-  const res = await fetch(`${API_BASE}${path}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  void token; // T-245: cookie-based session now — see `request()`'s docstring
+  const res = await fetch(`${API_BASE}${path}`, { credentials: "include" });
   if (!res.ok) {
     let message = `Request failed with status ${res.status}`;
     try {

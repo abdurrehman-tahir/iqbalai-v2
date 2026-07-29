@@ -17,11 +17,15 @@ logger = structlog.get_logger(__name__)
 class AuthentikClientProtocol(Protocol):
     async def create_user(self, *, email: str, name: str, is_active: bool = False) -> str: ...
 
+    async def find_user_by_email(self, email: str) -> str | None: ...
+
     async def activate_user(self, authentik_id: str) -> None: ...
 
     async def deactivate_user(self, authentik_id: str) -> None: ...
 
     async def set_password(self, authentik_id: str, password: str) -> None: ...
+
+    async def set_attributes(self, authentik_id: str, attributes: dict[str, str]) -> None: ...
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None: ...
 
@@ -39,6 +43,12 @@ class DevAuthentikClient:
         self._users[pk] = {"email": email, "name": name, "is_active": is_active, "password": None}
         logger.info("dev_authentik_user_created", pk=pk, email=email, is_active=is_active)
         return pk
+
+    async def find_user_by_email(self, email: str) -> str | None:
+        for pk, user in self._users.items():
+            if user["email"] == email:
+                return pk
+        return None
 
     async def activate_user(self, authentik_id: str) -> None:
         if authentik_id in self._users:
@@ -58,6 +68,11 @@ class DevAuthentikClient:
             pk=authentik_id,
             hint="Set AUTHENTIK_API_TOKEN so invites update real Authentik users",
         )
+
+    async def set_attributes(self, authentik_id: str, attributes: dict[str, str]) -> None:
+        if authentik_id in self._users:
+            self._users[authentik_id]["attributes"] = dict(attributes)
+        logger.info("dev_authentik_attributes_set", pk=authentik_id, attributes=attributes)
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None:
         logger.info("dev_authentik_group_added", pk=authentik_id, group=group_slug)
@@ -131,6 +146,32 @@ class AuthentikClient:
         data = resp.json()
         return str(data["pk"])
 
+    async def find_user_by_email(self, email: str) -> str | None:
+        """Look up an existing user's pk by email, for idempotent provisioning.
+
+        Tries the dedicated `email` filter first, then falls back to Authentik's
+        free-text `search` (some 2024.12 builds ignore `?email=` for akadmin /
+        bootstrap users). Without a working lookup, seed_e2e_auth_users can
+        create a second row for the same address — or fail to reuse the
+        bootstrap identity — and Playwright then authenticates against the
+        wrong password.
+        """
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            for params in ({"email": email}, {"search": email}):
+                resp = await client.get(
+                    f"{self._base_url}/core/users/",
+                    params=params,
+                    headers=self._auth_headers(),
+                )
+                self._raise_for_response(resp, path="/core/users/")
+                results = resp.json().get("results", [])
+                for row in results:
+                    if str(row.get("email", "")).lower() == email.lower():
+                        return str(row["pk"])
+                    if str(row.get("username", "")).lower() == email.lower():
+                        return str(row["pk"])
+        return None
+
     async def activate_user(self, authentik_id: str) -> None:
         await self._request(
             "PATCH",
@@ -150,6 +191,19 @@ class AuthentikClient:
             "POST",
             f"/core/users/{authentik_id}/set_password/",
             json={"password": password},
+        )
+
+    async def set_attributes(self, authentik_id: str, attributes: dict[str, str]) -> None:
+        """Set the user's `attributes` JSON (T-247).
+
+        Used to stamp `role`/`tenant_type` so the OIDC blueprint's claims mapping
+        can emit them into the token for tenant routing (ARCH §3.16/§6.4). PATCH
+        replaces the whole `attributes` object — callers pass the full desired set.
+        """
+        await self._request(
+            "PATCH",
+            f"/core/users/{authentik_id}/",
+            json={"attributes": attributes},
         )
 
     async def add_to_group(self, authentik_id: str, group_slug: str) -> None:

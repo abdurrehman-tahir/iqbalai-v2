@@ -6,9 +6,8 @@ import { usePathname } from "next/navigation";
 import { LayoutDashboard, Library, LogOut, Upload, BookOpen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
-import { clearToken, getLogoutUrl, getUser } from "@/lib/auth";
-import { useEffect, useState } from "react";
-import type { StoredUser } from "@/lib/auth";
+import { performLogout } from "@/lib/auth";
+import { useCurrentUser } from "@/hooks/use-current-user";
 import { TeacherOnboardingGate } from "./TeacherOnboardingGate";
 
 const NAV = [
@@ -21,16 +20,11 @@ const NAV = [
 export function TeacherShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("teacher");
   const pathname = usePathname();
-  const [user, setUser] = useState<StoredUser | null>(null);
+  const { user } = useCurrentUser();
   const onOnboardingPage = pathname.startsWith("/teacher/onboarding");
 
-  useEffect(() => {
-    setUser(getUser());
-  }, []);
-
   function handleLogout() {
-    clearToken();
-    window.location.href = getLogoutUrl();
+    void performLogout();
   }
 
   return (

@@ -9,6 +9,8 @@ import {
   syllabiApi,
   tosApi,
   ApiError,
+  isTosAcceptanceRequiredError,
+  TOS_ACCEPTANCE_REQUIRED_CODE,
 } from "../api/index";
 
 // Helper: build a fake fetch that returns the given body with status 200.
@@ -67,6 +69,39 @@ describe("envelope unwrapping", () => {
       const apiErr = err as ApiError;
       expect(apiErr.status).toBe(403);
       expect(apiErr.code).toBe("FORBIDDEN");
+    }
+  });
+});
+
+// ── isTosAcceptanceRequiredError (T-242) ───────────────────────────────────────
+
+describe("isTosAcceptanceRequiredError", () => {
+  it("maps a TOS_ACCEPTANCE_REQUIRED ApiError to true — the FE's cue to re-present the ToS modal", () => {
+    const err = new ApiError(403, TOS_ACCEPTANCE_REQUIRED_CODE, "Terms of Service acceptance required");
+    expect(isTosAcceptanceRequiredError(err)).toBe(true);
+  });
+
+  it("does not match a different ApiError code (e.g. ACCOUNT_SUSPENDED)", () => {
+    const err = new ApiError(403, "ACCOUNT_SUSPENDED", "Account suspended");
+    expect(isTosAcceptanceRequiredError(err)).toBe(false);
+  });
+
+  it("does not match a non-ApiError value", () => {
+    expect(isTosAcceptanceRequiredError(new Error("boom"))).toBe(false);
+    expect(isTosAcceptanceRequiredError("boom")).toBe(false);
+    expect(isTosAcceptanceRequiredError(null)).toBe(false);
+  });
+
+  it("real backend response shape (403 envelope) round-trips to a matched ApiError", async () => {
+    global.fetch = mockFetch(
+      { error: { code: "TOS_ACCEPTANCE_REQUIRED", message: "Terms of Service acceptance required" } },
+      403,
+    );
+    try {
+      await tosApi.getCurrent("tok");
+      throw new Error("expected tosApi.getCurrent to reject");
+    } catch (err) {
+      expect(isTosAcceptanceRequiredError(err)).toBe(true);
     }
   });
 });
@@ -281,7 +316,10 @@ describe("auditApi + libraryApi", () => {
     expect(url).toContain("title=guide");
     expect(url).toContain("content_type=curriculum");
     expect(init.body).toBeInstanceOf(FormData);
-    expect((init.headers as Record<string, string>).Authorization).toBe("Bearer tok");
-    expect((init.headers as Record<string, string>)["Content-Type"]).toBeUndefined();
+    // T-245: the session is a cookie the browser attaches automatically, not
+    // a header the client builds — no Authorization header, no Content-Type
+    // override (the browser sets the multipart boundary itself).
+    expect(init.headers).toBeUndefined();
+    expect(init.credentials).toBe("include");
   });
 });

@@ -44,8 +44,19 @@ class Settings(BaseSettings):
     OIDC_CLIENT_ID: str = "iqbalai-api"
     OIDC_CLIENT_SECRET: str = "change_me"
     OIDC_JWKS_URL: str = "http://localhost:9000/application/o/iqbalai/jwks/"
+    # Authorize/token endpoints are shared across all Authentik providers (not
+    # slugged per-application like the issuer/JWKS above) — T-244, ARCH §6.4.
+    OIDC_AUTHORIZE_URL: str = "http://localhost:9000/application/o/authorize/"
+    OIDC_TOKEN_URL: str = "http://localhost:9000/application/o/token/"
+    # RFC 7009 revoke endpoint, called at logout (T-246, ARCH §6.8) — also
+    # shared/unslugged, same as authorize/token above.
+    OIDC_REVOKE_URL: str = "http://localhost:9000/application/o/revoke/"
     AUTHENTIK_API_URL: str = "http://localhost:9000/api/v3"
     AUTHENTIK_API_TOKEN: str = ""
+
+    # Cookie session (T-244, ARCH §6.4/§6.17). `Secure` requires HTTPS — strict
+    # by default; local dev over http://localhost sets this false in .env.
+    COOKIE_SECURE: bool = True
 
     # App URLs + email (T-030 invite flow)
     APP_URL: str = "http://localhost:3000"
@@ -63,7 +74,7 @@ class Settings(BaseSettings):
     LLM_PROVIDER: str = "groq"
     LLM_BASE_URL: str = "https://api.groq.com/openai/v1"
     LLM_API_KEY: str = ""
-    LLM_MODEL: str = "llama-3.1-70b-versatile"
+    LLM_MODEL: str = "qwen/qwen3.6-27b"
     LLM_FALLBACK_PROVIDER: str = "openai"
     LLM_FALLBACK_BASE_URL: str = "https://api.openai.com/v1"
     LLM_FALLBACK_API_KEY: str = ""

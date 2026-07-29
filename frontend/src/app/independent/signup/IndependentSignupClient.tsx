@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import Link from "next/link";
 import { independentSignupApi, independentStudentOnboardingApi } from "@/lib/api";
-import { clearToken, getLoginUrl } from "@/lib/auth";
+import { getLoginRedirectUrl } from "@/lib/auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -88,7 +88,6 @@ export function IndependentSignupClient() {
         exam_syllabus_id:
           values.role === "independent_student" ? values.exam_syllabus_id : undefined,
       });
-      clearToken();
       setSignedUpEmail(result.email);
       setDone(true);
     } catch (err) {
@@ -106,7 +105,7 @@ export function IndependentSignupClient() {
           type="button"
           className="inline-flex h-10 items-center justify-center rounded-md bg-brand-600 px-4 text-sm font-medium text-white hover:bg-brand-700"
           onClick={() => {
-            window.location.href = getLoginUrl({
+            window.location.href = getLoginRedirectUrl({
               promptLogin: true,
               loginHint: signedUpEmail ?? undefined,
             });

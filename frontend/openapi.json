@@ -2485,6 +2485,57 @@
         "title": "LibraryUploadResponse",
         "type": "object"
       },
+      "MeResponse": {
+        "description": "Response from GET /api/v1/auth/me (T-245).\n\nTokens are HttpOnly cookies now \u2014 the frontend can't decode them for\ndisplay state (name/role in the shell nav, ownership checks). This is\nthat read: the same claims AuthMiddleware already enriched from the DB\non every authenticated request, just handed back as JSON.",
+        "properties": {
+          "district_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "District Id"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "role": {
+            "title": "Role",
+            "type": "string"
+          },
+          "school_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "School Id"
+          },
+          "tenant_type": {
+            "default": "school",
+            "title": "Tenant Type",
+            "type": "string"
+          },
+          "user_id": {
+            "title": "User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "user_id",
+          "email",
+          "role"
+        ],
+        "title": "MeResponse",
+        "type": "object"
+      },
       "NotificationListResponse": {
         "description": "Paginated notification list with unread counter for the bell badge.",
         "properties": {
@@ -4730,6 +4781,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LibraryBookRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_MeResponse_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MeResponse"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[MeResponse]",
         "type": "object"
       },
       "SuccessEnvelope_OfferingRead_": {
@@ -8170,6 +8238,203 @@
         ]
       }
     },
+    "/api/v1/auth/callback": {
+      "get": {
+        "description": "Validates state, exchanges the code + PKCE verifier with Authentik server-side, validates the id_token nonce, provisions/looks up the user, sets the iqbalai_access/iqbalai_refresh cookies, and redirects to the caller's dashboard. Any failure redirects to a clean error page \u2014 never a hang, never a 500 for an untrusted callback.",
+        "operationId": "auth_callback",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "code",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Code"
+            }
+          },
+          {
+            "in": "query",
+            "name": "state",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "State"
+            }
+          },
+          {
+            "in": "query",
+            "name": "error",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Error"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "302": {
+            "description": "Redirect to the dashboard, or to a login error page"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "OIDC callback \u2014 server-side code+PKCE exchange (ARCH \u00a76.4 steps 7-11)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/login": {
+      "get": {
+        "description": "Generates state (CSRF), nonce, and a PKCE S256 challenge; stores them server-side in Redis keyed by a transient cookie; redirects the browser to Authentik's authorize endpoint. No response body \u2014 always a 302. `prompt_login`/`login_hint` are for post-invite and post-signup flows that need to force a fresh login pre-filled with the verified email, rather than silently reusing an unrelated existing SSO session.",
+        "operationId": "auth_login",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "next",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Next"
+            }
+          },
+          {
+            "in": "query",
+            "name": "prompt_login",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Prompt Login",
+              "type": "boolean"
+            }
+          },
+          {
+            "in": "query",
+            "name": "login_hint",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Login Hint"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "302": {
+            "description": "Redirect to Authentik's authorize endpoint"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start the OIDC login redirect (ARCH \u00a76.4 step 1-2)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/logout": {
+      "post": {
+        "description": "Revokes the refresh token at Authentik, clears both session cookies, and blacklists the access token's jti until it would have naturally expired. Works even with an already-expired or invalid access cookie \u2014 logout must always succeed. No request body, no response body.",
+        "operationId": "auth_logout",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Server-side logout (ARCH \u00a76.8)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/me": {
+      "get": {
+        "description": "Tokens are HttpOnly cookies now \u2014 the frontend can't decode them for display state. Returns the same claims AuthMiddleware already enriched from the DB on every authenticated request.",
+        "operationId": "auth_me",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_MeResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Current user's display state (T-245)",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
     "/api/v1/auth/post-login": {
       "post": {
         "description": "Called by the frontend after every successful Authentik OIDC callback. Creates a User row on first login. Returns ToS acceptance status so the frontend can show the acceptance modal if needed.",
@@ -8187,6 +8452,21 @@
           }
         },
         "summary": "Post-OIDC-login handler",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/api/v1/auth/refresh": {
+      "post": {
+        "description": "Reads the opaque iqbalai_refresh reference, resolves it to the real Authentik refresh token server-side, exchanges it for a new access token, and rotates the reference (single-use). No request body.",
+        "operationId": "auth_refresh",
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Refresh the access token from the iqbalai_refresh cookie (ARCH \u00a76.9)",
         "tags": [
           "auth"
         ]

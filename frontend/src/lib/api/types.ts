@@ -9,6 +9,11 @@ import type { components } from "./schema";
 
 type Schemas = components["schemas"];
 
+// ── Auth / role types ──────────────────────────────────────────────────────────
+export type UserRole = Schemas["UserRole"];
+export type IndependentUserRole = Schemas["IndependentUserRole"];
+export type MeResponse = Schemas["MeResponse"];
+
 // ── Request / create types ────────────────────────────────────────────────────
 export type ExamSyllabusCreate = Schemas["ExamSyllabusCreate"];
 export type ExamSyllabusUpdate = Schemas["ExamSyllabusUpdate"];

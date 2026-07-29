@@ -493,6 +493,86 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/auth/callback": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * OIDC callback — server-side code+PKCE exchange (ARCH §6.4 steps 7-11)
+         * @description Validates state, exchanges the code + PKCE verifier with Authentik server-side, validates the id_token nonce, provisions/looks up the user, sets the iqbalai_access/iqbalai_refresh cookies, and redirects to the caller's dashboard. Any failure redirects to a clean error page — never a hang, never a 500 for an untrusted callback.
+         */
+        get: operations["auth_callback"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/login": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Start the OIDC login redirect (ARCH §6.4 step 1-2)
+         * @description Generates state (CSRF), nonce, and a PKCE S256 challenge; stores them server-side in Redis keyed by a transient cookie; redirects the browser to Authentik's authorize endpoint. No response body — always a 302. `prompt_login`/`login_hint` are for post-invite and post-signup flows that need to force a fresh login pre-filled with the verified email, rather than silently reusing an unrelated existing SSO session.
+         */
+        get: operations["auth_login"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/logout": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Server-side logout (ARCH §6.8)
+         * @description Revokes the refresh token at Authentik, clears both session cookies, and blacklists the access token's jti until it would have naturally expired. Works even with an already-expired or invalid access cookie — logout must always succeed. No request body, no response body.
+         */
+        post: operations["auth_logout"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/me": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Current user's display state (T-245)
+         * @description Tokens are HttpOnly cookies now — the frontend can't decode them for display state. Returns the same claims AuthMiddleware already enriched from the DB on every authenticated request.
+         */
+        get: operations["auth_me"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/auth/post-login": {
         parameters: {
             query?: never;
@@ -507,6 +587,26 @@ export interface paths {
          * @description Called by the frontend after every successful Authentik OIDC callback. Creates a User row on first login. Returns ToS acceptance status so the frontend can show the acceptance modal if needed.
          */
         post: operations["post_login"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/auth/refresh": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Refresh the access token from the iqbalai_refresh cookie (ARCH §6.9)
+         * @description Reads the opaque iqbalai_refresh reference, resolves it to the real Authentik refresh token server-side, exchanges it for a new access token, and rotates the reference (single-use). No request body.
+         */
+        post: operations["auth_refresh"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3192,6 +3292,32 @@ export interface components {
             upload_id: string;
         };
         /**
+         * MeResponse
+         * @description Response from GET /api/v1/auth/me (T-245).
+         *
+         *     Tokens are HttpOnly cookies now — the frontend can't decode them for
+         *     display state (name/role in the shell nav, ownership checks). This is
+         *     that read: the same claims AuthMiddleware already enriched from the DB
+         *     on every authenticated request, just handed back as JSON.
+         */
+        MeResponse: {
+            /** District Id */
+            district_id?: string | null;
+            /** Email */
+            email: string;
+            /** Role */
+            role: string;
+            /** School Id */
+            school_id?: string | null;
+            /**
+             * Tenant Type
+             * @default school
+             */
+            tenant_type: string;
+            /** User Id */
+            user_id: string;
+        };
+        /**
          * NotificationListResponse
          * @description Paginated notification list with unread counter for the bell badge.
          */
@@ -4161,6 +4287,15 @@ export interface components {
         /** SuccessEnvelope[LibraryBookRead] */
         SuccessEnvelope_LibraryBookRead_: {
             data: components["schemas"]["LibraryBookRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[MeResponse] */
+        SuccessEnvelope_MeResponse_: {
+            data: components["schemas"]["MeResponse"];
             /**
              * Message
              * @default ok
@@ -6296,6 +6431,124 @@ export interface operations {
             };
         };
     };
+    auth_callback: {
+        parameters: {
+            query?: {
+                code?: string | null;
+                state?: string | null;
+                error?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Redirect to the dashboard, or to a login error page */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auth_login: {
+        parameters: {
+            query?: {
+                next?: string | null;
+                prompt_login?: boolean;
+                login_hint?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Redirect to Authentik's authorize endpoint */
+            302: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    auth_logout: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
+            };
+        };
+    };
+    auth_me: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_MeResponse_"];
+                };
+            };
+        };
+    };
     post_login: {
         parameters: {
             query?: never;
@@ -6313,6 +6566,24 @@ export interface operations {
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_PostLoginResponse_"];
                 };
+            };
+        };
+    };
+    auth_refresh: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content?: never;
             };
         };
     };
