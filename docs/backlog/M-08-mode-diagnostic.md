@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-101 through T-112
 **Spec source:** `flow-4-student-onboarding.md` v3 §3.4 (Mode selection #53), §3.6 (Diagnostic #51), §3.7 (Exam date approach #52)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { auditActionLabelKey, isFlaggedAuditEntry } from "@/lib/audit/actionLabels";
+import { auditActionLabelKey } from "@/lib/audit/actionLabels";
 
 describe("audit action labels (T-066)", () => {
   it("maps M-04 library actions to label keys", () => {
