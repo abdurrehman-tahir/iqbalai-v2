@@ -277,6 +277,19 @@ class StudentOnboardingService:
             },
         )
         logger.info("school_student_ready_to_study", user_id=user.id)
+        from app.features.diagnostics.notifications import (
+            notify_diagnostic_available,
+            safe_notify,
+        )
+
+        await safe_notify(
+            notify_diagnostic_available(
+                session=self._session,
+                recipient_user_id=user.authentik_id,
+                school_id=user.school_id,
+                locale=profile.language_preference,
+            )
+        )
         grade_id = await self._active_enrollment_grade_id(user.id)
         return derive_school_student_state(user=user, profile=profile, enrollment_grade_id=grade_id)
 

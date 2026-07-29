@@ -81,6 +81,10 @@ class SchoolDiagnostic(AuditMixin, SoftDeleteMixin, Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    # T-109: set when retake-available notification has been sent (idempotent sweep).
+    retake_available_notified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:
@@ -127,6 +131,9 @@ class IndependentDiagnostic(AuditMixin, SoftDeleteMixin, Base):
     started_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     completed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    retake_available_notified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:

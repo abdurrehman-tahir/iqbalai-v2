@@ -20,6 +20,10 @@ def _patch(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     monkeypatch.setattr("app.features.diagnostics.service.CognitiveDnaRepository", _FakeDnaRepo)
     publish = AsyncMock()
     monkeypatch.setattr("app.features.diagnostics.service.publish_diagnostic_completed", publish)
+    monkeypatch.setattr(
+        "app.features.diagnostics.service.DiagnosticService._notify_completed",
+        AsyncMock(),
+    )
     return publish
 
 

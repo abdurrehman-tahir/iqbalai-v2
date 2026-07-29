@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from datetime import datetime
 from typing import cast
 
 from sqlalchemy import select
@@ -10,7 +11,11 @@ from sqlalchemy.sql import ColumnElement
 
 from app.core.tenant import TenantType
 from app.db.base import not_deleted
-from app.features.diagnostics.models import IndependentDiagnostic, SchoolDiagnostic
+from app.features.diagnostics.models import (
+    DiagnosticStatus,
+    IndependentDiagnostic,
+    SchoolDiagnostic,
+)
 
 DiagnosticRow = SchoolDiagnostic | IndependentDiagnostic
 
@@ -63,6 +68,21 @@ class DiagnosticRepository:
                     subject_id=subject_id,
                     framework_id=framework_id,
                 )
+            )
+        )
+        return cast(list[DiagnosticRow], list(result.scalars().all()))
+
+    async def list_retake_notify_candidates(
+        self, *, cooldown_elapsed_before: datetime
+    ) -> list[DiagnosticRow]:
+        """Completed diagnostics whose cooldown has elapsed and not yet notified."""
+        result = await self._session.execute(
+            select(self._model).where(
+                self._model.status == DiagnosticStatus.COMPLETED,
+                self._model.completed_at.is_not(None),
+                self._model.completed_at <= cooldown_elapsed_before,
+                self._model.retake_available_notified_at.is_(None),
+                not_deleted(self._model),
             )
         )
         return cast(list[DiagnosticRow], list(result.scalars().all()))

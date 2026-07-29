@@ -48,12 +48,75 @@ SELF_STUDY_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "self_study.diagnostic_available": {
+        "default": {
+            "en": {
+                "title": "Diagnostic available",
+                "body": "You are ready to take a short diagnostic. It helps us suggest focus areas — never a grade.",  # noqa: E501
+            },
+            "ur": {
+                "title": "تشخیصی ٹیسٹ دستیاب ہے",
+                "body": "آپ ایک مختصر تشخیصی ٹیسٹ دے سکتے ہیں۔ یہ توجہ کے شعبے بتاتا ہے — کبھی بھی نمبر نہیں۔",  # noqa: E501
+            },
+            "sd": {
+                "title": "تشخيصي ٽيسٽ موجود آهي",
+                "body": "توهان مختصر تشخيصي ٽيسٽ وٺي سگهو ٿا۔ اهو ڌيان جا علائقا ٻڌائي ٿو — ڪڏهن به نمبر نه۔",  # noqa: E501
+            },
+            "ps": {
+                "title": "تشخیصي ازموینه شته",
+                "body": "تاسو یوه لنډه تشخیصي ازموینه اخیستلی شئ۔ دا د تمرکز ساحې وړاندیز کوي — هیڅکله نمره نه.",  # noqa: E501
+            },
+        }
+    },
+    "self_study.diagnostic_completed": {
+        "default": {
+            "en": {
+                "title": "Diagnostic complete — focus areas",
+                "body": "Nice work. Areas to focus on: {focus_areas}. This is coaching guidance, not a grade or score.",  # noqa: E501
+            },
+            "ur": {
+                "title": "تشخیص مکمل — توجہ کے شعبے",
+                "body": "اچھا کام۔ توجہ دیں: {focus_areas}۔ یہ رہنمائی ہے، نمبر یا اسکور نہیں۔",  # noqa: E501
+            },
+            "sd": {
+                "title": "تشخيص مڪمل — ڌيان جا علائقا",
+                "body": "سٺو ڪم۔ ڌيان ڏيو: {focus_areas}۔ هي رهنمائي آهي، نمبر يا اسڪور نه۔",  # noqa: E501
+            },
+            "ps": {
+                "title": "تشخیص بشپړه — د تمرکز ساحې",
+                "body": "ښه کار. تمرکز وکړئ: {focus_areas}. دا لارښوونه ده، نمره یا سکور نه.",  # noqa: E501
+            },
+        }
+    },
+    "self_study.diagnostic_retake_available": {
+        "default": {
+            "en": {
+                "title": "Diagnostic retake available",
+                "body": "It has been 30 days since your last diagnostic. You can retake it to refresh your focus areas.",  # noqa: E501
+            },
+            "ur": {
+                "title": "دوبارہ تشخیص دستیاب ہے",
+                "body": "آخری تشخیص کے بعد ۳۰ دن گزر چکے ہیں۔ آپ توجہ کے شعبے تازہ کرنے کے لیے دوبارہ دے سکتے ہیں۔",  # noqa: E501
+            },
+            "sd": {
+                "title": "ٻيهر تشخيص موجود آهي",
+                "body": "آخري تشخيص کان پوءِ ۳۰ ڏينهن گذري ويا آهن۔ توهان ڌيان جا علائقا تازا ڪرڻ لاءِ ٻيهر وٺي سگهو ٿا۔",  # noqa: E501
+            },
+            "ps": {
+                "title": "بیا تشخیصي ازموینه شته",
+                "body": "ستاسو د وروستۍ تشخیصې راهیسې ۳۰ ورځې تېرې شوې. تاسو کولی شئ بیا یې واخلئ ترڅو د تمرکز ساحې تازه کړئ.",  # noqa: E501
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
     # in_app only — FCM push / email channel publishers deferred (T-023 / Phase 2).
     "self_study.exam_countdown": frozenset({"in_app"}),
     "self_study.exam_passed": frozenset({"in_app"}),
+    "self_study.diagnostic_available": frozenset({"in_app"}),
+    "self_study.diagnostic_completed": frozenset({"in_app"}),
+    "self_study.diagnostic_retake_available": frozenset({"in_app"}),
 }
 
 

@@ -48,6 +48,20 @@ class _FakeRepo:
             rows.append(row)
         return rows
 
+    async def list_retake_notify_candidates(self, *, cooldown_elapsed_before: Any) -> list[Any]:
+        from app.features.diagnostics.models import DiagnosticStatus
+
+        rows = []
+        for row in self.store.values():
+            if row.status != DiagnosticStatus.COMPLETED:
+                continue
+            if row.completed_at is None or row.completed_at > cooldown_elapsed_before:
+                continue
+            if getattr(row, "retake_available_notified_at", None) is not None:
+                continue
+            rows.append(row)
+        return rows
+
     async def create(self, row: Any) -> Any:
         self.store[row.id] = row
         return row
@@ -102,6 +116,10 @@ def _patch_repo(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.diagnostics.service.CognitiveDnaRepository", _FakeDnaRepo)
     monkeypatch.setattr(
         "app.features.diagnostics.service.publish_diagnostic_completed",
+        AsyncMock(),
+    )
+    monkeypatch.setattr(
+        "app.features.diagnostics.service.DiagnosticService._notify_completed",
         AsyncMock(),
     )
 

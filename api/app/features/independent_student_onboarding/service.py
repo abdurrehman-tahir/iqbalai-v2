@@ -134,6 +134,19 @@ class IndependentStudentOnboardingService:
         profile = await self._profile_repo.update(profile)
 
         logger.info("independent_student_profile_completed", user_id=user.id)
+        from app.features.diagnostics.notifications import (
+            notify_diagnostic_available,
+            safe_notify,
+        )
+
+        await safe_notify(
+            notify_diagnostic_available(
+                session=self._session,
+                recipient_user_id=user.authentik_id,
+                school_id=None,
+                locale=profile.language_preference,
+            )
+        )
         return derive_independent_student_state(profile=profile, future_date_warning_msg=warning)
 
     async def set_exam_date(

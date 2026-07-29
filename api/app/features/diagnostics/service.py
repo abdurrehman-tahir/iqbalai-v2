@@ -278,7 +278,103 @@ class DiagnosticService:
             completed_at=completed_iso,
             timed_out=timed_out,
         )
+        await self._notify_completed(row, result)
         return result
+
+    async def _resolve_notify_recipient(
+        self, student_user_id: str
+    ) -> tuple[str | None, str | None, str]:
+        """Return (authentik_id, school_id, locale) for diagnostic notifications."""
+        from app.features.independent_student_onboarding.repository import (
+            IndependentStudentProfileRepository,
+        )
+        from app.features.independent_users.repository import IndependentUserRepository
+        from app.features.student_onboarding.repository import StudentProfileRepository
+        from app.features.users.repository import UserRepository
+
+        if self._tenant_type == "independent":
+            ind_user = await IndependentUserRepository(self._session).get_by_id(student_user_id)
+            ind_profile = await IndependentStudentProfileRepository(self._session).get_by_user_id(
+                student_user_id
+            )
+            recipient = ind_user.authentik_id if ind_user is not None else None
+            locale = ind_profile.language_preference if ind_profile is not None else "en"
+            return recipient, None, locale
+
+        school_user = await UserRepository(self._session).get_by_id(student_user_id)
+        school_profile = await StudentProfileRepository(self._session).get_by_user_id(
+            student_user_id
+        )
+        recipient = school_user.authentik_id if school_user is not None else None
+        school_id = school_user.school_id if school_user is not None else None
+        locale = school_profile.language_preference if school_profile is not None else "en"
+        return recipient, school_id, locale
+
+    async def _notify_completed(self, row: DiagnosticRow, result: DiagnosticResultRead) -> None:
+        """In-app focus-areas summary (T-109); never grades."""
+        from app.features.diagnostics.notifications import (
+            notify_diagnostic_completed,
+            safe_notify,
+        )
+
+        recipient, school_id, locale = await self._resolve_notify_recipient(row.student_user_id)
+        if not recipient:
+            return
+        await safe_notify(
+            notify_diagnostic_completed(
+                session=self._session,
+                recipient_user_id=recipient,
+                school_id=school_id,
+                locale=locale,
+                focus_areas=result.focus_areas,
+                diagnostic_id=row.id,
+            )
+        )
+
+    async def send_retake_available_notifications(self) -> int:
+        """Notify students whose 30-day retake cooldown has elapsed (T-109)."""
+        from app.features.diagnostics.notifications import (
+            notify_diagnostic_retake_available,
+            safe_notify,
+        )
+
+        cutoff = _utcnow() - RETAKE_COOLDOWN
+        candidates = await self._repo.list_retake_notify_candidates(cooldown_elapsed_before=cutoff)
+        count = 0
+        now = _utcnow()
+        for row in candidates:
+            # Skip if a newer attempt already exists for the same scope.
+            siblings = await self._repo.list_for_scope(
+                student_user_id=row.student_user_id,
+                subject_id=row.subject_id,
+                framework_id=row.framework_id,
+            )
+            if any(
+                s.id != row.id
+                and s.started_at is not None
+                and row.completed_at is not None
+                and s.started_at > row.completed_at
+                for s in siblings
+            ):
+                row.retake_available_notified_at = now
+                await self._repo.update(row)
+                continue
+
+            recipient, school_id, locale = await self._resolve_notify_recipient(row.student_user_id)
+            if recipient:
+                await safe_notify(
+                    notify_diagnostic_retake_available(
+                        session=self._session,
+                        recipient_user_id=recipient,
+                        school_id=school_id,
+                        locale=locale,
+                        diagnostic_id=row.id,
+                    )
+                )
+                count += 1
+            row.retake_available_notified_at = now
+            await self._repo.update(row)
+        return count
 
     def _to_result(self, row: DiagnosticRow, *, timed_out: bool) -> DiagnosticResultRead:
         read = self._to_read(row)
