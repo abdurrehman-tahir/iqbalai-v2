@@ -1,7 +1,7 @@
 # Session state (Cursor)
 
-- Ticket: T-111 done (`3811fc3`); T-112 opening PR
-- Status: M-08 complete on branch (PR pending)
-- Branch: milestone/M-08-mode-diagnostic (merged staging @ a73aee2)
-- Next: PR → staging; after merge start M-09 via ticket-loader
-- Note: sync via merge (not rebase) per BRANCHING rules
+- Ticket: M-08 T-101–T-112 done; CI fixes pushed
+- Status: PR #28 open → staging (rebase onto staging tip)
+- Branch: milestone/M-08-mode-diagnostic
+- Next: wait CI green; then M-09 after merge
+- Fixes: PR header `Milestone & feature reference`; ROADMAP M-08=done; unused import
