@@ -394,7 +394,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 6
 **Milestone:** M-08
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** `3811fc3`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.4, §3.6, §3.7
@@ -430,7 +431,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 6
 **Milestone:** M-08
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** `3811fc3` (PR open — merge pending CI + demo)
 
 ### Spec source
 - `flow-4-student-onboarding.md` v3 §3.4, §3.6, §3.7
