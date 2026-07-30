@@ -1,12 +1,14 @@
-"""Lecture draft repository — school schema (T-114)."""
+"""Lecture draft + lecture row repository — school schema (T-114/T-115)."""
 
 from __future__ import annotations
+
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import not_deleted
-from app.features.lectures.models import SchoolLectureDraft
+from app.features.lectures.models import SchoolLecture, SchoolLectureDraft
 
 
 class LectureDraftRepository:
@@ -32,3 +34,18 @@ class LectureDraftRepository:
         await self._session.commit()
         await self._session.refresh(draft)
         return draft
+
+    async def soft_delete(self, draft: SchoolLectureDraft) -> None:
+        draft.deleted_at = datetime.now(timezone.utc)
+        await self._session.commit()
+
+
+class LectureRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def create(self, lecture: SchoolLecture) -> SchoolLecture:
+        self._session.add(lecture)
+        await self._session.commit()
+        await self._session.refresh(lecture)
+        return lecture

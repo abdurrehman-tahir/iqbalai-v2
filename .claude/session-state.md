@@ -2,7 +2,7 @@
 
 **Milestone:** M-09 Lecture Wizard + AI Generation
 **Branch:** milestone/M-09-lecture-wizard-generation
-**Done:** T-113 (`cf19314`), T-114 (`604fc01`)
-**Current ticket:** T-115 (next)
-**Next:** ticket-loader for T-115 — Wizard steps 3–5
-**Out of scope reminder:** Generation → T-116; edit/scoring → M-10
+**Done:** T-113 (`cf19314`), T-114 (`604fc01`), T-115 (committing)
+**Current ticket:** T-115
+**Next:** T-116 Pattern S dual-RAG Celery pipeline
+**Out of scope reminder:** Streaming UI → T-117; edit → M-10

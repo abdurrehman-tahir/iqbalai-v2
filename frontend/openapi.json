@@ -2708,6 +2708,76 @@
         "title": "LectureDraftUpsert",
         "type": "object"
       },
+      "LectureGenerateRead": {
+        "properties": {
+          "estimated_seconds": {
+            "title": "Estimated Seconds",
+            "type": "integer"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "status",
+          "estimated_seconds"
+        ],
+        "title": "LectureGenerateRead",
+        "type": "object"
+      },
+      "LectureGenerateRequest": {
+        "description": "Commit wizard \u2192 create lecture in GENERATING (pipeline is T-116).",
+        "properties": {
+          "curriculum_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Curriculum Id",
+            "type": "string"
+          },
+          "grade_subject_offering_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Grade Subject Offering Id",
+            "type": "string"
+          },
+          "include_cross_grade": {
+            "default": false,
+            "title": "Include Cross Grade",
+            "type": "boolean"
+          },
+          "reference_book_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Reference Book Ids",
+            "type": "array"
+          },
+          "teaching_mode": {
+            "$ref": "#/components/schemas/TeachingMode"
+          },
+          "topic": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grade_subject_offering_id",
+          "topic",
+          "curriculum_id",
+          "teaching_mode"
+        ],
+        "title": "LectureGenerateRequest",
+        "type": "object"
+      },
       "LibraryBookListResponse": {
         "description": "Paginated list of platform reference books.",
         "properties": {
@@ -5281,6 +5351,23 @@
         "title": "SuccessEnvelope[LectureDraftRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureGenerateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureGenerateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureGenerateRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LibraryBookListResponse_": {
         "properties": {
           "data": {
@@ -5825,6 +5912,23 @@
         "title": "SuccessEnvelope[UserRead]",
         "type": "object"
       },
+      "SuccessEnvelope_WizardEstimateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/WizardEstimateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[WizardEstimateRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_WizardTopicsRead_": {
         "properties": {
           "data": {
@@ -6262,6 +6366,27 @@
         "title": "SuccessEnvelope[list[WizardCurriculumRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_WizardReferenceRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/WizardReferenceRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[WizardReferenceRead]]",
+        "type": "object"
+      },
       "SyllabusTopicCreate": {
         "description": "Payload for creating a new SyllabusTopic.",
         "properties": {
@@ -6633,6 +6758,16 @@
         ],
         "title": "TeacherProfileRead",
         "type": "object"
+      },
+      "TeachingMode": {
+        "description": "Wizard Step 4 teaching mode (Flow 5 \u00a73.1).",
+        "enum": [
+          "auto",
+          "manual",
+          "voice_assisted"
+        ],
+        "title": "TeachingMode",
+        "type": "string"
       },
       "TosAcceptRequest": {
         "description": "User accepts the current ToS.",
@@ -7041,6 +7176,82 @@
           "parse_degraded"
         ],
         "title": "WizardCurriculumRead",
+        "type": "object"
+      },
+      "WizardEstimateRead": {
+        "description": "Step 5 estimated generation time.",
+        "properties": {
+          "estimated_seconds": {
+            "title": "Estimated Seconds",
+            "type": "integer"
+          },
+          "reference_count": {
+            "title": "Reference Count",
+            "type": "integer"
+          },
+          "teaching_mode": {
+            "$ref": "#/components/schemas/TeachingMode"
+          }
+        },
+        "required": [
+          "estimated_seconds",
+          "reference_count",
+          "teaching_mode"
+        ],
+        "title": "WizardEstimateRead",
+        "type": "object"
+      },
+      "WizardReferenceRead": {
+        "description": "Reference book option for Step 3.",
+        "properties": {
+          "grade_level_ordinal": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Level Ordinal"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_cross_grade": {
+            "title": "Is Cross Grade",
+            "type": "boolean"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "subject_id",
+          "grade_level_ordinal",
+          "language",
+          "is_cross_grade"
+        ],
+        "title": "WizardReferenceRead",
         "type": "object"
       },
       "WizardTopicOption": {
@@ -14079,6 +14290,154 @@
           }
         },
         "summary": "List curricula for an assigned Grade-Subject (primary flagged)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/estimate": {
+      "get": {
+        "operationId": "teacher_get_wizard_estimate",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "teaching_mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeachingMode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reference_count",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 20,
+              "minimum": 0,
+              "title": "Reference Count",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_WizardEstimateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Estimated generation time for Step 5",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/generate": {
+      "post": {
+        "operationId": "teacher_generate_lecture",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureGenerateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Commit wizard and transition lecture to GENERATING",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/references": {
+      "get": {
+        "operationId": "teacher_list_wizard_references",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "grade_subject_offering_id",
+            "required": true,
+            "schema": {
+              "maxLength": 36,
+              "minLength": 1,
+              "title": "Grade Subject Offering Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_cross_grade",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Cross Grade",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_WizardReferenceRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List reference books for Step 3 (cross-grade toggle)",
         "tags": [
           "lecture-wizard"
         ]

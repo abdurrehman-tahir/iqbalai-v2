@@ -2317,6 +2317,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/lecture-wizard/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Estimated generation time for Step 5 */
+        get: operations["teacher_get_wizard_estimate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lecture-wizard/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Commit wizard and transition lecture to GENERATING */
+        post: operations["teacher_generate_lecture"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lecture-wizard/references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List reference books for Step 3 (cross-grade toggle) */
+        get: operations["teacher_list_wizard_references"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/lecture-wizard/topics": {
         parameters: {
             query?: never;
@@ -3590,6 +3641,35 @@ export interface components {
             /** Step */
             step: number;
         };
+        /** LectureGenerateRead */
+        LectureGenerateRead: {
+            /** Estimated Seconds */
+            estimated_seconds: number;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Status */
+            status: string;
+        };
+        /**
+         * LectureGenerateRequest
+         * @description Commit wizard → create lecture in GENERATING (pipeline is T-116).
+         */
+        LectureGenerateRequest: {
+            /** Curriculum Id */
+            curriculum_id: string;
+            /** Grade Subject Offering Id */
+            grade_subject_offering_id: string;
+            /**
+             * Include Cross Grade
+             * @default false
+             */
+            include_cross_grade: boolean;
+            /** Reference Book Ids */
+            reference_book_ids?: string[];
+            teaching_mode: components["schemas"]["TeachingMode"];
+            /** Topic */
+            topic: string;
+        };
         /**
          * LibraryBookListResponse
          * @description Paginated list of platform reference books.
@@ -4720,6 +4800,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LectureGenerateRead] */
+        SuccessEnvelope_LectureGenerateRead_: {
+            data: components["schemas"]["LectureGenerateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LibraryBookListResponse] */
         SuccessEnvelope_LibraryBookListResponse_: {
             data: components["schemas"]["LibraryBookListResponse"];
@@ -5008,6 +5097,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[WizardEstimateRead] */
+        SuccessEnvelope_WizardEstimateRead_: {
+            data: components["schemas"]["WizardEstimateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[WizardTopicsRead] */
         SuccessEnvelope_WizardTopicsRead_: {
             data: components["schemas"]["WizardTopicsRead"];
@@ -5217,6 +5315,16 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[list[WizardReferenceRead]] */
+        SuccessEnvelope_list_WizardReferenceRead__: {
+            /** Data */
+            data: components["schemas"]["WizardReferenceRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /**
          * SyllabusTopicCreate
          * @description Payload for creating a new SyllabusTopic.
@@ -5369,6 +5477,12 @@ export interface components {
             /** User Id */
             user_id: string;
         };
+        /**
+         * TeachingMode
+         * @description Wizard Step 4 teaching mode (Flow 5 §3.1).
+         * @enum {string}
+         */
+        TeachingMode: "auto" | "manual" | "voice_assisted";
         /**
          * TosAcceptRequest
          * @description User accepts the current ToS.
@@ -5560,6 +5674,35 @@ export interface components {
             topic_tree_jsonb?: {
                 [key: string]: unknown;
             } | null;
+        };
+        /**
+         * WizardEstimateRead
+         * @description Step 5 estimated generation time.
+         */
+        WizardEstimateRead: {
+            /** Estimated Seconds */
+            estimated_seconds: number;
+            /** Reference Count */
+            reference_count: number;
+            teaching_mode: components["schemas"]["TeachingMode"];
+        };
+        /**
+         * WizardReferenceRead
+         * @description Reference book option for Step 3.
+         */
+        WizardReferenceRead: {
+            /** Grade Level Ordinal */
+            grade_level_ordinal: number | null;
+            /** Id */
+            id: string;
+            /** Is Cross Grade */
+            is_cross_grade: boolean;
+            /** Language */
+            language: string;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Title */
+            title: string;
         };
         /**
          * WizardTopicOption
@@ -10535,6 +10678,103 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_list_WizardCurriculumRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_wizard_estimate: {
+        parameters: {
+            query: {
+                teaching_mode: components["schemas"]["TeachingMode"];
+                reference_count?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_WizardEstimateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_generate_lecture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureGenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureGenerateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_wizard_references: {
+        parameters: {
+            query: {
+                grade_subject_offering_id: string;
+                include_cross_grade?: boolean;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_WizardReferenceRead__"];
                 };
             };
             /** @description Validation Error */

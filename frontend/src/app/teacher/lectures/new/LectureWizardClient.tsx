@@ -4,7 +4,11 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { lectureWizardApi, ApiError } from "@/lib/api";
-import type { LectureDraftUpsert, TeacherOfferingRead } from "@/lib/api/types";
+import type {
+  LectureDraftUpsert,
+  LectureGenerateRequest,
+  TeacherOfferingRead,
+} from "@/lib/api/types";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,6 +21,10 @@ type WizardData = {
   topic?: string;
   topic_source?: "tree" | "freeform";
   curriculum_id?: string;
+  reference_book_ids?: string[];
+  include_cross_grade?: boolean;
+  teaching_mode?: "auto" | "manual" | "voice_assisted";
+  lecture_id?: string;
 };
 
 export function LectureWizardClient() {
@@ -366,13 +374,126 @@ export function LectureWizardClient() {
             <Button
               type="button"
               disabled={!data.curriculum_id}
-              onClick={() => persist(2, data)}
+              onClick={() => persist(3, data)}
             >
-              {t("save_continue")}
+              {t("next")}
             </Button>
           </div>
-          <p className="text-xs text-gray-500">{t("steps_3_5_later")}</p>
         </section>
+      ) : null}
+
+      {step === 3 ? (
+        <section className="space-y-4" aria-labelledby="wizard-step3">
+          <h3 id="wizard-step3" className="text-lg font-medium text-gray-900">
+            {t("step3_title")}
+          </h3>
+          <label className="flex items-center gap-3 text-sm text-gray-800">
+            <input
+              type="checkbox"
+              className="size-4"
+              checked={Boolean(data.include_cross_grade)}
+              onChange={(e) => {
+                const next = {
+                  ...data,
+                  include_cross_grade: e.target.checked,
+                  reference_book_ids: [] as string[],
+                };
+                persist(3, next);
+              }}
+            />
+            {t("cross_grade_toggle")}
+          </label>
+          <ReferencesStep
+            token={token!}
+            offeringId={data.grade_subject_offering_id!}
+            includeCrossGrade={Boolean(data.include_cross_grade)}
+            selected={data.reference_book_ids ?? []}
+            onToggle={(id) => {
+              const current = new Set(data.reference_book_ids ?? []);
+              if (current.has(id)) current.delete(id);
+              else current.add(id);
+              setData((prev) => ({
+                ...prev,
+                reference_book_ids: Array.from(current),
+              }));
+            }}
+            labels={{
+              loading: t("refs_loading"),
+              empty: t("refs_empty"),
+              error: t("refs_error"),
+              retry: t("retry"),
+              crossBadge: t("cross_grade_badge"),
+            }}
+          />
+          <div className="flex justify-between gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={() => persist(2, data)}>
+              {t("back")}
+            </Button>
+            <Button
+              type="button"
+              onClick={() =>
+                persist(4, {
+                  ...data,
+                  reference_book_ids: data.reference_book_ids ?? [],
+                  include_cross_grade: Boolean(data.include_cross_grade),
+                })
+              }
+            >
+              {t("next")}
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
+      {step === 4 ? (
+        <section className="space-y-4" aria-labelledby="wizard-step4">
+          <h3 id="wizard-step4" className="text-lg font-medium text-gray-900">
+            {t("step4_title")}
+          </h3>
+          <fieldset className="space-y-2">
+            <legend className="sr-only">{t("step4_title")}</legend>
+            {(["auto", "manual", "voice_assisted"] as const).map((mode) => (
+              <label
+                key={mode}
+                className="flex cursor-pointer items-start gap-3 rounded-md border border-gray-200 p-3 hover:bg-gray-50"
+              >
+                <input
+                  type="radio"
+                  name="teaching_mode"
+                  className="mt-1 size-4"
+                  checked={data.teaching_mode === mode}
+                  onChange={() => setData((prev) => ({ ...prev, teaching_mode: mode }))}
+                />
+                <span className="text-sm text-gray-900">{t(`mode_${mode}`)}</span>
+              </label>
+            ))}
+          </fieldset>
+          <div className="flex justify-between gap-3 pt-2">
+            <Button type="button" variant="outline" onClick={() => persist(3, data)}>
+              {t("back")}
+            </Button>
+            <Button
+              type="button"
+              disabled={!data.teaching_mode}
+              onClick={() => persist(5, data)}
+            >
+              {t("next")}
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
+      {step === 5 ? (
+        <Step5Confirm
+          token={token!}
+          data={data}
+          selectedOffering={selectedOffering}
+          t={t}
+          onBack={() => persist(4, data)}
+          onGenerated={(lectureId) => {
+            setData((prev) => ({ ...prev, lecture_id: lectureId }));
+          }}
+        />
       ) : null}
     </div>
   );
@@ -400,4 +521,180 @@ function CurriculumBootstrap({
   }, [data, onReady]);
 
   return null;
+}
+
+function ReferencesStep({
+  token,
+  offeringId,
+  includeCrossGrade,
+  selected,
+  onToggle,
+  labels,
+}: {
+  token: string;
+  offeringId: string;
+  includeCrossGrade: boolean;
+  selected: string[];
+  onToggle: (id: string) => void;
+  labels: {
+    loading: string;
+    empty: string;
+    error: string;
+    retry: string;
+    crossBadge: string;
+  };
+}) {
+  const query = useQuery({
+    queryKey: ["teacher", "wizard-refs", offeringId, includeCrossGrade],
+    queryFn: () => lectureWizardApi.listReferences(token, offeringId, includeCrossGrade),
+  });
+
+  if (query.isLoading) return <Skeleton className="h-24 w-full" />;
+  if (query.isError) {
+    return (
+      <ErrorState
+        title={labels.error}
+        description={labels.error}
+        onRetry={() => void query.refetch()}
+        retryLabel={labels.retry}
+      />
+    );
+  }
+  if (!query.data?.length) {
+    return (
+      <p className="text-sm text-gray-600" role="status">
+        {labels.empty}
+      </p>
+    );
+  }
+
+  return (
+    <ul className="max-h-64 space-y-2 overflow-y-auto">
+      {query.data.map((ref) => (
+        <li key={ref.id}>
+          <label className="flex cursor-pointer items-start gap-3 rounded-md border border-gray-200 p-3 hover:bg-gray-50">
+            <input
+              type="checkbox"
+              className="mt-1 size-4"
+              checked={selected.includes(ref.id)}
+              onChange={() => onToggle(ref.id)}
+            />
+            <span className="text-sm text-gray-900">
+              {ref.title}
+              {ref.is_cross_grade ? (
+                <span className="ms-2 text-xs text-amber-700">{labels.crossBadge}</span>
+              ) : null}
+            </span>
+          </label>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function Step5Confirm({
+  token,
+  data,
+  selectedOffering,
+  t,
+  onBack,
+  onGenerated,
+}: {
+  token: string;
+  data: WizardData;
+  selectedOffering: TeacherOfferingRead | undefined;
+  t: ReturnType<typeof useTranslations>;
+  onBack: () => void;
+  onGenerated: (lectureId: string) => void;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const mode = data.teaching_mode ?? "auto";
+  const refs = data.reference_book_ids ?? [];
+
+  const estimateQuery = useQuery({
+    queryKey: ["teacher", "wizard-estimate", mode, refs.length],
+    queryFn: () => lectureWizardApi.getEstimate(token, mode, refs.length),
+  });
+
+  const generateMutation = useMutation({
+    mutationFn: (payload: LectureGenerateRequest) =>
+      lectureWizardApi.generate(token, payload),
+    onSuccess: (result) => {
+      onGenerated(result.lecture_id);
+    },
+    onError: (err: unknown) => {
+      setError(err instanceof ApiError ? err.message : t("generate_error"));
+    },
+  });
+
+  if (data.lecture_id) {
+    return (
+      <section className="space-y-3" role="status">
+        <h3 className="text-lg font-medium text-gray-900">{t("generating_title")}</h3>
+        <p className="text-sm text-gray-700">
+          {t("generating_body", { id: data.lecture_id })}
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-4" aria-labelledby="wizard-step5">
+      <h3 id="wizard-step5" className="text-lg font-medium text-gray-900">
+        {t("step5_title")}
+      </h3>
+      {selectedOffering ? (
+        <p className="text-sm text-gray-600">
+          {t("offering_summary", {
+            grade: selectedOffering.grade_name,
+            subject: selectedOffering.subject_name,
+          })}
+        </p>
+      ) : null}
+      <p className="text-sm text-gray-700">{t("topic_summary", { topic: data.topic ?? "" })}</p>
+      <p className="text-sm text-gray-700">{t(`mode_${mode}`)}</p>
+      <p className="text-sm text-gray-700">
+        {t("refs_summary", { count: refs.length })}
+      </p>
+      {estimateQuery.isLoading ? <Skeleton className="h-8 w-48" /> : null}
+      {estimateQuery.data ? (
+        <p className="text-sm font-medium text-brand-800" role="status">
+          {t("estimate_label", { seconds: estimateQuery.data.estimated_seconds })}
+        </p>
+      ) : null}
+      {error ? (
+        <p className="text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <div className="flex justify-between gap-3 pt-2">
+        <Button type="button" variant="outline" onClick={onBack}>
+          {t("back")}
+        </Button>
+        <Button
+          type="button"
+          loading={generateMutation.isPending}
+          disabled={
+            !data.grade_subject_offering_id ||
+            !data.topic ||
+            !data.curriculum_id ||
+            !data.teaching_mode
+          }
+          onClick={() => {
+            setError(null);
+            generateMutation.mutate({
+              grade_subject_offering_id: data.grade_subject_offering_id!,
+              topic: data.topic!,
+              curriculum_id: data.curriculum_id!,
+              reference_book_ids: refs,
+              teaching_mode: mode,
+              include_cross_grade: Boolean(data.include_cross_grade),
+            });
+          }}
+        >
+          {t("generate")}
+        </Button>
+      </div>
+    </section>
+  );
 }

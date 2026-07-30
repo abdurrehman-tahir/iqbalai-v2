@@ -120,3 +120,47 @@ class LectureDraftUpsert(BaseModel):
 
     step: int = Field(ge=1, le=5)
     data: dict[str, Any] = Field(default_factory=dict)
+
+
+class TeachingMode(StrEnum):
+    """Wizard Step 4 teaching mode (Flow 5 §3.1)."""
+
+    AUTO = "auto"
+    MANUAL = "manual"
+    VOICE_ASSISTED = "voice_assisted"
+
+
+class WizardReferenceRead(BaseModel):
+    """Reference book option for Step 3."""
+
+    id: str
+    title: str
+    subject_id: str | None
+    grade_level_ordinal: int | None
+    language: str
+    is_cross_grade: bool
+
+
+class WizardEstimateRead(BaseModel):
+    """Step 5 estimated generation time."""
+
+    estimated_seconds: int
+    reference_count: int
+    teaching_mode: TeachingMode
+
+
+class LectureGenerateRequest(BaseModel):
+    """Commit wizard → create lecture in GENERATING (pipeline is T-116)."""
+
+    grade_subject_offering_id: str = Field(min_length=1, max_length=36)
+    topic: str = Field(min_length=1, max_length=500)
+    curriculum_id: str = Field(min_length=1, max_length=36)
+    reference_book_ids: list[str] = Field(default_factory=list, max_length=20)
+    teaching_mode: TeachingMode
+    include_cross_grade: bool = False
+
+
+class LectureGenerateRead(BaseModel):
+    lecture_id: str
+    status: str
+    estimated_seconds: int

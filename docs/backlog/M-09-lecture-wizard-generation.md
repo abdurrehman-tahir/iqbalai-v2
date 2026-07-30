@@ -101,7 +101,7 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.1 (Step 3 references w/ filter + cross-grade toggle; Step 4 teaching mode; Step 5 confirm + estimate)

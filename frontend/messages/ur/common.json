@@ -602,7 +602,23 @@
         "degraded_badge": "__TODO__ Degraded parse",
         "curricula_error": "__TODO__ Could not load curricula",
         "curricula_empty": "__TODO__ No curriculum is available for this Grade-Subject yet.",
-        "steps_3_5_later": "__TODO__ Steps 3–5 (references, teaching mode, generate) come in the next ticket."
+        "step3_title": "__TODO__ Step 3 — Select reference books (optional)",
+        "step4_title": "__TODO__ Step 4 — Teaching mode",
+        "step5_title": "__TODO__ Step 5 — Confirm and generate",
+        "cross_grade_toggle": "__TODO__ Include lower-grade references",
+        "cross_grade_badge": "__TODO__ Lower grade",
+        "refs_loading": "__TODO__ Loading references…",
+        "refs_empty": "__TODO__ No matching reference books for this Grade-Subject.",
+        "refs_error": "__TODO__ Could not load references",
+        "refs_summary": "__TODO__ References selected: {count}",
+        "mode_auto": "__TODO__ Auto — AI writes the full lecture",
+        "mode_manual": "__TODO__ Manual — AI provides an outline only",
+        "mode_voice_assisted": "__TODO__ Voice-assisted — talk to the AI while generating",
+        "estimate_label": "__TODO__ Estimated generation time: about {seconds} seconds",
+        "generate": "__TODO__ Generate lecture",
+        "generate_error": "__TODO__ Could not start generation. Please try again.",
+        "generating_title": "__TODO__ Generation started",
+        "generating_body": "__TODO__ Lecture {id} is now GENERATING. Streaming arrives in the next ticket."
       }
     }
   }

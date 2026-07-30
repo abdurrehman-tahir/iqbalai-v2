@@ -52,8 +52,12 @@ import type {
   TeacherOfferingRead,
   WizardCurriculumRead,
   WizardTopicsRead,
+  WizardReferenceRead,
+  WizardEstimateRead,
   LectureDraftRead,
   LectureDraftUpsert,
+  LectureGenerateRequest,
+  LectureGenerateRead,
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
@@ -1093,6 +1097,37 @@ export const lectureWizardApi = {
     });
     return request<WizardTopicsRead>(`/teachers/me/lecture-wizard/topics?${qs}`, {}, token);
   },
+  listReferences: (
+    token: string,
+    gradeSubjectOfferingId: string,
+    includeCrossGrade = false
+  ) => {
+    const qs = new URLSearchParams({
+      grade_subject_offering_id: gradeSubjectOfferingId,
+      include_cross_grade: String(includeCrossGrade),
+    });
+    return request<WizardReferenceRead[]>(
+      `/teachers/me/lecture-wizard/references?${qs}`,
+      {},
+      token
+    );
+  },
+  getEstimate: (token: string, teachingMode: string, referenceCount: number) => {
+    const qs = new URLSearchParams({
+      teaching_mode: teachingMode,
+      reference_count: String(referenceCount),
+    });
+    return request<WizardEstimateRead>(
+      `/teachers/me/lecture-wizard/estimate?${qs}`,
+      {},
+      token
+    );
+  },
+  generate: (token: string, data: LectureGenerateRequest) =>
+    request<LectureGenerateRead>("/teachers/me/lecture-wizard/generate", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }, token),
   getDraft: (token: string) =>
     request<LectureDraftRead>("/teachers/me/lecture-draft", {}, token),
   upsertDraft: (token: string, data: LectureDraftUpsert) =>

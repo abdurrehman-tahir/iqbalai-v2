@@ -11,14 +11,28 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
+from app.features.grades.cross_grade import (
+    assert_cross_grade_access_by_ordinal,
+    library_item_visible_for_grade_context,
+)
 from app.features.grades.repository import GradeRepository
-from app.features.lectures.models import SchoolLectureDraft
-from app.features.lectures.repository import LectureDraftRepository
+from app.features.lectures.models import (
+    LectureStatus,
+    LectureType,
+    SchoolLecture,
+    SchoolLectureDraft,
+)
+from app.features.lectures.repository import LectureDraftRepository, LectureRepository
 from app.features.lectures.schemas import (
     LectureDraftRead,
     LectureDraftUpsert,
+    LectureGenerateRead,
+    LectureGenerateRequest,
     TeacherOfferingRead,
+    TeachingMode,
     WizardCurriculumRead,
+    WizardEstimateRead,
+    WizardReferenceRead,
     WizardState,
     WizardTopicOption,
     WizardTopicsRead,
@@ -32,10 +46,26 @@ from app.features.library.school_models import (
 from app.features.offerings.models import GradeSubjectOffering
 from app.features.offerings.repository import OfferingRepository
 from app.features.subjects.repository import SubjectRepository
+from app.features.teacher_onboarding.repository import TeacherProfileRepository
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 
 logger = structlog.get_logger(__name__)
+
+# Heuristic estimate — T-116 will refine with real telemetry.
+_BASE_ESTIMATE_SECONDS = 90
+_PER_REFERENCE_SECONDS = 25
+_MANUAL_MODE_FACTOR = 0.6
+_VOICE_MODE_FACTOR = 1.2
+
+
+def estimate_generation_seconds(*, reference_count: int, teaching_mode: TeachingMode) -> int:
+    seconds = _BASE_ESTIMATE_SECONDS + max(0, reference_count) * _PER_REFERENCE_SECONDS
+    if teaching_mode == TeachingMode.MANUAL:
+        seconds = int(seconds * _MANUAL_MODE_FACTOR)
+    elif teaching_mode == TeachingMode.VOICE_ASSISTED:
+        seconds = int(seconds * _VOICE_MODE_FACTOR)
+    return max(30, seconds)
 
 
 def _tree_is_degraded(tree: dict[str, Any] | None) -> bool:
@@ -98,6 +128,8 @@ class LectureWizardService:
         self._subjects = SubjectRepository(session)
         self._library = SchoolLibraryRepository(session)
         self._drafts = LectureDraftRepository(session)
+        self._lectures = LectureRepository(session)
+        self._profiles = TeacherProfileRepository(session)
 
     async def _require_school_teacher(self, claims: dict[str, object]) -> User:
         user = await self._users.get_by_authentik_id(str(claims.get("sub", "")))
@@ -281,4 +313,155 @@ class LectureWizardService:
             step=state.step,
             data=state.data,
             updated_at=draft.updated_at,
+        )
+
+    async def list_references_for_offering(
+        self,
+        claims: dict[str, object],
+        offering_id: str,
+        *,
+        include_cross_grade: bool = False,
+    ) -> list[WizardReferenceRead]:
+        teacher = await self._require_school_teacher(claims)
+        offering = await self._require_owned_offering(teacher, offering_id)
+        grade = await self._grades.get_by_id(offering.grade_id)
+        if grade is None:
+            raise NotFoundError("Grade not found")
+
+        profile = await self._profiles.get_by_user_id(teacher.id)
+        language = profile.language_preference if profile is not None else None
+
+        items, _total = await self._library.list_for_user(
+            school_id=teacher.school_id or "",
+            user_id=teacher.id,
+            subject_id=offering.subject_id,
+            grade_level_ordinal=grade.level_ordinal,
+            language=language,
+            content_type=LibraryContentType.REFERENCE.value,
+        )
+        available = [
+            item
+            for item in items
+            if item.ingestion_status == LibraryIngestionStatus.AVAILABLE
+            and item.content_type == LibraryContentType.REFERENCE
+        ]
+
+        result: list[WizardReferenceRead] = []
+        for item in available:
+            if not library_item_visible_for_grade_context(
+                context_ordinal=grade.level_ordinal,
+                item_grade_ordinal=item.grade_level_ordinal,
+            ):
+                continue
+            is_cross = (
+                item.grade_level_ordinal is not None
+                and item.grade_level_ordinal < grade.level_ordinal
+            )
+            if not include_cross_grade:
+                if is_cross:
+                    continue
+                if (
+                    item.grade_level_ordinal is not None
+                    and item.grade_level_ordinal != grade.level_ordinal
+                ):
+                    continue
+            result.append(
+                WizardReferenceRead(
+                    id=item.id,
+                    title=item.title,
+                    subject_id=item.subject_id,
+                    grade_level_ordinal=item.grade_level_ordinal,
+                    language=item.language,
+                    is_cross_grade=is_cross,
+                )
+            )
+        return result
+
+    def estimate(self, *, reference_count: int, teaching_mode: TeachingMode) -> WizardEstimateRead:
+        return WizardEstimateRead(
+            estimated_seconds=estimate_generation_seconds(
+                reference_count=reference_count,
+                teaching_mode=teaching_mode,
+            ),
+            reference_count=reference_count,
+            teaching_mode=teaching_mode,
+        )
+
+    async def generate_from_wizard(
+        self, claims: dict[str, object], payload: LectureGenerateRequest
+    ) -> LectureGenerateRead:
+        """Create lecture row at GENERATING; Celery Pattern-S pipeline is T-116."""
+        teacher = await self._require_school_teacher(claims)
+        offering = await self._require_owned_offering(teacher, payload.grade_subject_offering_id)
+        grade = await self._grades.get_by_id(offering.grade_id)
+        if grade is None:
+            raise NotFoundError("Grade not found")
+
+        curriculum = await self._library.get_by_id(payload.curriculum_id)
+        if (
+            curriculum is None
+            or curriculum.school_id != teacher.school_id
+            or curriculum.content_type != LibraryContentType.CURRICULUM
+        ):
+            raise NotFoundError("Curriculum not found")
+
+        for ref_id in payload.reference_book_ids:
+            ref = await self._library.get_by_id(ref_id)
+            if (
+                ref is None
+                or ref.school_id != teacher.school_id
+                or ref.content_type != LibraryContentType.REFERENCE
+            ):
+                raise NotFoundError("Reference book not found")
+            if ref.grade_level_ordinal is not None:
+                assert_cross_grade_access_by_ordinal(grade.level_ordinal, ref.grade_level_ordinal)
+                is_cross = ref.grade_level_ordinal < grade.level_ordinal
+                if is_cross and not payload.include_cross_grade:
+                    raise ValidationError(
+                        "Cross-grade reference selected but include_cross_grade is false"
+                    )
+
+        estimated = estimate_generation_seconds(
+            reference_count=len(payload.reference_book_ids),
+            teaching_mode=payload.teaching_mode,
+        )
+        lecture = SchoolLecture(
+            school_id=teacher.school_id,
+            grade_subject_offering_id=offering.id,
+            teacher_user_id=teacher.id,
+            title=payload.topic[:500],
+            topic=payload.topic,
+            lecture_type=LectureType.MAIN,
+            status=LectureStatus.GENERATING,
+        )
+        lecture = await self._lectures.create(lecture)
+
+        draft = await self._drafts.get_active_for_teacher(teacher.id)
+        if draft is not None:
+            draft.wizard_state_jsonb = WizardState(
+                step=5,
+                data={
+                    "grade_subject_offering_id": payload.grade_subject_offering_id,
+                    "topic": payload.topic,
+                    "curriculum_id": payload.curriculum_id,
+                    "reference_book_ids": payload.reference_book_ids,
+                    "teaching_mode": payload.teaching_mode.value,
+                    "include_cross_grade": payload.include_cross_grade,
+                    "lecture_id": lecture.id,
+                },
+            ).to_jsonb()
+            await self._drafts.update(draft)
+            await self._drafts.soft_delete(draft)
+
+        logger.info(
+            "lecture_generation_requested",
+            lecture_id=lecture.id,
+            teacher_user_id=teacher.id,
+            teaching_mode=payload.teaching_mode.value,
+            reference_count=len(payload.reference_book_ids),
+        )
+        return LectureGenerateRead(
+            lecture_id=lecture.id,
+            status=LectureStatus.GENERATING.value,
+            estimated_seconds=estimated,
         )

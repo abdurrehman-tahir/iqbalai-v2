@@ -136,6 +136,50 @@ async function installWizardMocks(page: Page) {
         return;
       }
 
+      if (method === "GET" && path === "/teachers/me/lecture-wizard/references") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope([
+            {
+              id: "ref-1",
+              title: "Halliday",
+              subject_id: "s-1",
+              grade_level_ordinal: 9,
+              language: "en",
+              is_cross_grade: false,
+            },
+          ]),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/teachers/me/lecture-wizard/estimate") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            estimated_seconds: 120,
+            reference_count: 1,
+            teaching_mode: "auto",
+          }),
+        });
+        return;
+      }
+
+      if (method === "POST" && path === "/teachers/me/lecture-wizard/generate") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            lecture_id: "lec-1",
+            status: "generating",
+            estimated_seconds: 120,
+          }),
+        });
+        return;
+      }
+
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -146,7 +190,7 @@ async function installWizardMocks(page: Page) {
 }
 
 test.describe("Lecture wizard @smoke", () => {
-  test("teacher can pick topic and confirm primary curriculum", async ({ page }) => {
+  test("teacher can complete wizard through Generate → GENERATING", async ({ page }) => {
     await installWizardMocks(page);
     await page.goto(`${BASE_URL}/teacher/lectures/new`);
 
@@ -157,7 +201,20 @@ test.describe("Lecture wizard @smoke", () => {
     await page.getByRole("button", { name: /Continue/i }).click();
 
     await expect(page.getByText(/Step 2 — Confirm curriculum/i)).toBeVisible();
-    await expect(page.getByText(/Punjab Physics 9/i)).toBeVisible();
-    await expect(page.getByText(/Primary/i)).toBeVisible();
+    await page.getByRole("button", { name: /Continue/i }).click();
+
+    await expect(page.getByText(/Step 3 — Select reference/i)).toBeVisible();
+    await page.getByText("Halliday").click();
+    await page.getByRole("button", { name: /Continue/i }).click();
+
+    await expect(page.getByText(/Step 4 — Teaching mode/i)).toBeVisible();
+    await page.getByText(/Auto — AI writes/i).click();
+    await page.getByRole("button", { name: /Continue/i }).click();
+
+    await expect(page.getByText(/Step 5 — Confirm/i)).toBeVisible();
+    await expect(page.getByText(/about 120 seconds/i)).toBeVisible();
+    await page.getByRole("button", { name: /Generate lecture/i }).click();
+    await expect(page.getByText(/Generation started/i)).toBeVisible();
+    await expect(page.getByText(/GENERATING/i)).toBeVisible();
   });
 });

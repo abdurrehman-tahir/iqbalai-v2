@@ -12,8 +12,13 @@ from app.core.responses import SuccessEnvelope, success
 from app.features.lectures.schemas import (
     LectureDraftRead,
     LectureDraftUpsert,
+    LectureGenerateRead,
+    LectureGenerateRequest,
     TeacherOfferingRead,
+    TeachingMode,
     WizardCurriculumRead,
+    WizardEstimateRead,
+    WizardReferenceRead,
     WizardTopicsRead,
 )
 from app.features.lectures.service import LectureWizardService
@@ -103,3 +108,61 @@ async def upsert_lecture_draft(
     svc = LectureWizardService(db)
     draft = await svc.upsert_draft(claims, payload)
     return success(draft.model_dump(mode="json"))
+
+
+@router.get(
+    "/lecture-wizard/references",
+    response_model=SuccessEnvelope[list[WizardReferenceRead]],
+    operation_id="teacher_list_wizard_references",
+    summary="List reference books for Step 3 (cross-grade toggle)",
+    dependencies=[require_role("teacher")],
+)
+async def list_wizard_references(
+    grade_subject_offering_id: str = Query(..., min_length=1, max_length=36),
+    include_cross_grade: bool = Query(False),
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    rows = await svc.list_references_for_offering(
+        claims,
+        grade_subject_offering_id,
+        include_cross_grade=include_cross_grade,
+    )
+    return success([r.model_dump(mode="json") for r in rows])
+
+
+@router.get(
+    "/lecture-wizard/estimate",
+    response_model=SuccessEnvelope[WizardEstimateRead],
+    operation_id="teacher_get_wizard_estimate",
+    summary="Estimated generation time for Step 5",
+    dependencies=[require_role("teacher")],
+)
+async def get_wizard_estimate(
+    teaching_mode: TeachingMode = Query(...),
+    reference_count: int = Query(0, ge=0, le=20),
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    _ = claims  # auth via require_role; estimate is deterministic
+    svc = LectureWizardService(db)
+    result = svc.estimate(reference_count=reference_count, teaching_mode=teaching_mode)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/lecture-wizard/generate",
+    response_model=SuccessEnvelope[LectureGenerateRead],
+    operation_id="teacher_generate_lecture",
+    summary="Commit wizard and transition lecture to GENERATING",
+    dependencies=[require_role("teacher")],
+)
+async def generate_lecture(
+    payload: LectureGenerateRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.generate_from_wizard(claims, payload)
+    return success(result.model_dump(mode="json"))
