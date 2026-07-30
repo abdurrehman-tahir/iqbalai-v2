@@ -390,7 +390,7 @@ class LectureWizardService:
     async def generate_from_wizard(
         self, claims: dict[str, object], payload: LectureGenerateRequest
     ) -> LectureGenerateRead:
-        """Create lecture row at GENERATING; Celery Pattern-S pipeline is T-116."""
+        """Create lecture at GENERATING and enqueue Pattern-S Celery generation."""
         teacher = await self._require_school_teacher(claims)
         offering = await self._require_owned_offering(teacher, payload.grade_subject_offering_id)
         grade = await self._grades.get_by_id(offering.grade_id)
@@ -452,6 +452,21 @@ class LectureWizardService:
             ).to_jsonb()
             await self._drafts.update(draft)
             await self._drafts.soft_delete(draft)
+
+        from app.features.lectures.tasks import generate_lecture
+
+        generate_lecture.apply_async(
+            kwargs={
+                "lecture_id": lecture.id,
+                "school_id": teacher.school_id,
+                "topic": payload.topic,
+                "curriculum_id": payload.curriculum_id,
+                "reference_book_ids": list(payload.reference_book_ids),
+                "teaching_mode": payload.teaching_mode.value,
+                "teacher_user_id": teacher.id,
+                "target_language": "en",
+            }
+        )
 
         logger.info(
             "lecture_generation_requested",

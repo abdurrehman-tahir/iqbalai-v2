@@ -276,6 +276,10 @@ def _patch(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.lectures.service.LectureDraftRepository", _FakeDraftRepo)
     monkeypatch.setattr("app.features.lectures.service.LectureRepository", _FakeLectureRepo)
     monkeypatch.setattr("app.features.lectures.service.TeacherProfileRepository", _FakeProfileRepo)
+    monkeypatch.setattr(
+        "app.features.lectures.tasks.generate_lecture.apply_async",
+        lambda **_kwargs: None,
+    )
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
