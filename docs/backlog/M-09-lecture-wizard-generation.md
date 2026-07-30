@@ -68,6 +68,7 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Milestone:** M-09
 **Estimate:** 2 days
 **Status:** done
+**Commit:** `604fc01`
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.1 (Step 1 topic from curriculum tree; Step 2 curriculum confirm; auto-save)
