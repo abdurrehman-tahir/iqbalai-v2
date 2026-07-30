@@ -52,6 +52,12 @@ import type {
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
+  StudentModeRead,
+  StudentModeUpdate,
+  DiagnosticRead,
+  DiagnosticResultRead,
+  DiagnosticStartRequest,
+  DiagnosticSaveAnswers,
   SchoolCreate,
   SchoolUpdate,
   SubscriptionTierCreate,
@@ -427,6 +433,12 @@ export const independentStudentOnboardingApi = {
     request<IndependentStudentOnboardingRead>(
       "/independent/students/me/profile",
       { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  setExamDate: (token: string, exam_date: string) =>
+    request<IndependentStudentOnboardingRead>(
+      "/independent/students/me/exam-date",
+      { method: "PUT", body: JSON.stringify({ exam_date }) },
       token
     ),
 };
@@ -1081,6 +1093,45 @@ export const studentOnboardingApi = {
     request<SchoolStudentOnboardingRead>(
       "/students/me/onboarding/exam-date",
       { method: "PUT", body: JSON.stringify({ exam_date }) },
+      token
+    ),
+};
+
+export const studentModeApi = {
+  getMode: (token: string) => request<StudentModeRead>("/students/me/mode", {}, token),
+  setMode: (token: string, data: StudentModeUpdate) =>
+    request<StudentModeRead>(
+      "/students/me/mode",
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+export const diagnosticsApi = {
+  start: (token: string, data: DiagnosticStartRequest) =>
+    request<DiagnosticRead>(
+      "/students/me/diagnostics/start",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  get: (token: string, diagnosticId: string) =>
+    request<DiagnosticRead>(`/students/me/diagnostics/${diagnosticId}`, {}, token),
+  saveAnswers: (token: string, diagnosticId: string, data: DiagnosticSaveAnswers) =>
+    request<DiagnosticRead>(
+      `/students/me/diagnostics/${diagnosticId}/answers`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  complete: (token: string, diagnosticId: string) =>
+    request<DiagnosticResultRead>(
+      `/students/me/diagnostics/${diagnosticId}/complete`,
+      { method: "POST" },
+      token
+    ),
+  finalizeTimeout: (token: string, diagnosticId: string) =>
+    request<DiagnosticResultRead>(
+      `/students/me/diagnostics/${diagnosticId}/finalize-timeout`,
+      { method: "POST" },
       token
     ),
 };

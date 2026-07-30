@@ -26,6 +26,8 @@ class IndependentStudentProfile(AuditMixin, SoftDeleteMixin, Base):
     grade_level: Mapped[int] = mapped_column(Integer, nullable=False)
     exam_syllabus_id: Mapped[str] = mapped_column(String(36), nullable=False)
     exam_date: Mapped[date | None] = mapped_column(Date, nullable=True, default=None)
+    # Comma-separated countdown day markers + optional "passed" (T-107), mirrors school.
+    exam_countdown_sent_days: Mapped[str | None] = mapped_column(String(32), nullable=True)
     profile_completed_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True),
         nullable=True,

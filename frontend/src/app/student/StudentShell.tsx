@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { performLogout } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { StudentOnboardingGate } from "./StudentOnboardingGate";
+import { ModeSwitcher } from "./ModeSwitcher";
 
 export function StudentShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("student");
@@ -20,11 +21,12 @@ export function StudentShell({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen flex-col bg-gray-50">
-      <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between">
+      <header className="h-16 border-b border-gray-200 bg-white px-6 flex items-center justify-between gap-4">
         <h1 className="text-lg font-semibold text-gray-900">
           {onOnboardingPage ? t("onboarding.header_title") : t("header_title")}
         </h1>
         <div className="flex items-center gap-4">
+          {!onOnboardingPage && <ModeSwitcher />}
           <span className="text-sm text-gray-500">{user?.email}</span>
           <Button variant="ghost" size="sm" onClick={handleLogout}>
             <LogOut className="size-4 me-2" aria-hidden="true" />

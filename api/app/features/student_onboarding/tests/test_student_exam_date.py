@@ -76,7 +76,16 @@ READY_PROFILE = StudentProfile(
 
 @pytest.fixture(autouse=True)
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
-    _FakeProfileRepo.store = {STUDENT.id: READY_PROFILE}
+    fresh = StudentProfile(
+        user_id=STUDENT.id,
+        display_name="Student One",
+        language_preference="en",
+        tos_accepted_at=datetime.now(timezone.utc),
+        profile_basic_completed_at=datetime.now(timezone.utc),
+        lecture_mode_enabled=True,
+        self_study_mode_enabled=False,
+    )
+    _FakeProfileRepo.store = {STUDENT.id: fresh}
     _FakeUserRepo.store = {STUDENT.id: STUDENT}
     monkeypatch.setattr(
         "app.features.student_onboarding.service.StudentProfileRepository", _FakeProfileRepo
@@ -86,6 +95,18 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         "app.features.student_onboarding.service.StudentOnboardingService._active_enrollment_grade_id",
         AsyncMock(return_value="grade-9"),
+    )
+
+    class _EmptyLinks:
+        def __init__(self, session: Any) -> None:
+            pass
+
+        async def list_approved_for_student(self, student_user_id: str) -> list[Any]:
+            return []
+
+    monkeypatch.setattr(
+        "app.features.student_onboarding.service.ParentChildLinkRepository",
+        _EmptyLinks,
     )
 
 
@@ -185,3 +206,96 @@ async def test_exam_countdown_notifications_for_registered_days(
     notify_mock.assert_called_once()
     assert profile.exam_countdown_sent_days == "30"
     assert 30 in EXAM_COUNTDOWN_DAYS
+
+
+@pytest.mark.asyncio
+async def test_exam_passed_notification(monkeypatch: pytest.MonkeyPatch) -> None:
+    profile = _FakeProfileRepo.store[STUDENT.id]
+    profile.exam_date = date.today() - timedelta(days=1)
+    profile.exam_countdown_sent_days = "30"
+
+    notify_mock = AsyncMock()
+    monkeypatch.setattr(
+        "app.infrastructure.notifications.self_study.notify_self_study_event",
+        notify_mock,
+    )
+
+    svc = StudentOnboardingService(AsyncMock())
+    count = await svc.send_exam_countdown_notifications()
+    assert count == 1
+    assert notify_mock.await_args is not None
+    assert notify_mock.await_args.kwargs["template_key"] == "self_study.exam_passed"
+    assert "passed" in (profile.exam_countdown_sent_days or "")
+
+    # Idempotent
+    count2 = await svc.send_exam_countdown_notifications()
+    assert count2 == 0
+
+
+@pytest.mark.asyncio
+async def test_exam_countdown_fans_out_to_linked_parents(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    parent = User(
+        id="parent-1",
+        authentik_id="auth-parent",
+        email="parent@example.com",
+        display_name="Parent",
+        role=UserRole.PARENT,
+        status=UserAccountStatus.ACTIVE,
+        school_id="school-1",
+    )
+    _FakeUserRepo.store[parent.id] = parent
+    profile = _FakeProfileRepo.store[STUDENT.id]
+    profile.exam_date = date.today() + timedelta(days=30)
+    profile.exam_countdown_sent_days = None
+
+    class _Links:
+        def __init__(self, session: Any) -> None:
+            pass
+
+        async def list_approved_for_student(self, student_user_id: str) -> list[Any]:
+            return [type("L", (), {"parent_user_id": parent.id})()]
+
+    monkeypatch.setattr(
+        "app.features.student_onboarding.service.ParentChildLinkRepository",
+        _Links,
+    )
+    notify_mock = AsyncMock()
+    monkeypatch.setattr(
+        "app.infrastructure.notifications.self_study.notify_self_study_event",
+        notify_mock,
+    )
+
+    svc = StudentOnboardingService(AsyncMock())
+    count = await svc.send_exam_countdown_notifications()
+    assert count == 2
+    recipients = {c.kwargs["recipient_user_id"] for c in notify_mock.await_args_list}
+    assert recipients == {"auth-student", "auth-parent"}
+
+
+@pytest.mark.asyncio
+async def test_future_date_warning_returned() -> None:
+    far = (date.today() + timedelta(days=365 * 6)).isoformat()
+    async with _build_client() as client:
+        resp = await client.put("/api/v1/students/me/onboarding/exam-date", json={"exam_date": far})
+    assert resp.status_code == 200
+    assert resp.json()["data"]["future_date_warning"]
+
+
+def test_exam_date_passed_flag_on_state() -> None:
+    profile = StudentProfile(
+        user_id=STUDENT.id,
+        display_name="Student One",
+        language_preference="en",
+        tos_accepted_at=datetime.now(timezone.utc),
+        profile_basic_completed_at=datetime.now(timezone.utc),
+        lecture_mode_enabled=True,
+        self_study_mode_enabled=False,
+        exam_date=date.today() - timedelta(days=2),
+    )
+    state = derive_school_student_state(
+        user=STUDENT, profile=profile, enrollment_grade_id="grade-9"
+    )
+    assert state.exam_date_set
+    assert state.exam_date_passed

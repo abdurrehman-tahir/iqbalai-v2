@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-101 through T-112
 **Spec source:** `flow-4-student-onboarding.md` v3 §3.4 (Mode selection #53), §3.6 (Diagnostic #51), §3.7 (Exam date approach #52)
@@ -36,7 +36,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `1ab1253`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.4 (Mode selection #53)
@@ -74,7 +75,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** `2dcd28c`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (results seed Cognitive DNA per Flow 9 #83)
@@ -113,7 +115,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `9c04c15`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (NOT_TAKEN→IN_PROGRESS→COMPLETED→RETAKEN; save/resume 7d; 30d cooldown)
@@ -148,7 +151,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `7f55135`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (15-25 questions; per-subject/per-framework calibration; Question Bank #74 where available, LLM fallback)
@@ -184,7 +188,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `7eaddec`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (results as "areas to focus on", never grades; coaching principle)
@@ -220,7 +225,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** `6c7205d`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6 (results seed Cognitive DNA; 30-day retake)
@@ -256,7 +262,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** `3dc456d`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.7 (exam date approach #52)
@@ -288,7 +295,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 5a96d43
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.4 (dashboard mode-conditional; AI personalization adapts per Flow 6 #61)
@@ -321,7 +329,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3
 **Milestone:** M-08
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** `caefb7a`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.6, §3.7 (diagnostic + exam events)
@@ -353,7 +362,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 3 / 6
 **Milestone:** M-08
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** `4c07b0e`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.4, §3.6
@@ -384,7 +394,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 6
 **Milestone:** M-08
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** `3811fc3`
 
 ### Spec source
 - `flow-4-student-onboarding.md` §3.4, §3.6, §3.7
@@ -420,7 +431,8 @@ School students get a real Mode Switcher (Lecture ⇄ Self-Study, instant, no da
 **Layer:** 6
 **Milestone:** M-08
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** `3811fc3` (PR open — merge pending CI + demo)
 
 ### Spec source
 - `flow-4-student-onboarding.md` v3 §3.4, §3.6, §3.7

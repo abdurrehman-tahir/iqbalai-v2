@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { studentOnboardingApi, parentChildLinksApi } from "@/lib/api";
+import { studentOnboardingApi, parentChildLinksApi, studentModeApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,6 +21,12 @@ export function StudentHomeClient() {
   const { data: onboarding } = useQuery({
     queryKey: ["student", "onboarding"],
     queryFn: () => studentOnboardingApi.getOnboarding(token!),
+    enabled: mounted && !!token,
+  });
+
+  const { data: mode } = useQuery({
+    queryKey: ["student", "mode"],
+    queryFn: () => studentModeApi.getMode(token!),
     enabled: mounted && !!token,
   });
 
@@ -75,11 +81,38 @@ export function StudentHomeClient() {
           <a href="/student/exam-frameworks" className="text-sm text-blue-600 hover:underline">
             {t("exam_frameworks_link")}
           </a>
+          <a href="/student/diagnostics" className="text-sm text-blue-600 hover:underline">
+            {t("diagnostics_link")}
+          </a>
           <a href="/student/data-rights" className="text-sm text-blue-600 hover:underline">
             {t("data_rights_link")}
           </a>
         </p>
       </div>
+
+      {mode?.active_mode === "lecture" && (
+        <section
+          className="rounded-lg border border-gray-200 bg-white p-4 space-y-2"
+          data-testid="lecture-section"
+          aria-label={t("lecture_section_title")}
+        >
+          <h3 className="text-lg font-medium text-gray-900">{t("lecture_section_title")}</h3>
+          <p className="text-sm text-gray-600">{t("lecture_section_body")}</p>
+          <p className="text-xs text-gray-500">{t("mode_hint_lecture")}</p>
+        </section>
+      )}
+
+      {mode?.active_mode === "self_study" && (
+        <section
+          className="rounded-lg border border-gray-200 bg-white p-4 space-y-2"
+          data-testid="self-study-section"
+          aria-label={t("self_study_section_title")}
+        >
+          <h3 className="text-lg font-medium text-gray-900">{t("self_study_section_title")}</h3>
+          <p className="text-sm text-gray-600">{t("self_study_section_body")}</p>
+          <p className="text-xs text-gray-500">{t("mode_hint_self_study")}</p>
+        </section>
+      )}
 
       {onboarding?.school_read_only && onboarding.graduation_message && (
         <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 space-y-2">
@@ -95,7 +128,37 @@ export function StudentHomeClient() {
         </div>
       )}
 
-      {onboarding?.show_complete_profile_banner && (
+      {onboarding?.exam_date_passed && (
+        <div
+          className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-4"
+          data-testid="exam-date-passed-banner"
+        >
+          <p className="text-sm text-amber-900">{t("exam_date_passed_prompt")}</p>
+          <div className="space-y-2">
+            <Label htmlFor="exam-date-passed">{t("exam_date_label")}</Label>
+            <Input
+              id="exam-date-passed"
+              type="date"
+              value={examDate}
+              onChange={(event) => setExamDate(event.target.value)}
+            />
+          </div>
+          {examDateError && <p className="text-sm text-red-600">{examDateError}</p>}
+          {examDateSuccess && <p className="text-sm text-green-800">{examDateSuccess}</p>}
+          {futureWarning && <p className="text-sm text-amber-800">{t("exam_date_future_warning")}</p>}
+          <Button
+            variant="primary"
+            size="sm"
+            loading={examDateMutation.isPending}
+            disabled={!examDate}
+            onClick={() => examDateMutation.mutate(examDate)}
+          >
+            {t("exam_date_save")}
+          </Button>
+        </div>
+      )}
+
+      {onboarding?.show_complete_profile_banner && !onboarding.exam_date_passed && (
         <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 space-y-4">
           <p className="text-sm text-amber-900">{t("profile_banner")}</p>
           <div className="space-y-2">

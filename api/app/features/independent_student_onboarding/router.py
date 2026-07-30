@@ -13,6 +13,7 @@ from app.core.exceptions import PermissionDeniedError
 from app.core.responses import SuccessEnvelope, success
 from app.features.independent_student_onboarding.schemas import (
     ExamFrameworkOption,
+    IndependentStudentExamDateUpdate,
     IndependentStudentOnboardingRead,
     IndependentStudentProfileComplete,
 )
@@ -85,4 +86,21 @@ async def complete_profile(
 ) -> dict[str, Any]:
     svc = IndependentStudentOnboardingService(db)
     state = await svc.complete_profile(payload, claims)
+    return success(state.model_dump())
+
+
+@router.put(
+    "/exam-date",
+    response_model=SuccessEnvelope[IndependentStudentOnboardingRead],
+    operation_id="independent_student_set_exam_date",
+    summary="Update exam date (including after exam date has passed)",
+    dependencies=[require_independent_student()],
+)
+async def set_exam_date(
+    payload: IndependentStudentExamDateUpdate,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = IndependentStudentOnboardingService(db)
+    state = await svc.set_exam_date(payload, claims)
     return success(state.model_dump())

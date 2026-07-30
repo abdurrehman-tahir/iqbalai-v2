@@ -11,6 +11,7 @@ from app.features.auth.router import router as auth_router
 from app.features.bulk_imports.router import router as bulk_imports_router
 from app.features.data_rights.parent_router import router as parent_data_rights_router
 from app.features.data_rights.student_router import router as student_data_rights_router
+from app.features.diagnostics.router import router as diagnostics_router
 from app.features.exam_frameworks.router import router as exam_frameworks_router
 from app.features.exam_frameworks.student_router import router as student_frameworks_router
 from app.features.exam_syllabi.router import router as syllabi_router
@@ -49,6 +50,7 @@ from app.features.schools.school_router import router as schools_router
 from app.features.sections.router import router as sections_router
 from app.features.smoketest.router import router as smoketest_router
 from app.features.student_enrollments.router import router as student_enrollments_router
+from app.features.student_mode.router import router as student_mode_router
 from app.features.student_onboarding.router import router as student_onboarding_router
 from app.features.subjects.router import router as subjects_router
 from app.features.subscriptions.router import router as subscriptions_router
@@ -87,6 +89,8 @@ router.include_router(grades_router)
 router.include_router(sections_router)
 router.include_router(student_enrollments_router)
 router.include_router(student_onboarding_router)
+router.include_router(student_mode_router)
+router.include_router(diagnostics_router)
 router.include_router(student_data_rights_router)
 router.include_router(parent_data_rights_router)
 router.include_router(graduation_coordinator_router)

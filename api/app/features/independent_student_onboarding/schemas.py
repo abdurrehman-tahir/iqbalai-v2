@@ -32,11 +32,26 @@ class IndependentStudentOnboardingRead(BaseModel):
     profile_complete: bool
     ready_to_study: bool
     self_study_only: bool = True
+    exam_date_passed: bool = False
+    future_date_warning: str | None = None
     profile: IndependentStudentProfileRead | None = None
 
 
 class IndependentStudentProfileComplete(BaseModel):
     exam_date: date = Field(description="Target exam date (required on first login)")
+
+    @field_validator("exam_date")
+    @classmethod
+    def validate_exam_date_future(cls, value: date) -> date:
+        if value < date.today():
+            raise ValueError("exam_date must be today or in the future")
+        return value
+
+
+class IndependentStudentExamDateUpdate(BaseModel):
+    """Update exam date after profile complete (T-107 EXAM_PASSED re-set)."""
+
+    exam_date: date = Field(description="Target exam date")
 
     @field_validator("exam_date")
     @classmethod

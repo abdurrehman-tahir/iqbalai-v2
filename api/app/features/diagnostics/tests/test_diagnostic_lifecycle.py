@@ -1,0 +1,250 @@
+"""Diagnostic model + lifecycle tests — T-103."""
+
+from __future__ import annotations
+
+from datetime import datetime, timedelta, timezone
+from typing import Any
+from unittest.mock import AsyncMock
+
+import pytest
+
+from app.core.exceptions import PreconditionFailedError, ValidationError
+from app.features.diagnostics.models import (
+    DiagnosticStatus,
+    IndependentDiagnostic,
+    SchoolDiagnostic,
+)
+from app.features.diagnostics.service import (
+    RETAKE_BLOCKED_MESSAGE,
+    RETAKE_COOLDOWN,
+    DiagnosticService,
+)
+
+
+class _FakeRepo:
+    store: dict[str, Any] = {}
+
+    def __init__(self, session: Any, tenant_type: str) -> None:
+        self.tenant_type = tenant_type
+
+    async def get_by_id(self, diagnostic_id: str) -> Any:
+        return self.store.get(diagnostic_id)
+
+    async def list_for_scope(
+        self,
+        *,
+        student_user_id: str,
+        subject_id: str | None,
+        framework_id: str | None,
+    ) -> list[Any]:
+        rows = []
+        for row in self.store.values():
+            if row.student_user_id != student_user_id:
+                continue
+            if self.tenant_type == "school" and row.subject_id != subject_id:
+                continue
+            if self.tenant_type == "independent" and row.framework_id != framework_id:
+                continue
+            rows.append(row)
+        return rows
+
+    async def list_retake_notify_candidates(self, *, cooldown_elapsed_before: Any) -> list[Any]:
+        from app.features.diagnostics.models import DiagnosticStatus
+
+        rows = []
+        for row in self.store.values():
+            if row.status != DiagnosticStatus.COMPLETED:
+                continue
+            if row.completed_at is None or row.completed_at > cooldown_elapsed_before:
+                continue
+            if getattr(row, "retake_available_notified_at", None) is not None:
+                continue
+            rows.append(row)
+        return rows
+
+    async def create(self, row: Any) -> Any:
+        self.store[row.id] = row
+        return row
+
+    async def update(self, row: Any) -> Any:
+        self.store[row.id] = row
+        return row
+
+
+class _FakeDnaRepo:
+    store: dict[str, Any] = {}
+
+    def __init__(self, session: Any, tenant_type: str) -> None:
+        self.tenant_type = tenant_type
+
+    async def upsert_from_diagnostic(
+        self,
+        *,
+        student_user_id: str,
+        subject_id: str | None,
+        framework_id: str | None,
+        topic_confidence_jsonb: dict[str, object],
+        focus_areas_jsonb: list[object],
+        now: Any = None,
+    ) -> Any:
+        key = f"{student_user_id}:{subject_id}:{framework_id}"
+        existing = self.store.get(key)
+        if existing is not None:
+            existing["topic_confidence_jsonb"] = topic_confidence_jsonb
+            existing["focus_areas_jsonb"] = focus_areas_jsonb
+            existing["last_updated_at"] = now
+            return existing
+        row = {
+            "id": f"dna-{len(self.store) + 1}",
+            "student_user_id": student_user_id,
+            "subject_id": subject_id,
+            "framework_id": framework_id,
+            "topic_confidence_jsonb": topic_confidence_jsonb,
+            "focus_areas_jsonb": focus_areas_jsonb,
+            "last_updated_at": now,
+            "tenant_type": self.tenant_type,
+        }
+        self.store[key] = row
+        return row
+
+
+@pytest.fixture(autouse=True)
+def _patch_repo(monkeypatch: pytest.MonkeyPatch) -> None:
+    _FakeRepo.store = {}
+    _FakeDnaRepo.store = {}
+    monkeypatch.setattr("app.features.diagnostics.service.DiagnosticRepository", _FakeRepo)
+    monkeypatch.setattr("app.features.diagnostics.service.CognitiveDnaRepository", _FakeDnaRepo)
+    monkeypatch.setattr(
+        "app.features.diagnostics.service.publish_diagnostic_completed",
+        AsyncMock(),
+    )
+    monkeypatch.setattr(
+        "app.features.diagnostics.service.DiagnosticService._notify_completed",
+        AsyncMock(),
+    )
+    monkeypatch.setattr("app.features.diagnostics.service.audit", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.diagnostics.service.DiagnosticService._audit_lifecycle",
+        AsyncMock(),
+    )
+
+
+def test_tables_in_separate_schemas() -> None:
+    assert SchoolDiagnostic.__table__.schema == "school"
+    assert IndependentDiagnostic.__table__.schema == "independent"
+    assert SchoolDiagnostic.__tablename__ == "diagnostics"
+
+
+def test_status_enum_values() -> None:
+    assert {s.value for s in DiagnosticStatus} == {
+        "not_taken",
+        "in_progress",
+        "completed",
+    }
+
+
+@pytest.mark.asyncio
+async def test_school_start_save_resume_complete() -> None:
+    svc = DiagnosticService(session=AsyncMock(), tenant_type="school")
+    started = await svc.start(
+        student_user_id="stu-1",
+        subject_id="subj-physics",
+        questions=[
+            {"id": "q1", "prompt": "Force?", "choices": ["A"], "topic": "Newton's Laws"},
+        ],
+    )
+    assert started.status == "in_progress"
+    assert started.subject_id == "subj-physics"
+    assert started.framework_id is None
+    assert started.expires_at is not None
+
+    saved = await svc.save_answers(diagnostic_id=started.id, answers={"q1": "A", "q2": "B"})
+    assert saved.answers == {"q1": "A", "q2": "B"}
+
+    resumed = await svc.resume(diagnostic_id=started.id)
+    assert resumed.answers == {"q1": "A", "q2": "B"}
+
+    done = await svc.complete(diagnostic_id=started.id)
+    assert done.diagnostic.status == "completed"
+    assert done.diagnostic.completed_at is not None
+    assert done.focus_areas
+    assert "%" not in done.coaching_summary
+    assert "failed" not in done.coaching_summary.lower()
+
+
+@pytest.mark.asyncio
+async def test_independent_requires_framework_id() -> None:
+    svc = DiagnosticService(session=AsyncMock(), tenant_type="independent")
+    with pytest.raises(ValidationError):
+        await svc.start(student_user_id="ind-1", subject_id="subj-1")
+    started = await svc.start(student_user_id="ind-1", framework_id="fw-1")
+    assert started.framework_id == "fw-1"
+    assert started.tenant_type == "independent"
+
+
+@pytest.mark.asyncio
+async def test_expired_blocks_resume_and_save(monkeypatch: pytest.MonkeyPatch) -> None:
+    svc = DiagnosticService(session=AsyncMock(), tenant_type="school")
+    started = await svc.start(student_user_id="stu-1", subject_id="subj-1")
+    row = _FakeRepo.store[started.id]
+    row.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+
+    with pytest.raises(PreconditionFailedError, match="expired"):
+        await svc.resume(diagnostic_id=started.id)
+    with pytest.raises(PreconditionFailedError, match="expired"):
+        await svc.save_answers(diagnostic_id=started.id, answers={"q1": "A"})
+
+
+@pytest.mark.asyncio
+async def test_timeout_finalizes_with_coaching_focus_areas() -> None:
+    svc = DiagnosticService(session=AsyncMock(), tenant_type="school")
+    started = await svc.start(
+        student_user_id="stu-1",
+        subject_id="subj-1",
+        questions=[
+            {"id": "q1", "prompt": "Newton?", "choices": ["A"], "topic": "Newton's Laws"},
+            {"id": "q2", "prompt": "Optics?", "choices": ["B"], "topic": "Optics"},
+        ],
+    )
+    await svc.save_answers(diagnostic_id=started.id, answers={"q1": "A"})
+    row = _FakeRepo.store[started.id]
+    row.expires_at = datetime.now(timezone.utc) - timedelta(seconds=1)
+
+    result = await svc.finalize_timeout(diagnostic_id=started.id)
+    assert result.timed_out is True
+    assert result.diagnostic.status == "completed"
+    assert any("Newton" in a.topic or "Optics" in a.topic for a in result.focus_areas)
+    assert "%" not in result.coaching_summary
+    assert "failed" not in result.coaching_summary.lower()
+
+
+@pytest.mark.asyncio
+async def test_retake_cooldown_blocks_early_start() -> None:
+    svc = DiagnosticService(session=AsyncMock(), tenant_type="school")
+    first = await svc.start(student_user_id="stu-1", subject_id="subj-1")
+    await svc.complete(diagnostic_id=first.id)
+
+    with pytest.raises(PreconditionFailedError) as exc:
+        await svc.start(student_user_id="stu-1", subject_id="subj-1")
+    assert RETAKE_BLOCKED_MESSAGE in str(exc.value)
+
+
+@pytest.mark.asyncio
+async def test_retake_allowed_after_cooldown() -> None:
+    svc = DiagnosticService(session=AsyncMock(), tenant_type="school")
+    first = await svc.start(student_user_id="stu-1", subject_id="subj-1")
+    await svc.complete(diagnostic_id=first.id)
+    row = _FakeRepo.store[first.id]
+    row.completed_at = datetime.now(timezone.utc) - RETAKE_COOLDOWN - timedelta(hours=1)
+
+    second = await svc.start(student_user_id="stu-1", subject_id="subj-1")
+    assert second.id != first.id
+    assert second.status == "in_progress"
+
+
+@pytest.mark.asyncio
+async def test_start_returns_existing_active_attempt() -> None:
+    svc = DiagnosticService(session=AsyncMock(), tenant_type="school")
+    first = await svc.start(student_user_id="stu-1", subject_id="subj-1")
+    again = await svc.start(student_user_id="stu-1", subject_id="subj-1")
+    assert again.id == first.id

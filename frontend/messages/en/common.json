@@ -250,7 +250,12 @@
         "graduation_requested": "Graduation requested",
         "graduation_approved": "Graduation approved",
         "graduation_migrated": "Student migrated to independent (elevated)",
-        "graduation_migration_failed": "Migration failed (elevated)"
+        "graduation_migration_failed": "Migration failed (elevated)",
+        "student_mode_changed": "Student mode switched",
+        "diagnostic_started": "Diagnostic started",
+        "diagnostic_completed": "Diagnostic completed",
+        "diagnostic_retaken": "Diagnostic retaken",
+        "cognitive_dna_seeded": "Cognitive DNA seeded from diagnostic"
       }
     }
   },
@@ -443,6 +448,15 @@
       "modes_submit": "Start studying",
       "error_generic": "Something went wrong. Please try again."
     },
+    "mode": {
+      "label": "Study mode",
+      "lecture": "Lecture",
+      "self_study": "Self-Study",
+      "loading": "Loading study mode…",
+      "error": "Could not load study mode. Try again.",
+      "retry": "Retry",
+      "switch_error": "Could not switch mode. Please try again."
+    },
     "dashboard": {
       "title": "Welcome, Student",
       "subtitle": "Your student dashboard. Lectures and study tools arrive in upcoming milestones.",
@@ -468,7 +482,15 @@
       "graduation_banner_title": "You've graduated",
       "graduation_banner_body": "Lecture mode is read-only. Self-Study stays fully available until your account moves to Independent mode.",
       "graduation_migration_date": "Independent migration scheduled: {date}",
-      "exam_frameworks_link": "Exam frameworks"
+      "exam_frameworks_link": "Exam frameworks",
+      "diagnostics_link": "Take a diagnostic",
+      "lecture_section_title": "Lecture",
+      "lecture_section_body": "Class lectures, teacher Q&A, and assigned materials appear here while you are in Lecture mode.",
+      "self_study_section_title": "Self-Study",
+      "self_study_section_body": "Your self-study plan and diagnostic focus areas guide this mode. Full planning arrives in a later milestone — coaching focus from your diagnostic already seeds Cognitive DNA for AI personalization.",
+      "mode_hint_lecture": "Lecture mode is active — Self-Study tools are hidden until you switch.",
+      "mode_hint_self_study": "Self-Study mode is active — Lecture materials are hidden until you switch.",
+      "exam_date_passed_prompt": "Your exam date has passed. Set a new exam date to keep pacing on track."
     },
     "data_rights": {
       "title": "Data & privacy",
@@ -1441,7 +1463,15 @@
       "home": {
         "ready_banner": "You are ready to study.",
         "self_study_only": "Self-Study Mode is your only mode — no lecture mode switcher.",
-        "diagnostic_deferred": "Diagnostic: coming soon (M-08 hook present)."
+        "diagnostic_deferred": "Diagnostic: coming soon (M-08 hook present).",
+        "diagnostics_link": "Take a diagnostic",
+        "exam_date_passed_prompt": "Your exam date has passed. Set a new exam date to keep pacing on track.",
+        "exam_date_label": "Target exam date",
+        "exam_date_save": "Save exam date",
+        "exam_date_error": "Could not save exam date. Please try again.",
+        "exam_date_future_warning": "Exam date is more than 5 years away — you can update it anytime before your exam.",
+        "self_study_section_title": "Self-Study",
+        "self_study_section_body": "Self-Study is your only mode. Diagnostic focus areas seed Cognitive DNA for future AI personalization — full planning comes later."
       }
     }
   },
@@ -1508,5 +1538,26 @@
       "download_started": "Download started.",
       "error_generic": "Something went wrong. Please try again."
     }
+  },
+  "diagnostics": {
+    "title": "Diagnostic check-in",
+    "subtitle": "Answer one question at a time. You can pause and resume within 7 days.",
+    "loading": "Preparing your diagnostic…",
+    "error_generic": "Something went wrong. Please try again.",
+    "retry": "Retry",
+    "progress": "Question {current} of {total} ({percent}%)",
+    "progress_bar_label": "Diagnostic progress",
+    "choices_legend": "Answer choices",
+    "open_answer_label": "Your answer",
+    "previous": "Previous",
+    "next": "Next",
+    "save_pause": "Save and pause",
+    "finish": "Finish",
+    "empty_questions": "No questions yet. You can finish to see focus areas.",
+    "results_title": "Areas to focus on",
+    "focus_areas_title": "Suggested focus",
+    "focus_areas_empty": "Keep exploring your topics — we will refine suggestions as you study.",
+    "timeout_notice": "Time ran out, so we saved your progress.",
+    "no_grades_disclaimer": "This diagnostic never shows marks, scores, or percentages — only coaching guidance."
   }
 }

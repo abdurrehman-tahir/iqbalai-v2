@@ -37,6 +37,7 @@ class SchoolStudentOnboardingRead(BaseModel):
     ready_to_study: bool
     show_complete_profile_banner: bool
     exam_date_set: bool = False
+    exam_date_passed: bool = False
     enrollment_grade_id: str | None = None
     profile: StudentProfileRead | None = None
     future_date_warning: str | None = None

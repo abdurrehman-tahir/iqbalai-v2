@@ -505,5 +505,59 @@
         "clear": "__TODO__ Clear"
       }
     }
+  },
+  "diagnostics": {
+    "title": "__TODO__ Diagnostic check-in",
+    "subtitle": "__TODO__ Answer one question at a time. You can pause and resume within 7 days.",
+    "loading": "__TODO__ Preparing your diagnostic…",
+    "error_generic": "__TODO__ Something went wrong. Please try again.",
+    "retry": "__TODO__ Retry",
+    "progress": "__TODO__ Question {current} of {total} ({percent}%)",
+    "progress_bar_label": "__TODO__ Diagnostic progress",
+    "choices_legend": "__TODO__ Answer choices",
+    "open_answer_label": "__TODO__ Your answer",
+    "previous": "__TODO__ Previous",
+    "next": "__TODO__ Next",
+    "save_pause": "__TODO__ Save and pause",
+    "finish": "__TODO__ Finish",
+    "empty_questions": "__TODO__ No questions yet. You can finish to see focus areas.",
+    "results_title": "__TODO__ Areas to focus on",
+    "focus_areas_title": "__TODO__ Suggested focus",
+    "focus_areas_empty": "__TODO__ Keep exploring your topics — we will refine suggestions as you study.",
+    "timeout_notice": "__TODO__ Time ran out, so we saved your progress.",
+    "no_grades_disclaimer": "__TODO__ This diagnostic never shows marks, scores, or percentages — only coaching guidance."
+  },
+  "student": {
+    "dashboard": {
+      "diagnostics_link": "__TODO__ Take a diagnostic",
+      "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date to keep pacing on track.",
+      "mode_hint_lecture": "__TODO__ Lecture mode is active.",
+      "mode_hint_self_study": "__TODO__ Self-Study mode is active."
+    }
+  },
+  "independent": {
+    "student": {
+      "home": {
+        "diagnostics_link": "__TODO__ Take a diagnostic",
+        "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date.",
+        "exam_date_label": "__TODO__ Target exam date",
+        "exam_date_save": "__TODO__ Save exam date",
+        "exam_date_error": "__TODO__ Could not save exam date.",
+        "exam_date_future_warning": "__TODO__ Exam date is more than 5 years away.",
+        "self_study_section_title": "__TODO__ Self-Study",
+        "self_study_section_body": "__TODO__ Self-Study is your only mode."
+      }
+    }
+  },
+  "school_admin": {
+    "audit_log": {
+      "actions": {
+        "student_mode_changed": "__TODO__ Student mode switched",
+        "diagnostic_started": "__TODO__ Diagnostic started",
+        "diagnostic_completed": "__TODO__ Diagnostic completed",
+        "diagnostic_retaken": "__TODO__ Diagnostic retaken",
+        "cognitive_dna_seeded": "__TODO__ Cognitive DNA seeded from diagnostic"
+      }
+    }
   }
 }

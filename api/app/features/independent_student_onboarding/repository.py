@@ -22,6 +22,15 @@ class IndependentStudentProfileRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_with_exam_dates(self) -> list[IndependentStudentProfile]:
+        result = await self._session.execute(
+            select(IndependentStudentProfile).where(
+                IndependentStudentProfile.exam_date.is_not(None),
+                not_deleted(IndependentStudentProfile),
+            )
+        )
+        return list(result.scalars().all())
+
     async def create(self, profile: IndependentStudentProfile) -> IndependentStudentProfile:
         self._session.add(profile)
         await self._session.commit()

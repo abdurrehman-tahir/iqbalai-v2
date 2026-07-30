@@ -790,6 +790,279 @@
         "title": "DeletedResponse",
         "type": "object"
       },
+      "DiagnosticQuestion": {
+        "additionalProperties": false,
+        "description": "One diagnostic item (filled by T-104 generation / Question Bank hook).",
+        "properties": {
+          "choices": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Choices",
+            "type": "array"
+          },
+          "id": {
+            "maxLength": 64,
+            "minLength": 1,
+            "title": "Id",
+            "type": "string"
+          },
+          "prompt": {
+            "default": "",
+            "maxLength": 4000,
+            "title": "Prompt",
+            "type": "string"
+          },
+          "topic": {
+            "default": "",
+            "maxLength": 255,
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "title": "DiagnosticQuestion",
+        "type": "object"
+      },
+      "DiagnosticRead": {
+        "properties": {
+          "answers": {
+            "additionalProperties": true,
+            "title": "Answers",
+            "type": "object"
+          },
+          "completed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed At"
+          },
+          "expires_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Expires At"
+          },
+          "framework_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Framework Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/DiagnosticQuestion"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
+          "started_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Started At"
+          },
+          "status": {
+            "enum": [
+              "not_taken",
+              "in_progress",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_type",
+          "student_user_id",
+          "status",
+          "questions",
+          "answers"
+        ],
+        "title": "DiagnosticRead",
+        "type": "object"
+      },
+      "DiagnosticResultRead": {
+        "description": "Completion payload for the taking UI. No score/percentage/grade fields.",
+        "properties": {
+          "coaching_summary": {
+            "title": "Coaching Summary",
+            "type": "string"
+          },
+          "diagnostic": {
+            "$ref": "#/components/schemas/DiagnosticRead"
+          },
+          "focus_areas": {
+            "items": {
+              "$ref": "#/components/schemas/FocusAreaRead"
+            },
+            "title": "Focus Areas",
+            "type": "array"
+          },
+          "timed_out": {
+            "default": false,
+            "title": "Timed Out",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "diagnostic",
+          "focus_areas",
+          "coaching_summary"
+        ],
+        "title": "DiagnosticResultRead",
+        "type": "object"
+      },
+      "DiagnosticSaveAnswers": {
+        "properties": {
+          "answers": {
+            "additionalProperties": true,
+            "title": "Answers",
+            "type": "object"
+          }
+        },
+        "title": "DiagnosticSaveAnswers",
+        "type": "object"
+      },
+      "DiagnosticStartRequest": {
+        "description": "Start (or resume active) diagnostic; optionally LLM-generate questions.",
+        "properties": {
+          "context_json": {
+            "additionalProperties": true,
+            "title": "Context Json",
+            "type": "object"
+          },
+          "framework_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Framework Id"
+          },
+          "framework_name": {
+            "default": "",
+            "title": "Framework Name",
+            "type": "string"
+          },
+          "generate": {
+            "default": true,
+            "title": "Generate",
+            "type": "boolean"
+          },
+          "grade_label": {
+            "default": "",
+            "title": "Grade Label",
+            "type": "string"
+          },
+          "language": {
+            "default": "en",
+            "enum": [
+              "en",
+              "ur",
+              "sd",
+              "ps"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "question_count": {
+            "default": 20,
+            "maximum": 25.0,
+            "minimum": 15.0,
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "questions": {
+            "anyOf": [
+              {
+                "items": {
+                  "$ref": "#/components/schemas/DiagnosticQuestion"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Questions"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "subject_name": {
+            "default": "",
+            "title": "Subject Name",
+            "type": "string"
+          }
+        },
+        "title": "DiagnosticStartRequest",
+        "type": "object"
+      },
       "DisclaimerVersionCreate": {
         "description": "Publish a new Disclaimer version (Platform Admin only). 500-char limit.",
         "properties": {
@@ -1413,6 +1686,29 @@
           }
         },
         "title": "ExamSyllabusUpdate",
+        "type": "object"
+      },
+      "FocusAreaRead": {
+        "description": "Coaching focus area \u2014 never a grade/score (Flow 4 \u00a73.6 / T-105).",
+        "properties": {
+          "suggestion": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Suggestion",
+            "type": "string"
+          },
+          "topic": {
+            "maxLength": 255,
+            "minLength": 1,
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic",
+          "suggestion"
+        ],
+        "title": "FocusAreaRead",
         "type": "object"
       },
       "FrameworkRejectRequest": {
@@ -2071,8 +2367,40 @@
         "title": "IndependentSignupResponse",
         "type": "object"
       },
+      "IndependentStudentExamDateUpdate": {
+        "description": "Update exam date after profile complete (T-107 EXAM_PASSED re-set).",
+        "properties": {
+          "exam_date": {
+            "description": "Target exam date",
+            "format": "date",
+            "title": "Exam Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "exam_date"
+        ],
+        "title": "IndependentStudentExamDateUpdate",
+        "type": "object"
+      },
       "IndependentStudentOnboardingRead": {
         "properties": {
+          "exam_date_passed": {
+            "default": false,
+            "title": "Exam Date Passed",
+            "type": "boolean"
+          },
+          "future_date_warning": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Future Date Warning"
+          },
           "profile": {
             "anyOf": [
               {
@@ -2534,6 +2862,24 @@
           "role"
         ],
         "title": "MeResponse",
+        "type": "object"
+      },
+      "ModeStateBlob": {
+        "additionalProperties": false,
+        "description": "Per-mode UI restore state (flow-4 \u00a73.4 \u2014 no data loss across switches).",
+        "properties": {
+          "lecture": {
+            "additionalProperties": true,
+            "title": "Lecture",
+            "type": "object"
+          },
+          "self_study": {
+            "additionalProperties": true,
+            "title": "Self Study",
+            "type": "object"
+          }
+        },
+        "title": "ModeStateBlob",
         "type": "object"
       },
       "NotificationListResponse": {
@@ -3447,6 +3793,11 @@
             ],
             "title": "Enrollment Grade Id"
           },
+          "exam_date_passed": {
+            "default": false,
+            "title": "Exam Date Passed",
+            "type": "boolean"
+          },
           "exam_date_set": {
             "default": false,
             "title": "Exam Date Set",
@@ -3887,6 +4238,38 @@
         "title": "StudentLinkRequestList",
         "type": "object"
       },
+      "StudentModeRead": {
+        "description": "Current mode + restore blob for the school student dashboard.",
+        "properties": {
+          "active_mode": {
+            "enum": [
+              "lecture",
+              "self_study"
+            ],
+            "title": "Active Mode",
+            "type": "string"
+          },
+          "lecture_mode_enabled": {
+            "title": "Lecture Mode Enabled",
+            "type": "boolean"
+          },
+          "mode_state": {
+            "$ref": "#/components/schemas/ModeStateBlob"
+          },
+          "self_study_mode_enabled": {
+            "title": "Self Study Mode Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "active_mode",
+          "mode_state",
+          "lecture_mode_enabled",
+          "self_study_mode_enabled"
+        ],
+        "title": "StudentModeRead",
+        "type": "object"
+      },
       "StudentModeSelect": {
         "properties": {
           "lecture_mode": {
@@ -3901,6 +4284,36 @@
           }
         },
         "title": "StudentModeSelect",
+        "type": "object"
+      },
+      "StudentModeUpdate": {
+        "description": "Switch active mode; optionally snapshot the mode being left.",
+        "properties": {
+          "active_mode": {
+            "enum": [
+              "lecture",
+              "self_study"
+            ],
+            "title": "Active Mode",
+            "type": "string"
+          },
+          "leaving_mode_state": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Leaving Mode State"
+          }
+        },
+        "required": [
+          "active_mode"
+        ],
+        "title": "StudentModeUpdate",
         "type": "object"
       },
       "StudentProfileBasicComplete": {
@@ -4511,6 +4924,40 @@
         "title": "SuccessEnvelope[DeletedResponse]",
         "type": "object"
       },
+      "SuccessEnvelope_DiagnosticRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DiagnosticRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[DiagnosticRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_DiagnosticResultRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DiagnosticResultRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[DiagnosticResultRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DisclaimerVersionRead_": {
         "properties": {
           "data": {
@@ -5087,6 +5534,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[StudentLinkRequestList]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentModeRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentModeRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentModeRead]",
         "type": "object"
       },
       "SuccessEnvelope_StudentSelectionRead_": {
@@ -10316,6 +10780,47 @@
         ]
       }
     },
+    "/api/v1/independent/students/me/exam-date": {
+      "put": {
+        "operationId": "independent_student_set_exam_date",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IndependentStudentExamDateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_IndependentStudentOnboardingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update exam date (including after exam date has passed)",
+        "tags": [
+          "independent-student-onboarding"
+        ]
+      }
+    },
     "/api/v1/independent/students/me/exam-frameworks": {
       "get": {
         "operationId": "list_independent_exam_frameworks",
@@ -12328,6 +12833,225 @@
         ]
       }
     },
+    "/api/v1/students/me/diagnostics/start": {
+      "post": {
+        "operationId": "student_start_diagnostic",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnosticStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DiagnosticRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start or resume a diagnostic (optionally generate questions)",
+        "tags": [
+          "diagnostics"
+        ]
+      }
+    },
+    "/api/v1/students/me/diagnostics/{diagnostic_id}": {
+      "get": {
+        "operationId": "student_get_diagnostic",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "diagnostic_id",
+            "required": true,
+            "schema": {
+              "title": "Diagnostic Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DiagnosticRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get diagnostic attempt (for resume)",
+        "tags": [
+          "diagnostics"
+        ]
+      }
+    },
+    "/api/v1/students/me/diagnostics/{diagnostic_id}/answers": {
+      "put": {
+        "operationId": "student_save_diagnostic_answers",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "diagnostic_id",
+            "required": true,
+            "schema": {
+              "title": "Diagnostic Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagnosticSaveAnswers"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DiagnosticRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save diagnostic answers (pause / progress)",
+        "tags": [
+          "diagnostics"
+        ]
+      }
+    },
+    "/api/v1/students/me/diagnostics/{diagnostic_id}/complete": {
+      "post": {
+        "operationId": "student_complete_diagnostic",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "diagnostic_id",
+            "required": true,
+            "schema": {
+              "title": "Diagnostic Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DiagnosticResultRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Complete diagnostic and return coaching focus areas (never a grade)",
+        "tags": [
+          "diagnostics"
+        ]
+      }
+    },
+    "/api/v1/students/me/diagnostics/{diagnostic_id}/finalize-timeout": {
+      "post": {
+        "operationId": "student_finalize_diagnostic_timeout",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "diagnostic_id",
+            "required": true,
+            "schema": {
+              "title": "Diagnostic Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DiagnosticResultRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Gracefully finalize an expired diagnostic with coaching focus areas",
+        "tags": [
+          "diagnostics"
+        ]
+      }
+    },
     "/api/v1/students/me/graduation": {
       "get": {
         "operationId": "student_get_graduation_status",
@@ -12451,6 +13175,66 @@
         "summary": "Revoke an approved parent link",
         "tags": [
           "student-parent-links"
+        ]
+      }
+    },
+    "/api/v1/students/me/mode": {
+      "get": {
+        "operationId": "student_get_mode",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentModeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get school student active study mode",
+        "tags": [
+          "student-mode"
+        ]
+      },
+      "put": {
+        "operationId": "student_set_mode",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentModeUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentModeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Switch school student Lecture \u21c4 Self-Study mode",
+        "tags": [
+          "student-mode"
         ]
       }
     },
