@@ -1,0 +1,449 @@
+"""Lecture ORM models — T-113 (Flow 5 §3.1–§3.2, ARCH §4.18 / §4.21).
+
+Four tables in both ``school`` and ``independent`` schemas:
+``lectures``, ``lecture_versions``, ``lecture_drafts``, ``lecture_paragraphs``.
+
+``lecture_type`` + ``parent_lecture_id`` are Flow-7-ready (mini-lectures later).
+Scoring columns stay nullable until M-10; quiz tables are M-11.
+"""
+
+from __future__ import annotations
+
+from enum import StrEnum
+
+from sqlalchemy import (
+    CheckConstraint,
+    ForeignKey,
+    Index,
+    Integer,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
+)
+from sqlalchemy import Enum as SAEnum
+from sqlalchemy.dialects.postgresql import JSONB
+from sqlalchemy.orm import Mapped, mapped_column
+
+from app.db.base import AuditMixin, Base, SoftDeleteMixin, _uuid7
+
+
+class LectureType(StrEnum):
+    """main = class lecture; mini = Flow-7 targeted follow-up (column reserved now)."""
+
+    MAIN = "main"
+    MINI = "mini"
+
+
+class LectureStatus(StrEnum):
+    """Lecture lifecycle (Flow 5 §3.1–§3.2). Additive-only per ARCH §4.9.
+
+    M-09 ends at READY_FOR_EDIT. READY_FOR_PUBLISH / PUBLISHED / ARCHIVED are
+    reserved for M-10/M-11 so later tickets do not need ALTER TYPE ADD VALUE.
+    """
+
+    DRAFT = "draft"
+    GENERATING = "generating"
+    GENERATED_V1 = "generated_v1"
+    READY_FOR_EDIT = "ready_for_edit"
+    READY_FOR_PUBLISH = "ready_for_publish"
+    PUBLISHED = "published"
+    ARCHIVED = "archived"
+    FAILED = "failed"
+    TIMED_OUT = "timed_out"
+
+
+class LectureTenantType(StrEnum):
+    SCHOOL = "school"
+    INDEPENDENT = "independent"
+
+
+def _lecture_type_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        LectureType,
+        name="lectures_lecture_type_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
+def _lecture_status_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        LectureStatus,
+        name="lectures_status_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
+def _tenant_type_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        LectureTenantType,
+        name="lectures_tenant_type_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
+# ---------------------------------------------------------------------------
+# School schema
+# ---------------------------------------------------------------------------
+
+
+class SchoolLecture(AuditMixin, SoftDeleteMixin, Base):
+    """Canonical lecture identity (mutable status / current_version pointer)."""
+
+    __tablename__ = "lectures"
+    __table_args__ = (
+        CheckConstraint(
+            "lecture_type <> 'mini' OR parent_lecture_id IS NOT NULL",
+            name="lectures_mini_requires_parent_check",
+        ),
+        Index("ix_lectures_school_id", "school_id"),
+        Index("ix_lectures_grade_subject_offering_id", "grade_subject_offering_id"),
+        Index("ix_lectures_teacher_user_id", "teacher_user_id"),
+        Index("ix_lectures_parent_lecture_id", "parent_lecture_id"),
+        Index("ix_lectures_current_version_id", "current_version_id"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    tenant_type: Mapped[LectureTenantType] = mapped_column(
+        _tenant_type_enum("school"),
+        nullable=False,
+        default=LectureTenantType.SCHOOL,
+    )
+    school_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.schools.id", ondelete="RESTRICT"),
+        nullable=True,
+    )
+    grade_subject_offering_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.grade_subject_offerings.id", ondelete="RESTRICT"),
+        nullable=True,
+    )
+    # SET NULL: preserve content if the teacher user is hard-removed (ARCH §4.6).
+    teacher_user_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    topic: Mapped[str] = mapped_column(String(500), nullable=False)
+    lecture_type: Mapped[LectureType] = mapped_column(
+        _lecture_type_enum("school"),
+        nullable=False,
+        default=LectureType.MAIN,
+    )
+    parent_lecture_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.lectures.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    status: Mapped[LectureStatus] = mapped_column(
+        _lecture_status_enum("school"),
+        nullable=False,
+        default=LectureStatus.DRAFT,
+    )
+    # Circular with lecture_versions — FK added via use_alter after versions exist (§4.18).
+    current_version_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "school.lecture_versions.id",
+            ondelete="RESTRICT",
+            use_alter=True,
+            name="lectures_current_version_id_fk",
+        ),
+        nullable=True,
+    )
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "tenant_type" not in kwargs:
+            kwargs["tenant_type"] = LectureTenantType.SCHOOL
+        if "lecture_type" not in kwargs:
+            kwargs["lecture_type"] = LectureType.MAIN
+        if "status" not in kwargs:
+            kwargs["status"] = LectureStatus.DRAFT
+        super().__init__(**kwargs)
+
+
+class SchoolLectureVersion(AuditMixin, Base):
+    """Immutable append-only version row (§4.18). No soft-delete."""
+
+    __tablename__ = "lecture_versions"
+    __table_args__ = (
+        UniqueConstraint(
+            "lecture_id",
+            "version",
+            name="lecture_versions_lecture_version_uq",
+        ),
+        CheckConstraint("version >= 1", name="lecture_versions_version_positive_check"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lectures.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    # M-10 fills 7-dimension scores; nullable until then.
+    scores_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        super().__init__(**kwargs)
+
+
+class SchoolLectureParagraph(AuditMixin, Base):
+    """Per-paragraph body + provenance for a lecture version."""
+
+    __tablename__ = "lecture_paragraphs"
+    __table_args__ = (
+        UniqueConstraint(
+            "lecture_version_id",
+            "ordinal",
+            name="lecture_paragraphs_version_ordinal_uq",
+        ),
+        CheckConstraint("ordinal >= 0", name="lecture_paragraphs_ordinal_nonneg_check"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_version_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lecture_versions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    source_metadata_jsonb: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "source_metadata_jsonb" not in kwargs:
+            kwargs["source_metadata_jsonb"] = {"tier": "ai_knowledge"}
+        super().__init__(**kwargs)
+
+
+class SchoolLectureDraft(AuditMixin, SoftDeleteMixin, Base):
+    """Wizard auto-save blob — one active draft per teacher (T-114 resume)."""
+
+    __tablename__ = "lecture_drafts"
+    __table_args__ = (
+        Index(
+            "lecture_drafts_teacher_user_id_uq",
+            "teacher_user_id",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    teacher_user_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    wizard_state_jsonb: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "wizard_state_jsonb" not in kwargs:
+            kwargs["wizard_state_jsonb"] = {"step": 1, "data": {}}
+        super().__init__(**kwargs)
+
+
+# ---------------------------------------------------------------------------
+# Independent schema — same tables; school_id / offering_id always null (no FKs).
+# ---------------------------------------------------------------------------
+
+
+class IndependentLecture(AuditMixin, SoftDeleteMixin, Base):
+    """Independent-teacher lecture — no Grade-Subject offering, no school_id."""
+
+    __tablename__ = "lectures"
+    __table_args__ = (
+        CheckConstraint(
+            "lecture_type <> 'mini' OR parent_lecture_id IS NOT NULL",
+            name="lectures_mini_requires_parent_check",
+        ),
+        CheckConstraint("school_id IS NULL", name="lectures_independent_school_null_check"),
+        CheckConstraint(
+            "grade_subject_offering_id IS NULL",
+            name="lectures_independent_offering_null_check",
+        ),
+        Index("ix_lectures_teacher_user_id", "teacher_user_id"),
+        Index("ix_lectures_parent_lecture_id", "parent_lecture_id"),
+        Index("ix_lectures_current_version_id", "current_version_id"),
+        {"schema": "independent"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    tenant_type: Mapped[LectureTenantType] = mapped_column(
+        _tenant_type_enum("independent"),
+        nullable=False,
+        default=LectureTenantType.INDEPENDENT,
+    )
+    # Always NULL for independent — columns exist for shape parity; no cross-schema FKs.
+    school_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    grade_subject_offering_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    teacher_user_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("independent.users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    title: Mapped[str] = mapped_column(String(500), nullable=False)
+    topic: Mapped[str] = mapped_column(String(500), nullable=False)
+    lecture_type: Mapped[LectureType] = mapped_column(
+        _lecture_type_enum("independent"),
+        nullable=False,
+        default=LectureType.MAIN,
+    )
+    parent_lecture_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("independent.lectures.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    status: Mapped[LectureStatus] = mapped_column(
+        _lecture_status_enum("independent"),
+        nullable=False,
+        default=LectureStatus.DRAFT,
+    )
+    current_version_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey(
+            "independent.lecture_versions.id",
+            ondelete="RESTRICT",
+            use_alter=True,
+            name="lectures_current_version_id_fk",
+        ),
+        nullable=True,
+    )
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "tenant_type" not in kwargs:
+            kwargs["tenant_type"] = LectureTenantType.INDEPENDENT
+        if "lecture_type" not in kwargs:
+            kwargs["lecture_type"] = LectureType.MAIN
+        if "status" not in kwargs:
+            kwargs["status"] = LectureStatus.DRAFT
+        # Enforce independent nullability even if callers pass values.
+        kwargs["school_id"] = None
+        kwargs["grade_subject_offering_id"] = None
+        super().__init__(**kwargs)
+
+
+class IndependentLectureVersion(AuditMixin, Base):
+    """Immutable append-only version in the independent schema."""
+
+    __tablename__ = "lecture_versions"
+    __table_args__ = (
+        UniqueConstraint(
+            "lecture_id",
+            "version",
+            name="lecture_versions_lecture_version_uq",
+        ),
+        CheckConstraint("version >= 1", name="lecture_versions_version_positive_check"),
+        {"schema": "independent"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("independent.lectures.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    version: Mapped[int] = mapped_column(Integer, nullable=False)
+    body: Mapped[str] = mapped_column(Text, nullable=False)
+    scores_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        super().__init__(**kwargs)
+
+
+class IndependentLectureParagraph(AuditMixin, Base):
+    """Per-paragraph body + provenance (independent schema)."""
+
+    __tablename__ = "lecture_paragraphs"
+    __table_args__ = (
+        UniqueConstraint(
+            "lecture_version_id",
+            "ordinal",
+            name="lecture_paragraphs_version_ordinal_uq",
+        ),
+        CheckConstraint("ordinal >= 0", name="lecture_paragraphs_ordinal_nonneg_check"),
+        {"schema": "independent"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_version_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("independent.lecture_versions.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
+    text: Mapped[str] = mapped_column(Text, nullable=False)
+    source_metadata_jsonb: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "source_metadata_jsonb" not in kwargs:
+            kwargs["source_metadata_jsonb"] = {"tier": "ai_knowledge"}
+        super().__init__(**kwargs)
+
+
+class IndependentLectureDraft(AuditMixin, SoftDeleteMixin, Base):
+    """Wizard auto-save for independent teachers."""
+
+    __tablename__ = "lecture_drafts"
+    __table_args__ = (
+        Index(
+            "lecture_drafts_teacher_user_id_uq",
+            "teacher_user_id",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
+        {"schema": "independent"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    teacher_user_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("independent.users.id", ondelete="CASCADE"),
+        nullable=False,
+        index=True,
+    )
+    wizard_state_jsonb: Mapped[dict[str, object]] = mapped_column(JSONB, nullable=False)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "wizard_state_jsonb" not in kwargs:
+            kwargs["wizard_state_jsonb"] = {"step": 1, "data": {}}
+        super().__init__(**kwargs)

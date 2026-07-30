@@ -23,7 +23,7 @@
 | M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | ~3-4 days | done | Platform Admin triggers AI research; approves; students can select framework |
 | M-07a | Login Flow Remediation (§6.4 conformance + audit fixes) | 3 | T-238 to T-249 | ~1 week | in-progress | Testers log in via the public URL through branded /idp; cookie-only auth per §6.4/§6.17; per-role @auth @real E2E green |
 | M-08 | Student Mode + Diagnostic + Cognitive DNA seed | 3 | T-101 to T-112 | ~3-4 days | done | Student picks mode, takes diagnostic, cognitive DNA initialized |
-| M-09 | Lecture Wizard + AI Generation (Pattern S RAG) | 4 | T-113 to T-128 | ~1.5 weeks | drafted | Teacher generates first lecture; sees streaming output with source badges |
+| M-09 | Lecture Wizard + AI Generation (Pattern S RAG) | 4 | T-113 to T-128 | ~1.5 weeks | in-progress | Teacher generates first lecture; sees streaming output with source badges |
 | M-10 | Lecture Edit + Versions + 7-Dim Scoring | 4 | T-129 to T-140 | ~3-4 days | drafted | Teacher edits lecture; sees score timeline + Innovation Record suggestions |
 | M-11 | Auto-quiz Per Student + Publish Lecture | 4 | T-141 to T-150 | ~2-3 days | drafted | Lecture publishes; auto-quizzes generate per student; students see quizzes |
 | M-12 | Lecture Mode Viewer + Highlight + Q&A + Voice | 5 | T-151 to T-165 | ~1.5 weeks | drafted | Student opens lecture; voice-reads; highlights; asks questions w/ AI answers |

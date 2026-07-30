@@ -1,7 +1,12 @@
 # Session state (live)
 
-**Fixed:** Curriculum "pysics" stuck on Pending ingestion.
-**Causes:** (1) `SET LOCAL app.current_role` SQL error in Celery RLS; (2) stale `ingesting` skip; (3) missing School metadata for chunk FK.
-**Status now:** `available` (topic tree parse degraded — sample PDF isn't a real curriculum).
-**Commits:** a3dab76, 0d3d48e, + school_models FK import.
-**Next for Hamza:** refresh Curriculum detail page.
+**Milestone:** M-09 Lecture Wizard + AI Generation
+**Branch:** milestone/M-09-lecture-wizard-generation (from staging)
+**Current ticket:** T-113 — committing
+**Status:** implementation complete; format gate green (11 tests)
+**Depends on:** T-045 ✅, T-054 ✅
+**Done:** (committing T-113)
+**Next:** T-114 — Wizard steps 1–2 + draft auto-save (ticket-loader first)
+**Last files:** api/app/features/lectures/{models,schemas}.py; alembic school_0051 + independent_0012
+**Dossier sources:** M-09 L32-65; flow-5 §3.1-3.2; ARCH §3.18, §4, §4.18, §4.21; A-001
+**Out of scope:** Scoring (M-10), quiz tables (M-11)

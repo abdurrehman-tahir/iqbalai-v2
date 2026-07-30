@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** in-progress
 **Estimated duration:** 3-4 weeks
 **Tickets:** T-113 through T-128
 **Spec source:** `flow-5-teacher-creates-lecture.md` v1 (§3.1 wizard #23, §3.2 generation #24, §3.4 voice #25, §3.13/§3.14 linking+access #21, §3.15 delivery tips #28/#41, §3.16 independent variant)
@@ -34,7 +34,7 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.1, §3.2 (lectures, versions, drafts, paragraph source metadata)

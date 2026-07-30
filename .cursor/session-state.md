@@ -1,7 +1,12 @@
-# Session state (Cursor)
+# Session state (live)
 
-- Ticket: M-08 T-101–T-112 done; CI fixes pushed
-- Status: PR #28 open → staging (rebase onto staging tip)
-- Branch: milestone/M-08-mode-diagnostic
-- Next: wait CI green; then M-09 after merge
-- Fixes: PR header `Milestone & feature reference`; ROADMAP M-08=done; unused import
+**Milestone:** M-09 Lecture Wizard + AI Generation
+**Branch:** milestone/M-09-lecture-wizard-generation (from staging)
+**Current ticket:** T-113 — committing
+**Status:** implementation complete; format gate green (11 tests)
+**Depends on:** T-045 ✅, T-054 ✅
+**Done:** (committing T-113)
+**Next:** T-114 — Wizard steps 1–2 + draft auto-save (ticket-loader first)
+**Last files:** api/app/features/lectures/{models,schemas}.py; alembic school_0051 + independent_0012
+**Dossier sources:** M-09 L32-65; flow-5 §3.1-3.2; ARCH §3.18, §4, §4.18, §4.21; A-001
+**Out of scope:** Scoring (M-10), quiz tables (M-11)
