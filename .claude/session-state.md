@@ -2,8 +2,8 @@
 
 **Milestone:** M-09 Lecture Wizard + AI Generation
 **Branch:** milestone/M-09-lecture-wizard-generation
-**Current ticket:** T-114 (next)
-**Status:** T-113 done (`cf19314`)
-**Done:** T-113
-**Next:** ticket-loader for T-114 — Wizard steps 1–2 + draft auto-save
-**Out of scope reminder:** Edit/scoring→M-10; auto-quiz/publish→M-11; viewer→M-12
+**Current ticket:** T-114 — committing
+**Status:** implementation complete (backend + FE wizard steps 1–2)
+**Done:** T-113 (`cf19314`)
+**Next:** T-115 after commit
+**Out of scope reminder:** Steps 3–5 → T-115; generation → T-116

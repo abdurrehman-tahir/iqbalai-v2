@@ -559,5 +559,51 @@
         "cognitive_dna_seeded": "__TODO__ Cognitive DNA seeded from diagnostic"
       }
     }
+  },
+  "teacher": {
+    "header_title": "__TODO__ Teacher dashboard",
+    "logout": "__TODO__ Sign out",
+    "nav": {
+      "aria_label": "__TODO__ Teacher navigation",
+      "dashboard": "__TODO__ Dashboard",
+      "lectures": "__TODO__ Create lecture",
+      "library": "__TODO__ Content Library",
+      "library_upload": "__TODO__ Upload reference book",
+      "curriculum_upload": "__TODO__ Upload curriculum"
+    },
+    "lectures": {
+      "wizard": {
+        "title": "__TODO__ Create a lecture",
+        "subtitle": "__TODO__ Pick a topic and confirm the curriculum. Your progress auto-saves.",
+        "step_indicator": "__TODO__ Step {step} of {total}",
+        "saving": "__TODO__ Saving…",
+        "saved": "__TODO__ Saved",
+        "save_error": "__TODO__ Could not save draft. Please try again.",
+        "load_error": "__TODO__ Could not load the lecture wizard",
+        "load_error_hint": "__TODO__ Check your connection and try again.",
+        "retry": "__TODO__ Retry",
+        "empty_offerings_title": "__TODO__ No Grade-Subject assignments yet",
+        "empty_offerings_body": "__TODO__ Ask your Coordinator to assign you to at least one Grade-Subject offering before creating a lecture.",
+        "step1_title": "__TODO__ Step 1 — Choose topic",
+        "step2_title": "__TODO__ Step 2 — Confirm curriculum",
+        "offering_label": "__TODO__ Grade-Subject offering",
+        "offering_placeholder": "__TODO__ Select an offering",
+        "pick_curriculum_hint": "__TODO__ Loading curriculum topics…",
+        "freeform_hint": "__TODO__ This curriculum’s topic tree is incomplete. Enter a topic name instead.",
+        "freeform_label": "__TODO__ Topic name",
+        "topics_label": "__TODO__ Topics from curriculum",
+        "next": "__TODO__ Continue",
+        "back": "__TODO__ Back",
+        "save_continue": "__TODO__ Save progress",
+        "offering_summary": "__TODO__ {grade} · {subject}",
+        "topic_summary": "__TODO__ Topic: {topic}",
+        "curriculum_label": "__TODO__ Curriculum",
+        "primary_badge": "__TODO__ Primary",
+        "degraded_badge": "__TODO__ Degraded parse",
+        "curricula_error": "__TODO__ Could not load curricula",
+        "curricula_empty": "__TODO__ No curriculum is available for this Grade-Subject yet.",
+        "steps_3_5_later": "__TODO__ Steps 3–5 (references, teaching mode, generate) come in the next ticket."
+      }
+    }
   }
 }

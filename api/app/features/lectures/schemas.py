@@ -1,11 +1,8 @@
-"""JSONB shapes for lecture tables (ARCH §4.10) — T-113.
-
-Validated on write by services in later tickets. Scores remain a nullable
-placeholder until M-10 populates the 7-dimension breakdown.
-"""
+"""API + JSONB schemas for lecture wizard (T-113/T-114)."""
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
 from typing import Any
 
@@ -18,7 +15,7 @@ class SourceTier(StrEnum):
     CURRICULUM = "curriculum"
     REFERENCE = "reference"
     AI_KNOWLEDGE = "ai_knowledge"
-    WEB = "web"  # SearXNG out-of-curriculum fallback
+    WEB = "web"
 
 
 class ParagraphSourceMetadata(BaseModel):
@@ -55,7 +52,7 @@ class LectureScores(BaseModel):
 
 
 class WizardState(BaseModel):
-    """Wizard progress blob in ``lecture_drafts.wizard_state_jsonb`` (T-114 fills)."""
+    """Wizard progress blob in ``lecture_drafts.wizard_state_jsonb``."""
 
     model_config = ConfigDict(extra="allow")
 
@@ -68,3 +65,58 @@ class WizardState(BaseModel):
     @classmethod
     def from_jsonb(cls, raw: dict[str, Any]) -> WizardState:
         return cls.model_validate(raw)
+
+
+# --- T-114 API schemas ---
+
+
+class TeacherOfferingRead(BaseModel):
+    """Grade-Subject offering assigned to the calling teacher."""
+
+    id: str
+    grade_id: str
+    grade_name: str
+    grade_level_ordinal: int
+    subject_id: str
+    subject_name: str
+    academic_session: str
+
+
+class WizardCurriculumRead(BaseModel):
+    """Curriculum candidate for Step 2 (primary flagged)."""
+
+    id: str
+    title: str
+    subject_id: str | None
+    grade_level_ordinal: int | None
+    is_primary: bool
+    parse_degraded: bool
+    topic_tree_jsonb: dict[str, Any] | None = None
+
+
+class WizardTopicOption(BaseModel):
+    """Flattened topic path from curriculum topic_tree_jsonb."""
+
+    path: str
+    label: str
+
+
+class WizardTopicsRead(BaseModel):
+    curriculum_id: str
+    parse_degraded: bool
+    topics: list[WizardTopicOption]
+
+
+class LectureDraftRead(BaseModel):
+    id: str | None = None
+    teacher_user_id: str
+    step: int
+    data: dict[str, Any]
+    updated_at: datetime | None = None
+
+
+class LectureDraftUpsert(BaseModel):
+    """PUT body — full wizard state replace (auto-save)."""
+
+    step: int = Field(ge=1, le=5)
+    data: dict[str, Any] = Field(default_factory=dict)

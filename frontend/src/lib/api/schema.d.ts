@@ -2282,6 +2282,75 @@ export interface paths {
         patch: operations["teacher_update_capacity"];
         trace?: never;
     };
+    "/api/v1/teachers/me/lecture-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the teacher's active lecture wizard draft (resume) */
+        get: operations["teacher_get_lecture_draft"];
+        /** Auto-save lecture wizard draft state */
+        put: operations["teacher_upsert_lecture_draft"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lecture-wizard/curricula": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List curricula for an assigned Grade-Subject (primary flagged) */
+        get: operations["teacher_list_wizard_curricula"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lecture-wizard/topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List topic-tree options for a curriculum (freeform when degraded) */
+        get: operations["teacher_list_wizard_topics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/offerings": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List Grade-Subject offerings assigned to the teacher */
+        get: operations["teacher_list_my_offerings"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/onboarding": {
         parameters: {
             query?: never;
@@ -3494,6 +3563,33 @@ export interface components {
          * @enum {string}
          */
         IndependentUserRole: "independent_teacher" | "independent_student";
+        /** LectureDraftRead */
+        LectureDraftRead: {
+            /** Data */
+            data: {
+                [key: string]: unknown;
+            };
+            /** Id */
+            id?: string | null;
+            /** Step */
+            step: number;
+            /** Teacher User Id */
+            teacher_user_id: string;
+            /** Updated At */
+            updated_at?: string | null;
+        };
+        /**
+         * LectureDraftUpsert
+         * @description PUT body — full wizard state replace (auto-save).
+         */
+        LectureDraftUpsert: {
+            /** Data */
+            data?: {
+                [key: string]: unknown;
+            };
+            /** Step */
+            step: number;
+        };
         /**
          * LibraryBookListResponse
          * @description Paginated list of platform reference books.
@@ -4615,6 +4711,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LectureDraftRead] */
+        SuccessEnvelope_LectureDraftRead_: {
+            data: components["schemas"]["LectureDraftRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LibraryBookListResponse] */
         SuccessEnvelope_LibraryBookListResponse_: {
             data: components["schemas"]["LibraryBookListResponse"];
@@ -4903,6 +5008,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[WizardTopicsRead] */
+        SuccessEnvelope_WizardTopicsRead_: {
+            data: components["schemas"]["WizardTopicsRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[AcademicSessionRead]] */
         SuccessEnvelope_list_AcademicSessionRead__: {
             /** Data */
@@ -5073,10 +5187,30 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[list[TeacherOfferingRead]] */
+        SuccessEnvelope_list_TeacherOfferingRead__: {
+            /** Data */
+            data: components["schemas"]["TeacherOfferingRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[TosVersionRead]] */
         SuccessEnvelope_list_TosVersionRead__: {
             /** Data */
             data: components["schemas"]["TosVersionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[WizardCurriculumRead]] */
+        SuccessEnvelope_list_WizardCurriculumRead__: {
+            /** Data */
+            data: components["schemas"]["WizardCurriculumRead"][];
             /**
              * Message
              * @default ok
@@ -5142,6 +5276,26 @@ export interface components {
             capacity_below_assignments: boolean;
             /** Teacher Capacity */
             teacher_capacity: number;
+        };
+        /**
+         * TeacherOfferingRead
+         * @description Grade-Subject offering assigned to the calling teacher.
+         */
+        TeacherOfferingRead: {
+            /** Academic Session */
+            academic_session: string;
+            /** Grade Id */
+            grade_id: string;
+            /** Grade Level Ordinal */
+            grade_level_ordinal: number;
+            /** Grade Name */
+            grade_name: string;
+            /** Id */
+            id: string;
+            /** Subject Id */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
         };
         /**
          * TeacherOnboardingRead
@@ -5384,6 +5538,47 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /**
+         * WizardCurriculumRead
+         * @description Curriculum candidate for Step 2 (primary flagged).
+         */
+        WizardCurriculumRead: {
+            /** Grade Level Ordinal */
+            grade_level_ordinal: number | null;
+            /** Id */
+            id: string;
+            /** Is Primary */
+            is_primary: boolean;
+            /** Parse Degraded */
+            parse_degraded: boolean;
+            /** Subject Id */
+            subject_id: string | null;
+            /** Title */
+            title: string;
+            /** Topic Tree Jsonb */
+            topic_tree_jsonb?: {
+                [key: string]: unknown;
+            } | null;
+        };
+        /**
+         * WizardTopicOption
+         * @description Flattened topic path from curriculum topic_tree_jsonb.
+         */
+        WizardTopicOption: {
+            /** Label */
+            label: string;
+            /** Path */
+            path: string;
+        };
+        /** WizardTopicsRead */
+        WizardTopicsRead: {
+            /** Curriculum Id */
+            curriculum_id: string;
+            /** Parse Degraded */
+            parse_degraded: boolean;
+            /** Topics */
+            topics: components["schemas"]["WizardTopicOption"][];
         };
     };
     responses: never;
@@ -10265,6 +10460,142 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_lecture_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureDraftRead_"];
+                };
+            };
+        };
+    };
+    teacher_upsert_lecture_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureDraftUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureDraftRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_wizard_curricula: {
+        parameters: {
+            query: {
+                grade_subject_offering_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_WizardCurriculumRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_wizard_topics: {
+        parameters: {
+            query: {
+                curriculum_id: string;
+                grade_subject_offering_id: string;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_WizardTopicsRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_my_offerings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_TeacherOfferingRead__"];
                 };
             };
         };

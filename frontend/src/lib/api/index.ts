@@ -49,6 +49,11 @@ import type {
   TeacherCapacityUpdate,
   TeacherCapacityUpdateRead,
   TeacherProfileComplete,
+  TeacherOfferingRead,
+  WizardCurriculumRead,
+  WizardTopicsRead,
+  LectureDraftRead,
+  LectureDraftUpsert,
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
@@ -1066,6 +1071,35 @@ export const teacherOnboardingApi = {
       { method: "PATCH", body: JSON.stringify(data) },
       token
     ),
+};
+
+export const lectureWizardApi = {
+  listOfferings: (token: string) =>
+    request<TeacherOfferingRead[]>("/teachers/me/offerings", {}, token),
+  listCurricula: (token: string, gradeSubjectOfferingId: string) => {
+    const qs = new URLSearchParams({
+      grade_subject_offering_id: gradeSubjectOfferingId,
+    });
+    return request<WizardCurriculumRead[]>(
+      `/teachers/me/lecture-wizard/curricula?${qs}`,
+      {},
+      token
+    );
+  },
+  listTopics: (token: string, curriculumId: string, gradeSubjectOfferingId: string) => {
+    const qs = new URLSearchParams({
+      curriculum_id: curriculumId,
+      grade_subject_offering_id: gradeSubjectOfferingId,
+    });
+    return request<WizardTopicsRead>(`/teachers/me/lecture-wizard/topics?${qs}`, {}, token);
+  },
+  getDraft: (token: string) =>
+    request<LectureDraftRead>("/teachers/me/lecture-draft", {}, token),
+  upsertDraft: (token: string, data: LectureDraftUpsert) =>
+    request<LectureDraftRead>("/teachers/me/lecture-draft", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }, token),
 };
 
 export const studentOnboardingApi = {

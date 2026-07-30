@@ -2640,6 +2640,74 @@
         "title": "IndependentUserRole",
         "type": "string"
       },
+      "LectureDraftRead": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "step": {
+            "title": "Step",
+            "type": "integer"
+          },
+          "teacher_user_id": {
+            "title": "Teacher User Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "teacher_user_id",
+          "step",
+          "data"
+        ],
+        "title": "LectureDraftRead",
+        "type": "object"
+      },
+      "LectureDraftUpsert": {
+        "description": "PUT body \u2014 full wizard state replace (auto-save).",
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "step": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Step",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "step"
+        ],
+        "title": "LectureDraftUpsert",
+        "type": "object"
+      },
       "LibraryBookListResponse": {
         "description": "Paginated list of platform reference books.",
         "properties": {
@@ -5196,6 +5264,23 @@
         "title": "SuccessEnvelope[IndependentTeacherOnboardingRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureDraftRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureDraftRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureDraftRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LibraryBookListResponse_": {
         "properties": {
           "data": {
@@ -5740,6 +5825,23 @@
         "title": "SuccessEnvelope[UserRead]",
         "type": "object"
       },
+      "SuccessEnvelope_WizardTopicsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/WizardTopicsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[WizardTopicsRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_AcademicSessionRead__": {
         "properties": {
           "data": {
@@ -6097,6 +6199,27 @@
         "title": "SuccessEnvelope[list[SyllabusTopicRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_TeacherOfferingRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherOfferingRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[TeacherOfferingRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_TosVersionRead__": {
         "properties": {
           "data": {
@@ -6116,6 +6239,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[TosVersionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_WizardCurriculumRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/WizardCurriculumRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[WizardCurriculumRead]]",
         "type": "object"
       },
       "SyllabusTopicCreate": {
@@ -6244,6 +6388,50 @@
           "capacity_below_assignments"
         ],
         "title": "TeacherCapacityUpdateRead",
+        "type": "object"
+      },
+      "TeacherOfferingRead": {
+        "description": "Grade-Subject offering assigned to the calling teacher.",
+        "properties": {
+          "academic_session": {
+            "title": "Academic Session",
+            "type": "string"
+          },
+          "grade_id": {
+            "title": "Grade Id",
+            "type": "string"
+          },
+          "grade_level_ordinal": {
+            "title": "Grade Level Ordinal",
+            "type": "integer"
+          },
+          "grade_name": {
+            "title": "Grade Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "grade_id",
+          "grade_name",
+          "grade_level_ordinal",
+          "subject_id",
+          "subject_name",
+          "academic_session"
+        ],
+        "title": "TeacherOfferingRead",
         "type": "object"
       },
       "TeacherOnboardingRead": {
@@ -6788,6 +6976,116 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "WizardCurriculumRead": {
+        "description": "Curriculum candidate for Step 2 (primary flagged).",
+        "properties": {
+          "grade_level_ordinal": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Level Ordinal"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_primary": {
+            "title": "Is Primary",
+            "type": "boolean"
+          },
+          "parse_degraded": {
+            "title": "Parse Degraded",
+            "type": "boolean"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_tree_jsonb": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Tree Jsonb"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "subject_id",
+          "grade_level_ordinal",
+          "is_primary",
+          "parse_degraded"
+        ],
+        "title": "WizardCurriculumRead",
+        "type": "object"
+      },
+      "WizardTopicOption": {
+        "description": "Flattened topic path from curriculum topic_tree_jsonb.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "label"
+        ],
+        "title": "WizardTopicOption",
+        "type": "object"
+      },
+      "WizardTopicsRead": {
+        "properties": {
+          "curriculum_id": {
+            "title": "Curriculum Id",
+            "type": "string"
+          },
+          "parse_degraded": {
+            "title": "Parse Degraded",
+            "type": "boolean"
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/WizardTopicOption"
+            },
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "curriculum_id",
+          "parse_degraded",
+          "topics"
+        ],
+        "title": "WizardTopicsRead",
         "type": "object"
       }
     }
@@ -13679,6 +13977,186 @@
         "summary": "Update teacher self-edit capacity (1\u201320 grade-subject assignments)",
         "tags": [
           "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-draft": {
+      "get": {
+        "operationId": "teacher_get_lecture_draft",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureDraftRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get the teacher's active lecture wizard draft (resume)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      },
+      "put": {
+        "operationId": "teacher_upsert_lecture_draft",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureDraftUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureDraftRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Auto-save lecture wizard draft state",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/curricula": {
+      "get": {
+        "operationId": "teacher_list_wizard_curricula",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "grade_subject_offering_id",
+            "required": true,
+            "schema": {
+              "maxLength": 36,
+              "minLength": 1,
+              "title": "Grade Subject Offering Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_WizardCurriculumRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List curricula for an assigned Grade-Subject (primary flagged)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/topics": {
+      "get": {
+        "operationId": "teacher_list_wizard_topics",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "curriculum_id",
+            "required": true,
+            "schema": {
+              "maxLength": 36,
+              "minLength": 1,
+              "title": "Curriculum Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_subject_offering_id",
+            "required": true,
+            "schema": {
+              "maxLength": 36,
+              "minLength": 1,
+              "title": "Grade Subject Offering Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_WizardTopicsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List topic-tree options for a curriculum (freeform when degraded)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/offerings": {
+      "get": {
+        "operationId": "teacher_list_my_offerings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TeacherOfferingRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Grade-Subject offerings assigned to the teacher",
+        "tags": [
+          "lecture-wizard"
         ]
       }
     },
