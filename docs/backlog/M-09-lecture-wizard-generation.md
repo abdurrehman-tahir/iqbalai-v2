@@ -35,9 +35,7 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Milestone:** M-09
 **Estimate:** 2 days
 **Status:** done
-
-### Spec source
-- `flow-5-teacher-creates-lecture.md` §3.1, §3.2 (lectures, versions, drafts, paragraph source metadata)
+**Commit:** `cf19314`
 
 ### ARCH source
 - `ARCHITECTURE.md` §4 (DB), §3.18 (Grade-Subject scoping), §4.21 (school + independent schemas)
