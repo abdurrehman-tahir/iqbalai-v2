@@ -8,6 +8,7 @@ import structlog
 from starlette.middleware.base import BaseHTTPMiddleware
 from starlette.requests import Request
 from starlette.responses import JSONResponse, Response
+from starlette.websockets import WebSocket
 
 from app.config import get_settings
 from app.core.cookies import ACCESS_COOKIE
@@ -233,6 +234,38 @@ def _account_status_block(user: User | IndependentUser) -> JSONResponse | None:
         )
 
     return None
+
+
+async def authenticate_websocket(websocket: WebSocket) -> dict[str, object] | None:
+    """Validate the `iqbalai_access` cookie on a WS handshake. Returns claims or None.
+
+    Per A-003: `BaseHTTPMiddleware` never runs for the "websocket" ASGI scope, so
+    WS routes cannot rely on `request.state.claims` — each one authenticates via
+    this helper instead. Reuses the same cookie, decode, blacklist, and
+    active-user resolution as `AuthMiddleware.dispatch`'s REST flow.
+
+    Unlike REST, an unresolved app user is a hard failure here (no raw-claims
+    fallback): every WS feature scopes delivery by `user_id`/`school_id`, and a
+    partial identity isn't safe to trust for that.
+    """
+    token = websocket.cookies.get(ACCESS_COOKIE)
+    if token is None:
+        return None
+
+    claims = await decode_jwt(token)
+    if claims is None:
+        return None
+
+    if await is_jti_blacklisted(blacklist_id_for(token, claims)):
+        return None
+
+    claims["tenant_type"] = get_tenant_type(claims)
+
+    user = await _resolve_active_user(claims)
+    if user is None or _account_status_block(user) is not None:
+        return None
+
+    return _enrich_claims_from_user(claims, user)
 
 
 async def _tos_acceptance_required(user: User | IndependentUser) -> bool:

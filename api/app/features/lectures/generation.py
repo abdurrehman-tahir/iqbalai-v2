@@ -19,6 +19,7 @@ from app.features.lectures.events import (
     LECTURE_VERSION_CREATED,
     publish_lecture_event,
 )
+from app.features.lectures.generation_stream import append_token, mark_complete
 from app.features.lectures.models import (
     LectureStatus,
     SchoolLecture,
@@ -31,7 +32,7 @@ from app.features.library.school_models import (
     SchoolLibraryItem,
     SchoolLibraryItemChunk,
 )
-from app.infrastructure.llm.client import chat
+from app.infrastructure.llm.client import stream_chat
 from app.infrastructure.llm.prompts.lecture_generate_v1 import (
     PROMPT_VERSION,
     ChunkRef,
@@ -264,7 +265,11 @@ async def run_lecture_generation(
             reference_chunks=ref_refs[:_TOP_REFERENCE],
         )
     )
-    raw = await chat(
+    # T-117: relay raw deltas token-by-token so a connected teacher sees live
+    # progress (ws:lecture:<lecture_id>); the accumulated raw text below is
+    # still parsed as one JSON payload once the stream ends, same as before.
+    chunks: list[str] = []
+    async for delta in stream_chat(
         [
             {"role": "system", "content": prompt.system},
             {"role": "user", "content": prompt.user},
@@ -272,7 +277,10 @@ async def run_lecture_generation(
         task="lecture_generate",
         temperature=prompt.temperature,
         max_tokens=prompt.max_tokens,
-    )
+    ):
+        chunks.append(delta)
+        await append_token(lecture_id, delta)
+    raw = "".join(chunks)
     try:
         parsed = LectureGenerateOutput.model_validate(_parse_json_payload(raw))
     except Exception:
@@ -336,4 +344,12 @@ async def run_lecture_generation(
         version_id=version.id,
         paragraph_count=len(parsed.paragraphs),
     )
+
+    # T-117 acceptance: stream completes → READY_FOR_EDIT. Auto-quiz generation
+    # (flow-5 §3.2's gate between GENERATED_V1 and READY_FOR_EDIT/PUBLISH) isn't
+    # built in M-09, so the transition is immediate here.
+    lecture.status = LectureStatus.READY_FOR_EDIT
+    await session.commit()
+    await mark_complete(lecture_id, version_id=version.id)
+
     return version.id

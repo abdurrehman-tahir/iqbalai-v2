@@ -609,8 +609,14 @@
         "estimate_label": "Estimated generation time: about {seconds} seconds",
         "generate": "Generate lecture",
         "generate_error": "Could not start generation. Please try again.",
-        "generating_title": "Generation started",
-        "generating_body": "Lecture {id} is now GENERATING. Streaming arrives in the next ticket."
+        "generating_title": "Generating your lecture…",
+        "generating_reconnecting": "Connection lost — reconnecting… your lecture keeps generating in the background.",
+        "generating_streaming_label": "Live generation output",
+        "generating_complete_title": "Lecture ready",
+        "generating_complete_body": "Your lecture draft has been generated and is ready to edit.",
+        "generating_error_title": "Generation failed",
+        "generating_error_body": "Something went wrong while generating your lecture. Please try again.",
+        "generating_error_timeout": "Generation took too long and timed out. Please try again."
       }
     },
     "onboarding": {

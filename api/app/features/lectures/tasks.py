@@ -6,12 +6,14 @@ DB via ``run_db`` (disposable engine) — never the API session factory.
 
 from __future__ import annotations
 
+import asyncio
 from typing import Any
 
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.celery_async import run_db
+from app.features.lectures.generation_stream import mark_failed
 from app.features.lectures.models import LectureStatus, SchoolLecture
 from app.tasks.base import tenant_task
 
@@ -72,6 +74,7 @@ def generate_lecture(
         run_db(
             lambda session: _mark_status(session, lecture_id, school_id, LectureStatus.TIMED_OUT)
         )
+        asyncio.run(mark_failed(lecture_id, reason="timed_out"))
         logger.warning(
             "lecture_generate_timed_out",
             lecture_id=lecture_id,
@@ -82,6 +85,7 @@ def generate_lecture(
         return {"lecture_id": lecture_id, "status": "timed_out"}
     except Exception as exc:
         run_db(lambda session: _mark_status(session, lecture_id, school_id, LectureStatus.FAILED))
+        asyncio.run(mark_failed(lecture_id, reason=str(exc)))
         logger.error(
             "lecture_generate_failed",
             lecture_id=lecture_id,

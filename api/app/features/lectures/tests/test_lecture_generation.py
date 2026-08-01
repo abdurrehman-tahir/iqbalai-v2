@@ -134,8 +134,8 @@ async def test_run_lecture_generation_persists_version_and_paragraphs(
             out.append(chunk_r)
         return out
 
-    async def _fake_chat(*_a: Any, **_k: Any) -> str:
-        return (
+    async def _fake_stream_chat(*_a: Any, **_k: Any) -> Any:
+        raw = (
             '{"title": "Forces and Motion", "paragraphs": ['
             '{"text": "From curriculum: force.", "tier": "curriculum", '
             '"book_name": "Curriculum Book", "chunk_id": "chunk-c"},'
@@ -143,16 +143,32 @@ async def test_run_lecture_generation_persists_version_and_paragraphs(
             '"book_name": "Ref Book", "chunk_id": "chunk-r"}'
             "]}"
         )
+        for piece in [raw[i : i + 10] for i in range(0, len(raw), 10)]:
+            yield piece
 
     events: list[str] = []
 
     async def _fake_publish(*, event_type: str, payload: dict[str, Any]) -> None:
         events.append(event_type)
 
+    appended_tokens: list[str] = []
+
+    async def _fake_append_token(lecture_id: str, token: str) -> int:
+        appended_tokens.append(token)
+        return len(appended_tokens)
+
+    completed: dict[str, Any] = {}
+
+    async def _fake_mark_complete(lecture_id: str, *, version_id: str) -> None:
+        completed["lecture_id"] = lecture_id
+        completed["version_id"] = version_id
+
     monkeypatch.setattr("app.features.lectures.generation.retrieve", _fake_retrieve)
     monkeypatch.setattr("app.features.lectures.generation._load_db_chunks", _fake_load_db)
-    monkeypatch.setattr("app.features.lectures.generation.chat", _fake_chat)
+    monkeypatch.setattr("app.features.lectures.generation.stream_chat", _fake_stream_chat)
     monkeypatch.setattr("app.features.lectures.generation.publish_lecture_event", _fake_publish)
+    monkeypatch.setattr("app.features.lectures.generation.append_token", _fake_append_token)
+    monkeypatch.setattr("app.features.lectures.generation.mark_complete", _fake_mark_complete)
 
     version_id = await run_lecture_generation(
         session,
@@ -165,7 +181,7 @@ async def test_run_lecture_generation_persists_version_and_paragraphs(
         teacher_user_id="teacher-1",
     )
 
-    assert lecture.status == LectureStatus.GENERATED_V1
+    assert lecture.status == LectureStatus.READY_FOR_EDIT
     assert lecture.current_version_id == version_id
     assert lecture.title == "Forces and Motion"
     versions = [o for o in added if isinstance(o, SchoolLectureVersion)]
@@ -178,6 +194,9 @@ async def test_run_lecture_generation_persists_version_and_paragraphs(
     assert "lecture.generation_requested" in events
     assert "lecture.version.created" in events
     session.commit.assert_awaited()
+    # T-117: raw deltas relayed token-by-token, and completion notifies the buffer.
+    assert "".join(appended_tokens).startswith('{"title": "Forces and Motion"')
+    assert completed == {"lecture_id": "lec-1", "version_id": version_id}
 
 
 @pytest.mark.asyncio

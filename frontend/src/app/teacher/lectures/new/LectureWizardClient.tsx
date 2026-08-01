@@ -10,6 +10,7 @@ import type {
   TeacherOfferingRead,
 } from "@/lib/api/types";
 import { useClientAuth } from "@/hooks/use-client-auth";
+import { useLectureGenerationStream } from "@/lib/ws/lecture-generation-socket";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -628,14 +629,7 @@ function Step5Confirm({
   });
 
   if (data.lecture_id) {
-    return (
-      <section className="space-y-3" role="status">
-        <h3 className="text-lg font-medium text-gray-900">{t("generating_title")}</h3>
-        <p className="text-sm text-gray-700">
-          {t("generating_body", { id: data.lecture_id })}
-        </p>
-      </section>
-    );
+    return <GenerationStreamPanel lectureId={data.lecture_id} t={t} />;
   }
 
   return (
@@ -694,6 +688,70 @@ function Step5Confirm({
         >
           {t("generate")}
         </Button>
+      </div>
+    </section>
+  );
+}
+
+/** Live generation transcript over WebSocket (T-117) — reconnects and resumes automatically. */
+function GenerationStreamPanel({
+  lectureId,
+  t,
+}: {
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const { mounted } = useClientAuth();
+  const stream = useLectureGenerationStream(lectureId, mounted);
+
+  if (stream.status === "error") {
+    return (
+      <ErrorState
+        title={t("generating_error_title")}
+        description={
+          stream.errorReason === "timed_out"
+            ? t("generating_error_timeout")
+            : t("generating_error_body")
+        }
+      />
+    );
+  }
+
+  if (stream.status === "connecting" && !stream.text) {
+    return (
+      <section className="space-y-3" aria-busy="true">
+        <h3 className="text-lg font-medium text-gray-900">{t("generating_title")}</h3>
+        <Skeleton className="h-6 w-48" />
+        <Skeleton className="h-40 w-full" />
+      </section>
+    );
+  }
+
+  if (stream.status === "complete") {
+    return (
+      <section className="space-y-3" role="status">
+        <h3 className="text-lg font-medium text-gray-900">{t("generating_complete_title")}</h3>
+        <p className="text-sm text-gray-700">{t("generating_complete_body")}</p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="space-y-3" aria-labelledby="wizard-step5-generating">
+      <h3 id="wizard-step5-generating" className="text-lg font-medium text-gray-900">
+        {t("generating_title")}
+      </h3>
+      {stream.status === "reconnecting" ? (
+        <p className="text-sm text-amber-700" role="status" aria-live="polite">
+          {t("generating_reconnecting")}
+        </p>
+      ) : null}
+      <div
+        dir="auto"
+        aria-label={t("generating_streaming_label")}
+        className="max-h-64 overflow-y-auto whitespace-pre-wrap rounded-md border border-gray-200 bg-gray-50 p-3 font-mono text-sm text-gray-800"
+      >
+        {stream.text}
       </div>
     </section>
   );

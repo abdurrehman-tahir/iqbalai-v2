@@ -2798,7 +2798,9 @@ Locked separately from REST since the semantics differ. From §16.9 (WS lifecycl
 /ws/v1/<endpoint>
 ```
 
-JWT in the `Sec-WebSocket-Protocol` header (since browsers can't set custom headers on WS upgrade; we follow the bearer-in-subprotocol convention).
+~~JWT in the `Sec-WebSocket-Protocol` header (since browsers can't set custom headers on WS upgrade; we follow the bearer-in-subprotocol convention).~~
+
+**Amended by A-003:** auth is the `iqbalai_access` HttpOnly cookie, read via `websocket.cookies` on the handshake request — the same credential REST endpoints use. The bearer-in-subprotocol convention predates the cookie-only auth model (T-244/T-245) and assumed a JS-readable token, which no longer exists. See `AMENDMENTS.md` A-003.
 
 **Message format (locked):**
 

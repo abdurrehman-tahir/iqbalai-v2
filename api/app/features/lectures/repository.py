@@ -49,3 +49,6 @@ class LectureRepository:
         await self._session.commit()
         await self._session.refresh(lecture)
         return lecture
+
+    async def get_by_id(self, lecture_id: str) -> SchoolLecture | None:
+        return await self._session.get(SchoolLecture, lecture_id)
