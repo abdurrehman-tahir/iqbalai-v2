@@ -244,7 +244,7 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Milestone:** M-09
 **Estimate:** 2 days
 **Status:** done
-**Commit:** (recorded at ledger-close commit below)
+**Commit:** be464c8
 **Design note:** deterministic per-topic retry chain (not a Pattern-A agentic tool-loop) — decided with Hamza since T-116's pipeline is single-shot Pattern S and this ticket is sized/layered to match. Coverage detection is "zero retrieval hits" (RRF fusion scores aren't a meaningful absolute-similarity threshold to pick a magic-number cutoff against).
 
 ### Spec source
