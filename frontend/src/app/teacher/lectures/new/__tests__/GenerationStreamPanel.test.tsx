@@ -175,6 +175,21 @@ describe("GenerationStreamPanel", () => {
     expect(screen.getByText(/For example, a bus braking/i)).toBeInTheDocument();
   });
 
+  it("shows the Web badge for T-119 out-of-curriculum fallback paragraphs", async () => {
+    mockStream.mockReturnValue({
+      status: "complete",
+      text: "Quantum foam is a concept...",
+      versionId: "ver-1",
+      errorReason: null,
+    });
+    getParagraphs.mockResolvedValue([
+      { ordinal: 0, text: "Quantum foam is a concept...", tier: "web", book_name: null },
+    ]);
+    renderAtStep5GeneratingLecture();
+
+    expect(await screen.findByText("Web")).toBeInTheDocument();
+  });
+
   it("shows a paragraphs error state with retry when the read fails", async () => {
     mockStream.mockReturnValue({
       status: "complete",

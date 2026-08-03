@@ -14,7 +14,7 @@ PROMPT_VERSION = "lecture_generate.v1"
 class ChunkRef(BaseModel):
     source_id: str
     source_label: str
-    tier: Literal["curriculum", "reference"]
+    tier: Literal["curriculum", "reference", "web"]
     text: str = Field(max_length=4000)
 
 
@@ -24,11 +24,17 @@ class LectureGenerateInput(BaseModel):
     target_language: Literal["en", "ur", "sd", "ps"] = "en"
     curriculum_chunks: list[ChunkRef] = Field(default_factory=list)
     reference_chunks: list[ChunkRef] = Field(default_factory=list)
+    # T-119 (#27): populated only when curriculum AND reference retrieval both
+    # came back empty — the 3rd escalation tier (SearXNG web search).
+    web_chunks: list[ChunkRef] = Field(default_factory=list)
+    # T-119: set when curriculum, reference, AND web all came back empty —
+    # tells the model to honestly say so instead of inventing content.
+    no_coverage: bool = False
 
 
 class LectureParagraphOut(BaseModel):
     text: str = Field(min_length=1)
-    tier: Literal["curriculum", "reference", "ai_knowledge"] = "ai_knowledge"
+    tier: Literal["curriculum", "reference", "ai_knowledge", "web"] = "ai_knowledge"
     book_name: str | None = None
     chunk_id: str | None = None
 
@@ -46,7 +52,7 @@ Return ONLY valid JSON:
   "paragraphs": [
     {{
       "text": "Paragraph body",
-      "tier": "curriculum" | "reference" | "ai_knowledge",
+      "tier": "curriculum" | "reference" | "web" | "ai_knowledge",
       "book_name": null,
       "chunk_id": null
     }}
@@ -56,13 +62,21 @@ Return ONLY valid JSON:
 CRITICAL RULES:
 - Curriculum sources ([Curriculum]) drive SEQUENCE and STRUCTURE — follow their order.
 - Reference sources ([Ref: …]) drive DEPTH and EXAMPLES.
-- Prefer curriculum as ground truth; use references for elaboration.
-- Mark each paragraph tier honestly: curriculum, reference, or ai_knowledge.
+- Web sources ([Web: …]) are the LAST-RESORT tier (#27): only present when curriculum AND
+  reference had nothing for this topic. Use them like references, tagged "web".
+- Prefer curriculum as ground truth; use references and web sources for elaboration.
+- Mark each paragraph tier honestly: curriculum, reference, web, or ai_knowledge.
 - Teaching mode = {teaching_mode}: auto=full lecture; manual=outline bullets only;
   voice_assisted=full lecture ready for spoken edits.
 - Respond in {language}.
 - No markdown fences or commentary — JSON only.
 """
+
+NO_COVERAGE_NOTICE = (
+    "NO SOURCES FOUND: curriculum, reference books, and web search all returned nothing "
+    "for this topic. Do NOT invent facts. Write a single honest paragraph stating you "
+    'don\'t have information on this topic, tagged "ai_knowledge".'
+)
 
 
 def render(input_data: LectureGenerateInput) -> PromptCall:
@@ -79,6 +93,13 @@ def render(input_data: LectureGenerateInput) -> PromptCall:
     for i, chunk in enumerate(input_data.reference_chunks, start=1):
         lines.append(f"[Ref: {chunk.source_label} {i} | id={chunk.source_id}]")
         lines.append(chunk.text[:2000])
+        lines.append("")
+    for i, chunk in enumerate(input_data.web_chunks, start=1):
+        lines.append(f"[Web: {chunk.source_label} {i} | id={chunk.source_id}]")
+        lines.append(chunk.text[:2000])
+        lines.append("")
+    if input_data.no_coverage:
+        lines.append(NO_COVERAGE_NOTICE)
         lines.append("")
     lines.append("Write the lecture as JSON.")
     return PromptCall(

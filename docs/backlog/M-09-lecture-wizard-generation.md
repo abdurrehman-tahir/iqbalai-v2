@@ -243,7 +243,9 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** (recorded at ledger-close commit below)
+**Design note:** deterministic per-topic retry chain (not a Pattern-A agentic tool-loop) — decided with Hamza since T-116's pipeline is single-shot Pattern S and this ticket is sized/layered to match. Coverage detection is "zero retrieval hits" (RRF fusion scores aren't a meaningful absolute-similarity threshold to pick a magic-number cutoff against).
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.2 (#27: reference → SearXNG → "no info")
@@ -260,11 +262,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Curriculum-covered segment uses curriculum (no fallback)
-2. [ ] Uncovered segment falls back to reference search
-3. [ ] Still uncovered → SearXNG web search
-4. [ ] Still uncovered → "I don't have information on this"
-5. [ ] Badge reflects the actual tier at each step
+1. [x] Curriculum-covered segment uses curriculum (no fallback)
+2. [x] Uncovered segment falls back to reference search
+3. [x] Still uncovered → SearXNG web search
+4. [x] Still uncovered → "I don't have information on this"
+5. [x] Badge reflects the actual tier at each step
 
 ### Out of scope
 - General web-research agent (that's M-07 framework / Pattern A elsewhere)

@@ -53,7 +53,9 @@ async def _fake_db() -> AsyncGenerator[None, None]:
 
 
 @asynccontextmanager
-async def _subscribe_yielding(events: list[dict[str, Any]]) -> AsyncIterator[AsyncIterator[dict]]:
+async def _subscribe_yielding(
+    events: list[dict[str, Any]],
+) -> AsyncIterator[AsyncIterator[dict[str, Any]]]:
     async def _gen() -> AsyncIterator[dict[str, Any]]:
         for event in events:
             yield event

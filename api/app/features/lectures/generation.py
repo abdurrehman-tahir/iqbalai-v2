@@ -2,6 +2,10 @@
 
 Retrieves curriculum + reference chunks, weights curriculum 1.5×, synthesizes via
 ``lecture_generate_v1``, persists lecture_versions + lecture_paragraphs, emits NATS.
+
+T-119 (#27) adds the 3-tier out-of-curriculum fallback: when curriculum AND
+reference retrieval both come back empty for the topic, escalate to a SearXNG
+web search before falling back to an honest "no information" paragraph.
 """
 
 from __future__ import annotations
@@ -10,6 +14,7 @@ import json
 import re
 from typing import Any, cast
 
+import httpx
 import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -43,12 +48,14 @@ from app.infrastructure.llm.prompts.lecture_generate_v1 import (
 )
 from app.infrastructure.rag.embedder import school_library_collection
 from app.infrastructure.rag.retriever import retrieve
+from app.infrastructure.rag.web_search import web_fetch, web_search
 
 logger = structlog.get_logger(__name__)
 
 CURRICULUM_WEIGHT = 1.5
 _TOP_CURRICULUM = 12
 _TOP_REFERENCE = 8
+_TOP_WEB = 5
 _JSON_FENCE_RE = re.compile(r"^```(?:json)?\s*|\s*```$", re.MULTILINE)
 
 
@@ -133,6 +140,34 @@ async def _retrieve_for_items(
             continue
         filtered.append(dict(hit))
     return filtered
+
+
+async def _fetch_web_fallback_chunks(topic: str) -> list[ChunkRef]:
+    """Tier 3 (#27): SearXNG web search + fetch. Empty on any failure.
+
+    A SearXNG outage must not fail lecture generation — it just means tier 3
+    also comes up empty, cascading to tier 4 (the honest "no coverage" notice).
+    """
+    try:
+        results = await web_search(topic, max_results=_TOP_WEB)
+    except (httpx.HTTPError, ValueError) as exc:
+        logger.warning("lecture_web_search_failed", topic=topic, error=str(exc))
+        return []
+
+    chunks: list[ChunkRef] = []
+    for hit in results[:_TOP_WEB]:
+        text = await web_fetch(hit.url)
+        if not text.strip():
+            continue
+        chunks.append(
+            ChunkRef(
+                source_id=hit.url,
+                source_label=hit.title or hit.url,
+                tier="web",
+                text=text[:4000],
+            )
+        )
+    return chunks
 
 
 async def run_lecture_generation(
@@ -254,6 +289,21 @@ async def run_lecture_generation(
         if chunk is not None:
             ref_refs.append(chunk)
 
+    # T-119 (#27): tier 1 (curriculum) and tier 2 (reference) both came back
+    # empty for this topic — escalate to tier 3 (SearXNG web search) before
+    # falling back to the honest "no information" tier 4.
+    web_refs: list[ChunkRef] = []
+    no_coverage = False
+    if not curr_refs and not ref_refs:
+        web_refs = await _fetch_web_fallback_chunks(topic)
+        no_coverage = not web_refs
+        logger.info(
+            "lecture_fallback_tier_used",
+            lecture_id=lecture_id,
+            tier="web" if web_refs else "no_coverage",
+            web_hits=len(web_refs),
+        )
+
     lang = target_language if target_language in ("en", "ur", "sd", "ps") else "en"
     mode = teaching_mode if teaching_mode in ("auto", "manual", "voice_assisted") else "auto"
     prompt = render(
@@ -263,6 +313,8 @@ async def run_lecture_generation(
             target_language=lang,  # type: ignore[arg-type]
             curriculum_chunks=curr_refs[:_TOP_CURRICULUM],
             reference_chunks=ref_refs[:_TOP_REFERENCE],
+            web_chunks=web_refs[:_TOP_WEB],
+            no_coverage=no_coverage,
         )
     )
     # T-117: relay raw deltas token-by-token so a connected teacher sees live

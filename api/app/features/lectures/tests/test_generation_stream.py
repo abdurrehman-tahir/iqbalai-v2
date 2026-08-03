@@ -66,7 +66,7 @@ def published(monkeypatch: pytest.MonkeyPatch) -> list[tuple[str, dict[str, Any]
 
 @pytest.mark.asyncio
 async def test_append_token_returns_incrementing_seq(
-    fake_redis: FakeRedis, published: list
+    fake_redis: FakeRedis, published: list[tuple[str, dict[str, Any]]]
 ) -> None:
     seq1 = await generation_stream.append_token("lec-1", "Hello")
     seq2 = await generation_stream.append_token("lec-1", " world")
@@ -77,7 +77,9 @@ async def test_append_token_returns_incrementing_seq(
 
 
 @pytest.mark.asyncio
-async def test_append_token_publishes_notice(fake_redis: FakeRedis, published: list) -> None:
+async def test_append_token_publishes_notice(
+    fake_redis: FakeRedis, published: list[tuple[str, dict[str, Any]]]
+) -> None:
     await generation_stream.append_token("lec-1", "Hello")
 
     channel, message = published[0]
@@ -87,7 +89,7 @@ async def test_append_token_publishes_notice(fake_redis: FakeRedis, published: l
 
 @pytest.mark.asyncio
 async def test_get_tokens_from_returns_only_newer_tokens(
-    fake_redis: FakeRedis, published: list
+    fake_redis: FakeRedis, published: list[tuple[str, dict[str, Any]]]
 ) -> None:
     for token in ["A", "B", "C"]:
         await generation_stream.append_token("lec-1", token)
@@ -99,7 +101,7 @@ async def test_get_tokens_from_returns_only_newer_tokens(
 
 @pytest.mark.asyncio
 async def test_mark_complete_sets_status_and_publishes(
-    fake_redis: FakeRedis, published: list
+    fake_redis: FakeRedis, published: list[tuple[str, dict[str, Any]]]
 ) -> None:
     await generation_stream.mark_complete("lec-1", version_id="ver-1")
 
@@ -112,7 +114,7 @@ async def test_mark_complete_sets_status_and_publishes(
 
 @pytest.mark.asyncio
 async def test_mark_failed_sets_status_and_publishes(
-    fake_redis: FakeRedis, published: list
+    fake_redis: FakeRedis, published: list[tuple[str, dict[str, Any]]]
 ) -> None:
     await generation_stream.mark_failed("lec-1", reason="timed_out")
 
