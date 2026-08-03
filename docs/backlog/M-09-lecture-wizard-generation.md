@@ -173,7 +173,9 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** dee320e
+**Amendment:** A-003 (WS auth via `iqbalai_access` cookie, not `Sec-WebSocket-Protocol` — see AMENDMENTS.md)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.2 (word-by-word streaming; reconnect resumes)
@@ -190,11 +192,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Generation streams word-by-word to the teacher
-2. [ ] Channel scoped to lecture_id (no cross-lecture leakage)
-3. [ ] Connection drop → generation continues server-side
-4. [ ] Reconnect resumes from current position
-5. [ ] Stream completes → READY_FOR_EDIT state
+1. [x] Generation streams word-by-word to the teacher
+2. [x] Channel scoped to lecture_id (no cross-lecture leakage)
+3. [x] Connection drop → generation continues server-side
+4. [x] Reconnect resumes from current position
+5. [x] Stream completes → READY_FOR_EDIT state
 
 ### Out of scope
 - Source badge rendering (T-118)
