@@ -2778,6 +2778,51 @@
         "title": "LectureGenerateRequest",
         "type": "object"
       },
+      "LectureParagraphRead": {
+        "description": "One paragraph of the lecture's current version, with source attribution (T-118).",
+        "properties": {
+          "book_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Name"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/SourceTier"
+          }
+        },
+        "required": [
+          "ordinal",
+          "text",
+          "tier"
+        ],
+        "title": "LectureParagraphRead",
+        "type": "object"
+      },
       "LibraryBookListResponse": {
         "description": "Paginated list of platform reference books.",
         "properties": {
@@ -4129,6 +4174,17 @@
           "abandoned"
         ],
         "title": "SelectionStatus",
+        "type": "string"
+      },
+      "SourceTier": {
+        "description": "Provenance tier for a generated paragraph (Flow 5 #26 / #27).",
+        "enum": [
+          "curriculum",
+          "reference",
+          "ai_knowledge",
+          "web"
+        ],
+        "title": "SourceTier",
         "type": "string"
       },
       "StudentBannerDismiss": {
@@ -6154,6 +6210,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[GraduationRequestRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_LectureParagraphRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/LectureParagraphRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[LectureParagraphRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_OfferingRead__": {
@@ -14493,6 +14570,48 @@
           }
         },
         "summary": "List topic-tree options for a curriculum (freeform when degraded)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/paragraphs": {
+      "get": {
+        "operationId": "teacher_get_lecture_paragraphs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_LectureParagraphRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List a lecture's current-version paragraphs with source attribution",
         "tags": [
           "lecture-wizard"
         ]

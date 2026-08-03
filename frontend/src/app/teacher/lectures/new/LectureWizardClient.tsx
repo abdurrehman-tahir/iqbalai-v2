@@ -7,6 +7,7 @@ import { lectureWizardApi, ApiError } from "@/lib/api";
 import type {
   LectureDraftUpsert,
   LectureGenerateRequest,
+  LectureParagraphRead,
   TeacherOfferingRead,
 } from "@/lib/api/types";
 import { useClientAuth } from "@/hooks/use-client-auth";
@@ -701,7 +702,7 @@ function GenerationStreamPanel({
   lectureId: string;
   t: ReturnType<typeof useTranslations>;
 }) {
-  const { mounted } = useClientAuth();
+  const { mounted, token } = useClientAuth();
   const stream = useLectureGenerationStream(lectureId, mounted);
 
   if (stream.status === "error") {
@@ -729,9 +730,12 @@ function GenerationStreamPanel({
 
   if (stream.status === "complete") {
     return (
-      <section className="space-y-3" role="status">
-        <h3 className="text-lg font-medium text-gray-900">{t("generating_complete_title")}</h3>
-        <p className="text-sm text-gray-700">{t("generating_complete_body")}</p>
+      <section className="space-y-3">
+        <div role="status">
+          <h3 className="text-lg font-medium text-gray-900">{t("generating_complete_title")}</h3>
+          <p className="text-sm text-gray-700">{t("generating_complete_body")}</p>
+        </div>
+        <LectureParagraphsView token={token!} lectureId={lectureId} t={t} />
       </section>
     );
   }
@@ -755,4 +759,100 @@ function GenerationStreamPanel({
       </div>
     </section>
   );
+}
+
+/** Reads back the persisted paragraphs once generation completes, with source badges (T-118). */
+function LectureParagraphsView({
+  token,
+  lectureId,
+  t,
+}: {
+  token: string;
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const query = useQuery({
+    queryKey: ["teacher", "lecture-paragraphs", lectureId],
+    queryFn: () => lectureWizardApi.getParagraphs(token, lectureId),
+  });
+
+  if (query.isLoading) {
+    return (
+      <div className="space-y-2" aria-busy="true">
+        <Skeleton className="h-16 w-full" />
+        <Skeleton className="h-16 w-full" />
+      </div>
+    );
+  }
+
+  if (query.isError) {
+    return (
+      <ErrorState
+        title={t("paragraphs_error")}
+        description={t("paragraphs_error")}
+        onRetry={() => void query.refetch()}
+        retryLabel={t("retry")}
+      />
+    );
+  }
+
+  if (!query.data?.length) {
+    return (
+      <p className="text-sm text-gray-600" role="status">
+        {t("paragraphs_empty")}
+      </p>
+    );
+  }
+
+  return (
+    <ul className="space-y-3">
+      {query.data.map((paragraph) => (
+        <li key={paragraph.ordinal} className="space-y-1 rounded-md border border-gray-200 p-3">
+          <SourceBadge paragraph={paragraph} t={t} />
+          <p dir="auto" className="text-sm text-gray-800">
+            {paragraph.text}
+          </p>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+function SourceBadge({
+  paragraph,
+  t,
+}: {
+  paragraph: LectureParagraphRead;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  switch (paragraph.tier) {
+    case "curriculum":
+      return (
+        <span className="inline-block rounded-full bg-brand-50 px-2 py-0.5 text-xs font-medium text-brand-800">
+          {t("badge_curriculum")}
+        </span>
+      );
+    case "reference":
+      return (
+        <span className="inline-block rounded-full bg-blue-50 px-2 py-0.5 text-xs font-medium text-blue-800">
+          {t("badge_reference", { book: paragraph.book_name ?? "" })}
+        </span>
+      );
+    case "web":
+      return (
+        <span className="inline-block rounded-full bg-amber-50 px-2 py-0.5 text-xs font-medium text-amber-800">
+          {t("badge_web")}
+        </span>
+      );
+    case "ai_knowledge":
+      return (
+        <span className="inline-block rounded-full bg-purple-50 px-2 py-0.5 text-xs font-medium text-purple-800">
+          {t("badge_ai_knowledge")}
+        </span>
+      );
+    default: {
+      const _exhaustive: never = paragraph.tier;
+      throw new Error(`unhandled source tier: ${_exhaustive}`);
+    }
+  }
 }

@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import not_deleted
-from app.features.lectures.models import SchoolLecture, SchoolLectureDraft
+from app.features.lectures.models import SchoolLecture, SchoolLectureDraft, SchoolLectureParagraph
 
 
 class LectureDraftRepository:
@@ -52,3 +52,16 @@ class LectureRepository:
 
     async def get_by_id(self, lecture_id: str) -> SchoolLecture | None:
         return await self._session.get(SchoolLecture, lecture_id)
+
+
+class LectureParagraphRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def list_by_version(self, lecture_version_id: str) -> list[SchoolLectureParagraph]:
+        result = await self._session.execute(
+            select(SchoolLectureParagraph)
+            .where(SchoolLectureParagraph.lecture_version_id == lecture_version_id)
+            .order_by(SchoolLectureParagraph.ordinal.asc())
+        )
+        return list(result.scalars().all())

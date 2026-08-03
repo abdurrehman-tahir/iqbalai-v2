@@ -72,6 +72,7 @@ export type WizardReferenceRead = Schemas["WizardReferenceRead"];
 export type WizardEstimateRead = Schemas["WizardEstimateRead"];
 export type LectureGenerateRequest = Schemas["LectureGenerateRequest"];
 export type LectureGenerateRead = Schemas["LectureGenerateRead"];
+export type LectureParagraphRead = Schemas["LectureParagraphRead"];
 export type TeachingMode = Schemas["TeachingMode"];
 export type SchoolLibraryItemRead = Schemas["SchoolLibraryItemRead"];
 export type SchoolLibraryListResponse = Schemas["SchoolLibraryListResponse"];

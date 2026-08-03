@@ -616,7 +616,13 @@
         "generating_complete_body": "Your lecture draft has been generated and is ready to edit.",
         "generating_error_title": "Generation failed",
         "generating_error_body": "Something went wrong while generating your lecture. Please try again.",
-        "generating_error_timeout": "Generation took too long and timed out. Please try again."
+        "generating_error_timeout": "Generation took too long and timed out. Please try again.",
+        "paragraphs_error": "Could not load the lecture content.",
+        "paragraphs_empty": "No paragraphs yet.",
+        "badge_curriculum": "Curriculum",
+        "badge_reference": "Ref: {book}",
+        "badge_web": "Web",
+        "badge_ai_knowledge": "AI Knowledge"
       }
     },
     "onboarding": {

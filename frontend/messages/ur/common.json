@@ -624,7 +624,13 @@
         "generating_complete_body": "__TODO__ Your lecture draft has been generated and is ready to edit.",
         "generating_error_title": "__TODO__ Generation failed",
         "generating_error_body": "__TODO__ Something went wrong while generating your lecture. Please try again.",
-        "generating_error_timeout": "__TODO__ Generation took too long and timed out. Please try again."
+        "generating_error_timeout": "__TODO__ Generation took too long and timed out. Please try again.",
+        "paragraphs_error": "__TODO__ Could not load the lecture content.",
+        "paragraphs_empty": "__TODO__ No paragraphs yet.",
+        "badge_curriculum": "__TODO__ Curriculum",
+        "badge_reference": "__TODO__ Ref: {book}",
+        "badge_web": "__TODO__ Web",
+        "badge_ai_knowledge": "__TODO__ AI Knowledge"
       }
     }
   }

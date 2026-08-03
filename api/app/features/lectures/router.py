@@ -14,6 +14,7 @@ from app.features.lectures.schemas import (
     LectureDraftUpsert,
     LectureGenerateRead,
     LectureGenerateRequest,
+    LectureParagraphRead,
     TeacherOfferingRead,
     TeachingMode,
     WizardCurriculumRead,
@@ -166,3 +167,20 @@ async def generate_lecture(
     svc = LectureWizardService(db)
     result = await svc.generate_from_wizard(claims, payload)
     return success(result.model_dump(mode="json"))
+
+
+@router.get(
+    "/lectures/{lecture_id}/paragraphs",
+    response_model=SuccessEnvelope[list[LectureParagraphRead]],
+    operation_id="teacher_get_lecture_paragraphs",
+    summary="List a lecture's current-version paragraphs with source attribution",
+    dependencies=[require_role("teacher")],
+)
+async def get_lecture_paragraphs(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    rows = await svc.get_lecture_paragraphs(claims, lecture_id)
+    return success([r.model_dump(mode="json") for r in rows])

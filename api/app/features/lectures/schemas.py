@@ -164,3 +164,13 @@ class LectureGenerateRead(BaseModel):
     lecture_id: str
     status: str
     estimated_seconds: int
+
+
+class LectureParagraphRead(BaseModel):
+    """One paragraph of the lecture's current version, with source attribution (T-118)."""
+
+    ordinal: int
+    text: str
+    tier: SourceTier
+    book_name: str | None = None
+    source_url: str | None = None

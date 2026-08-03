@@ -208,7 +208,9 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** (recorded at ledger-close commit below)
+**Scope note:** the flow spec's global #26 acceptance list also bundles a "chat sidebar + click-badge-to-highlight-source-passage" feature. That has no corresponding ticket anywhere in M-09 and is NOT mentioned in this ticket's own "What this ticket builds" — treated as out of scope here and flagged to Hamza/Abd as an un-ticketed gap, not built. "The viewer" for badge rendering is the wizard's post-generation preview (Step 5, once READY_FOR_EDIT) — the full lecture viewer page is M-12 per session-state.md.
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.2 (source tagging #26)
@@ -225,11 +227,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Each paragraph tagged with its actual source tier
-2. [ ] Badges render: Curriculum / Ref: <name> / AI Knowledge
-3. [ ] Attribution stored per paragraph, survives versioning
-4. [ ] AI-extrapolated paragraphs correctly tagged `ai_knowledge`
-5. [ ] Badge reflects the real tier used (not a guess)
+1. [x] Each paragraph tagged with its actual source tier
+2. [x] Badges render: Curriculum / Ref: <name> / AI Knowledge
+3. [x] Attribution stored per paragraph, survives versioning
+4. [x] AI-extrapolated paragraphs correctly tagged `ai_knowledge`
+5. [x] Badge reflects the real tier used (not a guess)
 
 ### Out of scope
 - Fallback tier logic (T-119)

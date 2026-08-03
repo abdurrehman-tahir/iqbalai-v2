@@ -22,12 +22,18 @@ from app.features.lectures.models import (
     SchoolLecture,
     SchoolLectureDraft,
 )
-from app.features.lectures.repository import LectureDraftRepository, LectureRepository
+from app.features.lectures.repository import (
+    LectureDraftRepository,
+    LectureParagraphRepository,
+    LectureRepository,
+)
 from app.features.lectures.schemas import (
     LectureDraftRead,
     LectureDraftUpsert,
     LectureGenerateRead,
     LectureGenerateRequest,
+    LectureParagraphRead,
+    ParagraphSourceMetadata,
     TeacherOfferingRead,
     TeachingMode,
     WizardCurriculumRead,
@@ -129,6 +135,7 @@ class LectureWizardService:
         self._library = SchoolLibraryRepository(session)
         self._drafts = LectureDraftRepository(session)
         self._lectures = LectureRepository(session)
+        self._paragraphs = LectureParagraphRepository(session)
         self._profiles = TeacherProfileRepository(session)
 
     async def _require_school_teacher(self, claims: dict[str, object]) -> User:
@@ -480,3 +487,35 @@ class LectureWizardService:
             status=LectureStatus.GENERATING.value,
             estimated_seconds=estimated,
         )
+
+    async def get_lecture_paragraphs(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> list[LectureParagraphRead]:
+        """Current-version paragraphs with source attribution (T-118).
+
+        Ownership check mirrors the WS route (T-117): same school, owning
+        teacher — T-123 broadens this to real per-lecture ACLs.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._lectures.get_by_id(lecture_id)
+        if (
+            lecture is None
+            or lecture.school_id != teacher.school_id
+            or lecture.teacher_user_id != teacher.id
+        ):
+            raise NotFoundError("Lecture not found")
+
+        if lecture.current_version_id is None:
+            return []
+
+        paragraphs = await self._paragraphs.list_by_version(lecture.current_version_id)
+        return [
+            LectureParagraphRead(
+                ordinal=p.ordinal,
+                text=p.text,
+                **ParagraphSourceMetadata.from_jsonb(p.source_metadata_jsonb).model_dump(
+                    exclude={"chunk_id"}
+                ),
+            )
+            for p in paragraphs
+        ]

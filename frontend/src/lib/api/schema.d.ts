@@ -2385,6 +2385,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/lectures/{lecture_id}/paragraphs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a lecture's current-version paragraphs with source attribution */
+        get: operations["teacher_get_lecture_paragraphs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/offerings": {
         parameters: {
             query?: never;
@@ -3671,6 +3688,21 @@ export interface components {
             topic: string;
         };
         /**
+         * LectureParagraphRead
+         * @description One paragraph of the lecture's current version, with source attribution (T-118).
+         */
+        LectureParagraphRead: {
+            /** Book Name */
+            book_name?: string | null;
+            /** Ordinal */
+            ordinal: number;
+            /** Source Url */
+            source_url?: string | null;
+            /** Text */
+            text: string;
+            tier: components["schemas"]["SourceTier"];
+        };
+        /**
          * LibraryBookListResponse
          * @description Paginated list of platform reference books.
          */
@@ -4230,6 +4262,12 @@ export interface components {
          * @enum {string}
          */
         SelectionStatus: "active" | "abandoned";
+        /**
+         * SourceTier
+         * @description Provenance tier for a generated paragraph (Flow 5 #26 / #27).
+         * @enum {string}
+         */
+        SourceTier: "curriculum" | "reference" | "ai_knowledge" | "web";
         /** StudentBannerDismiss */
         StudentBannerDismiss: {
             /**
@@ -5209,6 +5247,16 @@ export interface components {
         SuccessEnvelope_list_GraduationRequestRead__: {
             /** Data */
             data: components["schemas"]["GraduationRequestRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[LectureParagraphRead]] */
+        SuccessEnvelope_list_LectureParagraphRead__: {
+            /** Data */
+            data: components["schemas"]["LectureParagraphRead"][];
             /**
              * Message
              * @default ok
@@ -10807,6 +10855,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_WizardTopicsRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_lecture_paragraphs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_LectureParagraphRead__"];
                 };
             };
             /** @description Validation Error */

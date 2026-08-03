@@ -58,6 +58,7 @@ import type {
   LectureDraftUpsert,
   LectureGenerateRequest,
   LectureGenerateRead,
+  LectureParagraphRead,
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
@@ -1135,6 +1136,8 @@ export const lectureWizardApi = {
       method: "PUT",
       body: JSON.stringify(data),
     }, token),
+  getParagraphs: (token: string, lectureId: string) =>
+    request<LectureParagraphRead[]>(`/teachers/me/lectures/${lectureId}/paragraphs`, {}, token),
 };
 
 export const studentOnboardingApi = {
