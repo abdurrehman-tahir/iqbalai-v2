@@ -209,7 +209,7 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Milestone:** M-09
 **Estimate:** 2 days
 **Status:** done
-**Commit:** (recorded at ledger-close commit below)
+**Commit:** ebad1eb
 **Scope note:** the flow spec's global #26 acceptance list also bundles a "chat sidebar + click-badge-to-highlight-source-passage" feature. That has no corresponding ticket anywhere in M-09 and is NOT mentioned in this ticket's own "What this ticket builds" — treated as out of scope here and flagged to Hamza/Abd as an un-ticketed gap, not built. "The viewer" for badge rendering is the wizard's post-generation preview (Step 5, once READY_FOR_EDIT) — the full lecture viewer page is M-12 per session-state.md.
 
 ### Spec source
