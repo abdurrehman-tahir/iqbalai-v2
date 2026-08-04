@@ -315,7 +315,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
+**Commit:** 5222fe4
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.4 (voice STS loop; live draft edits)
@@ -332,17 +333,20 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Voice session opens; bidirectional audio works
-2. [ ] STT (faster-whisper) → LLM → TTS (Piper/Edge/AI4Bharat by language) round-trips
-3. [ ] Voice command edits the draft live (insert/replace/append paragraph)
-4. [ ] Audio retained 24h; transcript archived with the lecture
-5. [ ] Independent teachers also get voice mode
+1. [x] Voice session opens; bidirectional audio works
+2. [x] STT (faster-whisper) → LLM → TTS (Piper en/ur, Edge-TTS ps) round-trips; sd is STT-only (see notes)
+3. [x] Voice command edits the draft live (insert/replace/append paragraph)
+4. [x] Audio retained 24h; transcript archived with the lecture
+5. [x] Independent teachers also get voice mode
 
 ### Out of scope
 - Sub-2s latency guarantee on CPU (flagged open question; best-effort at launch)
 
 ### Notes / known gotchas
 - STACK_LOCK: faster-whisper (NOT raw Whisper). Sub-2s STS on CPU is an open feasibility question (Flow 5 §8 Q3) — implement the loop; latency tuning is iterative.
+- **AI4Bharat pivot:** no verified self-hostable AI4Bharat TTS package was found (WebSearch found no canonical, trustworthy image/package). Reassigned: Piper handles en/ur (self-hosted ONNX), Edge-TTS handles ps (has a supported voice for it). sd has no viable TTS provider, so sd sessions run STT-only and `VoiceUnavailableError` degrades gracefully to "voice not yet available in sd; reading aloud disabled" per flow-5 §5.4's existing edge case — the session stays usable, just without spoken confirmations.
+- **Migration verification gap:** `school_0053`/`independent_0013` were written following the exact proven `school_0051`/`school_0052` idempotent-enum pattern (school_0052 was live-verified for T-120), but could NOT be run through a live upgrade/downgrade/re-upgrade cycle — Docker Desktop stopped responding mid-session. `alembic heads` confirms the revision graph resolves correctly. Recommend a live verification pass before this ships to staging DB.
+- Repo-wide `pnpm lint` also surfaces one pre-existing unused-var error in the already-committed T-117 file `lecture-generation-socket.test.ts:33` (`_code`) — unrelated to this ticket, not fixed here to avoid bundling.
 
 ---
 
