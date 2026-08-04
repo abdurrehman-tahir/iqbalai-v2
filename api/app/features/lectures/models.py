@@ -9,10 +9,12 @@ Scoring columns stay nullable until M-10; quiz tables are M-11.
 
 from __future__ import annotations
 
+from datetime import datetime
 from enum import StrEnum
 
 from sqlalchemy import (
     CheckConstraint,
+    DateTime,
     ForeignKey,
     Index,
     Integer,
@@ -84,6 +86,24 @@ def _tenant_type_enum(schema: str) -> SAEnum:
     return SAEnum(
         LectureTenantType,
         name="lectures_tenant_type_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
+class VoiceSessionStatus(StrEnum):
+    """ "Talk to AI" voice session lifecycle (T-121, Flow 5 §3.4 / #25)."""
+
+    ACTIVE = "active"
+    ENDED = "ended"
+
+
+def _voice_session_status_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        VoiceSessionStatus,
+        name="lecture_voice_sessions_status_enum",
         schema=schema,
         values_callable=lambda items: [item.value for item in items],
         native_enum=True,
@@ -238,6 +258,78 @@ class SchoolLectureParagraph(AuditMixin, Base):
             kwargs["id"] = _uuid7()
         if "source_metadata_jsonb" not in kwargs:
             kwargs["source_metadata_jsonb"] = {"tier": "ai_knowledge"}
+        super().__init__(**kwargs)
+
+
+class SchoolLectureVoiceSession(AuditMixin, Base):
+    """A "Talk to AI" voice session (T-121, #25). No soft-delete — sessions end,
+    they aren't deleted; ``created_at`` (AuditMixin) doubles as ``started_at``.
+    """
+
+    __tablename__ = "lecture_voice_sessions"
+    __table_args__ = (
+        Index("ix_lecture_voice_sessions_lecture_id", "lecture_id"),
+        Index("ix_lecture_voice_sessions_teacher_user_id", "teacher_user_id"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lectures.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    teacher_user_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    status: Mapped[VoiceSessionStatus] = mapped_column(
+        _voice_session_status_enum("school"),
+        nullable=False,
+        default=VoiceSessionStatus.ACTIVE,
+    )
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "status" not in kwargs:
+            kwargs["status"] = VoiceSessionStatus.ACTIVE
+        super().__init__(**kwargs)
+
+
+class SchoolLectureVoiceTurn(AuditMixin, Base):
+    """Append-only per-turn record: transcript + edit + audio pointer (§4.18 pattern)."""
+
+    __tablename__ = "lecture_voice_turns"
+    __table_args__ = (
+        UniqueConstraint("session_id", "ordinal", name="lecture_voice_turns_session_ordinal_uq"),
+        CheckConstraint("ordinal >= 0", name="lecture_voice_turns_ordinal_nonneg_check"),
+        Index("ix_lecture_voice_turns_session_id", "session_id"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    session_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lecture_voice_sessions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
+    # What the teacher said (faster-whisper STT output).
+    transcript: Mapped[str] = mapped_column(Text, nullable=False)
+    # Echo/confirmation/answer spoken back via TTS (flow-5 §5.4 "Did you mean: ...").
+    ai_response_text: Mapped[str] = mapped_column(Text, nullable=False)
+    # VoiceEditOperation JSONB, or null when the turn made no draft change.
+    edit_operation_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    # MinIO key (audio bucket) for the raw turn audio; null once purged.
+    audio_storage_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    audio_purged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
         super().__init__(**kwargs)
 
 
@@ -415,6 +507,72 @@ class IndependentLectureParagraph(AuditMixin, Base):
             kwargs["id"] = _uuid7()
         if "source_metadata_jsonb" not in kwargs:
             kwargs["source_metadata_jsonb"] = {"tier": "ai_knowledge"}
+        super().__init__(**kwargs)
+
+
+class IndependentLectureVoiceSession(AuditMixin, Base):
+    """Voice session, independent schema (T-121 acceptance #5)."""
+
+    __tablename__ = "lecture_voice_sessions"
+    __table_args__ = (
+        Index("ix_lecture_voice_sessions_lecture_id", "lecture_id"),
+        Index("ix_lecture_voice_sessions_teacher_user_id", "teacher_user_id"),
+        {"schema": "independent"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("independent.lectures.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    teacher_user_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("independent.users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    status: Mapped[VoiceSessionStatus] = mapped_column(
+        _voice_session_status_enum("independent"),
+        nullable=False,
+        default=VoiceSessionStatus.ACTIVE,
+    )
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "status" not in kwargs:
+            kwargs["status"] = VoiceSessionStatus.ACTIVE
+        super().__init__(**kwargs)
+
+
+class IndependentLectureVoiceTurn(AuditMixin, Base):
+    """Voice turn, independent schema (T-121 acceptance #5)."""
+
+    __tablename__ = "lecture_voice_turns"
+    __table_args__ = (
+        UniqueConstraint("session_id", "ordinal", name="lecture_voice_turns_session_ordinal_uq"),
+        CheckConstraint("ordinal >= 0", name="lecture_voice_turns_ordinal_nonneg_check"),
+        Index("ix_lecture_voice_turns_session_id", "session_id"),
+        {"schema": "independent"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    session_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("independent.lecture_voice_sessions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    ordinal: Mapped[int] = mapped_column(Integer, nullable=False)
+    transcript: Mapped[str] = mapped_column(Text, nullable=False)
+    ai_response_text: Mapped[str] = mapped_column(Text, nullable=False)
+    edit_operation_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    audio_storage_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    audio_purged_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
         super().__init__(**kwargs)
 
 

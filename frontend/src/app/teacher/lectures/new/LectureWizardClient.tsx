@@ -12,6 +12,8 @@ import type {
 } from "@/lib/api/types";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { useLectureGenerationStream } from "@/lib/ws/lecture-generation-socket";
+import { useLectureVoiceSession } from "@/lib/ws/lecture-voice-socket";
+import { Mic, Square } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -736,6 +738,7 @@ function GenerationStreamPanel({
           <p className="text-sm text-gray-700">{t("generating_complete_body")}</p>
         </div>
         <LectureParagraphsView token={token!} lectureId={lectureId} t={t} />
+        <VoiceConversationPanel lectureId={lectureId} t={t} />
       </section>
     );
   }
@@ -855,4 +858,124 @@ function SourceBadge({
       throw new Error(`unhandled source tier: ${_exhaustive}`);
     }
   }
+}
+
+// Lecture generation doesn't expose a per-lecture language selector anywhere
+// yet (service.py's generate_from_wizard hardcodes "en" — no UI built for it
+// in M-09 so far), so the voice session matches that: English only for now.
+const VOICE_LANGUAGE = "en";
+
+/** "Talk to AI" voice conversation during/after lecture creation (T-121, #25). */
+function VoiceConversationPanel({
+  lectureId,
+  t,
+}: {
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const voice = useLectureVoiceSession(lectureId, VOICE_LANGUAGE);
+
+  if (voice.status === "idle") {
+    return (
+      <div className="border-t border-gray-100 pt-4">
+        <Button type="button" variant="outline" onClick={voice.startSession} className="gap-2">
+          <Mic className="size-4" aria-hidden="true" />
+          {t("voice_start_button")}
+        </Button>
+      </div>
+    );
+  }
+
+  const isBusy = voice.status === "recording" || voice.status === "processing";
+
+  return (
+    <section className="space-y-3 border-t border-gray-100 pt-4" aria-labelledby="voice-panel-heading">
+      <h3 id="voice-panel-heading" className="text-lg font-medium text-gray-900">
+        {t("voice_panel_title")}
+      </h3>
+
+      {voice.status === "connecting" ? (
+        <p className="text-sm text-gray-600" role="status" aria-live="polite">
+          {t("voice_connecting")}
+        </p>
+      ) : null}
+
+      {voice.status === "error" ? (
+        <ErrorState title={t("voice_error_title")} description={t("voice_error_body")} />
+      ) : null}
+
+      {voice.unavailableNotice ? (
+        <p className="text-sm text-amber-700" role="status">
+          {t("voice_tts_unavailable")}
+        </p>
+      ) : null}
+
+      {voice.status === "ready" || isBusy ? (
+        <div className="flex items-center gap-3">
+          {voice.status === "recording" ? (
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              className="size-11 rounded-full"
+              onClick={voice.stopRecording}
+              aria-label={t("voice_stop_recording")}
+            >
+              <Square className="size-4" aria-hidden="true" />
+            </Button>
+          ) : (
+            <Button
+              type="button"
+              variant="primary"
+              size="icon"
+              className="size-11 rounded-full"
+              onClick={() => void voice.startRecording()}
+              disabled={voice.status === "processing"}
+              aria-label={t("voice_start_recording")}
+            >
+              <Mic className="size-4" aria-hidden="true" />
+            </Button>
+          )}
+          <p className="text-sm text-gray-600" role="status" aria-live="polite">
+            {voice.status === "recording"
+              ? t("voice_recording")
+              : voice.status === "processing"
+                ? t("voice_processing")
+                : t("voice_ready")}
+          </p>
+        </div>
+      ) : null}
+
+      {voice.turns.length > 0 ? (
+        <ul
+          className="max-h-64 space-y-2 overflow-y-auto"
+          aria-label={t("voice_transcript_label")}
+        >
+          {voice.turns.map((turn, i) => (
+            <li key={i} className="rounded-md border border-gray-200 p-2 text-sm">
+              <p dir="auto" className="text-gray-500">
+                {turn.transcript}
+              </p>
+              <p dir="auto" className="text-gray-900">
+                {turn.confirmation}
+              </p>
+              {turn.hadDraftEdit ? (
+                <span className="text-xs text-brand-700">{t("voice_draft_updated")}</span>
+              ) : null}
+            </li>
+          ))}
+        </ul>
+      ) : null}
+
+      {voice.status === "ended" ? (
+        <p className="text-sm text-gray-600" role="status">
+          {t("voice_session_ended")}
+        </p>
+      ) : (
+        <Button type="button" variant="outline" size="sm" onClick={voice.endSession}>
+          {t("voice_end_session")}
+        </Button>
+      )}
+    </section>
+  );
 }

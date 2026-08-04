@@ -1,15 +1,17 @@
-"""Celery task: Pattern S dual-RAG lecture generation — T-116.
+"""Celery tasks: lecture generation (T-116) + voice-audio retention purge (T-121).
 
-Queue: ``ml`` (LLM + retrieval). soft_time_limit = 5 minutes.
+Generation queue: ``ml`` (LLM + retrieval). soft_time_limit = 5 minutes.
 DB via ``run_db`` (disposable engine) — never the API session factory.
 """
 
 from __future__ import annotations
 
 import asyncio
+from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import structlog
+from celery import shared_task
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.celery_async import run_db
@@ -133,3 +135,36 @@ async def _mark_status(
         return
     lecture.status = status
     await session.commit()
+
+
+@shared_task(name="lectures.purge_voice_audio", queue="default")  # type: ignore[misc]
+def purge_expired_voice_audio() -> dict[str, object]:
+    """Delete raw voice-turn audio past retention (T-121 #25, flow-5 §6 Limits).
+
+    System-wide sweep (no single school_id — plain @shared_task, not
+    @tenant_task, per stack-enforcer's system-task opt-out). Transcripts
+    (``lecture_voice_turns`` rows) are kept indefinitely — only the MinIO
+    object + the row's ``audio_storage_key`` pointer are cleared.
+    """
+    return run_db(_purge_expired_voice_audio_async)
+
+
+async def _purge_expired_voice_audio_async(session: AsyncSession) -> dict[str, object]:
+    from app.config import get_settings
+    from app.features.lectures.repository import LectureVoiceTurnRepository
+    from app.infrastructure.storage.client import delete_object
+
+    settings = get_settings()
+    cutoff = datetime.now(timezone.utc) - timedelta(hours=settings.VOICE_AUDIO_RETENTION_HOURS)
+    repo = LectureVoiceTurnRepository(session)
+    expired = await repo.list_with_unpurged_audio_older_than(cutoff)
+
+    purged = 0
+    for turn in expired:
+        if turn.audio_storage_key:
+            delete_object("audio", turn.audio_storage_key)
+        await repo.mark_audio_purged(turn)
+        purged += 1
+
+    logger.info("voice_audio_purge_complete", purged_count=purged, cutoff=cutoff.isoformat())
+    return {"purged_count": purged}

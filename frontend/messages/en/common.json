@@ -622,7 +622,22 @@
         "badge_curriculum": "Curriculum",
         "badge_reference": "Ref: {book}",
         "badge_web": "Web",
-        "badge_ai_knowledge": "AI Knowledge"
+        "badge_ai_knowledge": "AI Knowledge",
+        "voice_start_button": "Talk to AI",
+        "voice_panel_title": "Voice conversation",
+        "voice_connecting": "Connecting…",
+        "voice_ready": "Tap the microphone and start speaking.",
+        "voice_recording": "Listening… tap to stop.",
+        "voice_processing": "Thinking…",
+        "voice_start_recording": "Start recording",
+        "voice_stop_recording": "Stop recording",
+        "voice_transcript_label": "Conversation transcript",
+        "voice_draft_updated": "Lecture draft updated",
+        "voice_end_session": "End voice session",
+        "voice_session_ended": "Voice session ended.",
+        "voice_error_title": "Voice session error",
+        "voice_error_body": "Something went wrong with the voice session. Please try again.",
+        "voice_tts_unavailable": "Voice not yet available in this language; reading aloud disabled."
       }
     },
     "onboarding": {

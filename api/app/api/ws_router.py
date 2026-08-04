@@ -9,7 +9,9 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.features.lectures.ws_router import router as lecture_generation_ws_router
+from app.features.lectures.ws_voice_router import router as lecture_voice_ws_router
 
 router = APIRouter()
 
 router.include_router(lecture_generation_ws_router)
+router.include_router(lecture_voice_ws_router)

@@ -36,6 +36,36 @@ class ParagraphSourceMetadata(BaseModel):
         return cls.model_validate(raw)
 
 
+class VoiceEditOp(StrEnum):
+    """Structured draft-edit kind a voice turn can produce (T-121, #25)."""
+
+    NONE = "none"
+    INSERT = "insert"
+    REPLACE = "replace"
+    APPEND = "append"
+
+
+class VoiceEditOperation(BaseModel):
+    """Stored in ``lecture_voice_turns.edit_operation_jsonb``.
+
+    ``ordinal`` targets the paragraph to insert-before or replace; ignored
+    (must be ``None``) for ``append``/``none``.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    op: VoiceEditOp
+    ordinal: int | None = None
+    text: str | None = Field(default=None, max_length=8000)
+
+    def to_jsonb(self) -> dict[str, Any]:
+        return self.model_dump(mode="json", exclude_none=True)
+
+    @classmethod
+    def from_jsonb(cls, raw: dict[str, Any]) -> VoiceEditOperation:
+        return cls.model_validate(raw)
+
+
 class LectureScores(BaseModel):
     """Placeholder for M-10 7-dimension scores — nullable on versions until then."""
 

@@ -7,11 +7,13 @@
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider } from "next-intl";
 import en from "../../../../../../messages/en/common.json";
 import { LectureWizardClient } from "../LectureWizardClient";
 import type { LectureGenerationState } from "@/lib/ws/lecture-generation-socket";
+import type { VoiceSessionState, VoiceSessionControls } from "@/lib/ws/lecture-voice-socket";
 
 vi.mock("@/hooks/use-client-auth", () => ({
   useClientAuth: () => ({ mounted: true, token: "tok" }),
@@ -21,6 +23,22 @@ const mockStream = vi.fn<() => LectureGenerationState>();
 vi.mock("@/lib/ws/lecture-generation-socket", () => ({
   useLectureGenerationStream: () => mockStream(),
 }));
+
+const mockVoice = vi.fn<() => VoiceSessionState & VoiceSessionControls>();
+vi.mock("@/lib/ws/lecture-voice-socket", () => ({
+  useLectureVoiceSession: () => mockVoice(),
+}));
+
+const IDLE_VOICE_STATE: VoiceSessionState & VoiceSessionControls = {
+  status: "idle",
+  turns: [],
+  errorReason: null,
+  unavailableNotice: null,
+  startSession: vi.fn(),
+  endSession: vi.fn(),
+  startRecording: vi.fn(),
+  stopRecording: vi.fn(),
+};
 
 const listOfferings = vi.fn();
 const listCurricula = vi.fn();
@@ -104,6 +122,7 @@ function renderAtStep5GeneratingLecture() {
 describe("GenerationStreamPanel", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockVoice.mockReturnValue({ ...IDLE_VOICE_STATE });
   });
 
   it("shows a loading skeleton while connecting with no output yet", async () => {
@@ -218,5 +237,111 @@ describe("GenerationStreamPanel", () => {
     expect(await screen.findByRole("alert")).toBeInTheDocument();
     expect(await screen.findByText(/Generation failed/i)).toBeInTheDocument();
     expect(screen.getByText(/timed out/i)).toBeInTheDocument();
+  });
+});
+
+describe("VoiceConversationPanel (T-121)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    getParagraphs.mockResolvedValue([]);
+    mockStream.mockReturnValue({
+      status: "complete",
+      text: "Newton's first law...",
+      versionId: "ver-1",
+      errorReason: null,
+    });
+  });
+
+  it("shows a 'Talk to AI' button when idle", async () => {
+    mockVoice.mockReturnValue({ ...IDLE_VOICE_STATE });
+    renderAtStep5GeneratingLecture();
+
+    expect(await screen.findByRole("button", { name: /talk to ai/i })).toBeInTheDocument();
+  });
+
+  it("starts a session when the Talk to AI button is clicked", async () => {
+    const startSession = vi.fn();
+    mockVoice.mockReturnValue({ ...IDLE_VOICE_STATE, startSession });
+    const user = userEvent.setup();
+    renderAtStep5GeneratingLecture();
+
+    await user.click(await screen.findByRole("button", { name: /talk to ai/i }));
+    expect(startSession).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a mic button in the ready state and starts recording on click", async () => {
+    const startRecording = vi.fn();
+    mockVoice.mockReturnValue({
+      ...IDLE_VOICE_STATE,
+      status: "ready",
+      startRecording,
+    });
+    const user = userEvent.setup();
+    renderAtStep5GeneratingLecture();
+
+    const micButton = await screen.findByRole("button", { name: /start recording/i });
+    await user.click(micButton);
+    expect(startRecording).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a stop button while recording", async () => {
+    mockVoice.mockReturnValue({ ...IDLE_VOICE_STATE, status: "recording" });
+    renderAtStep5GeneratingLecture();
+
+    expect(await screen.findByRole("button", { name: /stop recording/i })).toBeInTheDocument();
+  });
+
+  it("renders the conversation transcript with confirmation text", async () => {
+    mockVoice.mockReturnValue({
+      ...IDLE_VOICE_STATE,
+      status: "ready",
+      turns: [
+        {
+          transcript: "add an example about Newton's third law",
+          confirmation: "Adding an example about Newton's third law.",
+          hadDraftEdit: true,
+        },
+      ],
+    });
+    renderAtStep5GeneratingLecture();
+
+    expect(
+      await screen.findByText("add an example about Newton's third law")
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("Adding an example about Newton's third law.")
+    ).toBeInTheDocument();
+    expect(screen.getByText(/lecture draft updated/i)).toBeInTheDocument();
+  });
+
+  it("shows the TTS-unavailable notice without blocking the conversation", async () => {
+    mockVoice.mockReturnValue({
+      ...IDLE_VOICE_STATE,
+      status: "ready",
+      unavailableNotice: "voice not yet available in sd; reading aloud disabled.",
+    });
+    renderAtStep5GeneratingLecture();
+
+    expect(await screen.findByText(/reading aloud disabled/i)).toBeInTheDocument();
+    // The session stays usable — mic button is still there, not replaced by an error.
+    expect(screen.getByRole("button", { name: /start recording/i })).toBeInTheDocument();
+  });
+
+  it("shows an error state on a voice session error", async () => {
+    mockVoice.mockReturnValue({
+      ...IDLE_VOICE_STATE,
+      status: "error",
+      errorReason: "turn_processing_failed",
+    });
+    renderAtStep5GeneratingLecture();
+
+    expect(await screen.findByText(/voice session error/i)).toBeInTheDocument();
+  });
+
+  it("shows an ended message once the session ends", async () => {
+    mockVoice.mockReturnValue({ ...IDLE_VOICE_STATE, status: "ended" });
+    renderAtStep5GeneratingLecture();
+
+    expect(await screen.findByText(/voice session ended/i)).toBeInTheDocument();
   });
 });
