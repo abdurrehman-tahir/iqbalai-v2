@@ -279,7 +279,7 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Milestone:** M-09
 **Estimate:** 1 day
 **Status:** done
-**Commit:** (recorded at ledger-close commit below)
+**Commit:** 63b7144
 **Data-model note:** added `exam_frameworks.subject_slug` (controlled-vocabulary kebab-case, e.g. "physics") — a direct `subject_id` FK doesn't work since `Subject` rows are school-scoped but a framework spans every school. Matched against each school's free-text `Subject.name` via normalization at generation time (`app/features/lectures/exam_overlay.py`), not stored on `subjects`. Migration `school_0052`; `independent.exam_frameworks` view extended to project it.
 
 ### Spec source
