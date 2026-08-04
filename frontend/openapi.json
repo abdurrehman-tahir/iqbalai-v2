@@ -1297,6 +1297,12 @@
             "title": "Region",
             "type": "string"
           },
+          "subject_slug": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Subject Slug",
+            "type": "string"
+          },
           "target_grade_range": {
             "items": {
               "type": "integer"
@@ -1309,6 +1315,7 @@
         "required": [
           "name",
           "exam_target",
+          "subject_slug",
           "region",
           "target_grade_range"
         ],
@@ -1379,6 +1386,10 @@
           "status": {
             "$ref": "#/components/schemas/FrameworkStatus"
           },
+          "subject_slug": {
+            "title": "Subject Slug",
+            "type": "string"
+          },
           "target_grade_range": {
             "items": {
               "type": "integer"
@@ -1391,6 +1402,7 @@
           "id",
           "name",
           "exam_target",
+          "subject_slug",
           "region",
           "target_grade_range",
           "language",
@@ -1455,6 +1467,19 @@
               }
             ],
             "title": "Region"
+          },
+          "subject_slug": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Slug"
           },
           "target_grade_range": {
             "anyOf": [

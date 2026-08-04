@@ -278,7 +278,9 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** (recorded at ledger-close commit below)
+**Data-model note:** added `exam_frameworks.subject_slug` (controlled-vocabulary kebab-case, e.g. "physics") — a direct `subject_id` FK doesn't work since `Subject` rows are school-scoped but a framework spans every school. Matched against each school's free-text `Subject.name` via normalization at generation time (`app/features/lectures/exam_overlay.py`), not stored on `subjects`. Migration `school_0052`; `independent.exam_frameworks` view extended to project it.
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.2 (exam framework overlay per Flow 4 v3 §3.5.4)
@@ -295,10 +297,10 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Framework context injected when relevant frameworks are selected by Grade students
-2. [ ] Context is additive (curriculum still primary)
-3. [ ] No framework selected → no overlay (clean generation)
-4. [ ] Custom Persona NOT injected into lecture generation (class-wide content)
+1. [x] Framework context injected when relevant frameworks are selected by Grade students
+2. [x] Context is additive (curriculum still primary)
+3. [x] No framework selected → no overlay (clean generation)
+4. [x] Custom Persona NOT injected into lecture generation (class-wide content)
 
 ### Out of scope
 - Lecture Mode "exam prep track" tab UI (M-12+)

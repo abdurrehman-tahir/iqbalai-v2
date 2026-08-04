@@ -3118,6 +3118,8 @@ export interface components {
             name: string;
             /** Region */
             region: string;
+            /** Subject Slug */
+            subject_slug: string;
             /** Target Grade Range */
             target_grade_range: number[];
         };
@@ -3158,6 +3160,8 @@ export interface components {
             /** Region */
             region: string;
             status: components["schemas"]["FrameworkStatus"];
+            /** Subject Slug */
+            subject_slug: string;
             /** Target Grade Range */
             target_grade_range: number[];
         };
@@ -3174,6 +3178,8 @@ export interface components {
             name?: string | null;
             /** Region */
             region?: string | null;
+            /** Subject Slug */
+            subject_slug?: string | null;
             /** Target Grade Range */
             target_grade_range?: number[] | null;
         };

@@ -8,6 +8,7 @@ T-092 / T-096.
 
 from __future__ import annotations
 
+import re
 from datetime import datetime
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -23,6 +24,10 @@ from app.features.exam_frameworks.models import (
 _MIN_GRADE = 1
 _MAX_GRADE = 14
 
+# Controlled-vocabulary format for T-120's subject overlay match — lowercase
+# kebab-case (e.g. "physics", "general-science"), never free text.
+_SLUG_RE = re.compile(r"^[a-z0-9]+(-[a-z0-9]+)*$")
+
 
 def _validate_grade_range(value: list[int]) -> list[int]:
     if not value:
@@ -33,12 +38,21 @@ def _validate_grade_range(value: list[int]) -> list[int]:
     return value
 
 
+def _validate_subject_slug(value: str) -> str:
+    if not _SLUG_RE.match(value):
+        raise ValueError(
+            "subject_slug must be lowercase kebab-case (e.g. 'physics', 'general-science')"
+        )
+    return value
+
+
 class ExamFrameworkRead(BaseModel):
     """Response schema for a single exam-framework definition."""
 
     id: str
     name: str
     exam_target: str
+    subject_slug: str
     region: str
     target_grade_range: list[int]
     language: str
@@ -54,6 +68,8 @@ class ExamFrameworkCreate(BaseModel):
 
     name: str = Field(..., min_length=1, max_length=255)
     exam_target: str = Field(..., min_length=1, max_length=255)
+    # T-120: controlled-vocabulary subject match, e.g. "physics" — see models.py.
+    subject_slug: str = Field(..., min_length=1, max_length=50)
     region: str = Field(..., min_length=1, max_length=100)
     target_grade_range: list[int] = Field(..., min_length=1)
     language: str = Field(default="en", min_length=2, max_length=10)
@@ -63,12 +79,18 @@ class ExamFrameworkCreate(BaseModel):
     def _check_grade_range(cls, value: list[int]) -> list[int]:
         return _validate_grade_range(value)
 
+    @field_validator("subject_slug")
+    @classmethod
+    def _check_subject_slug(cls, value: str) -> str:
+        return _validate_subject_slug(value)
+
 
 class ExamFrameworkUpdate(BaseModel):
     """Payload to edit a DRAFT framework (all fields optional — merge)."""
 
     name: str | None = Field(default=None, min_length=1, max_length=255)
     exam_target: str | None = Field(default=None, min_length=1, max_length=255)
+    subject_slug: str | None = Field(default=None, min_length=1, max_length=50)
     region: str | None = Field(default=None, min_length=1, max_length=100)
     target_grade_range: list[int] | None = Field(default=None, min_length=1)
     language: str | None = Field(default=None, min_length=2, max_length=10)
@@ -79,6 +101,13 @@ class ExamFrameworkUpdate(BaseModel):
         if value is None:
             return value
         return _validate_grade_range(value)
+
+    @field_validator("subject_slug")
+    @classmethod
+    def _check_subject_slug(cls, value: str | None) -> str | None:
+        if value is None:
+            return value
+        return _validate_subject_slug(value)
 
 
 class FrameworkResearchJobRead(BaseModel):

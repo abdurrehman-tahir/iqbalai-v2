@@ -6,6 +6,9 @@ Retrieves curriculum + reference chunks, weights curriculum 1.5×, synthesizes v
 T-119 (#27) adds the 3-tier out-of-curriculum fallback: when curriculum AND
 reference retrieval both come back empty for the topic, escalate to a SearXNG
 web search before falling back to an honest "no information" paragraph.
+
+T-120 adds the exam-framework overlay (Flow 4 v3 §3.5.4): additive exam-
+readiness context surfaced when a PUBLISHED framework is relevant.
 """
 
 from __future__ import annotations
@@ -24,6 +27,7 @@ from app.features.lectures.events import (
     LECTURE_VERSION_CREATED,
     publish_lecture_event,
 )
+from app.features.lectures.exam_overlay import ExamOverlayContext, get_exam_framework_overlay
 from app.features.lectures.generation_stream import append_token, mark_complete
 from app.features.lectures.models import (
     LectureStatus,
@@ -37,6 +41,8 @@ from app.features.library.school_models import (
     SchoolLibraryItem,
     SchoolLibraryItemChunk,
 )
+from app.features.offerings.models import GradeSubjectOffering
+from app.features.subjects.models import Subject
 from app.infrastructure.llm.client import stream_chat
 from app.infrastructure.llm.prompts.lecture_generate_v1 import (
     PROMPT_VERSION,
@@ -168,6 +174,27 @@ async def _fetch_web_fallback_chunks(topic: str) -> list[ChunkRef]:
             )
         )
     return chunks
+
+
+async def _load_exam_overlay(
+    session: AsyncSession, lecture: SchoolLecture
+) -> ExamOverlayContext | None:
+    """T-120: resolve the lecture's Grade + Subject, then look up the overlay.
+
+    ``None`` (no offering, no subject row, or no relevant framework) means
+    "no overlay" — the caller must not fail generation over this.
+    """
+    if lecture.grade_subject_offering_id is None:
+        return None
+    offering = await session.get(GradeSubjectOffering, lecture.grade_subject_offering_id)
+    if offering is None:
+        return None
+    subject = await session.get(Subject, offering.subject_id)
+    if subject is None:
+        return None
+    return await get_exam_framework_overlay(
+        session, grade_id=offering.grade_id, subject_name=subject.name
+    )
 
 
 async def run_lecture_generation(
@@ -304,6 +331,16 @@ async def run_lecture_generation(
             web_hits=len(web_refs),
         )
 
+    # T-120 (Flow 4 v3 §3.5.4): additive exam-readiness context — never
+    # injected for Custom Persona (that's per-student, not class-wide; §3.2).
+    exam_overlay = await _load_exam_overlay(session, lecture)
+    if exam_overlay is not None:
+        logger.info(
+            "lecture_exam_overlay_applied",
+            lecture_id=lecture_id,
+            framework_name=exam_overlay.framework_name,
+        )
+
     lang = target_language if target_language in ("en", "ur", "sd", "ps") else "en"
     mode = teaching_mode if teaching_mode in ("auto", "manual", "voice_assisted") else "auto"
     prompt = render(
@@ -315,6 +352,9 @@ async def run_lecture_generation(
             reference_chunks=ref_refs[:_TOP_REFERENCE],
             web_chunks=web_refs[:_TOP_WEB],
             no_coverage=no_coverage,
+            exam_framework_name=exam_overlay.framework_name if exam_overlay else None,
+            exam_strategy_summary=exam_overlay.exam_strategy_summary if exam_overlay else None,
+            exam_priority_topics=exam_overlay.priority_topics if exam_overlay else [],
         )
     )
     # T-117: relay raw deltas token-by-token so a connected teacher sees live

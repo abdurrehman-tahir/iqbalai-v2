@@ -1183,6 +1183,7 @@
       "col": {
         "name": "Name",
         "exam_target": "Exam target",
+        "subject_slug": "Subject",
         "region": "Region",
         "grades": "Grades",
         "status": "Status",
@@ -1212,6 +1213,10 @@
         "name_placeholder": "e.g. Matric Punjab — Physics",
         "exam_target_label": "Exam target",
         "exam_target_placeholder": "e.g. Matric Punjab Board — Physics",
+        "subject_slug_label": "Subject slug",
+        "subject_slug_placeholder": "e.g. physics",
+        "subject_slug_hint": "Lowercase, kebab-case (e.g. \"physics\", \"general-science\") — matches this exam framework to lectures for that subject.",
+        "subject_slug_error": "Enter a lowercase kebab-case subject slug (e.g. \"physics\").",
         "region_label": "Region",
         "region_placeholder": "e.g. Punjab, Sindh, any",
         "grades_label": "Target grades",

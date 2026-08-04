@@ -30,6 +30,14 @@ class LectureGenerateInput(BaseModel):
     # T-119: set when curriculum, reference, AND web all came back empty —
     # tells the model to honestly say so instead of inventing content.
     no_coverage: bool = False
+    # T-120 (Flow 4 v3 §3.5.4): ADDITIONAL exam-readiness context, never a
+    # replacement for curriculum — set only when a PUBLISHED framework is
+    # relevant to this lecture's Grade + Subject. Plain fields (not a nested
+    # model) so this prompt module has no dependency on the exam_frameworks
+    # feature — app/features/lectures/exam_overlay.py fills them in.
+    exam_framework_name: str | None = None
+    exam_strategy_summary: str | None = None
+    exam_priority_topics: list[str] = Field(default_factory=list)
 
 
 class LectureParagraphOut(BaseModel):
@@ -66,6 +74,9 @@ CRITICAL RULES:
   reference had nothing for this topic. Use them like references, tagged "web".
 - Prefer curriculum as ground truth; use references and web sources for elaboration.
 - Mark each paragraph tier honestly: curriculum, reference, web, or ai_knowledge.
+- If exam framework context is present, weave in exam-readiness language (emphasis,
+  worked examples) for its high-priority topics — it is ADDITIONAL, never a
+  replacement for curriculum sequence/structure.
 - Teaching mode = {teaching_mode}: auto=full lecture; manual=outline bullets only;
   voice_assisted=full lecture ready for spoken edits.
 - Respond in {language}.
@@ -100,6 +111,16 @@ def render(input_data: LectureGenerateInput) -> PromptCall:
         lines.append("")
     if input_data.no_coverage:
         lines.append(NO_COVERAGE_NOTICE)
+        lines.append("")
+    if input_data.exam_framework_name:
+        lines.append(
+            "Exam framework context (ADDITIONAL — supplements curriculum, does NOT "
+            f"replace it): {input_data.exam_framework_name}"
+        )
+        if input_data.exam_strategy_summary:
+            lines.append(f"Exam strategy: {input_data.exam_strategy_summary}")
+        if input_data.exam_priority_topics:
+            lines.append("High-priority exam topics: " + ", ".join(input_data.exam_priority_topics))
         lines.append("")
     lines.append("Write the lecture as JSON.")
     return PromptCall(

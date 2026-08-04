@@ -237,6 +237,7 @@
       "col": {
         "name": "__TODO__ Name",
         "exam_target": "__TODO__ Exam target",
+        "subject_slug": "__TODO__ Subject",
         "region": "__TODO__ Region",
         "grades": "__TODO__ Grades",
         "status": "__TODO__ Status",
@@ -266,6 +267,10 @@
         "name_placeholder": "__TODO__ e.g. Matric Punjab — Physics",
         "exam_target_label": "__TODO__ Exam target",
         "exam_target_placeholder": "__TODO__ e.g. Matric Punjab Board — Physics",
+        "subject_slug_label": "__TODO__ Subject slug",
+        "subject_slug_placeholder": "__TODO__ e.g. physics",
+        "subject_slug_hint": "__TODO__ Lowercase, kebab-case (e.g. \"physics\", \"general-science\") — matches this exam framework to lectures for that subject.",
+        "subject_slug_error": "__TODO__ Enter a lowercase kebab-case subject slug (e.g. \"physics\").",
         "region_label": "__TODO__ Region",
         "region_placeholder": "__TODO__ e.g. Punjab, Sindh, any",
         "grades_label": "__TODO__ Target grades",
