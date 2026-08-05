@@ -739,6 +739,7 @@ function GenerationStreamPanel({
         </div>
         <LectureParagraphsView token={token!} lectureId={lectureId} t={t} />
         <LectureLinksPanel token={token!} lectureId={lectureId} t={t} />
+        <LectureAccessPanel token={token!} lectureId={lectureId} t={t} />
         <VoiceConversationPanel lectureId={lectureId} t={t} />
       </section>
     );
@@ -977,6 +978,216 @@ function LectureLinksPanel({
       {linkError ? (
         <p className="text-sm text-red-700" role="alert">
           {linkError}
+        </p>
+      ) : null}
+    </section>
+  );
+}
+
+/** Per-lecture access control (T-123, #21) — restrict a lecture to specific students/sections. */
+function LectureAccessPanel({
+  token,
+  lectureId,
+  t,
+}: {
+  token: string;
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const qc = useQueryClient();
+  const [isEditing, setIsEditing] = useState(false);
+  const [selectedSectionIds, setSelectedSectionIds] = useState<Set<string>>(new Set());
+  const [selectedStudentIds, setSelectedStudentIds] = useState<Set<string>>(new Set());
+  const [saveError, setSaveError] = useState<string | null>(null);
+
+  const settingsQuery = useQuery({
+    queryKey: ["teacher", "lecture-access", lectureId],
+    queryFn: () => lectureWizardApi.getAccessSettings(token, lectureId),
+  });
+  const rosterQuery = useQuery({
+    queryKey: ["teacher", "lecture-roster", lectureId],
+    queryFn: () => lectureWizardApi.getRoster(token, lectureId),
+    enabled: isEditing,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: () =>
+      lectureWizardApi.setAccessSettings(token, lectureId, {
+        assignments: [
+          ...Array.from(selectedSectionIds, (section_id) => ({
+            scope: "section" as const,
+            section_id,
+          })),
+          ...Array.from(selectedStudentIds, (student_user_id) => ({
+            scope: "student" as const,
+            student_user_id,
+          })),
+        ],
+      }),
+    onSuccess: () => {
+      setSaveError(null);
+      setIsEditing(false);
+      void qc.invalidateQueries({ queryKey: ["teacher", "lecture-access", lectureId] });
+    },
+    onError: (err: unknown) => {
+      setSaveError(err instanceof ApiError ? err.message : t("access_save_error"));
+    },
+  });
+
+  const startEditing = () => {
+    const current = settingsQuery.data?.assignments ?? [];
+    setSelectedSectionIds(
+      new Set(current.filter((a) => a.scope === "section").map((a) => a.section_id!))
+    );
+    setSelectedStudentIds(
+      new Set(current.filter((a) => a.scope === "student").map((a) => a.student_user_id!))
+    );
+    setSaveError(null);
+    setIsEditing(true);
+  };
+
+  if (settingsQuery.isLoading) {
+    return (
+      <div className="space-y-2" aria-busy="true">
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  if (settingsQuery.isError) {
+    return (
+      <ErrorState
+        title={t("access_error")}
+        description={t("access_error")}
+        onRetry={() => void settingsQuery.refetch()}
+        retryLabel={t("retry")}
+      />
+    );
+  }
+
+  const settings = settingsQuery.data!;
+
+  if (!isEditing) {
+    return (
+      <section className="space-y-3" aria-labelledby="lecture-access-heading">
+        <h3 id="lecture-access-heading" className="text-lg font-medium text-gray-900">
+          {t("access_title")}
+        </h3>
+        <p className="text-sm text-gray-700" role="status">
+          {settings.is_restricted
+            ? t("access_restricted_summary", { count: settings.assignments.length })
+            : t("access_unrestricted_summary")}
+        </p>
+        {settings.is_restricted ? (
+          <ul className="space-y-1">
+            {settings.assignments.map((a) => (
+              <li key={a.id} className="text-sm text-gray-800">
+                {a.scope === "student"
+                  ? a.student_name
+                  : t("access_section_label", { name: a.section_name })}
+              </li>
+            ))}
+          </ul>
+        ) : null}
+        <Button type="button" variant="outline" onClick={startEditing}>
+          {t("access_edit_button")}
+        </Button>
+      </section>
+    );
+  }
+
+  if (rosterQuery.isLoading) {
+    return (
+      <div className="space-y-2" aria-busy="true">
+        <Skeleton className="h-24 w-full" />
+      </div>
+    );
+  }
+
+  if (rosterQuery.isError) {
+    return (
+      <ErrorState
+        title={t("access_roster_error")}
+        description={t("access_roster_error")}
+        onRetry={() => void rosterQuery.refetch()}
+        retryLabel={t("retry")}
+      />
+    );
+  }
+
+  const roster = rosterQuery.data!;
+
+  return (
+    <section className="space-y-3" aria-labelledby="lecture-access-heading">
+      <h3 id="lecture-access-heading" className="text-lg font-medium text-gray-900">
+        {t("access_title")}
+      </h3>
+      <p className="text-sm text-gray-600">{t("access_edit_hint")}</p>
+
+      {roster.sections.length > 0 ? (
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium text-gray-800">
+            {t("access_sections_label")}
+          </legend>
+          {roster.sections.map((section) => (
+            <label key={section.id} className="flex items-center gap-2 text-sm text-gray-800">
+              <input
+                type="checkbox"
+                className="size-4 rounded border-gray-300"
+                checked={selectedSectionIds.has(section.id)}
+                onChange={(e) => {
+                  const next = new Set(selectedSectionIds);
+                  if (e.target.checked) next.add(section.id);
+                  else next.delete(section.id);
+                  setSelectedSectionIds(next);
+                }}
+              />
+              {section.name}
+            </label>
+          ))}
+        </fieldset>
+      ) : null}
+
+      {roster.students.length > 0 ? (
+        <fieldset className="space-y-2">
+          <legend className="text-sm font-medium text-gray-800">
+            {t("access_students_label")}
+          </legend>
+          {roster.students.map((student) => (
+            <label key={student.id} className="flex items-center gap-2 text-sm text-gray-800">
+              <input
+                type="checkbox"
+                className="size-4 rounded border-gray-300"
+                checked={selectedStudentIds.has(student.id)}
+                onChange={(e) => {
+                  const next = new Set(selectedStudentIds);
+                  if (e.target.checked) next.add(student.id);
+                  else next.delete(student.id);
+                  setSelectedStudentIds(next);
+                }}
+              />
+              {student.display_name}
+            </label>
+          ))}
+        </fieldset>
+      ) : null}
+
+      <div className="flex gap-2">
+        <Button
+          type="button"
+          disabled={saveMutation.isPending}
+          onClick={() => saveMutation.mutate()}
+        >
+          {saveMutation.isPending ? t("access_saving") : t("access_save_button")}
+        </Button>
+        <Button type="button" variant="outline" onClick={() => setIsEditing(false)}>
+          {t("access_cancel_button")}
+        </Button>
+      </div>
+
+      {saveError ? (
+        <p className="text-sm text-red-700" role="alert">
+          {saveError}
         </p>
       ) : null}
     </section>

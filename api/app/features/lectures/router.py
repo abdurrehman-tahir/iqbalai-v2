@@ -11,6 +11,8 @@ from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.idempotency import IdempotencyContext, idempotency_key
 from app.core.responses import SuccessEnvelope, success
 from app.features.lectures.schemas import (
+    LectureAccessSettingsRead,
+    LectureAccessSettingsUpdate,
     LectureDraftRead,
     LectureDraftUpsert,
     LectureGenerateRead,
@@ -18,6 +20,7 @@ from app.features.lectures.schemas import (
     LectureLinkCreate,
     LectureLinkRead,
     LectureParagraphRead,
+    LectureRosterRead,
     TeacherOfferingRead,
     TeachingMode,
     WizardCurriculumRead,
@@ -232,3 +235,55 @@ async def create_lecture_link(
     if idem is not None:
         await idem.store_response(response)
     return response
+
+
+@router.get(
+    "/lectures/{lecture_id}/access",
+    response_model=SuccessEnvelope[LectureAccessSettingsRead],
+    operation_id="teacher_get_lecture_access_settings",
+    summary="Get a lecture's access-restriction settings (T-123, #21)",
+    dependencies=[require_role("teacher")],
+)
+async def get_lecture_access_settings(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.get_lecture_access_settings(claims, lecture_id)
+    return success(result.model_dump(mode="json"))
+
+
+@router.put(
+    "/lectures/{lecture_id}/access",
+    response_model=SuccessEnvelope[LectureAccessSettingsRead],
+    operation_id="teacher_set_lecture_access_settings",
+    summary="Replace a lecture's access restrictions; empty list clears to default (T-123, #21)",
+    dependencies=[require_role("teacher")],
+)
+async def set_lecture_access_settings(
+    lecture_id: str,
+    payload: LectureAccessSettingsUpdate,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.set_lecture_access_settings(claims, lecture_id, payload)
+    return success(result.model_dump(mode="json"))
+
+
+@router.get(
+    "/lectures/{lecture_id}/roster",
+    response_model=SuccessEnvelope[LectureRosterRead],
+    operation_id="teacher_get_lecture_roster",
+    summary="Grade roster (sections + students) for the access-restriction picker (T-123, #21)",
+    dependencies=[require_role("teacher")],
+)
+async def get_lecture_roster(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.get_lecture_roster(claims, lecture_id)
+    return success(result.model_dump(mode="json"))

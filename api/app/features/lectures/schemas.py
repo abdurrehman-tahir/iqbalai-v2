@@ -224,3 +224,68 @@ class LectureLinkRead(BaseModel):
     target_subject_id: str
     target_subject_name: str
     created_at: datetime
+
+
+class LectureAssignmentScope(StrEnum):
+    """What a lecture_assignments row restricts access to (T-123, #21)."""
+
+    STUDENT = "student"
+    SECTION = "section"
+
+
+class LectureAssignmentInput(BaseModel):
+    """One restriction row in a PUT to the lecture's access settings."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    scope: LectureAssignmentScope
+    student_user_id: str | None = Field(default=None, max_length=36)
+    section_id: str | None = Field(default=None, max_length=36)
+
+
+class LectureAssignmentRead(BaseModel):
+    """One restriction row, enriched with a display name for the teacher UI (T-123, #21)."""
+
+    id: str
+    scope: LectureAssignmentScope
+    student_user_id: str | None = None
+    student_name: str | None = None
+    section_id: str | None = None
+    section_name: str | None = None
+    created_at: datetime
+
+
+class LectureAccessSettingsRead(BaseModel):
+    """A lecture's current access-restriction state (T-123, #21)."""
+
+    lecture_id: str
+    is_restricted: bool
+    assignments: list[LectureAssignmentRead]
+
+
+class LectureAccessSettingsUpdate(BaseModel):
+    """Replace-all update for a lecture's restriction rows. Empty list = unrestricted."""
+
+    assignments: list[LectureAssignmentInput] = Field(default_factory=list, max_length=200)
+
+
+class RosterSectionRead(BaseModel):
+    """A section option for the access-restriction picker (T-123, #21)."""
+
+    id: str
+    name: str
+
+
+class RosterStudentRead(BaseModel):
+    """A student option for the access-restriction picker (T-123, #21)."""
+
+    id: str
+    display_name: str
+    section_id: str
+
+
+class LectureRosterRead(BaseModel):
+    """The lecture's grade roster, for building the access-restriction picker."""
+
+    sections: list[RosterSectionRead]
+    students: list[RosterStudentRead]

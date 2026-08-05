@@ -2665,6 +2665,163 @@
         "title": "IndependentUserRole",
         "type": "string"
       },
+      "LectureAccessSettingsRead": {
+        "description": "A lecture's current access-restriction state (T-123, #21).",
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/LectureAssignmentRead"
+            },
+            "title": "Assignments",
+            "type": "array"
+          },
+          "is_restricted": {
+            "title": "Is Restricted",
+            "type": "boolean"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "is_restricted",
+          "assignments"
+        ],
+        "title": "LectureAccessSettingsRead",
+        "type": "object"
+      },
+      "LectureAccessSettingsUpdate": {
+        "description": "Replace-all update for a lecture's restriction rows. Empty list = unrestricted.",
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/LectureAssignmentInput"
+            },
+            "maxItems": 200,
+            "title": "Assignments",
+            "type": "array"
+          }
+        },
+        "title": "LectureAccessSettingsUpdate",
+        "type": "object"
+      },
+      "LectureAssignmentInput": {
+        "additionalProperties": false,
+        "description": "One restriction row in a PUT to the lecture's access settings.",
+        "properties": {
+          "scope": {
+            "$ref": "#/components/schemas/LectureAssignmentScope"
+          },
+          "section_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Id"
+          },
+          "student_user_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student User Id"
+          }
+        },
+        "required": [
+          "scope"
+        ],
+        "title": "LectureAssignmentInput",
+        "type": "object"
+      },
+      "LectureAssignmentRead": {
+        "description": "One restriction row, enriched with a display name for the teacher UI (T-123, #21).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/LectureAssignmentScope"
+          },
+          "section_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Id"
+          },
+          "section_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Name"
+          },
+          "student_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student Name"
+          },
+          "student_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student User Id"
+          }
+        },
+        "required": [
+          "id",
+          "scope",
+          "created_at"
+        ],
+        "title": "LectureAssignmentRead",
+        "type": "object"
+      },
+      "LectureAssignmentScope": {
+        "description": "What a lecture_assignments row restricts access to (T-123, #21).",
+        "enum": [
+          "student",
+          "section"
+        ],
+        "title": "LectureAssignmentScope",
+        "type": "string"
+      },
       "LectureDraftRead": {
         "properties": {
           "data": {
@@ -2917,6 +3074,31 @@
           "tier"
         ],
         "title": "LectureParagraphRead",
+        "type": "object"
+      },
+      "LectureRosterRead": {
+        "description": "The lecture's grade roster, for building the access-restriction picker.",
+        "properties": {
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/RosterSectionRead"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "students": {
+            "items": {
+              "$ref": "#/components/schemas/RosterStudentRead"
+            },
+            "title": "Students",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sections",
+          "students"
+        ],
+        "title": "LectureRosterRead",
         "type": "object"
       },
       "LibraryBookListResponse": {
@@ -3867,6 +4049,49 @@
         ],
         "title": "ResearchJobStatus",
         "type": "string"
+      },
+      "RosterSectionRead": {
+        "description": "A section option for the access-restriction picker (T-123, #21).",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "RosterSectionRead",
+        "type": "object"
+      },
+      "RosterStudentRead": {
+        "description": "A student option for the access-restriction picker (T-123, #21).",
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "section_id": {
+            "title": "Section Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "section_id"
+        ],
+        "title": "RosterStudentRead",
+        "type": "object"
       },
       "SchoolCreate": {
         "description": "Payload for creating a new School within a district.",
@@ -5486,6 +5711,23 @@
         "title": "SuccessEnvelope[IndependentTeacherOnboardingRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureAccessSettingsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureAccessSettingsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureAccessSettingsRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LectureDraftRead_": {
         "properties": {
           "data": {
@@ -5535,6 +5777,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LectureLinkRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureRosterRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureRosterRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureRosterRead]",
         "type": "object"
       },
       "SuccessEnvelope_LibraryBookListResponse_": {
@@ -14709,6 +14968,98 @@
         ]
       }
     },
+    "/api/v1/teachers/me/lectures/{lecture_id}/access": {
+      "get": {
+        "operationId": "teacher_get_lecture_access_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureAccessSettingsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a lecture's access-restriction settings (T-123, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      },
+      "put": {
+        "operationId": "teacher_set_lecture_access_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureAccessSettingsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureAccessSettingsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace a lecture's access restrictions; empty list clears to default (T-123, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
     "/api/v1/teachers/me/lectures/{lecture_id}/links": {
       "get": {
         "operationId": "teacher_list_lecture_links",
@@ -14838,6 +15189,48 @@
           }
         },
         "summary": "List a lecture's current-version paragraphs with source attribution",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/roster": {
+      "get": {
+        "operationId": "teacher_get_lecture_roster",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureRosterRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Grade roster (sections + students) for the access-restriction picker (T-123, #21)",
         "tags": [
           "lecture-wizard"
         ]

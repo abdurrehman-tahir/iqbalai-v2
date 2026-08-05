@@ -1,4 +1,4 @@
-"""Registered audit action identifiers — M-03/M-04/M-06/M-07."""
+"""Registered audit action identifiers — M-03/M-04/M-06/M-07/M-08/M-09."""
 
 from __future__ import annotations
 
@@ -61,6 +61,9 @@ DIAGNOSTIC_COMPLETED = "diagnostic.completed"
 DIAGNOSTIC_RETAKEN = "diagnostic.retaken"
 COGNITIVE_DNA_SEEDED = "cognitive_dna.seeded"
 
+# M-09 — lecture wizard (T-123 per-lecture access control, elevated)
+LECTURE_ACCESS_OVERRIDDEN = "lecture_access.overridden"
+
 ELEVATED_AUDIT_ACTIONS = frozenset(
     {
         CAPACITY_OVERRIDE,
@@ -75,6 +78,8 @@ ELEVATED_AUDIT_ACTIONS = frozenset(
         FRAMEWORK_PUBLISHED,
         FRAMEWORK_DEPRECATED,
         FRAMEWORK_APPROVAL_ESCALATED,
+        # A Coordinator/Admin overriding a teacher's lecture access restriction.
+        LECTURE_ACCESS_OVERRIDDEN,
     }
 )
 
@@ -142,6 +147,16 @@ M08_AUDIT_ACTIONS = frozenset(
     }
 )
 
+M09_AUDIT_ACTIONS = frozenset(
+    {
+        LECTURE_ACCESS_OVERRIDDEN,
+    }
+)
+
 REGISTERED_AUDIT_ACTIONS = (
-    M04_AUDIT_ACTIONS | M06_AUDIT_ACTIONS | M07_AUDIT_ACTIONS | M08_AUDIT_ACTIONS
+    M04_AUDIT_ACTIONS
+    | M06_AUDIT_ACTIONS
+    | M07_AUDIT_ACTIONS
+    | M08_AUDIT_ACTIONS
+    | M09_AUDIT_ACTIONS
 )

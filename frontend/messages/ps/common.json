@@ -659,7 +659,21 @@
         "links_target_placeholder": "__TODO__ Select a Grade-Subject offering",
         "links_link_button": "__TODO__ Link lecture",
         "links_linking": "__TODO__ Linking…",
-        "links_create_error": "__TODO__ Could not create this link. Please try again."
+        "links_create_error": "__TODO__ Could not create this link. Please try again.",
+        "access_title": "__TODO__ Access",
+        "access_error": "__TODO__ Could not load this lecture's access settings.",
+        "access_unrestricted_summary": "__TODO__ Visible to all students enrolled in this Grade-Subject.",
+        "access_restricted_summary": "__TODO__ Restricted to {count, plural, one {# selection} other {# selections}}.",
+        "access_section_label": "__TODO__ Section: {name}",
+        "access_edit_button": "__TODO__ Edit access",
+        "access_roster_error": "__TODO__ Could not load the class roster.",
+        "access_edit_hint": "__TODO__ Select the sections and/or students who should see this lecture. Leave everything unchecked to restore the default (visible to all enrolled students).",
+        "access_sections_label": "__TODO__ Sections",
+        "access_students_label": "__TODO__ Students",
+        "access_saving": "__TODO__ Saving…",
+        "access_save_button": "__TODO__ Save access settings",
+        "access_cancel_button": "__TODO__ Cancel",
+        "access_save_error": "__TODO__ Could not save access settings. Please try again."
       }
     }
   }

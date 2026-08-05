@@ -2385,6 +2385,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/lectures/{lecture_id}/access": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a lecture's access-restriction settings (T-123, #21) */
+        get: operations["teacher_get_lecture_access_settings"];
+        /** Replace a lecture's access restrictions; empty list clears to default (T-123, #21) */
+        put: operations["teacher_set_lecture_access_settings"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/lectures/{lecture_id}/links": {
         parameters: {
             query?: never;
@@ -2412,6 +2430,23 @@ export interface paths {
         };
         /** List a lecture's current-version paragraphs with source attribution */
         get: operations["teacher_get_lecture_paragraphs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lectures/{lecture_id}/roster": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Grade roster (sections + students) for the access-restriction picker (T-123, #21) */
+        get: operations["teacher_get_lecture_roster"];
         put?: never;
         post?: never;
         delete?: never;
@@ -3655,6 +3690,65 @@ export interface components {
          * @enum {string}
          */
         IndependentUserRole: "independent_teacher" | "independent_student";
+        /**
+         * LectureAccessSettingsRead
+         * @description A lecture's current access-restriction state (T-123, #21).
+         */
+        LectureAccessSettingsRead: {
+            /** Assignments */
+            assignments: components["schemas"]["LectureAssignmentRead"][];
+            /** Is Restricted */
+            is_restricted: boolean;
+            /** Lecture Id */
+            lecture_id: string;
+        };
+        /**
+         * LectureAccessSettingsUpdate
+         * @description Replace-all update for a lecture's restriction rows. Empty list = unrestricted.
+         */
+        LectureAccessSettingsUpdate: {
+            /** Assignments */
+            assignments?: components["schemas"]["LectureAssignmentInput"][];
+        };
+        /**
+         * LectureAssignmentInput
+         * @description One restriction row in a PUT to the lecture's access settings.
+         */
+        LectureAssignmentInput: {
+            scope: components["schemas"]["LectureAssignmentScope"];
+            /** Section Id */
+            section_id?: string | null;
+            /** Student User Id */
+            student_user_id?: string | null;
+        };
+        /**
+         * LectureAssignmentRead
+         * @description One restriction row, enriched with a display name for the teacher UI (T-123, #21).
+         */
+        LectureAssignmentRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            scope: components["schemas"]["LectureAssignmentScope"];
+            /** Section Id */
+            section_id?: string | null;
+            /** Section Name */
+            section_name?: string | null;
+            /** Student Name */
+            student_name?: string | null;
+            /** Student User Id */
+            student_user_id?: string | null;
+        };
+        /**
+         * LectureAssignmentScope
+         * @description What a lecture_assignments row restricts access to (T-123, #21).
+         * @enum {string}
+         */
+        LectureAssignmentScope: "student" | "section";
         /** LectureDraftRead */
         LectureDraftRead: {
             /** Data */
@@ -3760,6 +3854,16 @@ export interface components {
             /** Text */
             text: string;
             tier: components["schemas"]["SourceTier"];
+        };
+        /**
+         * LectureRosterRead
+         * @description The lecture's grade roster, for building the access-restriction picker.
+         */
+        LectureRosterRead: {
+            /** Sections */
+            sections: components["schemas"]["RosterSectionRead"][];
+            /** Students */
+            students: components["schemas"]["RosterStudentRead"][];
         };
         /**
          * LibraryBookListResponse
@@ -4147,6 +4251,28 @@ export interface components {
          * @enum {string}
          */
         ResearchJobStatus: "running" | "succeeded" | "partial" | "research_failed";
+        /**
+         * RosterSectionRead
+         * @description A section option for the access-restriction picker (T-123, #21).
+         */
+        RosterSectionRead: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+        };
+        /**
+         * RosterStudentRead
+         * @description A student option for the access-restriction picker (T-123, #21).
+         */
+        RosterStudentRead: {
+            /** Display Name */
+            display_name: string;
+            /** Id */
+            id: string;
+            /** Section Id */
+            section_id: string;
+        };
         /**
          * SchoolCreate
          * @description Payload for creating a new School within a district.
@@ -4888,6 +5014,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LectureAccessSettingsRead] */
+        SuccessEnvelope_LectureAccessSettingsRead_: {
+            data: components["schemas"]["LectureAccessSettingsRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LectureDraftRead] */
         SuccessEnvelope_LectureDraftRead_: {
             data: components["schemas"]["LectureDraftRead"];
@@ -4909,6 +5044,15 @@ export interface components {
         /** SuccessEnvelope[LectureLinkRead] */
         SuccessEnvelope_LectureLinkRead_: {
             data: components["schemas"]["LectureLinkRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[LectureRosterRead] */
+        SuccessEnvelope_LectureRosterRead_: {
+            data: components["schemas"]["LectureRosterRead"];
             /**
              * Message
              * @default ok
@@ -10946,6 +11090,72 @@ export interface operations {
             };
         };
     };
+    teacher_get_lecture_access_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureAccessSettingsRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_set_lecture_access_settings: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureAccessSettingsUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureAccessSettingsRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     teacher_list_lecture_links: {
         parameters: {
             query?: never;
@@ -11030,6 +11240,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_list_LectureParagraphRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_lecture_roster: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureRosterRead_"];
                 };
             };
             /** @description Validation Error */

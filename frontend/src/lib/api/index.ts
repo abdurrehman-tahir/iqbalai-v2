@@ -61,6 +61,9 @@ import type {
   LectureParagraphRead,
   LectureLinkCreate,
   LectureLinkRead,
+  LectureAccessSettingsRead,
+  LectureAccessSettingsUpdate,
+  LectureRosterRead,
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
@@ -1154,6 +1157,16 @@ export const lectureWizardApi = {
       },
       token
     ),
+  getAccessSettings: (token: string, lectureId: string) =>
+    request<LectureAccessSettingsRead>(`/teachers/me/lectures/${lectureId}/access`, {}, token),
+  setAccessSettings: (token: string, lectureId: string, data: LectureAccessSettingsUpdate) =>
+    request<LectureAccessSettingsRead>(
+      `/teachers/me/lectures/${lectureId}/access`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  getRoster: (token: string, lectureId: string) =>
+    request<LectureRosterRead>(`/teachers/me/lectures/${lectureId}/roster`, {}, token),
 };
 
 export const studentOnboardingApi = {

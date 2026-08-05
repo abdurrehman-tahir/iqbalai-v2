@@ -10,6 +10,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.base import not_deleted
 from app.features.lectures.models import (
     SchoolLecture,
+    SchoolLectureAssignment,
     SchoolLectureDraft,
     SchoolLectureLink,
     SchoolLectureParagraph,
@@ -192,3 +193,30 @@ class LectureLinkRepository:
         await self._session.commit()
         await self._session.refresh(link)
         return link
+
+
+class LectureAssignmentRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def list_by_lecture(self, lecture_id: str) -> list[SchoolLectureAssignment]:
+        result = await self._session.execute(
+            select(SchoolLectureAssignment)
+            .where(SchoolLectureAssignment.lecture_id == lecture_id)
+            .order_by(SchoolLectureAssignment.created_at.asc())
+        )
+        return list(result.scalars().all())
+
+    async def replace_for_lecture(
+        self, lecture_id: str, assignments: list[SchoolLectureAssignment]
+    ) -> list[SchoolLectureAssignment]:
+        """Replace-all: the settings panel always sends the full desired state."""
+        existing = await self.list_by_lecture(lecture_id)
+        for row in existing:
+            await self._session.delete(row)
+        for row in assignments:
+            self._session.add(row)
+        await self._session.commit()
+        for row in assignments:
+            await self._session.refresh(row)
+        return assignments

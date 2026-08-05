@@ -11,25 +11,34 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
+from app.features.audit.actions import LECTURE_ACCESS_OVERRIDDEN
 from app.features.grades.cross_grade import (
     assert_cross_grade_access_by_ordinal,
     library_item_visible_for_grade_context,
 )
 from app.features.grades.repository import GradeRepository
 from app.features.lectures.models import (
+    LectureAssignmentScope as AssignmentScopeModel,
+)
+from app.features.lectures.models import (
     LectureStatus,
     LectureType,
     SchoolLecture,
+    SchoolLectureAssignment,
     SchoolLectureDraft,
     SchoolLectureLink,
 )
 from app.features.lectures.repository import (
+    LectureAssignmentRepository,
     LectureDraftRepository,
     LectureLinkRepository,
     LectureParagraphRepository,
     LectureRepository,
 )
 from app.features.lectures.schemas import (
+    LectureAccessSettingsRead,
+    LectureAccessSettingsUpdate,
+    LectureAssignmentRead,
     LectureDraftRead,
     LectureDraftUpsert,
     LectureGenerateRead,
@@ -37,7 +46,10 @@ from app.features.lectures.schemas import (
     LectureLinkCreate,
     LectureLinkRead,
     LectureParagraphRead,
+    LectureRosterRead,
     ParagraphSourceMetadata,
+    RosterSectionRead,
+    RosterStudentRead,
     TeacherOfferingRead,
     TeachingMode,
     WizardCurriculumRead,
@@ -47,6 +59,9 @@ from app.features.lectures.schemas import (
     WizardTopicOption,
     WizardTopicsRead,
 )
+from app.features.lectures.schemas import (
+    LectureAssignmentScope as AssignmentScopeSchema,
+)
 from app.features.library.school_library_repository import SchoolLibraryRepository
 from app.features.library.school_models import (
     LibraryContentType,
@@ -55,10 +70,13 @@ from app.features.library.school_models import (
 )
 from app.features.offerings.models import GradeSubjectOffering
 from app.features.offerings.repository import OfferingRepository
+from app.features.sections.repository import SectionRepository
+from app.features.student_enrollments.repository import StudentEnrollmentRepository
 from app.features.subjects.repository import SubjectRepository
 from app.features.teacher_onboarding.repository import TeacherProfileRepository
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
+from app.infrastructure.audit.log import audit
 
 logger = structlog.get_logger(__name__)
 
@@ -141,6 +159,9 @@ class LectureWizardService:
         self._lectures = LectureRepository(session)
         self._paragraphs = LectureParagraphRepository(session)
         self._links = LectureLinkRepository(session)
+        self._assignments = LectureAssignmentRepository(session)
+        self._enrollments = StudentEnrollmentRepository(session)
+        self._sections = SectionRepository(session)
         self._profiles = TeacherProfileRepository(session)
 
     async def _require_school_teacher(self, claims: dict[str, object]) -> User:
@@ -623,3 +644,242 @@ class LectureWizardService:
         if read is None:
             raise NotFoundError("Target Grade-Subject offering not found")
         return read
+
+    async def _read_access_settings(
+        self, lecture_id: str, rows: list[SchoolLectureAssignment]
+    ) -> LectureAccessSettingsRead:
+        assignments: list[LectureAssignmentRead] = []
+        for row in rows:
+            student_name = None
+            section_name = None
+            if row.student_user_id is not None:
+                student = await self._users.get_by_id(row.student_user_id)
+                student_name = student.display_name if student is not None else None
+            if row.section_id is not None:
+                section = await self._sections.get_by_id(row.section_id)
+                section_name = section.name if section is not None else None
+            assignments.append(
+                LectureAssignmentRead(
+                    id=row.id,
+                    scope=AssignmentScopeSchema(row.scope.value),
+                    student_user_id=row.student_user_id,
+                    student_name=student_name,
+                    section_id=row.section_id,
+                    section_name=section_name,
+                    created_at=row.created_at,
+                )
+            )
+        return LectureAccessSettingsRead(
+            lecture_id=lecture_id,
+            is_restricted=len(assignments) > 0,
+            assignments=assignments,
+        )
+
+    async def _require_lecture_for_access_management(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> tuple[User, SchoolLecture, bool]:
+        """Resolve (actor, lecture, is_elevated) for viewing/setting access settings.
+
+        A Teacher must own the lecture. Coordinator/School Admin see any lecture
+        in their own school, per §6.19 role inheritance ("X or higher within
+        scope") plus the spec's explicit "School Admin can override restrictions
+        (audit-logged)". District Admin/Platform Admin are allowed unconditionally
+        here — proper district-level scoping is a known stub elsewhere in this
+        codebase (see core/dependencies.require_scope's own docstring) and out of
+        scope to build for this ticket. `is_elevated` is True whenever the actor
+        is not the lecture's own teacher, so the caller can audit-log the action.
+        """
+        user = await self._users.get_by_authentik_id(str(claims.get("sub", "")))
+        if user is None or user.deleted_at is not None:
+            raise NotFoundError("User profile not found")
+
+        lecture = await self._lectures.get_by_id(lecture_id)
+        if lecture is None:
+            raise NotFoundError("Lecture not found")
+
+        if user.role == UserRole.TEACHER:
+            if lecture.school_id != user.school_id or lecture.teacher_user_id != user.id:
+                raise NotFoundError("Lecture not found")
+            return user, lecture, False
+
+        if user.role in (
+            UserRole.COORDINATOR,
+            UserRole.SCHOOL_ADMIN,
+            UserRole.DISTRICT_ADMIN,
+            UserRole.PLATFORM_ADMIN,
+        ):
+            if user.role in (UserRole.COORDINATOR, UserRole.SCHOOL_ADMIN):
+                if lecture.school_id != user.school_id:
+                    raise NotFoundError("Lecture not found")
+            return user, lecture, True
+
+        raise PermissionDeniedError("Teacher, Coordinator, or Admin role required")
+
+    async def get_lecture_access_settings(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> LectureAccessSettingsRead:
+        """Current access-restriction state for the lecture detail view (T-123, #21)."""
+        _actor, lecture, _elevated = await self._require_lecture_for_access_management(
+            claims, lecture_id
+        )
+        rows = await self._assignments.list_by_lecture(lecture.id)
+        return await self._read_access_settings(lecture.id, rows)
+
+    async def set_lecture_access_settings(
+        self, claims: dict[str, object], lecture_id: str, payload: LectureAccessSettingsUpdate
+    ) -> LectureAccessSettingsRead:
+        """Replace-all restriction update. An empty list clears back to unrestricted.
+
+        Each row is validated defensively even though the teacher UI only offers
+        their own roster: a student/section not enrolled in the lecture's grade
+        can never be assigned, mirroring acceptance item 3 (out-of-scope
+        students can't gain access, including via a malformed/forged request).
+        A Coordinator/Admin override is audit-logged per the spec's explicit
+        "School Admin can override restrictions (audit-logged)" rule.
+        """
+        actor, lecture, elevated = await self._require_lecture_for_access_management(
+            claims, lecture_id
+        )
+        if lecture.grade_subject_offering_id is None:
+            raise ValidationError("Lecture has no Grade-Subject offering to restrict access within")
+        offering = await self._offerings.get_by_id(lecture.grade_subject_offering_id)
+        if offering is None:
+            raise NotFoundError("Grade-Subject offering not found")
+
+        rows: list[SchoolLectureAssignment] = []
+        seen_students: set[str] = set()
+        seen_sections: set[str] = set()
+        for item in payload.assignments:
+            if item.scope == AssignmentScopeSchema.STUDENT:
+                if not item.student_user_id or item.section_id:
+                    raise ValidationError(
+                        "A student-scoped assignment needs student_user_id and no section_id"
+                    )
+                if item.student_user_id in seen_students:
+                    raise ValidationError(f"Duplicate student assignment: {item.student_user_id}")
+                enrollment = await self._enrollments.get_active_by_student_session(
+                    item.student_user_id, offering.academic_session
+                )
+                if enrollment is None or enrollment.grade_id != offering.grade_id:
+                    raise ValidationError(
+                        f"Student {item.student_user_id} is not enrolled in this lecture's grade"
+                    )
+                seen_students.add(item.student_user_id)
+                rows.append(
+                    SchoolLectureAssignment(
+                        lecture_id=lecture.id,
+                        scope=AssignmentScopeModel.STUDENT,
+                        student_user_id=item.student_user_id,
+                        created_by_user_id=actor.id,
+                    )
+                )
+            else:
+                if not item.section_id or item.student_user_id:
+                    raise ValidationError(
+                        "A section-scoped assignment needs section_id and no student_user_id"
+                    )
+                if item.section_id in seen_sections:
+                    raise ValidationError(f"Duplicate section assignment: {item.section_id}")
+                section = await self._sections.get_by_id(item.section_id)
+                if section is None or section.grade_id != offering.grade_id:
+                    raise NotFoundError(
+                        f"Section {item.section_id} not found in this lecture's grade"
+                    )
+                seen_sections.add(item.section_id)
+                rows.append(
+                    SchoolLectureAssignment(
+                        lecture_id=lecture.id,
+                        scope=AssignmentScopeModel.SECTION,
+                        section_id=item.section_id,
+                        created_by_user_id=actor.id,
+                    )
+                )
+
+        saved = await self._assignments.replace_for_lecture(lecture.id, rows)
+        logger.info(
+            "lecture_access_settings_updated",
+            lecture_id=lecture.id,
+            actor_user_id=actor.id,
+            elevated=elevated,
+            assignment_count=len(saved),
+        )
+        if elevated:
+            await audit(
+                session=self._session,
+                action=LECTURE_ACCESS_OVERRIDDEN,
+                actor_id=actor.id,
+                actor_role=actor.role.value,
+                target_type="lecture",
+                target_id=lecture.id,
+                school_id=lecture.school_id,
+                metadata={"assignment_count": len(saved)},
+            )
+        return await self._read_access_settings(lecture.id, saved)
+
+    async def get_lecture_roster(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> LectureRosterRead:
+        """The lecture's grade roster, to populate the access-restriction picker."""
+        _actor, lecture, _elevated = await self._require_lecture_for_access_management(
+            claims, lecture_id
+        )
+        if lecture.grade_subject_offering_id is None:
+            return LectureRosterRead(sections=[], students=[])
+        offering = await self._offerings.get_by_id(lecture.grade_subject_offering_id)
+        if offering is None:
+            return LectureRosterRead(sections=[], students=[])
+
+        sections = await self._sections.list_visible_by_grade(offering.grade_id)
+        enrollments = await self._enrollments.list_active_for_grade(
+            offering.grade_id, offering.academic_session
+        )
+        students: list[RosterStudentRead] = []
+        for enrollment in enrollments:
+            user = await self._users.get_by_id(enrollment.student_user_id)
+            if user is None:
+                continue
+            students.append(
+                RosterStudentRead(
+                    id=user.id,
+                    display_name=user.display_name,
+                    section_id=enrollment.section_id,
+                )
+            )
+        return LectureRosterRead(
+            sections=[RosterSectionRead(id=s.id, name=s.name) for s in sections],
+            students=students,
+        )
+
+    async def student_can_access_lecture(self, student: User, lecture: SchoolLecture) -> bool:
+        """Core server-side enforcement (T-123, #21).
+
+        Default (no lecture_assignments rows): visible to every student actively
+        enrolled in the lecture's Grade-Subject offering's grade. With rows: only
+        students matched directly by student_user_id or via their section. Not
+        wired to a student-facing endpoint yet (M-12 owns the viewer) — this is
+        the function that viewer will gate reads through.
+        """
+        if lecture.grade_subject_offering_id is None:
+            return False
+        offering = await self._offerings.get_by_id(lecture.grade_subject_offering_id)
+        if offering is None:
+            return False
+        enrollment = await self._enrollments.get_active_by_student_session(
+            student.id, offering.academic_session
+        )
+        if enrollment is None or enrollment.grade_id != offering.grade_id:
+            return False
+
+        assignments = await self._assignments.list_by_lecture(lecture.id)
+        if not assignments:
+            return True
+
+        for row in assignments:
+            if row.scope == AssignmentScopeModel.STUDENT and row.student_user_id == student.id:
+                return True
+            if (
+                row.scope == AssignmentScopeModel.SECTION
+                and row.section_id == enrollment.section_id
+            ):
+                return True
+        return False

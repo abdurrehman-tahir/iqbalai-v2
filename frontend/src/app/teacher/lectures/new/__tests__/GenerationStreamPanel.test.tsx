@@ -51,6 +51,9 @@ const generate = vi.fn();
 const getParagraphs = vi.fn();
 const listLinks = vi.fn();
 const createLink = vi.fn();
+const getAccessSettings = vi.fn();
+const setAccessSettings = vi.fn();
+const getRoster = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   lectureWizardApi: {
@@ -65,6 +68,9 @@ vi.mock("@/lib/api", () => ({
     getParagraphs: (...args: unknown[]) => getParagraphs(...args),
     listLinks: (...args: unknown[]) => listLinks(...args),
     createLink: (...args: unknown[]) => createLink(...args),
+    getAccessSettings: (...args: unknown[]) => getAccessSettings(...args),
+    setAccessSettings: (...args: unknown[]) => setAccessSettings(...args),
+    getRoster: (...args: unknown[]) => getRoster(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -116,6 +122,11 @@ function renderAtStep5GeneratingLecture(
     teaching_mode: "auto",
   });
   listLinks.mockResolvedValue(links);
+  getAccessSettings.mockResolvedValue({
+    lecture_id: "lec-1",
+    is_restricted: false,
+    assignments: [],
+  });
 
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -462,6 +473,170 @@ describe("LectureLinksPanel (T-122)", () => {
     // Set after render: the helper's own default listLinks resolution must not
     // stomp this rejection (queryFn execution is deferred past the sync render).
     listLinks.mockRejectedValue(new Error("network error"));
+
+    expect(await screen.findByRole("button", { name: /retry/i })).toBeInTheDocument();
+  });
+});
+
+describe("LectureAccessPanel (T-123)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockVoice.mockReturnValue({ ...IDLE_VOICE_STATE });
+    getParagraphs.mockResolvedValue([]);
+    listLinks.mockResolvedValue([]);
+    mockStream.mockReturnValue({
+      status: "complete",
+      text: "Newton's first law...",
+      versionId: "ver-1",
+      errorReason: null,
+    });
+    getRoster.mockResolvedValue({
+      sections: [
+        { id: "section-a", name: "A" },
+        { id: "section-b", name: "B" },
+      ],
+      students: [
+        { id: "student-1", display_name: "Student One", section_id: "section-a" },
+        { id: "student-2", display_name: "Student Two", section_id: "section-b" },
+      ],
+    });
+  });
+
+  it("shows the unrestricted summary by default", async () => {
+    getAccessSettings.mockResolvedValue({
+      lecture_id: "lec-1",
+      is_restricted: false,
+      assignments: [],
+    });
+    renderAtStep5GeneratingLecture();
+
+    expect(await screen.findByText(/visible to all students enrolled/i)).toBeInTheDocument();
+  });
+
+  it("shows the restricted summary with the assignment list", async () => {
+    renderAtStep5GeneratingLecture();
+    // Set after render: the helper's own default getAccessSettings resolution
+    // must not stomp this override (queryFn execution is deferred past render).
+    getAccessSettings.mockResolvedValue({
+      lecture_id: "lec-1",
+      is_restricted: true,
+      assignments: [
+        {
+          id: "assign-1",
+          scope: "student",
+          student_user_id: "student-1",
+          student_name: "Student One",
+          section_id: null,
+          section_name: null,
+          created_at: "2026-08-05T00:00:00Z",
+        },
+      ],
+    });
+
+    expect(await screen.findByText(/restricted to 1 selection/i)).toBeInTheDocument();
+    expect(screen.getByText("Student One")).toBeInTheDocument();
+  });
+
+  it("lets the teacher restrict access to a section", async () => {
+    getAccessSettings
+      .mockResolvedValueOnce({ lecture_id: "lec-1", is_restricted: false, assignments: [] })
+      .mockResolvedValueOnce({
+        lecture_id: "lec-1",
+        is_restricted: true,
+        assignments: [
+          {
+            id: "assign-1",
+            scope: "section",
+            student_user_id: null,
+            student_name: null,
+            section_id: "section-a",
+            section_name: "A",
+            created_at: "2026-08-05T00:00:00Z",
+          },
+        ],
+      });
+    setAccessSettings.mockResolvedValue({
+      lecture_id: "lec-1",
+      is_restricted: true,
+      assignments: [
+        {
+          id: "assign-1",
+          scope: "section",
+          student_user_id: null,
+          student_name: null,
+          section_id: "section-a",
+          section_name: "A",
+          created_at: "2026-08-05T00:00:00Z",
+        },
+      ],
+    });
+    const user = userEvent.setup();
+    renderAtStep5GeneratingLecture();
+
+    await user.click(await screen.findByRole("button", { name: /edit access/i }));
+    const sectionACheckbox = await screen.findByRole("checkbox", { name: "A" });
+    await user.click(sectionACheckbox);
+    await user.click(screen.getByRole("button", { name: /save access settings/i }));
+
+    expect(setAccessSettings).toHaveBeenCalledWith("tok", "lec-1", {
+      assignments: [{ scope: "section", section_id: "section-a" }],
+    });
+    expect(await screen.findByText(/restricted to 1 selection/i)).toBeInTheDocument();
+  });
+
+  it("lets the teacher cancel editing without saving", async () => {
+    getAccessSettings.mockResolvedValue({
+      lecture_id: "lec-1",
+      is_restricted: false,
+      assignments: [],
+    });
+    const user = userEvent.setup();
+    renderAtStep5GeneratingLecture();
+
+    await user.click(await screen.findByRole("button", { name: /edit access/i }));
+    await screen.findByRole("checkbox", { name: "A" });
+    await user.click(screen.getByRole("button", { name: /cancel/i }));
+
+    expect(await screen.findByText(/visible to all students enrolled/i)).toBeInTheDocument();
+    expect(setAccessSettings).not.toHaveBeenCalled();
+  });
+
+  it("shows an inline error when saving access settings fails", async () => {
+    getAccessSettings.mockResolvedValue({
+      lecture_id: "lec-1",
+      is_restricted: false,
+      assignments: [],
+    });
+    setAccessSettings.mockRejectedValue(new Error("VALIDATION_ERROR"));
+    const user = userEvent.setup();
+    renderAtStep5GeneratingLecture();
+
+    await user.click(await screen.findByRole("button", { name: /edit access/i }));
+    await user.click(await screen.findByRole("button", { name: /save access settings/i }));
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+  });
+
+  it("shows an error state with retry when settings fail to load", async () => {
+    renderAtStep5GeneratingLecture();
+    // Set after render: the helper's own default getAccessSettings resolution
+    // must not stomp this rejection (queryFn execution is deferred past render).
+    getAccessSettings.mockRejectedValue(new Error("network error"));
+
+    expect(await screen.findByRole("button", { name: /retry/i })).toBeInTheDocument();
+  });
+
+  it("shows an error state with retry when the roster fails to load", async () => {
+    getAccessSettings.mockResolvedValue({
+      lecture_id: "lec-1",
+      is_restricted: false,
+      assignments: [],
+    });
+    getRoster.mockRejectedValue(new Error("network error"));
+    const user = userEvent.setup();
+    renderAtStep5GeneratingLecture();
+
+    await user.click(await screen.findByRole("button", { name: /edit access/i }));
 
     expect(await screen.findByRole("button", { name: /retry/i })).toBeInTheDocument();
   });

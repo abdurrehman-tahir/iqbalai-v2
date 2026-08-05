@@ -646,7 +646,21 @@
         "links_target_placeholder": "Select a Grade-Subject offering",
         "links_link_button": "Link lecture",
         "links_linking": "Linking…",
-        "links_create_error": "Could not create this link. Please try again."
+        "links_create_error": "Could not create this link. Please try again.",
+        "access_title": "Access",
+        "access_error": "Could not load this lecture's access settings.",
+        "access_unrestricted_summary": "Visible to all students enrolled in this Grade-Subject.",
+        "access_restricted_summary": "Restricted to {count, plural, one {# selection} other {# selections}}.",
+        "access_section_label": "Section: {name}",
+        "access_edit_button": "Edit access",
+        "access_roster_error": "Could not load the class roster.",
+        "access_edit_hint": "Select the sections and/or students who should see this lecture. Leave everything unchecked to restore the default (visible to all enrolled students).",
+        "access_sections_label": "Sections",
+        "access_students_label": "Students",
+        "access_saving": "Saving…",
+        "access_save_button": "Save access settings",
+        "access_cancel_button": "Cancel",
+        "access_save_error": "Could not save access settings. Please try again."
       }
     },
     "onboarding": {

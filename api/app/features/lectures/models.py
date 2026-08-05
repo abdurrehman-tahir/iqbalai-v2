@@ -111,6 +111,24 @@ def _voice_session_status_enum(schema: str) -> SAEnum:
     )
 
 
+class LectureAssignmentScope(StrEnum):
+    """What a lecture_assignments row restricts access to (T-123, #21)."""
+
+    STUDENT = "student"
+    SECTION = "section"
+
+
+def _lecture_assignment_scope_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        LectureAssignmentScope,
+        name="lecture_assignments_scope_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
 # ---------------------------------------------------------------------------
 # School schema
 # ---------------------------------------------------------------------------
@@ -400,6 +418,65 @@ class SchoolLectureLink(AuditMixin, Base):
         String(36),
         ForeignKey("school.grade_subject_offerings.id", ondelete="RESTRICT"),
         nullable=False,
+    )
+    created_by_user_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        super().__init__(**kwargs)
+
+
+class SchoolLectureAssignment(AuditMixin, Base):
+    """Restricts a lecture's default visibility to specific students/sections (T-123, #21).
+
+    Default (no rows for a lecture): visible to every student actively enrolled
+    in the lecture's Grade-Subject offering's grade. One or more rows: visible
+    only to students matched by a row (directly by ``student_user_id``, or via
+    their section's ``section_id``). "Group" targeting (Flow 11) is out of
+    scope — that model doesn't exist yet in this codebase. No soft-delete: a
+    restriction either exists or is removed outright (replace-all semantics).
+    """
+
+    __tablename__ = "lecture_assignments"
+    __table_args__ = (
+        CheckConstraint(
+            "(scope = 'student' AND student_user_id IS NOT NULL AND section_id IS NULL) OR "
+            "(scope = 'section' AND section_id IS NOT NULL AND student_user_id IS NULL)",
+            name="lecture_assignments_scope_target_check",
+        ),
+        UniqueConstraint(
+            "lecture_id", "student_user_id", name="lecture_assignments_lecture_student_uq"
+        ),
+        UniqueConstraint("lecture_id", "section_id", name="lecture_assignments_lecture_section_uq"),
+        Index("ix_lecture_assignments_lecture_id", "lecture_id"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lectures.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    scope: Mapped[LectureAssignmentScope] = mapped_column(
+        _lecture_assignment_scope_enum("school"),
+        nullable=False,
+    )
+    # A row referencing a deleted student/section no longer means anything — cascade it away.
+    student_user_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="CASCADE"),
+        nullable=True,
+    )
+    section_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.sections.id", ondelete="CASCADE"),
+        nullable=True,
     )
     created_by_user_id: Mapped[str | None] = mapped_column(
         String(36),
