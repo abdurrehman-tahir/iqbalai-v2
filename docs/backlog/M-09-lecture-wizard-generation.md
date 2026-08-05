@@ -435,7 +435,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 7f351b0
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.15 (delivery tips, technique demo, real-world examples #28/#41)
@@ -452,14 +453,20 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Delivery tips generated + shown to teacher
-2. [ ] Teaching-technique demo generated
-3. [ ] Real-world examples generated (#41) with cultural relevance
-4. [ ] These are teacher-facing aids (separate from the lecture body)
-5. [ ] Generated in the teacher's language
+1. [x] Delivery tips generated + shown to teacher
+2. [x] Teaching-technique demo generated
+3. [x] Real-world examples generated (#41) with cultural relevance
+4. [x] These are teacher-facing aids (separate from the lecture body)
+5. [x] Generated in the teacher's language
 
 ### Out of scope
 - Student-facing rendering (M-12)
+
+### Notes / known gotchas
+- **Scope narrowed to generation + display** (confirmed with Hamza before implementing): the spec's Print view and 30-day expiring PII-stripped Share link were not built — only the 5 acceptance items above. Print/Share are an unstarted follow-up if the product needs them.
+- **"Teacher's language" reuses the lecture's own target_language plumbing** — there is no teacher language-preference concept anywhere in this codebase yet (`generate_from_wizard` hardcodes `"en"`, a pre-existing gap this ticket didn't cause). Tips will correctly follow the lecture's language once that hardcode is eventually fixed elsewhere.
+- **Found and fixed a real bug along the way:** chaining the new Celery task inside `run_lecture_generation` made 7 existing unit tests try to reach a real Celery broker (13+ minutes of retries instead of ~15s) — fixed by mocking `generate_lecture_teacher_tips.apply_async` in the 3 affected test files, matching the existing `generate_lecture` enqueue-test pattern.
+- **Migration verification gap:** `school_0056` was written following the proven `school_0051`-`0055` pattern (`alembic heads` resolves cleanly) but could not be live-verified via upgrade/downgrade — Docker Desktop is still unresponsive in this environment, same gap flagged for T-121/T-122/T-123.
 
 ---
 
