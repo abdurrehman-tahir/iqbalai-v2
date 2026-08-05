@@ -169,6 +169,9 @@ async def test_run_lecture_generation_persists_version_and_paragraphs(
     monkeypatch.setattr("app.features.lectures.generation.publish_lecture_event", _fake_publish)
     monkeypatch.setattr("app.features.lectures.generation.append_token", _fake_append_token)
     monkeypatch.setattr("app.features.lectures.generation.mark_complete", _fake_mark_complete)
+    # T-126: the AsyncMock session isn't a real UserRepository-queryable session —
+    # stub the notify call rather than let it chase mock attributes into a warning.
+    monkeypatch.setattr("app.features.lectures.generation.notify_generation_complete", AsyncMock())
     # T-124: run_lecture_generation chains a Celery task at the end — never let a
     # unit test touch a real broker.
     monkeypatch.setattr(
@@ -248,6 +251,13 @@ async def test_generate_enqueues_celery_task(monkeypatch: pytest.MonkeyPatch) ->
     monkeypatch.setattr("app.features.lectures.service.LectureRepository", _FakeLectureRepo)
     monkeypatch.setattr("app.features.lectures.service.TeacherProfileRepository", _FakeProfileRepo)
 
+    audit_calls: list[dict[str, Any]] = []
+
+    async def _spy_audit(**kwargs: Any) -> None:
+        audit_calls.append(kwargs)
+
+    monkeypatch.setattr("app.features.lectures.service.audit", _spy_audit)
+
     enqueued: dict[str, Any] = {}
 
     def _capture(**kwargs: Any) -> None:
@@ -275,3 +285,7 @@ async def test_generate_enqueues_celery_task(monkeypatch: pytest.MonkeyPatch) ->
     assert enqueued["kwargs"]["curriculum_id"] == "curr-1"
     assert enqueued["kwargs"]["reference_book_ids"] == ["ref-9"]
     assert enqueued["kwargs"]["school_id"] == "school-1"
+    # T-126: creating the lecture is audit-logged (Acceptance #3).
+    from app.features.audit.actions import LECTURE_CREATED
+
+    assert any(c["action"] == LECTURE_CREATED for c in audit_calls)

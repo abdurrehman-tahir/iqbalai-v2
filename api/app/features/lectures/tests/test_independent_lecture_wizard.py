@@ -178,6 +178,9 @@ class _FakePersonalContentRepo:
         return self.store.get(content_id)
 
 
+_AUDIT_CALLS: list[dict[str, Any]] = []
+
+
 @pytest.fixture(autouse=True)
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeUserRepo.store = {TEACHER.id: TEACHER, OTHER_TEACHER.id: OTHER_TEACHER}
@@ -215,6 +218,13 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         "app.features.lectures.independent_tasks.generate_independent_lecture.apply_async",
         MagicMock(),
     )
+
+    _AUDIT_CALLS.clear()
+
+    async def _spy_audit(**kwargs: Any) -> None:
+        _AUDIT_CALLS.append(kwargs)
+
+    monkeypatch.setattr("app.features.lectures.independent_service.audit", _spy_audit)
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
@@ -287,6 +297,12 @@ async def test_generate_creates_lecture_and_enqueues_task() -> None:
     data = res.json()["data"]
     assert data["status"] == "generating"
     assert data["lecture_id"] in _FakeLectureRepo.store
+    # T-126: creating the lecture is audit-logged (Acceptance #3), school_id=None.
+    from app.features.audit.actions import LECTURE_CREATED
+
+    created_calls = [c for c in _AUDIT_CALLS if c["action"] == LECTURE_CREATED]
+    assert created_calls
+    assert created_calls[0]["school_id"] is None
 
 
 @pytest.mark.asyncio

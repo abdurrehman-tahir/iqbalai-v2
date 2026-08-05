@@ -12,6 +12,11 @@ logger = structlog.get_logger(__name__)
 
 LECTURE_GENERATION_REQUESTED = "lecture.generation_requested"
 LECTURE_VERSION_CREATED = "lecture.version.created"
+# T-126: generation success is already covered by LECTURE_VERSION_CREATED above
+# (M-09 has no auto-quiz gate, so version-created == generation-complete); these
+# two cover the failure paths, which previously had no NATS event at all.
+LECTURE_GENERATION_FAILED = "lecture.generation_failed"
+LECTURE_GENERATION_TIMED_OUT = "lecture.generation_timed_out"
 
 
 async def publish_lecture_event(*, event_type: str, payload: dict[str, Any]) -> None:

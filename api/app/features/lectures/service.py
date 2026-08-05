@@ -11,7 +11,12 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
-from app.features.audit.actions import LECTURE_ACCESS_OVERRIDDEN
+from app.features.audit.actions import (
+    LECTURE_ACCESS_CHANGED,
+    LECTURE_ACCESS_OVERRIDDEN,
+    LECTURE_CREATED,
+    LECTURE_LINKED,
+)
 from app.features.grades.cross_grade import (
     assert_cross_grade_access_by_ordinal,
     library_item_visible_for_grade_context,
@@ -486,6 +491,16 @@ class LectureWizardService:
             status=LectureStatus.GENERATING,
         )
         lecture = await self._lectures.create(lecture)
+        await audit(
+            session=self._session,
+            action=LECTURE_CREATED,
+            actor_id=teacher.id,
+            actor_role=teacher.role.value,
+            target_type="lecture",
+            target_id=lecture.id,
+            school_id=teacher.school_id,
+            metadata={"topic": payload.topic[:200]},
+        )
 
         draft = await self._drafts.get_active_for_teacher(teacher.id)
         if draft is not None:
@@ -659,6 +674,16 @@ class LectureWizardService:
             created_by_user_id=teacher.id,
         )
         link = await self._links.create(link)
+        await audit(
+            session=self._session,
+            action=LECTURE_LINKED,
+            actor_id=teacher.id,
+            actor_role=teacher.role.value,
+            target_type="lecture",
+            target_id=lecture.id,
+            school_id=teacher.school_id,
+            metadata={"target_grade_subject_offering_id": target_offering.id},
+        )
 
         logger.info(
             "lecture_link_created",
@@ -829,17 +854,16 @@ class LectureWizardService:
             elevated=elevated,
             assignment_count=len(saved),
         )
-        if elevated:
-            await audit(
-                session=self._session,
-                action=LECTURE_ACCESS_OVERRIDDEN,
-                actor_id=actor.id,
-                actor_role=actor.role.value,
-                target_type="lecture",
-                target_id=lecture.id,
-                school_id=lecture.school_id,
-                metadata={"assignment_count": len(saved)},
-            )
+        await audit(
+            session=self._session,
+            action=LECTURE_ACCESS_OVERRIDDEN if elevated else LECTURE_ACCESS_CHANGED,
+            actor_id=actor.id,
+            actor_role=actor.role.value,
+            target_type="lecture",
+            target_id=lecture.id,
+            school_id=lecture.school_id,
+            metadata={"assignment_count": len(saved)},
+        )
         return await self._read_access_settings(lecture.id, saved)
 
     async def get_lecture_roster(

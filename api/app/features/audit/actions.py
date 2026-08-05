@@ -64,6 +64,18 @@ COGNITIVE_DNA_SEEDED = "cognitive_dna.seeded"
 # M-09 — lecture wizard (T-123 per-lecture access control, elevated)
 LECTURE_ACCESS_OVERRIDDEN = "lecture_access.overridden"
 
+# M-09 — lecture wizard (T-126 notifications + audit). Content-governance
+# actions, not plain owner CRUD (§14.10's "normal CRUD... not logged" carve-out
+# doesn't apply — these change what AI-generated educational content exists or
+# who can see it). "Generate" spans the full lifecycle: success, failure, and
+# timeout are each their own action so the audit trail shows which occurred.
+LECTURE_CREATED = "lecture.created"
+LECTURE_GENERATED = "lecture.generated"
+LECTURE_GENERATION_FAILED = "lecture.generation_failed"
+LECTURE_GENERATION_TIMED_OUT = "lecture.generation_timed_out"
+LECTURE_LINKED = "lecture.linked"
+LECTURE_ACCESS_CHANGED = "lecture.access_changed"
+
 ELEVATED_AUDIT_ACTIONS = frozenset(
     {
         CAPACITY_OVERRIDE,
@@ -150,6 +162,12 @@ M08_AUDIT_ACTIONS = frozenset(
 M09_AUDIT_ACTIONS = frozenset(
     {
         LECTURE_ACCESS_OVERRIDDEN,
+        LECTURE_CREATED,
+        LECTURE_GENERATED,
+        LECTURE_GENERATION_FAILED,
+        LECTURE_GENERATION_TIMED_OUT,
+        LECTURE_LINKED,
+        LECTURE_ACCESS_CHANGED,
     }
 )
 

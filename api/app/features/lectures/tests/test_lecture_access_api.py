@@ -251,6 +251,9 @@ class _FakeAssignmentRepo:
         return assignments
 
 
+_AUDIT_CALLS: list[dict[str, Any]] = []
+
+
 @pytest.fixture(autouse=True)
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeUserRepo.store = {
@@ -282,10 +285,12 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         "app.features.lectures.service.LectureAssignmentRepository", _FakeAssignmentRepo
     )
 
-    async def _noop_audit(**kwargs: Any) -> None:
-        return None
+    _AUDIT_CALLS.clear()
 
-    monkeypatch.setattr("app.features.lectures.service.audit", _noop_audit)
+    async def _spy_audit(**kwargs: Any) -> None:
+        _AUDIT_CALLS.append(kwargs)
+
+    monkeypatch.setattr("app.features.lectures.service.audit", _spy_audit)
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
@@ -337,6 +342,13 @@ async def test_teacher_restricts_to_specific_student() -> None:
     assert len(data["assignments"]) == 1
     assert data["assignments"][0]["student_user_id"] == "student-1"
     assert data["assignments"][0]["student_name"] == "Student One"
+    # T-126: the lecture's own teacher restricting access is audit-logged as a
+    # plain access change, not the elevated override action (that's T-123's
+    # Coordinator/Admin path — see test_coordinator_in_same_school_can_view_and_override).
+    from app.features.audit.actions import LECTURE_ACCESS_CHANGED, LECTURE_ACCESS_OVERRIDDEN
+
+    assert any(c["action"] == LECTURE_ACCESS_CHANGED for c in _AUDIT_CALLS)
+    assert not any(c["action"] == LECTURE_ACCESS_OVERRIDDEN for c in _AUDIT_CALLS)
 
 
 @pytest.mark.asyncio
@@ -414,6 +426,9 @@ async def test_coordinator_in_same_school_can_view_and_override() -> None:
     assert get_res.status_code == 200
     assert put_res.status_code == 200
     assert put_res.json()["data"]["assignments"][0]["section_id"] == "section-b"
+    from app.features.audit.actions import LECTURE_ACCESS_OVERRIDDEN
+
+    assert any(c["action"] == LECTURE_ACCESS_OVERRIDDEN for c in _AUDIT_CALLS)
 
 
 @pytest.mark.asyncio

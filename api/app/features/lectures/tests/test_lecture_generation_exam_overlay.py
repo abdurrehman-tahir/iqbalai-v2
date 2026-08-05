@@ -85,6 +85,7 @@ async def test_relevant_framework_context_reaches_the_prompt(
     monkeypatch.setattr("app.features.lectures.generation.publish_lecture_event", _fake_publish)
     monkeypatch.setattr("app.features.lectures.generation.append_token", AsyncMock(return_value=1))
     monkeypatch.setattr("app.features.lectures.generation.mark_complete", AsyncMock())
+    monkeypatch.setattr("app.features.lectures.generation.notify_generation_complete", AsyncMock())
     # T-124: run_lecture_generation chains a Celery task at the end — never let a
     # unit test touch a real broker.
     monkeypatch.setattr(
@@ -152,6 +153,7 @@ async def test_no_overlay_leaves_prompt_clean(monkeypatch: pytest.MonkeyPatch) -
     monkeypatch.setattr("app.features.lectures.generation.publish_lecture_event", _fake_publish)
     monkeypatch.setattr("app.features.lectures.generation.append_token", AsyncMock(return_value=1))
     monkeypatch.setattr("app.features.lectures.generation.mark_complete", AsyncMock())
+    monkeypatch.setattr("app.features.lectures.generation.notify_generation_complete", AsyncMock())
     # T-124: run_lecture_generation chains a Celery task at the end — never let a
     # unit test touch a real broker.
     monkeypatch.setattr(

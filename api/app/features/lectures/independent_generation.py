@@ -14,7 +14,14 @@ from __future__ import annotations
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.features.audit.actions import LECTURE_GENERATED
+from app.features.lectures.events import (
+    LECTURE_GENERATION_REQUESTED,
+    LECTURE_VERSION_CREATED,
+    publish_lecture_event,
+)
 from app.features.lectures.generation import _fetch_web_fallback_chunks, _parse_json_payload
+from app.features.lectures.independent_lecture_notifications import notify_generation_complete
 from app.features.lectures.models import (
     IndependentLecture,
     IndependentLectureParagraph,
@@ -23,6 +30,7 @@ from app.features.lectures.models import (
 )
 from app.features.lectures.schemas import ParagraphSourceMetadata, SourceTier
 from app.features.library.independent_personal_models import IndependentPersonalContent
+from app.infrastructure.audit.log import audit
 from app.infrastructure.llm.client import chat
 from app.infrastructure.llm.prompts.lecture_generate_v1 import (
     ChunkRef,
@@ -53,6 +61,16 @@ async def run_independent_lecture_generation(
     lecture = await session.get(IndependentLecture, lecture_id)
     if lecture is None or lecture.teacher_user_id != user_id:
         raise ValueError(f"lecture not found: {lecture_id}")
+
+    await publish_lecture_event(
+        event_type=LECTURE_GENERATION_REQUESTED,
+        payload={
+            "lecture_id": lecture_id,
+            "teacher_user_id": user_id,
+            "tenant_type": "independent",
+            "topic": topic,
+        },
+    )
 
     ref_items: list[IndependentPersonalContent] = []
     for content_id in reference_content_ids:
@@ -160,6 +178,30 @@ async def run_independent_lecture_generation(
     lecture.title = parsed.title[:500]
     lecture.status = LectureStatus.READY_FOR_EDIT
     await session.commit()
+
+    # T-126: audit is synchronous and NOT best-effort (§14.10); notify is
+    # best-effort (see independent_lecture_notifications.py's module docstring).
+    await audit(
+        session=session,
+        action=LECTURE_GENERATED,
+        actor_id=user_id,
+        actor_role="independent_teacher",
+        target_type="lecture",
+        target_id=lecture_id,
+        school_id=None,
+        metadata={"version_id": version.id},
+    )
+    await notify_generation_complete(session, lecture=lecture)
+    await publish_lecture_event(
+        event_type=LECTURE_VERSION_CREATED,
+        payload={
+            "lecture_id": lecture_id,
+            "version_id": version.id,
+            "version": 1,
+            "teacher_user_id": user_id,
+            "tenant_type": "independent",
+        },
+    )
 
     logger.info(
         "independent_lecture_generation_persisted",

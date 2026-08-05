@@ -14,6 +14,7 @@ import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError
+from app.features.audit.actions import LECTURE_CREATED
 from app.features.independent_users.models import IndependentUser, IndependentUserRole
 from app.features.independent_users.repository import IndependentUserRepository
 from app.features.lectures.independent_repository import (
@@ -47,6 +48,7 @@ from app.features.library.independent_personal_models import (
 from app.features.library.independent_personal_repository import (
     IndependentPersonalContentRepository,
 )
+from app.infrastructure.audit.log import audit
 
 logger = structlog.get_logger(__name__)
 
@@ -159,6 +161,16 @@ class IndependentLectureWizardService:
             status=LectureStatus.GENERATING,
         )
         lecture = await self._lectures.create(lecture)
+        await audit(
+            session=self._session,
+            action=LECTURE_CREATED,
+            actor_id=teacher.id,
+            actor_role=teacher.role.value,
+            target_type="lecture",
+            target_id=lecture.id,
+            school_id=None,
+            metadata={"topic": payload.topic[:200]},
+        )
 
         draft = await self._drafts.get_active_for_teacher(teacher.id)
         if draft is not None:

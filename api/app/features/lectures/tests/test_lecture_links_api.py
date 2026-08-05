@@ -200,6 +200,9 @@ class _FakeLectureLinkRepo:
         return link
 
 
+_AUDIT_CALLS: list[dict[str, Any]] = []
+
+
 @pytest.fixture(autouse=True)
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeUserRepo.store = {TEACHER.id: TEACHER, OTHER_TEACHER.id: OTHER_TEACHER}
@@ -219,6 +222,13 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.lectures.service.GradeRepository", _FakeGradeRepo)
     monkeypatch.setattr("app.features.lectures.service.SubjectRepository", _FakeSubjectRepo)
     monkeypatch.setattr("app.features.lectures.service.LectureLinkRepository", _FakeLectureLinkRepo)
+
+    _AUDIT_CALLS.clear()
+
+    async def _spy_audit(**kwargs: Any) -> None:
+        _AUDIT_CALLS.append(kwargs)
+
+    monkeypatch.setattr("app.features.lectures.service.audit", _spy_audit)
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
@@ -257,6 +267,10 @@ async def test_links_to_lower_grade_offering_allowed() -> None:
     assert data["target_grade_name"] == "Grade 8"
     assert data["target_grade_level_ordinal"] == 8
     assert data["target_subject_name"] == "Chemistry"
+    # T-126: linking a lecture is audit-logged (Acceptance #3).
+    from app.features.audit.actions import LECTURE_LINKED
+
+    assert any(c["action"] == LECTURE_LINKED for c in _AUDIT_CALLS)
 
 
 @pytest.mark.asyncio

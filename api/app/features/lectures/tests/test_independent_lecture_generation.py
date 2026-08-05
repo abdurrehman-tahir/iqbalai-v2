@@ -9,7 +9,11 @@ import pytest
 from celery.exceptions import SoftTimeLimitExceeded
 
 from app.features.lectures.independent_generation import run_independent_lecture_generation
-from app.features.lectures.independent_tasks import generate_independent_lecture
+from app.features.lectures.independent_tasks import (
+    _handle_generation_failure,
+    _handle_generation_timeout,
+    generate_independent_lecture,
+)
 from app.features.lectures.models import (
     IndependentLecture,
     IndependentLectureParagraph,
@@ -77,6 +81,9 @@ async def test_generation_persists_version_and_paragraphs_from_reference(
 
     monkeypatch.setattr("app.features.lectures.independent_generation.retrieve", _fake_retrieve)
     monkeypatch.setattr("app.features.lectures.independent_generation.chat", _fake_chat)
+    monkeypatch.setattr(
+        "app.features.lectures.independent_generation.notify_generation_complete", AsyncMock()
+    )
     monkeypatch.setattr("app.features.lectures.generation.web_search", _fake_web_search)
 
     version_id = await run_independent_lecture_generation(
@@ -131,6 +138,9 @@ async def test_generation_falls_back_to_web_when_no_references_selected(
         return '{"title": "T", "paragraphs": [{"text": "x", "tier": "ai_knowledge"}]}'
 
     monkeypatch.setattr("app.features.lectures.independent_generation.chat", _fake_chat)
+    monkeypatch.setattr(
+        "app.features.lectures.independent_generation.notify_generation_complete", AsyncMock()
+    )
     monkeypatch.setattr("app.features.lectures.generation.web_search", _fake_web_search)
 
     await run_independent_lecture_generation(
@@ -205,3 +215,92 @@ def test_task_generic_failure_marks_failed_and_reraises() -> None:
             task.run(**_TASK_KWARGS)
 
     assert mock_run_db.call_count == 2
+
+
+# --- T-126: audit + notify + NATS on the failure/timeout status transitions --
+
+
+def _lecture_generating() -> IndependentLecture:
+    return IndependentLecture(
+        id="lec-1",
+        teacher_user_id="teacher-1",
+        title="Newton's Laws",
+        topic="Newton's Laws",
+        status=LectureStatus.GENERATING,
+    )
+
+
+@pytest.mark.asyncio
+async def test_handle_generation_timeout_audits_notifies_and_publishes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lecture = _lecture_generating()
+    session = AsyncMock()
+    session.get = AsyncMock(return_value=lecture)
+
+    audit_calls: list[dict[str, Any]] = []
+    notify_calls: list[dict[str, Any]] = []
+    published: list[dict[str, Any]] = []
+
+    async def _spy_audit(**kwargs: Any) -> None:
+        audit_calls.append(kwargs)
+
+    async def _spy_notify(session: Any, *, lecture: Any) -> None:
+        notify_calls.append({"lecture_id": lecture.id})
+
+    async def _spy_publish(*, event_type: str, payload: dict[str, Any]) -> None:
+        published.append({"event_type": event_type, "payload": payload})
+
+    monkeypatch.setattr("app.features.lectures.independent_tasks.audit", _spy_audit)
+    monkeypatch.setattr(
+        "app.features.lectures.independent_tasks.notify_generation_timeout", _spy_notify
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.independent_tasks.publish_lecture_event", _spy_publish
+    )
+
+    await _handle_generation_timeout(session, "lec-1", "teacher-1")
+
+    assert lecture.status == LectureStatus.TIMED_OUT
+    assert audit_calls[0]["action"] == "lecture.generation_timed_out"
+    assert audit_calls[0]["school_id"] is None
+    assert notify_calls == [{"lecture_id": "lec-1"}]
+    assert published[0]["payload"]["tenant_type"] == "independent"
+
+
+@pytest.mark.asyncio
+async def test_handle_generation_failure_audits_notifies_and_publishes(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lecture = _lecture_generating()
+    session = AsyncMock()
+    session.get = AsyncMock(return_value=lecture)
+
+    audit_calls: list[dict[str, Any]] = []
+    notify_calls: list[dict[str, Any]] = []
+    published: list[dict[str, Any]] = []
+
+    async def _spy_audit(**kwargs: Any) -> None:
+        audit_calls.append(kwargs)
+
+    async def _spy_notify(session: Any, *, lecture: Any, error: str) -> None:
+        notify_calls.append({"lecture_id": lecture.id, "error": error})
+
+    async def _spy_publish(*, event_type: str, payload: dict[str, Any]) -> None:
+        published.append({"event_type": event_type, "payload": payload})
+
+    monkeypatch.setattr("app.features.lectures.independent_tasks.audit", _spy_audit)
+    monkeypatch.setattr(
+        "app.features.lectures.independent_tasks.notify_generation_failed", _spy_notify
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.independent_tasks.publish_lecture_event", _spy_publish
+    )
+
+    await _handle_generation_failure(session, "lec-1", "teacher-1", "LLM provider down")
+
+    assert lecture.status == LectureStatus.FAILED
+    assert audit_calls[0]["action"] == "lecture.generation_failed"
+    assert audit_calls[0]["actor_role"] == "independent_teacher"
+    assert notify_calls == [{"lecture_id": "lec-1", "error": "LLM provider down"}]
+    assert published[0]["event_type"] == "lecture.generation_failed"

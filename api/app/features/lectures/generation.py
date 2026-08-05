@@ -22,6 +22,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.features.audit.actions import LECTURE_GENERATED
 from app.features.grades.models import Grade
 from app.features.lectures.events import (
     LECTURE_GENERATION_REQUESTED,
@@ -30,6 +31,7 @@ from app.features.lectures.events import (
 )
 from app.features.lectures.exam_overlay import ExamOverlayContext, get_exam_framework_overlay
 from app.features.lectures.generation_stream import append_token, mark_complete
+from app.features.lectures.lecture_notifications import notify_generation_complete
 from app.features.lectures.models import (
     LectureStatus,
     SchoolLecture,
@@ -49,6 +51,7 @@ from app.features.library.school_models import (
 )
 from app.features.offerings.models import GradeSubjectOffering
 from app.features.subjects.models import Subject
+from app.infrastructure.audit.log import audit
 from app.infrastructure.llm.client import chat, stream_chat
 from app.infrastructure.llm.prompts.lecture_generate_v1 import (
     PROMPT_VERSION,
@@ -556,6 +559,21 @@ async def run_lecture_generation(
     # built in M-09, so the transition is immediate here.
     lecture.status = LectureStatus.READY_FOR_EDIT
     await session.commit()
+
+    # T-126: audit is synchronous and NOT best-effort (§14.10 — "if audit fails,
+    # the action fails"); the notification below is best-effort (see its module
+    # docstring) so a notify hiccup can't undo an already-successful generation.
+    await audit(
+        session=session,
+        action=LECTURE_GENERATED,
+        actor_id=teacher_user_id,
+        actor_role="teacher",
+        target_type="lecture",
+        target_id=lecture_id,
+        school_id=school_id,
+        metadata={"version_id": version.id},
+    )
+    await notify_generation_complete(session, lecture=lecture)
     await mark_complete(lecture_id, version_id=version.id)
 
     # T-124 (#28, #41): a second, separate LLM call for teacher-facing delivery

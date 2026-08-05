@@ -253,6 +253,9 @@ class _FakeProfileRepo:
         return self.store.get(user_id)
 
 
+_AUDIT_CALLS: list[dict[str, Any]] = []
+
+
 @pytest.fixture(autouse=True)
 def _patch(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeUserRepo.store = {TEACHER.id: TEACHER}
@@ -280,6 +283,13 @@ def _patch(monkeypatch: pytest.MonkeyPatch) -> None:
         "app.features.lectures.tasks.generate_lecture.apply_async",
         lambda **_kwargs: None,
     )
+
+    _AUDIT_CALLS.clear()
+
+    async def _spy_audit(**kwargs: Any) -> None:
+        _AUDIT_CALLS.append(kwargs)
+
+    monkeypatch.setattr("app.features.lectures.service.audit", _spy_audit)
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
@@ -356,3 +366,7 @@ async def test_generate_transitions_to_generating(client: AsyncClient) -> None:
     assert len(_FakeLectureRepo.store) == 1
     lecture = next(iter(_FakeLectureRepo.store.values()))
     assert lecture.status == LectureStatus.GENERATING
+    # T-126: creating the lecture is audit-logged (Acceptance #3).
+    from app.features.audit.actions import LECTURE_CREATED
+
+    assert any(c["action"] == LECTURE_CREATED for c in _AUDIT_CALLS)

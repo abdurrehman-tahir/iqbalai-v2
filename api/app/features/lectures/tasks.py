@@ -15,8 +15,21 @@ from celery import shared_task
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.celery_async import run_db
+from app.features.audit.actions import LECTURE_GENERATION_FAILED, LECTURE_GENERATION_TIMED_OUT
+from app.features.lectures.events import (
+    LECTURE_GENERATION_FAILED as LECTURE_GENERATION_FAILED_EVENT,
+)
+from app.features.lectures.events import (
+    LECTURE_GENERATION_TIMED_OUT as LECTURE_GENERATION_TIMED_OUT_EVENT,
+)
+from app.features.lectures.events import publish_lecture_event
 from app.features.lectures.generation_stream import mark_failed
+from app.features.lectures.lecture_notifications import (
+    notify_generation_failed,
+    notify_generation_timeout,
+)
 from app.features.lectures.models import LectureStatus, SchoolLecture
+from app.infrastructure.audit.log import audit
 from app.tasks.base import tenant_task
 
 logger = structlog.get_logger(__name__)
@@ -73,9 +86,7 @@ def generate_lecture(
         )
         return {"lecture_id": lecture_id, "version_id": version_id, "status": "generated_v1"}
     except (SoftTimeLimitExceeded, TimeLimitExceeded):
-        run_db(
-            lambda session: _mark_status(session, lecture_id, school_id, LectureStatus.TIMED_OUT)
-        )
+        run_db(lambda session: _handle_generation_timeout(session, lecture_id, school_id))
         asyncio.run(mark_failed(lecture_id, reason="timed_out"))
         logger.warning(
             "lecture_generate_timed_out",
@@ -83,16 +94,22 @@ def generate_lecture(
             school_id=school_id,
             soft_time_limit=SOFT_TIME_LIMIT_SECONDS,
         )
-        # Full teacher notification templates land in T-126; structured log is the notify hook.
         return {"lecture_id": lecture_id, "status": "timed_out"}
     except Exception as exc:
-        run_db(lambda session: _mark_status(session, lecture_id, school_id, LectureStatus.FAILED))
-        asyncio.run(mark_failed(lecture_id, reason=str(exc)))
+        # Captured before the lambda: `except ... as exc` deletes `exc` when the
+        # block exits, so a closure referencing it directly is fragile.
+        error_message = str(exc)
+        run_db(
+            lambda session: _handle_generation_failure(
+                session, lecture_id, school_id, error_message
+            )
+        )
+        asyncio.run(mark_failed(lecture_id, reason=error_message))
         logger.error(
             "lecture_generate_failed",
             lecture_id=lecture_id,
             school_id=school_id,
-            error=str(exc),
+            error=error_message,
         )
         raise
 
@@ -124,17 +141,66 @@ async def _run_generation(
     )
 
 
-async def _mark_status(
-    session: AsyncSession,
-    lecture_id: str,
-    school_id: str,
-    status: LectureStatus,
+async def _handle_generation_timeout(
+    session: AsyncSession, lecture_id: str, school_id: str
 ) -> None:
     lecture = await session.get(SchoolLecture, lecture_id)
     if lecture is None or lecture.school_id != school_id:
         return
-    lecture.status = status
+    lecture.status = LectureStatus.TIMED_OUT
     await session.commit()
+
+    await audit(
+        session=session,
+        action=LECTURE_GENERATION_TIMED_OUT,
+        actor_id=lecture.teacher_user_id,
+        actor_role="teacher",
+        target_type="lecture",
+        target_id=lecture_id,
+        school_id=school_id,
+    )
+    await notify_generation_timeout(session, lecture=lecture)
+    await publish_lecture_event(
+        event_type=LECTURE_GENERATION_TIMED_OUT_EVENT,
+        payload={
+            "lecture_id": lecture_id,
+            "school_id": school_id,
+            "teacher_user_id": lecture.teacher_user_id,
+            "tenant_type": "school",
+        },
+    )
+
+
+async def _handle_generation_failure(
+    session: AsyncSession, lecture_id: str, school_id: str, error: str
+) -> None:
+    lecture = await session.get(SchoolLecture, lecture_id)
+    if lecture is None or lecture.school_id != school_id:
+        return
+    lecture.status = LectureStatus.FAILED
+    await session.commit()
+
+    await audit(
+        session=session,
+        action=LECTURE_GENERATION_FAILED,
+        actor_id=lecture.teacher_user_id,
+        actor_role="teacher",
+        target_type="lecture",
+        target_id=lecture_id,
+        school_id=school_id,
+        metadata={"error": error[:500]},
+    )
+    await notify_generation_failed(session, lecture=lecture, error=error)
+    await publish_lecture_event(
+        event_type=LECTURE_GENERATION_FAILED_EVENT,
+        payload={
+            "lecture_id": lecture_id,
+            "school_id": school_id,
+            "teacher_user_id": lecture.teacher_user_id,
+            "tenant_type": "school",
+            "error": error[:500],
+        },
+    )
 
 
 @tenant_task(
