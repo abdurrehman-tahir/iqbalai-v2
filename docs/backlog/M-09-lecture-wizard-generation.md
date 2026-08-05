@@ -542,7 +542,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 6
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 678dbac
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.1, §3.2, §3.13-§3.16
@@ -559,11 +560,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] E2E runs green end-to-end
-2. [ ] Wizard + draft resume asserted
-3. [ ] Generation + streaming + source badges asserted (LLM mocked)
-4. [ ] Fallback tiers + cross-grade rule asserted
-5. [ ] Independent variant asserted
+1. [x] E2E runs green end-to-end
+2. [x] Wizard + draft resume asserted
+3. [x] Generation + streaming + source badges asserted (LLM mocked)
+4. [x] Fallback tiers + cross-grade rule asserted
+5. [x] Independent variant asserted
 
 ### Out of scope
 - Frontend Playwright E2E (Phase 2); voice-loop latency benchmarking
