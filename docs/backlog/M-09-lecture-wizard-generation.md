@@ -394,7 +394,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 0ee38b1
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.14 (per-lecture access control #21)
@@ -411,14 +412,21 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Default: lecture visible to the Grade-Subject's enrolled students
-2. [ ] Teacher can restrict to specific sections/students
-3. [ ] Unenrolled / out-of-scope students cannot access
-4. [ ] Access enforced server-side (not just UI)
-5. [ ] Coordinator/Admin see per §6.19 inheritance
+1. [x] Default: lecture visible to the Grade-Subject's enrolled students
+2. [x] Teacher can restrict to specific sections/students
+3. [x] Unenrolled / out-of-scope students cannot access
+4. [x] Access enforced server-side (not just UI)
+5. [x] Coordinator/Admin see per §6.19 inheritance
 
 ### Out of scope
 - Student viewer experience (M-12); mini-lecture targeted distribution (Flow 7/M-16)
+
+### Notes / known gotchas
+- **"Group" targeting omitted:** the spec allows restricting by student, group, or section, but no Group model exists anywhere in this codebase (Flow 11 isn't built) — confirmed with Hamza before implementing. Only student_user_id and section_id restriction are supported.
+- **No student-facing HTTP endpoint yet:** `student_can_access_lecture()` is the fully-tested enforcement function, but it isn't wired to a student-facing route since M-12 owns the viewer surface (out of scope for this ticket, confirmed with Hamza) — M-12 should call this function directly rather than reimplementing the ACL logic.
+- **Real gap fixed along the way:** acceptance item 5 exposed that `_require_school_teacher` (used by every other lecture endpoint since T-114) hard-requires the literal `teacher` role, so a Coordinator/Admin would 403 at the service layer despite passing the router's `require_role("teacher")` gate. Added a broader `_require_lecture_for_access_management` helper used only by the access-settings endpoints (Coordinator/School Admin: same-school; District/Platform Admin: unconditional, matching an existing stub in `core/dependencies.require_scope`). This gap likely still exists on every *other* lecture endpoint (paragraphs, links, voice) — not fixed here since it's outside T-123's scope, but worth a follow-up ticket.
+- **Roster endpoint added beyond original plan:** `GET .../roster` wasn't in the original scope decision, but was necessary to make the restrict-by-student/section UI usable at all (no existing endpoint lets a teacher list their own class roster — sections/enrollments are coordinator-gated everywhere else in this codebase). Read-only, scoped to the teacher's own offering.
+- **Migration verification gap:** `school_0055` was written following the proven `school_0051`-`0054` pattern (`alembic heads` resolves cleanly) but could not be live-verified via upgrade/downgrade — Docker Desktop is still unresponsive in this environment, same gap flagged for T-121/T-122.
 
 ---
 
