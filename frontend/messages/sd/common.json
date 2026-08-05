@@ -541,6 +541,53 @@
     }
   },
   "independent": {
+    "teacher": {
+      "lectures": {
+        "wizard": {
+          "title": "__TODO__ Create a lecture",
+          "subtitle": "__TODO__ Pick a topic and your own private references. Your progress auto-saves.",
+          "topic_label": "__TODO__ Topic",
+          "topic_placeholder": "__TODO__ e.g. Newton's Laws of Motion",
+          "references_label": "__TODO__ Your references (optional)",
+          "references_empty": "__TODO__ You haven't uploaded any private references yet. You can still generate a lecture from general knowledge.",
+          "references_error": "__TODO__ Could not load your references.",
+          "teaching_mode_label": "__TODO__ Teaching mode",
+          "teaching_mode_auto": "__TODO__ Full lecture",
+          "teaching_mode_manual": "__TODO__ Outline only",
+          "teaching_mode_voice_assisted": "__TODO__ Full lecture (voice-ready)",
+          "generate": "__TODO__ Generate lecture",
+          "generate_error": "__TODO__ Could not start generation. Please try again.",
+          "generating_title": "__TODO__ Generating your lecture…",
+          "generating_body": "__TODO__ This usually takes under a minute.",
+          "generating_error_title": "__TODO__ Generation failed",
+          "generating_error_body": "__TODO__ Something went wrong while generating your lecture. Please try again.",
+          "generating_error_timeout": "__TODO__ Generation took too long and timed out. Please try again.",
+          "complete_title": "__TODO__ Lecture ready",
+          "complete_body": "__TODO__ Your lecture draft has been generated and is ready to review.",
+          "paragraphs_error": "__TODO__ Could not load the lecture content.",
+          "paragraphs_empty": "__TODO__ No paragraphs yet.",
+          "badge_reference": "__TODO__ Ref: {book}",
+          "badge_web": "__TODO__ Web",
+          "badge_ai_knowledge": "__TODO__ AI Knowledge",
+          "retry": "__TODO__ Retry",
+          "voice_start_button": "__TODO__ Talk to AI",
+          "voice_panel_title": "__TODO__ Voice conversation",
+          "voice_connecting": "__TODO__ Connecting…",
+          "voice_ready": "__TODO__ Tap the microphone and start speaking.",
+          "voice_recording": "__TODO__ Listening… tap to stop.",
+          "voice_processing": "__TODO__ Thinking…",
+          "voice_start_recording": "__TODO__ Start recording",
+          "voice_stop_recording": "__TODO__ Stop recording",
+          "voice_transcript_label": "__TODO__ Conversation transcript",
+          "voice_draft_updated": "__TODO__ Lecture draft updated",
+          "voice_end_session": "__TODO__ End voice session",
+          "voice_session_ended": "__TODO__ Voice session ended.",
+          "voice_error_title": "__TODO__ Voice session error",
+          "voice_error_body": "__TODO__ Something went wrong with the voice session. Please try again.",
+          "voice_tts_unavailable": "__TODO__ Voice not yet available in this language; reading aloud disabled."
+        }
+      }
+    },
     "student": {
       "home": {
         "diagnostics_link": "__TODO__ Take a diagnostic",

@@ -65,6 +65,9 @@ import type {
   LectureAccessSettingsUpdate,
   LectureRosterRead,
   LectureTeacherTipsRead,
+  IndependentWizardReferenceRead,
+  IndependentLectureGenerateRequest,
+  IndependentLectureRead,
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
@@ -1170,6 +1173,51 @@ export const lectureWizardApi = {
     request<LectureRosterRead>(`/teachers/me/lectures/${lectureId}/roster`, {}, token),
   getTeacherTips: (token: string, lectureId: string) =>
     request<LectureTeacherTipsRead>(`/teachers/me/lectures/${lectureId}/teacher-tips`, {}, token),
+};
+
+// ── Independent teacher lecture wizard (T-125) ──────────────────────────────
+// Stripped variant: no offerings/curricula/topics (no Grade-Subject concept).
+
+export const independentLectureWizardApi = {
+  listReferences: (token: string) =>
+    request<IndependentWizardReferenceRead[]>(
+      "/independent/teachers/me/lecture-wizard/references",
+      {},
+      token
+    ),
+  getDraft: (token: string) =>
+    request<LectureDraftRead>("/independent/teachers/me/lecture-draft", {}, token),
+  upsertDraft: (token: string, data: LectureDraftUpsert) =>
+    request<LectureDraftRead>(
+      "/independent/teachers/me/lecture-draft",
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  getEstimate: (token: string, teachingMode: string, referenceCount: number) => {
+    const qs = new URLSearchParams({
+      teaching_mode: teachingMode,
+      reference_count: String(referenceCount),
+    });
+    return request<WizardEstimateRead>(
+      `/independent/teachers/me/lecture-wizard/estimate?${qs}`,
+      {},
+      token
+    );
+  },
+  generate: (token: string, data: IndependentLectureGenerateRequest) =>
+    request<LectureGenerateRead>(
+      "/independent/teachers/me/lecture-wizard/generate",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  getLecture: (token: string, lectureId: string) =>
+    request<IndependentLectureRead>(`/independent/teachers/me/lectures/${lectureId}`, {}, token),
+  getParagraphs: (token: string, lectureId: string) =>
+    request<LectureParagraphRead[]>(
+      `/independent/teachers/me/lectures/${lectureId}/paragraphs`,
+      {},
+      token
+    ),
 };
 
 export const studentOnboardingApi = {

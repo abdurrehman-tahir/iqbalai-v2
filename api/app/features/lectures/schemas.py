@@ -334,3 +334,30 @@ class LectureTeacherTipsRead(BaseModel):
     lecture_id: str
     status: Literal["pending", "ready"]
     tips: TeacherTips | None = None
+
+
+# --- T-125 — independent teacher stripped variant ---------------------------
+
+
+class IndependentWizardReferenceRead(BaseModel):
+    """One of an independent teacher's own private references (T-125, Step 3)."""
+
+    id: str
+    title: str
+
+
+class IndependentLectureGenerateRequest(BaseModel):
+    """Commit the independent wizard — no Grade-Subject offering, no curriculum."""
+
+    topic: str = Field(min_length=1, max_length=500)
+    reference_content_ids: list[str] = Field(default_factory=list, max_length=20)
+    teaching_mode: TeachingMode
+
+
+class IndependentLectureRead(BaseModel):
+    """Minimal lecture status, for the frontend to poll until generation completes."""
+
+    id: str
+    status: str
+    title: str
+    current_version_id: str | None = None

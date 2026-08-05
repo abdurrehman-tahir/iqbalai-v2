@@ -1214,6 +1214,109 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/independent/teachers/me/lecture-draft": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the teacher's active lecture wizard draft (resume) */
+        get: operations["independent_teacher_get_lecture_draft"];
+        /** Auto-save lecture wizard draft state */
+        put: operations["independent_teacher_upsert_lecture_draft"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/lecture-wizard/estimate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Estimated generation time */
+        get: operations["independent_teacher_get_wizard_estimate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/lecture-wizard/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Commit wizard and transition lecture to GENERATING (T-125) */
+        post: operations["independent_teacher_generate_lecture"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/lecture-wizard/references": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the teacher's own private references for Step 3 (T-125) */
+        get: operations["independent_teacher_list_wizard_references"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Lecture status, for the frontend to poll until generation completes (T-125) */
+        get: operations["independent_teacher_get_lecture"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/paragraphs": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a lecture's current-version paragraphs with source attribution */
+        get: operations["independent_teacher_get_lecture_paragraphs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/independent/teachers/me/onboarding": {
         parameters: {
             query?: never;
@@ -3491,6 +3594,31 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * IndependentLectureGenerateRequest
+         * @description Commit the independent wizard — no Grade-Subject offering, no curriculum.
+         */
+        IndependentLectureGenerateRequest: {
+            /** Reference Content Ids */
+            reference_content_ids?: string[];
+            teaching_mode: components["schemas"]["TeachingMode"];
+            /** Topic */
+            topic: string;
+        };
+        /**
+         * IndependentLectureRead
+         * @description Minimal lecture status, for the frontend to poll until generation completes.
+         */
+        IndependentLectureRead: {
+            /** Current Version Id */
+            current_version_id?: string | null;
+            /** Id */
+            id: string;
+            /** Status */
+            status: string;
+            /** Title */
+            title: string;
+        };
+        /**
          * IndependentPersonalContentRead
          * @description Private pool item returned to the owning independent user.
          */
@@ -3707,6 +3835,16 @@ export interface components {
          * @enum {string}
          */
         IndependentUserRole: "independent_teacher" | "independent_student";
+        /**
+         * IndependentWizardReferenceRead
+         * @description One of an independent teacher's own private references (T-125, Step 3).
+         */
+        IndependentWizardReferenceRead: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+        };
         /**
          * LectureAccessSettingsRead
          * @description A lecture's current access-restriction state (T-123, #21).
@@ -4986,6 +5124,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[IndependentLectureRead] */
+        SuccessEnvelope_IndependentLectureRead_: {
+            data: components["schemas"]["IndependentLectureRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[IndependentPersonalContentRead] */
         SuccessEnvelope_IndependentPersonalContentRead_: {
             data: components["schemas"]["IndependentPersonalContentRead"];
@@ -5503,6 +5650,16 @@ export interface components {
         SuccessEnvelope_list_GraduationRequestRead__: {
             /** Data */
             data: components["schemas"]["GraduationRequestRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[IndependentWizardReferenceRead]] */
+        SuccessEnvelope_list_IndependentWizardReferenceRead__: {
+            /** Data */
+            data: components["schemas"]["IndependentWizardReferenceRead"][];
             /**
              * Message
              * @default ok
@@ -8983,6 +9140,206 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_IndependentStudentOnboardingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_get_lecture_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureDraftRead_"];
+                };
+            };
+        };
+    };
+    independent_teacher_upsert_lecture_draft: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureDraftUpsert"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureDraftRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_get_wizard_estimate: {
+        parameters: {
+            query: {
+                teaching_mode: components["schemas"]["TeachingMode"];
+                reference_count?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_WizardEstimateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_generate_lecture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["IndependentLectureGenerateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureGenerateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_list_wizard_references: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_IndependentWizardReferenceRead__"];
+                };
+            };
+        };
+    };
+    independent_teacher_get_lecture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_IndependentLectureRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_get_lecture_paragraphs: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_LectureParagraphRead__"];
                 };
             };
             /** @description Validation Error */

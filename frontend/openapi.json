@@ -2129,6 +2129,69 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "IndependentLectureGenerateRequest": {
+        "description": "Commit the independent wizard \u2014 no Grade-Subject offering, no curriculum.",
+        "properties": {
+          "reference_content_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Reference Content Ids",
+            "type": "array"
+          },
+          "teaching_mode": {
+            "$ref": "#/components/schemas/TeachingMode"
+          },
+          "topic": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic",
+          "teaching_mode"
+        ],
+        "title": "IndependentLectureGenerateRequest",
+        "type": "object"
+      },
+      "IndependentLectureRead": {
+        "description": "Minimal lecture status, for the frontend to poll until generation completes.",
+        "properties": {
+          "current_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Version Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "title"
+        ],
+        "title": "IndependentLectureRead",
+        "type": "object"
+      },
       "IndependentPersonalContentRead": {
         "description": "Private pool item returned to the owning independent user.",
         "properties": {
@@ -2664,6 +2727,25 @@
         ],
         "title": "IndependentUserRole",
         "type": "string"
+      },
+      "IndependentWizardReferenceRead": {
+        "description": "One of an independent teacher's own private references (T-125, Step 3).",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "IndependentWizardReferenceRead",
+        "type": "object"
       },
       "LectureAccessSettingsRead": {
         "description": "A lecture's current access-restriction state (T-123, #21).",
@@ -5625,6 +5707,23 @@
         "title": "SuccessEnvelope[GraduationRequestRead]",
         "type": "object"
       },
+      "SuccessEnvelope_IndependentLectureRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IndependentLectureRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[IndependentLectureRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_IndependentPersonalContentRead_": {
         "properties": {
           "data": {
@@ -6632,6 +6731,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[GraduationRequestRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_IndependentWizardReferenceRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/IndependentWizardReferenceRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[IndependentWizardReferenceRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_LectureLinkRead__": {
@@ -11985,6 +12105,265 @@
         "summary": "Set exam date on first login for independent students",
         "tags": [
           "independent-student-onboarding"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lecture-draft": {
+      "get": {
+        "operationId": "independent_teacher_get_lecture_draft",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureDraftRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get the teacher's active lecture wizard draft (resume)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      },
+      "put": {
+        "operationId": "independent_teacher_upsert_lecture_draft",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureDraftUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureDraftRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Auto-save lecture wizard draft state",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lecture-wizard/estimate": {
+      "get": {
+        "operationId": "independent_teacher_get_wizard_estimate",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "teaching_mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeachingMode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reference_count",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 20,
+              "minimum": 0,
+              "title": "Reference Count",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_WizardEstimateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Estimated generation time",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lecture-wizard/generate": {
+      "post": {
+        "operationId": "independent_teacher_generate_lecture",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IndependentLectureGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureGenerateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Commit wizard and transition lecture to GENERATING (T-125)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lecture-wizard/references": {
+      "get": {
+        "operationId": "independent_teacher_list_wizard_references",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_IndependentWizardReferenceRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List the teacher's own private references for Step 3 (T-125)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}": {
+      "get": {
+        "operationId": "independent_teacher_get_lecture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_IndependentLectureRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lecture status, for the frontend to poll until generation completes (T-125)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/paragraphs": {
+      "get": {
+        "operationId": "independent_teacher_get_lecture_paragraphs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_LectureParagraphRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List a lecture's current-version paragraphs with source attribution",
+        "tags": [
+          "independent-lecture-wizard"
         ]
       }
     },

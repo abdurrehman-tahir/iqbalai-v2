@@ -208,8 +208,10 @@ async def _run_teacher_tips_generation(
 def purge_expired_voice_audio() -> dict[str, object]:
     """Delete raw voice-turn audio past retention (T-121 #25, flow-5 §6 Limits).
 
-    System-wide sweep (no single school_id — plain @shared_task, not
-    @tenant_task, per stack-enforcer's system-task opt-out). Transcripts
+    System-wide sweep across BOTH schemas (no single school_id — plain
+    @shared_task, not @tenant_task, per stack-enforcer's system-task
+    opt-out). T-125 added independent voice sessions with the same
+    retention requirement, so this purges both. Transcripts
     (``lecture_voice_turns`` rows) are kept indefinitely — only the MinIO
     object + the row's ``audio_storage_key`` pointer are cleared.
     """
@@ -218,19 +220,29 @@ def purge_expired_voice_audio() -> dict[str, object]:
 
 async def _purge_expired_voice_audio_async(session: AsyncSession) -> dict[str, object]:
     from app.config import get_settings
+    from app.features.lectures.independent_repository import (
+        IndependentLectureVoiceTurnRepository,
+    )
     from app.features.lectures.repository import LectureVoiceTurnRepository
     from app.infrastructure.storage.client import delete_object
 
     settings = get_settings()
     cutoff = datetime.now(timezone.utc) - timedelta(hours=settings.VOICE_AUDIO_RETENTION_HOURS)
-    repo = LectureVoiceTurnRepository(session)
-    expired = await repo.list_with_unpurged_audio_older_than(cutoff)
 
     purged = 0
-    for turn in expired:
-        if turn.audio_storage_key:
-            delete_object("audio", turn.audio_storage_key)
-        await repo.mark_audio_purged(turn)
+
+    school_repo = LectureVoiceTurnRepository(session)
+    for school_turn in await school_repo.list_with_unpurged_audio_older_than(cutoff):
+        if school_turn.audio_storage_key:
+            delete_object("audio", school_turn.audio_storage_key)
+        await school_repo.mark_audio_purged(school_turn)
+        purged += 1
+
+    independent_repo = IndependentLectureVoiceTurnRepository(session)
+    for independent_turn in await independent_repo.list_with_unpurged_audio_older_than(cutoff):
+        if independent_turn.audio_storage_key:
+            delete_object("audio", independent_turn.audio_storage_key)
+        await independent_repo.mark_audio_purged(independent_turn)
         purged += 1
 
     logger.info("voice_audio_purge_complete", purged_count=purged, cutoff=cutoff.isoformat())

@@ -27,6 +27,13 @@ def _fake_turn(turn_id: str, audio_storage_key: str | None = "voice-sessions/vs-
     return turn
 
 
+def _fake_empty_repo() -> Any:
+    return MagicMock(
+        list_with_unpurged_audio_older_than=AsyncMock(return_value=[]),
+        mark_audio_purged=AsyncMock(),
+    )
+
+
 @pytest.mark.asyncio
 async def test_purge_async_deletes_blob_and_marks_purged(monkeypatch: pytest.MonkeyPatch) -> None:
     expired_turns = [_fake_turn("turn-1"), _fake_turn("turn-2", "voice-sessions/vs-1/1.webm")]
@@ -38,6 +45,11 @@ async def test_purge_async_deletes_blob_and_marks_purged(monkeypatch: pytest.Mon
     # the source modules so the fresh import picks up the fakes.
     monkeypatch.setattr(
         "app.features.lectures.repository.LectureVoiceTurnRepository", lambda _session: fake_repo
+    )
+    # T-125: the task also sweeps independent voice turns — keep that leg a no-op here.
+    monkeypatch.setattr(
+        "app.features.lectures.independent_repository.IndependentLectureVoiceTurnRepository",
+        lambda _session: _fake_empty_repo(),
     )
     mock_delete = MagicMock()
     monkeypatch.setattr("app.infrastructure.storage.client.delete_object", mock_delete)
@@ -61,6 +73,10 @@ async def test_purge_async_no_expired_turns_is_a_noop(monkeypatch: pytest.Monkey
     monkeypatch.setattr(
         "app.features.lectures.repository.LectureVoiceTurnRepository", lambda _session: fake_repo
     )
+    monkeypatch.setattr(
+        "app.features.lectures.independent_repository.IndependentLectureVoiceTurnRepository",
+        lambda _session: _fake_empty_repo(),
+    )
     mock_delete = MagicMock()
     monkeypatch.setattr("app.infrastructure.storage.client.delete_object", mock_delete)
 
@@ -69,3 +85,30 @@ async def test_purge_async_no_expired_turns_is_a_noop(monkeypatch: pytest.Monkey
     assert result == {"purged_count": 0}
     mock_delete.assert_not_called()
     fake_repo.mark_audio_purged.assert_not_awaited()
+
+
+@pytest.mark.asyncio
+async def test_purge_async_also_purges_independent_turns(monkeypatch: pytest.MonkeyPatch) -> None:
+    """T-125: independent voice sessions share the same retention requirement."""
+    school_repo = _fake_empty_repo()
+    independent_turns = [_fake_turn("ind-turn-1", "voice-sessions/ivs-1/0.webm")]
+    independent_repo = MagicMock(
+        list_with_unpurged_audio_older_than=AsyncMock(return_value=independent_turns),
+        mark_audio_purged=AsyncMock(),
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.repository.LectureVoiceTurnRepository",
+        lambda _session: school_repo,
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.independent_repository.IndependentLectureVoiceTurnRepository",
+        lambda _session: independent_repo,
+    )
+    mock_delete = MagicMock()
+    monkeypatch.setattr("app.infrastructure.storage.client.delete_object", mock_delete)
+
+    result = await _purge_expired_voice_audio_async(AsyncMock())
+
+    assert result == {"purged_count": 1}
+    mock_delete.assert_called_once_with("audio", "voice-sessions/ivs-1/0.webm")
+    assert independent_repo.mark_audio_purged.await_count == 1

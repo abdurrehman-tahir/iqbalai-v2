@@ -1536,7 +1536,8 @@
       "logout": "Sign out",
       "nav": {
         "aria_label": "Independent teacher navigation",
-        "dashboard": "Dashboard"
+        "dashboard": "Dashboard",
+        "lectures": "Create Lecture"
       },
       "onboarding": {
         "header_title": "Complete your profile",
@@ -1554,6 +1555,51 @@
       "home": {
         "ready_banner": "You are ready to use IqbalAI.",
         "welcome": "Welcome, {name}. Your independent workspace is ready."
+      },
+      "lectures": {
+        "wizard": {
+          "title": "Create a lecture",
+          "subtitle": "Pick a topic and your own private references. Your progress auto-saves.",
+          "topic_label": "Topic",
+          "topic_placeholder": "e.g. Newton's Laws of Motion",
+          "references_label": "Your references (optional)",
+          "references_empty": "You haven't uploaded any private references yet. You can still generate a lecture from general knowledge.",
+          "references_error": "Could not load your references.",
+          "teaching_mode_label": "Teaching mode",
+          "teaching_mode_auto": "Full lecture",
+          "teaching_mode_manual": "Outline only",
+          "teaching_mode_voice_assisted": "Full lecture (voice-ready)",
+          "generate": "Generate lecture",
+          "generate_error": "Could not start generation. Please try again.",
+          "generating_title": "Generating your lecture…",
+          "generating_body": "This usually takes under a minute.",
+          "generating_error_title": "Generation failed",
+          "generating_error_body": "Something went wrong while generating your lecture. Please try again.",
+          "generating_error_timeout": "Generation took too long and timed out. Please try again.",
+          "complete_title": "Lecture ready",
+          "complete_body": "Your lecture draft has been generated and is ready to review.",
+          "paragraphs_error": "Could not load the lecture content.",
+          "paragraphs_empty": "No paragraphs yet.",
+          "badge_reference": "Ref: {book}",
+          "badge_web": "Web",
+          "badge_ai_knowledge": "AI Knowledge",
+          "retry": "Retry",
+          "voice_start_button": "Talk to AI",
+          "voice_panel_title": "Voice conversation",
+          "voice_connecting": "Connecting…",
+          "voice_ready": "Tap the microphone and start speaking.",
+          "voice_recording": "Listening… tap to stop.",
+          "voice_processing": "Thinking…",
+          "voice_start_recording": "Start recording",
+          "voice_stop_recording": "Stop recording",
+          "voice_transcript_label": "Conversation transcript",
+          "voice_draft_updated": "Lecture draft updated",
+          "voice_end_session": "End voice session",
+          "voice_session_ended": "Voice session ended.",
+          "voice_error_title": "Voice session error",
+          "voice_error_body": "Something went wrong with the voice session. Please try again.",
+          "voice_tts_unavailable": "Voice not yet available in this language; reading aloud disabled."
+        }
       }
     },
     "student": {
