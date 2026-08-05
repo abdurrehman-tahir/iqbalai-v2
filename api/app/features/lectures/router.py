@@ -21,6 +21,7 @@ from app.features.lectures.schemas import (
     LectureLinkRead,
     LectureParagraphRead,
     LectureRosterRead,
+    LectureTeacherTipsRead,
     TeacherOfferingRead,
     TeachingMode,
     WizardCurriculumRead,
@@ -286,4 +287,21 @@ async def get_lecture_roster(
 ) -> dict[str, Any]:
     svc = LectureWizardService(db)
     result = await svc.get_lecture_roster(claims, lecture_id)
+    return success(result.model_dump(mode="json"))
+
+
+@router.get(
+    "/lectures/{lecture_id}/teacher-tips",
+    response_model=SuccessEnvelope[LectureTeacherTipsRead],
+    operation_id="teacher_get_lecture_teacher_tips",
+    summary="Delivery tips + technique demo + real-world examples (T-124, #28, #41)",
+    dependencies=[require_role("teacher")],
+)
+async def get_lecture_teacher_tips(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.get_lecture_teacher_tips(claims, lecture_id)
     return success(result.model_dump(mode="json"))

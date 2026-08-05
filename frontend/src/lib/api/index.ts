@@ -64,6 +64,7 @@ import type {
   LectureAccessSettingsRead,
   LectureAccessSettingsUpdate,
   LectureRosterRead,
+  LectureTeacherTipsRead,
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
@@ -1167,6 +1168,8 @@ export const lectureWizardApi = {
     ),
   getRoster: (token: string, lectureId: string) =>
     request<LectureRosterRead>(`/teachers/me/lectures/${lectureId}/roster`, {}, token),
+  getTeacherTips: (token: string, lectureId: string) =>
+    request<LectureTeacherTipsRead>(`/teachers/me/lectures/${lectureId}/teacher-tips`, {}, token),
 };
 
 export const studentOnboardingApi = {

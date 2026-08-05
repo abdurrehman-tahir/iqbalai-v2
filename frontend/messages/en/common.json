@@ -660,7 +660,13 @@
         "access_saving": "Saving…",
         "access_save_button": "Save access settings",
         "access_cancel_button": "Cancel",
-        "access_save_error": "Could not save access settings. Please try again."
+        "access_save_error": "Could not save access settings. Please try again.",
+        "tips_title": "Delivery tips",
+        "tips_error": "Could not load delivery tips.",
+        "tips_pending": "Preparing delivery tips, a technique demo, and real-world examples for this lecture…",
+        "tips_delivery_tips_label": "Delivery tips",
+        "tips_technique_demo_label": "Teaching technique demo",
+        "tips_real_world_examples_label": "Real-world examples"
       }
     },
     "onboarding": {

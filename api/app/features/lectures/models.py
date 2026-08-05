@@ -239,6 +239,11 @@ class SchoolLectureVersion(AuditMixin, Base):
     body: Mapped[str] = mapped_column(Text, nullable=False)
     # M-10 fills 7-dimension scores; nullable until then.
     scores_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    # T-124 (#28, #41): teacher-facing delivery tips + technique demo + real-world
+    # examples, a second general-knowledge-only LLM call fired after generation.
+    # Nullable: null until that call completes (or if it silently fails — this is
+    # supplementary content, its absence must never block the lecture itself).
+    teacher_tips_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:

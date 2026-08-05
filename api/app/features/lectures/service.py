@@ -34,6 +34,7 @@ from app.features.lectures.repository import (
     LectureLinkRepository,
     LectureParagraphRepository,
     LectureRepository,
+    LectureVersionRepository,
 )
 from app.features.lectures.schemas import (
     LectureAccessSettingsRead,
@@ -47,10 +48,12 @@ from app.features.lectures.schemas import (
     LectureLinkRead,
     LectureParagraphRead,
     LectureRosterRead,
+    LectureTeacherTipsRead,
     ParagraphSourceMetadata,
     RosterSectionRead,
     RosterStudentRead,
     TeacherOfferingRead,
+    TeacherTips,
     TeachingMode,
     WizardCurriculumRead,
     WizardEstimateRead,
@@ -157,6 +160,7 @@ class LectureWizardService:
         self._library = SchoolLibraryRepository(session)
         self._drafts = LectureDraftRepository(session)
         self._lectures = LectureRepository(session)
+        self._versions = LectureVersionRepository(session)
         self._paragraphs = LectureParagraphRepository(session)
         self._links = LectureLinkRepository(session)
         self._assignments = LectureAssignmentRepository(session)
@@ -553,6 +557,28 @@ class LectureWizardService:
             )
             for p in paragraphs
         ]
+
+    async def get_lecture_teacher_tips(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> LectureTeacherTipsRead:
+        """Teacher-facing delivery tips / technique demo / real-world examples (T-124).
+
+        ``pending`` until the second, separate LLM call (chained after generation)
+        completes or silently fails — this is supplementary content, never a
+        reason to error the lecture detail view.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+
+        if lecture.current_version_id is None:
+            return LectureTeacherTipsRead(lecture_id=lecture.id, status="pending", tips=None)
+
+        version = await self._versions.get_by_id(lecture.current_version_id)
+        if version is None or version.teacher_tips_jsonb is None:
+            return LectureTeacherTipsRead(lecture_id=lecture.id, status="pending", tips=None)
+
+        tips = TeacherTips.from_jsonb(version.teacher_tips_jsonb)
+        return LectureTeacherTipsRead(lecture_id=lecture.id, status="ready", tips=tips)
 
     async def _read_link(self, link: SchoolLectureLink) -> LectureLinkRead | None:
         offering = await self._offerings.get_by_id(link.target_grade_subject_offering_id)

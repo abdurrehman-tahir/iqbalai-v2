@@ -22,6 +22,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.features.grades.models import Grade
 from app.features.lectures.events import (
     LECTURE_GENERATION_REQUESTED,
     LECTURE_VERSION_CREATED,
@@ -35,7 +36,12 @@ from app.features.lectures.models import (
     SchoolLectureParagraph,
     SchoolLectureVersion,
 )
-from app.features.lectures.schemas import ParagraphSourceMetadata, SourceTier
+from app.features.lectures.schemas import (
+    ParagraphSourceMetadata,
+    SourceTier,
+    TeacherTips,
+    TeacherTipsRealWorldExample,
+)
 from app.features.library.school_models import (
     LibraryContentType,
     SchoolLibraryItem,
@@ -43,7 +49,7 @@ from app.features.library.school_models import (
 )
 from app.features.offerings.models import GradeSubjectOffering
 from app.features.subjects.models import Subject
-from app.infrastructure.llm.client import stream_chat
+from app.infrastructure.llm.client import chat, stream_chat
 from app.infrastructure.llm.prompts.lecture_generate_v1 import (
     PROMPT_VERSION,
     ChunkRef,
@@ -52,6 +58,14 @@ from app.infrastructure.llm.prompts.lecture_generate_v1 import (
     LectureParagraphOut,
     render,
 )
+from app.infrastructure.llm.prompts.lecture_teacher_tips_v1 import (
+    PROMPT_VERSION as TEACHER_TIPS_PROMPT_VERSION,
+)
+from app.infrastructure.llm.prompts.lecture_teacher_tips_v1 import (
+    LectureTeacherTipsInput,
+    LectureTeacherTipsOutput,
+)
+from app.infrastructure.llm.prompts.lecture_teacher_tips_v1 import render as render_teacher_tips
 from app.infrastructure.rag.embedder import school_library_collection
 from app.infrastructure.rag.retriever import retrieve
 from app.infrastructure.rag.web_search import web_fetch, web_search
@@ -194,6 +208,106 @@ async def _load_exam_overlay(
         return None
     return await get_exam_framework_overlay(
         session, grade_id=offering.grade_id, subject_name=subject.name
+    )
+
+
+async def _load_grade_subject_context(
+    session: AsyncSession, lecture: SchoolLecture
+) -> tuple[str, int] | None:
+    """Resolve (subject_name, grade_level_ordinal) for T-124's teacher-tips prompt.
+
+    ``None`` means the lecture has no offering/subject/grade to describe —
+    the caller must not fail generation over this (mirrors ``_load_exam_overlay``).
+    """
+    if lecture.grade_subject_offering_id is None:
+        return None
+    offering = await session.get(GradeSubjectOffering, lecture.grade_subject_offering_id)
+    if offering is None:
+        return None
+    subject = await session.get(Subject, offering.subject_id)
+    grade = await session.get(Grade, offering.grade_id)
+    if subject is None or grade is None:
+        return None
+    return subject.name, grade.level_ordinal
+
+
+async def run_teacher_tips_generation(
+    session: AsyncSession,
+    *,
+    lecture_id: str,
+    school_id: str,
+    version_id: str,
+    topic: str,
+    target_language: str = "en",
+) -> None:
+    """Second, separate LLM call (T-124, #28, #41): teacher-facing delivery tips.
+
+    General-knowledge-only — deliberately does NOT use curriculum/reference RAG
+    chunks (the opposite grounding direction from ``run_lecture_generation``).
+    Supplementary content: any failure here is logged and swallowed, never
+    raised — the lecture itself already succeeded and must not be affected.
+    """
+    lecture = await session.get(SchoolLecture, lecture_id)
+    if lecture is None or lecture.school_id != school_id:
+        logger.warning("lecture_teacher_tips_lecture_not_found", lecture_id=lecture_id)
+        return
+    version = await session.get(SchoolLectureVersion, version_id)
+    if version is None or version.lecture_id != lecture_id:
+        logger.warning("lecture_teacher_tips_version_not_found", lecture_id=lecture_id)
+        return
+
+    context = await _load_grade_subject_context(session, lecture)
+    if context is None:
+        logger.warning("lecture_teacher_tips_no_grade_subject", lecture_id=lecture_id)
+        return
+    subject_name, grade_level_ordinal = context
+    lang = target_language if target_language in ("en", "ur", "sd", "ps") else "en"
+
+    prompt = render_teacher_tips(
+        LectureTeacherTipsInput(
+            topic=topic,
+            subject_name=subject_name,
+            grade_level_ordinal=grade_level_ordinal,
+            target_language=lang,  # type: ignore[arg-type]
+        )
+    )
+    try:
+        raw = await chat(
+            [
+                {"role": "system", "content": prompt.system},
+                {"role": "user", "content": prompt.user},
+            ],
+            task="lecture_teacher_tips",
+            temperature=prompt.temperature,
+            max_tokens=prompt.max_tokens,
+        )
+        parsed = LectureTeacherTipsOutput.model_validate(_parse_json_payload(raw))
+    except Exception as exc:
+        logger.warning(
+            "lecture_teacher_tips_generation_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+            prompt_version=TEACHER_TIPS_PROMPT_VERSION,
+        )
+        return
+
+    tips = TeacherTips(
+        delivery_tips=parsed.delivery_tips,
+        technique_demo=parsed.technique_demo,
+        real_world_examples=[
+            TeacherTipsRealWorldExample(title=ex.title, text=ex.text)
+            for ex in parsed.real_world_examples
+        ],
+        language=lang,
+    )
+    version.teacher_tips_jsonb = tips.to_jsonb()
+    await session.commit()
+    logger.info(
+        "lecture_teacher_tips_persisted",
+        lecture_id=lecture_id,
+        version_id=version_id,
+        prompt_version=TEACHER_TIPS_PROMPT_VERSION,
     )
 
 
@@ -443,5 +557,21 @@ async def run_lecture_generation(
     lecture.status = LectureStatus.READY_FOR_EDIT
     await session.commit()
     await mark_complete(lecture_id, version_id=version.id)
+
+    # T-124 (#28, #41): a second, separate LLM call for teacher-facing delivery
+    # tips — chained as its own Celery task (not run inline here) so a slow or
+    # failing tips call can never affect this lecture's already-succeeded status
+    # or eat into this task's soft_time_limit.
+    from app.features.lectures.tasks import generate_lecture_teacher_tips
+
+    generate_lecture_teacher_tips.apply_async(
+        kwargs={
+            "lecture_id": lecture_id,
+            "school_id": school_id,
+            "version_id": version.id,
+            "topic": topic,
+            "target_language": lang,
+        }
+    )
 
     return version.id

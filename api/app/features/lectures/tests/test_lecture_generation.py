@@ -169,6 +169,12 @@ async def test_run_lecture_generation_persists_version_and_paragraphs(
     monkeypatch.setattr("app.features.lectures.generation.publish_lecture_event", _fake_publish)
     monkeypatch.setattr("app.features.lectures.generation.append_token", _fake_append_token)
     monkeypatch.setattr("app.features.lectures.generation.mark_complete", _fake_mark_complete)
+    # T-124: run_lecture_generation chains a Celery task at the end — never let a
+    # unit test touch a real broker.
+    monkeypatch.setattr(
+        "app.features.lectures.tasks.generate_lecture_teacher_tips.apply_async",
+        MagicMock(),
+    )
 
     version_id = await run_lecture_generation(
         session,

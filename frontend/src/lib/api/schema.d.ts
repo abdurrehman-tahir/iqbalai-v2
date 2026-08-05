@@ -2455,6 +2455,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/lectures/{lecture_id}/teacher-tips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Delivery tips + technique demo + real-world examples (T-124, #28, #41) */
+        get: operations["teacher_get_lecture_teacher_tips"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/offerings": {
         parameters: {
             query?: never;
@@ -3866,6 +3883,24 @@ export interface components {
             students: components["schemas"]["RosterStudentRead"][];
         };
         /**
+         * LectureTeacherTipsRead
+         * @description Teacher-facing delivery tips / technique demo / real-world examples (T-124).
+         *
+         *     ``status`` is ``"pending"`` until the background generation call completes
+         *     (or fails silently — tips are supplementary and never block the lecture);
+         *     ``tips`` is only populated once ``status`` is ``"ready"``.
+         */
+        LectureTeacherTipsRead: {
+            /** Lecture Id */
+            lecture_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "ready";
+            tips?: components["schemas"]["TeacherTips"] | null;
+        };
+        /**
          * LibraryBookListResponse
          * @description Paginated list of platform reference books.
          */
@@ -5059,6 +5094,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LectureTeacherTipsRead] */
+        SuccessEnvelope_LectureTeacherTipsRead_: {
+            data: components["schemas"]["LectureTeacherTipsRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LibraryBookListResponse] */
         SuccessEnvelope_LibraryBookListResponse_: {
             data: components["schemas"]["LibraryBookListResponse"];
@@ -5746,6 +5790,30 @@ export interface components {
             subject_ids: string[];
             /** User Id */
             user_id: string;
+        };
+        /**
+         * TeacherTips
+         * @description Stored in ``lecture_versions.teacher_tips_jsonb`` (T-124, #28, #41).
+         */
+        TeacherTips: {
+            /** Delivery Tips */
+            delivery_tips: string[];
+            /** Language */
+            language: string;
+            /** Real World Examples */
+            real_world_examples: components["schemas"]["TeacherTipsRealWorldExample"][];
+            /** Technique Demo */
+            technique_demo: string;
+        };
+        /**
+         * TeacherTipsRealWorldExample
+         * @description One of exactly 2 real-world examples (#41) — T-124.
+         */
+        TeacherTipsRealWorldExample: {
+            /** Text */
+            text: string;
+            /** Title */
+            title: string;
         };
         /**
          * TeachingMode
@@ -11271,6 +11339,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_LectureRosterRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_lecture_teacher_tips: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureTeacherTipsRead_"];
                 };
             };
             /** @description Validation Error */

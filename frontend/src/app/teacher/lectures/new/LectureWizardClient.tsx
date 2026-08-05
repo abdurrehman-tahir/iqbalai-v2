@@ -740,6 +740,7 @@ function GenerationStreamPanel({
         <LectureParagraphsView token={token!} lectureId={lectureId} t={t} />
         <LectureLinksPanel token={token!} lectureId={lectureId} t={t} />
         <LectureAccessPanel token={token!} lectureId={lectureId} t={t} />
+        <LectureTeacherTipsPanel token={token!} lectureId={lectureId} t={t} />
         <VoiceConversationPanel lectureId={lectureId} t={t} />
       </section>
     );
@@ -1191,6 +1192,110 @@ function LectureAccessPanel({
         </p>
       ) : null}
     </section>
+  );
+}
+
+// The tips call is a separate background job (T-124) with no WS channel of its
+// own — poll until it lands, then stop. 5s keeps the wait visible without
+// hammering the endpoint.
+const TEACHER_TIPS_POLL_MS = 5000;
+
+/** Delivery tips + technique demo + real-world examples (T-124, #28, #41). */
+function LectureTeacherTipsPanel({
+  token,
+  lectureId,
+  t,
+}: {
+  token: string;
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const tipsQuery = useQuery({
+    queryKey: ["teacher", "lecture-teacher-tips", lectureId],
+    queryFn: () => lectureWizardApi.getTeacherTips(token, lectureId),
+    refetchInterval: (query) =>
+      query.state.data?.status === "ready" ? false : TEACHER_TIPS_POLL_MS,
+  });
+
+  if (tipsQuery.isLoading) {
+    return (
+      <div className="space-y-2" aria-busy="true">
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  if (tipsQuery.isError) {
+    return (
+      <ErrorState
+        title={t("tips_error")}
+        description={t("tips_error")}
+        onRetry={() => void tipsQuery.refetch()}
+        retryLabel={t("retry")}
+      />
+    );
+  }
+
+  const data = tipsQuery.data!;
+
+  if (data.status === "pending" || !data.tips) {
+    return (
+      <section className="space-y-2" aria-labelledby="teacher-tips-heading">
+        <h3 id="teacher-tips-heading" className="text-lg font-medium text-gray-900">
+          {t("tips_title")}
+        </h3>
+        <p className="text-sm text-gray-600" role="status" aria-live="polite">
+          {t("tips_pending")}
+        </p>
+      </section>
+    );
+  }
+
+  const { tips } = data;
+
+  return (
+    <details className="space-y-2 rounded-md border border-gray-200 p-3" open>
+      <summary
+        id="teacher-tips-heading"
+        className="cursor-pointer text-lg font-medium text-gray-900"
+      >
+        {t("tips_title")}
+      </summary>
+
+      <div className="space-y-4 pt-2">
+        <div>
+          <h4 className="text-sm font-medium text-gray-800">{t("tips_delivery_tips_label")}</h4>
+          <ul className="list-inside list-disc space-y-1 text-sm text-gray-700">
+            {tips.delivery_tips.map((tip, i) => (
+              <li key={i} dir="auto">
+                {tip}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-medium text-gray-800">{t("tips_technique_demo_label")}</h4>
+          <p className="text-sm text-gray-700" dir="auto">
+            {tips.technique_demo}
+          </p>
+        </div>
+
+        <div>
+          <h4 className="text-sm font-medium text-gray-800">
+            {t("tips_real_world_examples_label")}
+          </h4>
+          <ul className="space-y-2">
+            {tips.real_world_examples.map((example, i) => (
+              <li key={i} className="rounded-md bg-gray-50 p-2 text-sm text-gray-700" dir="auto">
+                <p className="font-medium text-gray-800">{example.title}</p>
+                <p>{example.text}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </div>
+    </details>
   );
 }
 

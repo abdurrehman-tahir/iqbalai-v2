@@ -14,6 +14,7 @@ from app.features.lectures.models import (
     SchoolLectureDraft,
     SchoolLectureLink,
     SchoolLectureParagraph,
+    SchoolLectureVersion,
     SchoolLectureVoiceSession,
     SchoolLectureVoiceTurn,
     VoiceSessionStatus,
@@ -61,6 +62,14 @@ class LectureRepository:
 
     async def get_by_id(self, lecture_id: str) -> SchoolLecture | None:
         return await self._session.get(SchoolLecture, lecture_id)
+
+
+class LectureVersionRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_by_id(self, version_id: str) -> SchoolLectureVersion | None:
+        return await self._session.get(SchoolLectureVersion, version_id)
 
 
 class LectureParagraphRepository:

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from enum import StrEnum
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -289,3 +289,48 @@ class LectureRosterRead(BaseModel):
 
     sections: list[RosterSectionRead]
     students: list[RosterStudentRead]
+
+
+class TeacherTipsRealWorldExample(BaseModel):
+    """One of exactly 2 real-world examples (#41) — T-124."""
+
+    title: str
+    text: str
+
+    def to_jsonb(self) -> dict[str, Any]:
+        return self.model_dump(mode="json")
+
+    @classmethod
+    def from_jsonb(cls, raw: dict[str, Any]) -> TeacherTipsRealWorldExample:
+        return cls.model_validate(raw)
+
+
+class TeacherTips(BaseModel):
+    """Stored in ``lecture_versions.teacher_tips_jsonb`` (T-124, #28, #41)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    delivery_tips: list[str]
+    technique_demo: str
+    real_world_examples: list[TeacherTipsRealWorldExample]
+    language: str
+
+    def to_jsonb(self) -> dict[str, Any]:
+        return self.model_dump(mode="json")
+
+    @classmethod
+    def from_jsonb(cls, raw: dict[str, Any]) -> TeacherTips:
+        return cls.model_validate(raw)
+
+
+class LectureTeacherTipsRead(BaseModel):
+    """Teacher-facing delivery tips / technique demo / real-world examples (T-124).
+
+    ``status`` is ``"pending"`` until the background generation call completes
+    (or fails silently — tips are supplementary and never block the lecture);
+    ``tips`` is only populated once ``status`` is ``"ready"``.
+    """
+
+    lecture_id: str
+    status: Literal["pending", "ready"]
+    tips: TeacherTips | None = None

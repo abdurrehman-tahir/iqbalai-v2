@@ -3101,6 +3101,39 @@
         "title": "LectureRosterRead",
         "type": "object"
       },
+      "LectureTeacherTipsRead": {
+        "description": "Teacher-facing delivery tips / technique demo / real-world examples (T-124).\n\n``status`` is ``\"pending\"`` until the background generation call completes\n(or fails silently \u2014 tips are supplementary and never block the lecture);\n``tips`` is only populated once ``status`` is ``\"ready\"``.",
+        "properties": {
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tips": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TeacherTips"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lecture_id",
+          "status"
+        ],
+        "title": "LectureTeacherTipsRead",
+        "type": "object"
+      },
       "LibraryBookListResponse": {
         "description": "Paginated list of platform reference books.",
         "properties": {
@@ -5796,6 +5829,23 @@
         "title": "SuccessEnvelope[LectureRosterRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureTeacherTipsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureTeacherTipsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureTeacherTipsRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LibraryBookListResponse_": {
         "properties": {
           "data": {
@@ -7227,6 +7277,61 @@
           "profile_completed_at"
         ],
         "title": "TeacherProfileRead",
+        "type": "object"
+      },
+      "TeacherTips": {
+        "additionalProperties": false,
+        "description": "Stored in ``lecture_versions.teacher_tips_jsonb`` (T-124, #28, #41).",
+        "properties": {
+          "delivery_tips": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Delivery Tips",
+            "type": "array"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "real_world_examples": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherTipsRealWorldExample"
+            },
+            "title": "Real World Examples",
+            "type": "array"
+          },
+          "technique_demo": {
+            "title": "Technique Demo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "delivery_tips",
+          "technique_demo",
+          "real_world_examples",
+          "language"
+        ],
+        "title": "TeacherTips",
+        "type": "object"
+      },
+      "TeacherTipsRealWorldExample": {
+        "description": "One of exactly 2 real-world examples (#41) \u2014 T-124.",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "text"
+        ],
+        "title": "TeacherTipsRealWorldExample",
         "type": "object"
       },
       "TeachingMode": {
@@ -15231,6 +15336,48 @@
           }
         },
         "summary": "Grade roster (sections + students) for the access-restriction picker (T-123, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/teacher-tips": {
+      "get": {
+        "operationId": "teacher_get_lecture_teacher_tips",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureTeacherTipsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delivery tips + technique demo + real-world examples (T-124, #28, #41)",
         "tags": [
           "lecture-wizard"
         ]

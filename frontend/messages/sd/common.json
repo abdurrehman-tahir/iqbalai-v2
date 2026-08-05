@@ -673,7 +673,13 @@
         "access_saving": "__TODO__ Saving…",
         "access_save_button": "__TODO__ Save access settings",
         "access_cancel_button": "__TODO__ Cancel",
-        "access_save_error": "__TODO__ Could not save access settings. Please try again."
+        "access_save_error": "__TODO__ Could not save access settings. Please try again.",
+        "tips_title": "__TODO__ Delivery tips",
+        "tips_error": "__TODO__ Could not load delivery tips.",
+        "tips_pending": "__TODO__ Preparing delivery tips, a technique demo, and real-world examples for this lecture…",
+        "tips_delivery_tips_label": "__TODO__ Delivery tips",
+        "tips_technique_demo_label": "__TODO__ Teaching technique demo",
+        "tips_real_world_examples_label": "__TODO__ Real-world examples"
       }
     }
   }

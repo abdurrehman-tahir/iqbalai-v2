@@ -137,6 +137,73 @@ async def _mark_status(
     await session.commit()
 
 
+@tenant_task(
+    queue="ml",
+    name="lectures.generate_teacher_tips",
+    bind=True,
+    max_retries=1,
+    default_retry_delay=30,
+    soft_time_limit=90,
+    time_limit=120,
+)
+def generate_lecture_teacher_tips(
+    self: Any,
+    lecture_id: str,
+    school_id: str,
+    version_id: str,
+    topic: str,
+    target_language: str = "en",
+) -> dict[str, object]:
+    """T-124 (#28, #41): supplementary teacher-facing tips — never fails the lecture.
+
+    Its own short time limit (well under the main task's 5 minutes) and its own
+    broad except-and-log: a slow or errored tips call must never flip the
+    already-successful lecture back to FAILED/TIMED_OUT.
+    """
+    logger.info("lecture_teacher_tips_task_started", lecture_id=lecture_id, version_id=version_id)
+    try:
+        run_db(
+            lambda session: _run_teacher_tips_generation(
+                session,
+                lecture_id=lecture_id,
+                school_id=school_id,
+                version_id=version_id,
+                topic=topic,
+                target_language=target_language,
+            )
+        )
+        return {"lecture_id": lecture_id, "version_id": version_id, "status": "ready"}
+    except Exception as exc:
+        logger.warning(
+            "lecture_teacher_tips_task_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+        )
+        return {"lecture_id": lecture_id, "version_id": version_id, "status": "failed"}
+
+
+async def _run_teacher_tips_generation(
+    session: AsyncSession,
+    *,
+    lecture_id: str,
+    school_id: str,
+    version_id: str,
+    topic: str,
+    target_language: str,
+) -> None:
+    from app.features.lectures.generation import run_teacher_tips_generation
+
+    await run_teacher_tips_generation(
+        session,
+        lecture_id=lecture_id,
+        school_id=school_id,
+        version_id=version_id,
+        topic=topic,
+        target_language=target_language,
+    )
+
+
 @shared_task(name="lectures.purge_voice_audio", queue="default")  # type: ignore[misc]
 def purge_expired_voice_audio() -> dict[str, object]:
     """Delete raw voice-turn audio past retention (T-121 #25, flow-5 §6 Limits).

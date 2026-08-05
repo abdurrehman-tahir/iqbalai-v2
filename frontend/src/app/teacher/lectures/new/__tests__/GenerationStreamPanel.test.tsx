@@ -54,6 +54,7 @@ const createLink = vi.fn();
 const getAccessSettings = vi.fn();
 const setAccessSettings = vi.fn();
 const getRoster = vi.fn();
+const getTeacherTips = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   lectureWizardApi: {
@@ -71,6 +72,7 @@ vi.mock("@/lib/api", () => ({
     getAccessSettings: (...args: unknown[]) => getAccessSettings(...args),
     setAccessSettings: (...args: unknown[]) => setAccessSettings(...args),
     getRoster: (...args: unknown[]) => getRoster(...args),
+    getTeacherTips: (...args: unknown[]) => getTeacherTips(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -127,6 +129,7 @@ function renderAtStep5GeneratingLecture(
     is_restricted: false,
     assignments: [],
   });
+  getTeacherTips.mockResolvedValue({ lecture_id: "lec-1", status: "pending", tips: null });
 
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -637,6 +640,64 @@ describe("LectureAccessPanel (T-123)", () => {
     renderAtStep5GeneratingLecture();
 
     await user.click(await screen.findByRole("button", { name: /edit access/i }));
+
+    expect(await screen.findByRole("button", { name: /retry/i })).toBeInTheDocument();
+  });
+});
+
+describe("LectureTeacherTipsPanel (T-124)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockVoice.mockReturnValue({ ...IDLE_VOICE_STATE });
+    getParagraphs.mockResolvedValue([]);
+    listLinks.mockResolvedValue([]);
+    getAccessSettings.mockResolvedValue({
+      lecture_id: "lec-1",
+      is_restricted: false,
+      assignments: [],
+    });
+    mockStream.mockReturnValue({
+      status: "complete",
+      text: "Newton's first law...",
+      versionId: "ver-1",
+      errorReason: null,
+    });
+  });
+
+  it("shows a pending message while tips are still generating", async () => {
+    renderAtStep5GeneratingLecture();
+    getTeacherTips.mockResolvedValue({ lecture_id: "lec-1", status: "pending", tips: null });
+
+    expect(await screen.findByText(/preparing delivery tips/i)).toBeInTheDocument();
+  });
+
+  it("shows delivery tips, technique demo, and real-world examples once ready", async () => {
+    renderAtStep5GeneratingLecture();
+    getTeacherTips.mockResolvedValue({
+      lecture_id: "lec-1",
+      status: "ready",
+      tips: {
+        delivery_tips: ["Use a real object to demonstrate inertia."],
+        technique_demo: "Push a book across the table.",
+        real_world_examples: [
+          { title: "Seatbelts", text: "Inertia keeps you moving in a crash." },
+          { title: "Rockets", text: "Action-reaction propels a rocket." },
+        ],
+        language: "en",
+      },
+    });
+
+    expect(
+      await screen.findByText("Use a real object to demonstrate inertia.")
+    ).toBeInTheDocument();
+    expect(screen.getByText("Push a book across the table.")).toBeInTheDocument();
+    expect(screen.getByText("Seatbelts")).toBeInTheDocument();
+    expect(screen.getByText("Rockets")).toBeInTheDocument();
+  });
+
+  it("shows an error state with retry when tips fail to load", async () => {
+    renderAtStep5GeneratingLecture();
+    getTeacherTips.mockRejectedValue(new Error("network error"));
 
     expect(await screen.findByRole("button", { name: /retry/i })).toBeInTheDocument();
   });
