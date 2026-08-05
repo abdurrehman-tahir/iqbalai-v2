@@ -475,7 +475,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 1e390fe
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.16 (independent teacher stripped variant)
@@ -492,11 +493,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Independent teacher runs the wizard; Step 3 shows only their private references
-2. [ ] No school-library references appear
-3. [ ] No Grade-Subject scoping required
-4. [ ] No auto-quiz generated
-5. [ ] Lecture written to independent schema; voice mode works
+1. [x] Independent teacher runs the wizard; Step 3 shows only their private references
+2. [x] No school-library references appear
+3. [x] No Grade-Subject scoping required
+4. [x] No auto-quiz generated
+5. [x] Lecture written to independent schema; voice mode works
 
 ### Out of scope
 - Independent quiz tooling (Flow 8, M-17)
