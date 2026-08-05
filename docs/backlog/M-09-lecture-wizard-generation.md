@@ -355,7 +355,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 5b0dcda
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.13 (cross-grade/subject linking #21)
@@ -372,14 +373,19 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Teacher links a Grade 9 lecture to a Grade 8 lecture → allowed
-2. [ ] Link to a Grade 10 lecture → blocked (FORBIDDEN)
-3. [ ] Cross-subject linking within allowed grades works
-4. [ ] Reuses the T-047 guard (no duplicate logic)
-5. [ ] Links render in the lecture detail
+1. [x] Teacher links a Grade 9 lecture to a Grade 8 lecture → allowed
+2. [x] Link to a Grade 10 lecture → blocked (FORBIDDEN)
+3. [x] Cross-subject linking within allowed grades works
+4. [x] Reuses the T-047 guard (no duplicate logic)
+5. [x] Links render in the lecture detail
 
 ### Out of scope
 - RAG retrieval weighting from linked lectures (later)
+
+### Notes / known gotchas
+- **Scope narrowed to self-link, auto-approve** (confirmed with Hamza before implementing): the spec's full LINK_REQUESTED → admin-approval lifecycle for linking into another teacher's offering was not built — only the 5 acceptance items above, which cover self-link. Cross-teacher admin-initiated linking is an unstarted follow-up if the product actually needs it.
+- No dedicated lecture-detail page exists yet in this milestone, so links render inside the wizard's existing post-generation view (`LectureWizardClient.tsx`), alongside the paragraphs and voice panels — same surface T-118/T-121 used.
+- **Migration verification gap:** `school_0054` was written following the proven `school_0051`/`0052`/`0053` pattern (`alembic heads` resolves cleanly) but could not be live-verified via upgrade/downgrade — Docker Desktop is still unresponsive in this environment, same gap flagged for T-121.
 
 ---
 
