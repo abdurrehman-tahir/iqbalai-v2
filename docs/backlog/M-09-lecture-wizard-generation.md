@@ -509,7 +509,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4 / 6
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 98ecbcf
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §7 (notifications)
@@ -526,10 +527,10 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Generation complete/failed/timeout notify the teacher
-2. [ ] NATS lifecycle events published
-3. [ ] Audit entries for create/generate/link/access
-4. [ ] Templates in en/ur/sd/ps (no `__TODO__`)
+1. [x] Generation complete/failed/timeout notify the teacher
+2. [x] NATS lifecycle events published
+3. [x] Audit entries for create/generate/link/access
+4. [x] Templates in en/ur/sd/ps (no `__TODO__`)
 
 ### Out of scope
 - Publish/quiz notifications (M-11)
