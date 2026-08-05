@@ -637,7 +637,16 @@
         "voice_session_ended": "Voice session ended.",
         "voice_error_title": "Voice session error",
         "voice_error_body": "Something went wrong with the voice session. Please try again.",
-        "voice_tts_unavailable": "Voice not yet available in this language; reading aloud disabled."
+        "voice_tts_unavailable": "Voice not yet available in this language; reading aloud disabled.",
+        "links_title": "Linked grades / subjects",
+        "links_empty": "Not linked to any other Grade-Subject offering yet.",
+        "links_error": "Could not load this lecture's links.",
+        "links_item": "{grade} · {subject}",
+        "links_target_label": "Link into another offering you teach",
+        "links_target_placeholder": "Select a Grade-Subject offering",
+        "links_link_button": "Link lecture",
+        "links_linking": "Linking…",
+        "links_create_error": "Could not create this link. Please try again."
       }
     },
     "onboarding": {

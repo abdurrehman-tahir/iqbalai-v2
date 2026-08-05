@@ -11,6 +11,7 @@ from app.db.base import not_deleted
 from app.features.lectures.models import (
     SchoolLecture,
     SchoolLectureDraft,
+    SchoolLectureLink,
     SchoolLectureParagraph,
     SchoolLectureVoiceSession,
     SchoolLectureVoiceTurn,
@@ -160,3 +161,34 @@ class LectureVoiceTurnRepository:
         turn.audio_storage_key = None
         turn.audio_purged_at = datetime.now(timezone.utc)
         await self._session.commit()
+
+
+class LectureLinkRepository:
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def list_by_lecture(self, lecture_id: str) -> list[SchoolLectureLink]:
+        result = await self._session.execute(
+            select(SchoolLectureLink)
+            .where(SchoolLectureLink.lecture_id == lecture_id)
+            .order_by(SchoolLectureLink.created_at.asc())
+        )
+        return list(result.scalars().all())
+
+    async def get_existing(
+        self, lecture_id: str, target_grade_subject_offering_id: str
+    ) -> SchoolLectureLink | None:
+        result = await self._session.execute(
+            select(SchoolLectureLink).where(
+                SchoolLectureLink.lecture_id == lecture_id,
+                SchoolLectureLink.target_grade_subject_offering_id
+                == target_grade_subject_offering_id,
+            )
+        )
+        return result.scalar_one_or_none()
+
+    async def create(self, link: SchoolLectureLink) -> SchoolLectureLink:
+        self._session.add(link)
+        await self._session.commit()
+        await self._session.refresh(link)
+        return link

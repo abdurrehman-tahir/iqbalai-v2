@@ -204,3 +204,23 @@ class LectureParagraphRead(BaseModel):
     tier: SourceTier
     book_name: str | None = None
     source_url: str | None = None
+
+
+class LectureLinkCreate(BaseModel):
+    """Self-link a lecture into another Grade-Subject offering the teacher owns (T-122)."""
+
+    target_grade_subject_offering_id: str = Field(min_length=1, max_length=36)
+
+
+class LectureLinkRead(BaseModel):
+    """A lecture's link into an additional Grade-Subject offering (T-122, #21)."""
+
+    id: str
+    lecture_id: str
+    target_grade_subject_offering_id: str
+    target_grade_id: str
+    target_grade_name: str
+    target_grade_level_ordinal: int
+    target_subject_id: str
+    target_subject_name: str
+    created_at: datetime

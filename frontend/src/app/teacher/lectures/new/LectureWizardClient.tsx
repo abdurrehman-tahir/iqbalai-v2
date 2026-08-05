@@ -738,6 +738,7 @@ function GenerationStreamPanel({
           <p className="text-sm text-gray-700">{t("generating_complete_body")}</p>
         </div>
         <LectureParagraphsView token={token!} lectureId={lectureId} t={t} />
+        <LectureLinksPanel token={token!} lectureId={lectureId} t={t} />
         <VoiceConversationPanel lectureId={lectureId} t={t} />
       </section>
     );
@@ -858,6 +859,128 @@ function SourceBadge({
       throw new Error(`unhandled source tier: ${_exhaustive}`);
     }
   }
+}
+
+/** Cross-grade / cross-subject lecture linking (T-122, #21) — the lecture detail view. */
+function LectureLinksPanel({
+  token,
+  lectureId,
+  t,
+}: {
+  token: string;
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const qc = useQueryClient();
+  const [targetOfferingId, setTargetOfferingId] = useState("");
+  const [linkError, setLinkError] = useState<string | null>(null);
+
+  const offeringsQuery = useQuery({
+    queryKey: ["teacher", "offerings"],
+    queryFn: () => lectureWizardApi.listOfferings(token),
+  });
+
+  const linksQuery = useQuery({
+    queryKey: ["teacher", "lecture-links", lectureId],
+    queryFn: () => lectureWizardApi.listLinks(token, lectureId),
+  });
+
+  const linkMutation = useMutation({
+    mutationFn: (offeringId: string) =>
+      lectureWizardApi.createLink(token, lectureId, {
+        target_grade_subject_offering_id: offeringId,
+      }),
+    onSuccess: () => {
+      setLinkError(null);
+      setTargetOfferingId("");
+      void qc.invalidateQueries({ queryKey: ["teacher", "lecture-links", lectureId] });
+    },
+    onError: (err: unknown) => {
+      setLinkError(err instanceof ApiError ? err.message : t("links_create_error"));
+    },
+  });
+
+  if (linksQuery.isLoading || offeringsQuery.isLoading) {
+    return (
+      <div className="space-y-2" aria-busy="true">
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  if (linksQuery.isError) {
+    return (
+      <ErrorState
+        title={t("links_error")}
+        description={t("links_error")}
+        onRetry={() => void linksQuery.refetch()}
+        retryLabel={t("retry")}
+      />
+    );
+  }
+
+  const offerings = offeringsQuery.data ?? [];
+  const links = linksQuery.data ?? [];
+
+  return (
+    <section className="space-y-3" aria-labelledby="lecture-links-heading">
+      <h3 id="lecture-links-heading" className="text-lg font-medium text-gray-900">
+        {t("links_title")}
+      </h3>
+
+      {links.length === 0 ? (
+        <p className="text-sm text-gray-600" role="status">
+          {t("links_empty")}
+        </p>
+      ) : (
+        <ul className="space-y-2">
+          {links.map((link) => (
+            <li
+              key={link.id}
+              className="rounded-md border border-gray-200 p-2 text-sm text-gray-800"
+            >
+              {t("links_item", {
+                grade: link.target_grade_name,
+                subject: link.target_subject_name,
+              })}
+            </li>
+          ))}
+        </ul>
+      )}
+
+      <div className="flex flex-wrap items-end gap-2">
+        <div className="space-y-1">
+          <Label htmlFor="link-target-offering">{t("links_target_label")}</Label>
+          <select
+            id="link-target-offering"
+            className="flex h-11 w-full min-w-64 rounded-md border border-gray-300 bg-white px-3 text-sm"
+            value={targetOfferingId}
+            onChange={(e) => setTargetOfferingId(e.target.value)}
+          >
+            <option value="">{t("links_target_placeholder")}</option>
+            {offerings.map((o) => (
+              <option key={o.id} value={o.id}>
+                {o.grade_name} · {o.subject_name} ({o.academic_session})
+              </option>
+            ))}
+          </select>
+        </div>
+        <Button
+          type="button"
+          disabled={!targetOfferingId || linkMutation.isPending}
+          onClick={() => linkMutation.mutate(targetOfferingId)}
+        >
+          {linkMutation.isPending ? t("links_linking") : t("links_link_button")}
+        </Button>
+      </div>
+
+      {linkError ? (
+        <p className="text-sm text-red-700" role="alert">
+          {linkError}
+        </p>
+      ) : null}
+    </section>
+  );
 }
 
 // Lecture generation doesn't expose a per-lecture language selector anywhere

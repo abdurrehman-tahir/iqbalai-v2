@@ -364,6 +364,55 @@ class SchoolLectureDraft(AuditMixin, SoftDeleteMixin, Base):
         super().__init__(**kwargs)
 
 
+class SchoolLectureLink(AuditMixin, Base):
+    """Links a lecture into an additional Grade-Subject offering (T-122, #21).
+
+    Self-link only: the teacher links one of their own lectures into another
+    Grade-Subject offering they're assigned to (auto-approve, no admin-approval
+    workflow — narrower than flow-5 §3.13's full cross-teacher lifecycle, per
+    this ticket's acceptance criteria). No soft-delete: a link either exists
+    or is removed outright. School schema only — independent lectures have no
+    Grade-Subject offering to link into (ARCH §3.18).
+    """
+
+    __tablename__ = "lecture_links"
+    __table_args__ = (
+        UniqueConstraint(
+            "lecture_id",
+            "target_grade_subject_offering_id",
+            name="lecture_links_lecture_target_uq",
+        ),
+        Index("ix_lecture_links_lecture_id", "lecture_id"),
+        Index(
+            "ix_lecture_links_target_grade_subject_offering_id",
+            "target_grade_subject_offering_id",
+        ),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lectures.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    target_grade_subject_offering_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.grade_subject_offerings.id", ondelete="RESTRICT"),
+        nullable=False,
+    )
+    created_by_user_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        super().__init__(**kwargs)
+
+
 # ---------------------------------------------------------------------------
 # Independent schema — same tables; school_id / offering_id always null (no FKs).
 # ---------------------------------------------------------------------------

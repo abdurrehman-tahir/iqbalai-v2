@@ -2385,6 +2385,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/lectures/{lecture_id}/links": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List a lecture's cross-grade/subject links (T-122, #21) */
+        get: operations["teacher_list_lecture_links"];
+        put?: never;
+        /** Self-link a lecture into another owned Grade-Subject offering (T-122, #21) */
+        post: operations["teacher_create_lecture_link"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/lectures/{lecture_id}/paragraphs": {
         parameters: {
             query?: never;
@@ -3694,6 +3712,41 @@ export interface components {
             topic: string;
         };
         /**
+         * LectureLinkCreate
+         * @description Self-link a lecture into another Grade-Subject offering the teacher owns (T-122).
+         */
+        LectureLinkCreate: {
+            /** Target Grade Subject Offering Id */
+            target_grade_subject_offering_id: string;
+        };
+        /**
+         * LectureLinkRead
+         * @description A lecture's link into an additional Grade-Subject offering (T-122, #21).
+         */
+        LectureLinkRead: {
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Target Grade Id */
+            target_grade_id: string;
+            /** Target Grade Level Ordinal */
+            target_grade_level_ordinal: number;
+            /** Target Grade Name */
+            target_grade_name: string;
+            /** Target Grade Subject Offering Id */
+            target_grade_subject_offering_id: string;
+            /** Target Subject Id */
+            target_subject_id: string;
+            /** Target Subject Name */
+            target_subject_name: string;
+        };
+        /**
          * LectureParagraphRead
          * @description One paragraph of the lecture's current version, with source attribution (T-118).
          */
@@ -4853,6 +4906,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LectureLinkRead] */
+        SuccessEnvelope_LectureLinkRead_: {
+            data: components["schemas"]["LectureLinkRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LibraryBookListResponse] */
         SuccessEnvelope_LibraryBookListResponse_: {
             data: components["schemas"]["LibraryBookListResponse"];
@@ -5253,6 +5315,16 @@ export interface components {
         SuccessEnvelope_list_GraduationRequestRead__: {
             /** Data */
             data: components["schemas"]["GraduationRequestRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[LectureLinkRead]] */
+        SuccessEnvelope_list_LectureLinkRead__: {
+            /** Data */
+            data: components["schemas"]["LectureLinkRead"][];
             /**
              * Message
              * @default ok
@@ -10861,6 +10933,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_WizardTopicsRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_lecture_links: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_LectureLinkRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_create_lecture_link: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureLinkCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureLinkRead_"];
                 };
             };
             /** @description Validation Error */

@@ -8,12 +8,15 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
+from app.core.idempotency import IdempotencyContext, idempotency_key
 from app.core.responses import SuccessEnvelope, success
 from app.features.lectures.schemas import (
     LectureDraftRead,
     LectureDraftUpsert,
     LectureGenerateRead,
     LectureGenerateRequest,
+    LectureLinkCreate,
+    LectureLinkRead,
     LectureParagraphRead,
     TeacherOfferingRead,
     TeachingMode,
@@ -184,3 +187,48 @@ async def get_lecture_paragraphs(
     svc = LectureWizardService(db)
     rows = await svc.get_lecture_paragraphs(claims, lecture_id)
     return success([r.model_dump(mode="json") for r in rows])
+
+
+@router.get(
+    "/lectures/{lecture_id}/links",
+    response_model=SuccessEnvelope[list[LectureLinkRead]],
+    operation_id="teacher_list_lecture_links",
+    summary="List a lecture's cross-grade/subject links (T-122, #21)",
+    dependencies=[require_role("teacher")],
+)
+async def list_lecture_links(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    rows = await svc.list_lecture_links(claims, lecture_id)
+    return success([r.model_dump(mode="json") for r in rows])
+
+
+@router.post(
+    "/lectures/{lecture_id}/links",
+    response_model=SuccessEnvelope[LectureLinkRead],
+    operation_id="teacher_create_lecture_link",
+    summary="Self-link a lecture into another owned Grade-Subject offering (T-122, #21)",
+    dependencies=[require_role("teacher")],
+)
+async def create_lecture_link(
+    lecture_id: str,
+    payload: LectureLinkCreate,
+    claims: dict[str, object] = Depends(get_current_user),
+    idem: IdempotencyContext | None = Depends(idempotency_key),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    if idem is not None:
+        cached = await idem.cached_response()
+        if cached is not None:
+            return cached
+
+    svc = LectureWizardService(db)
+    result = await svc.link_lecture(claims, lecture_id, payload)
+    response = success(result.model_dump(mode="json"))
+
+    if idem is not None:
+        await idem.store_response(response)
+    return response

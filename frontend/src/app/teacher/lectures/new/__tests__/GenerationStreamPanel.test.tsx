@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, vi, beforeEach } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider } from "next-intl";
@@ -49,6 +49,8 @@ const upsertDraft = vi.fn();
 const getEstimate = vi.fn();
 const generate = vi.fn();
 const getParagraphs = vi.fn();
+const listLinks = vi.fn();
+const createLink = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   lectureWizardApi: {
@@ -61,6 +63,8 @@ vi.mock("@/lib/api", () => ({
     getEstimate: (...args: unknown[]) => getEstimate(...args),
     generate: (...args: unknown[]) => generate(...args),
     getParagraphs: (...args: unknown[]) => getParagraphs(...args),
+    listLinks: (...args: unknown[]) => listLinks(...args),
+    createLink: (...args: unknown[]) => createLink(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -73,7 +77,20 @@ vi.mock("@/lib/api", () => ({
   },
 }));
 
-function renderAtStep5GeneratingLecture() {
+const DEFAULT_OFFERING = {
+  id: "off-1",
+  grade_id: "g-1",
+  grade_name: "Grade 9",
+  grade_level_ordinal: 9,
+  subject_id: "s-1",
+  subject_name: "Physics",
+  academic_session: "2025-2026",
+};
+
+function renderAtStep5GeneratingLecture(
+  offerings: (typeof DEFAULT_OFFERING)[] = [DEFAULT_OFFERING],
+  links: unknown[] = []
+) {
   getDraft.mockResolvedValue({
     id: "draft-1",
     teacher_user_id: "t-1",
@@ -90,17 +107,7 @@ function renderAtStep5GeneratingLecture() {
     },
     updated_at: "2026-07-30T00:00:00Z",
   });
-  listOfferings.mockResolvedValue([
-    {
-      id: "off-1",
-      grade_id: "g-1",
-      grade_name: "Grade 9",
-      grade_level_ordinal: 9,
-      subject_id: "s-1",
-      subject_name: "Physics",
-      academic_session: "2025-2026",
-    },
-  ]);
+  listOfferings.mockResolvedValue(offerings);
   listCurricula.mockResolvedValue([]);
   listReferences.mockResolvedValue([]);
   getEstimate.mockResolvedValue({
@@ -108,6 +115,7 @@ function renderAtStep5GeneratingLecture() {
     reference_count: 0,
     teaching_mode: "auto",
   });
+  listLinks.mockResolvedValue(links);
 
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -343,5 +351,118 @@ describe("VoiceConversationPanel (T-121)", () => {
     renderAtStep5GeneratingLecture();
 
     expect(await screen.findByText(/voice session ended/i)).toBeInTheDocument();
+  });
+});
+
+describe("LectureLinksPanel (T-122)", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockVoice.mockReturnValue({ ...IDLE_VOICE_STATE });
+    getParagraphs.mockResolvedValue([]);
+    mockStream.mockReturnValue({
+      status: "complete",
+      text: "Newton's first law...",
+      versionId: "ver-1",
+      errorReason: null,
+    });
+  });
+
+  // A second offering the teacher owns, at a lower grade — a valid link target.
+  const TWO_OFFERINGS = [
+    DEFAULT_OFFERING,
+    {
+      id: "off-2",
+      grade_id: "g-2",
+      grade_name: "Grade 8",
+      grade_level_ordinal: 8,
+      subject_id: "s-2",
+      subject_name: "Chemistry",
+      academic_session: "2025-2026",
+    },
+  ];
+
+  it("shows an empty state when the lecture has no links yet", async () => {
+    renderAtStep5GeneratingLecture(TWO_OFFERINGS, []);
+
+    expect(await screen.findByText(/not linked to any other/i)).toBeInTheDocument();
+  });
+
+  it("renders existing links", async () => {
+    renderAtStep5GeneratingLecture(TWO_OFFERINGS, [
+      {
+        id: "link-1",
+        lecture_id: "lec-1",
+        target_grade_subject_offering_id: "off-2",
+        target_grade_id: "g-2",
+        target_grade_name: "Grade 8",
+        target_grade_level_ordinal: 8,
+        target_subject_id: "s-2",
+        target_subject_name: "Chemistry",
+        created_at: "2026-08-05T00:00:00Z",
+      },
+    ]);
+
+    const list = await screen.findByRole("list");
+    expect(within(list).getByText(/grade 8/i)).toBeInTheDocument();
+    expect(within(list).getByText(/chemistry/i)).toBeInTheDocument();
+  });
+
+  it("links the lecture into another owned offering", async () => {
+    listLinks.mockResolvedValueOnce([]).mockResolvedValueOnce([
+      {
+        id: "link-1",
+        lecture_id: "lec-1",
+        target_grade_subject_offering_id: "off-2",
+        target_grade_id: "g-2",
+        target_grade_name: "Grade 8",
+        target_grade_level_ordinal: 8,
+        target_subject_id: "s-2",
+        target_subject_name: "Chemistry",
+        created_at: "2026-08-05T00:00:00Z",
+      },
+    ]);
+    createLink.mockResolvedValue({
+      id: "link-1",
+      lecture_id: "lec-1",
+      target_grade_subject_offering_id: "off-2",
+      target_grade_id: "g-2",
+      target_grade_name: "Grade 8",
+      target_grade_level_ordinal: 8,
+      target_subject_id: "s-2",
+      target_subject_name: "Chemistry",
+      created_at: "2026-08-05T00:00:00Z",
+    });
+    const user = userEvent.setup();
+    renderAtStep5GeneratingLecture(TWO_OFFERINGS);
+
+    await screen.findByText(/not linked to any other/i);
+    await user.selectOptions(screen.getByLabelText(/link into another offering/i), "off-2");
+    await user.click(screen.getByRole("button", { name: /link lecture/i }));
+
+    expect(createLink).toHaveBeenCalledWith("tok", "lec-1", {
+      target_grade_subject_offering_id: "off-2",
+    });
+    const list = await screen.findByRole("list");
+    expect(within(list).getByText(/grade 8/i)).toBeInTheDocument();
+  });
+
+  it("shows an inline error when linking fails", async () => {
+    createLink.mockRejectedValue(new Error("PRECONDITION_FAILED"));
+    const user = userEvent.setup();
+    renderAtStep5GeneratingLecture(TWO_OFFERINGS, []);
+
+    await user.selectOptions(await screen.findByLabelText(/link into another offering/i), "off-2");
+    await user.click(screen.getByRole("button", { name: /link lecture/i }));
+
+    expect(await screen.findByRole("alert")).toBeInTheDocument();
+  });
+
+  it("shows an error state with retry when the links read fails", async () => {
+    renderAtStep5GeneratingLecture(TWO_OFFERINGS);
+    // Set after render: the helper's own default listLinks resolution must not
+    // stomp this rejection (queryFn execution is deferred past the sync render).
+    listLinks.mockRejectedValue(new Error("network error"));
+
+    expect(await screen.findByRole("button", { name: /retry/i })).toBeInTheDocument();
   });
 });

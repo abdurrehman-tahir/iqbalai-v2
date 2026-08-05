@@ -59,6 +59,8 @@ import type {
   LectureGenerateRequest,
   LectureGenerateRead,
   LectureParagraphRead,
+  LectureLinkCreate,
+  LectureLinkRead,
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
@@ -1138,6 +1140,20 @@ export const lectureWizardApi = {
     }, token),
   getParagraphs: (token: string, lectureId: string) =>
     request<LectureParagraphRead[]>(`/teachers/me/lectures/${lectureId}/paragraphs`, {}, token),
+  listLinks: (token: string, lectureId: string) =>
+    request<LectureLinkRead[]>(`/teachers/me/lectures/${lectureId}/links`, {}, token),
+  createLink: (token: string, lectureId: string, data: LectureLinkCreate) =>
+    request<LectureLinkRead>(
+      `/teachers/me/lectures/${lectureId}/links`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        // Idempotency-Key (ARCH §5.9): a retried POST (double-click, network retry)
+        // returns the cached link instead of creating a duplicate.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
 };
 
 export const studentOnboardingApi = {

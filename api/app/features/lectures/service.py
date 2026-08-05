@@ -21,9 +21,11 @@ from app.features.lectures.models import (
     LectureType,
     SchoolLecture,
     SchoolLectureDraft,
+    SchoolLectureLink,
 )
 from app.features.lectures.repository import (
     LectureDraftRepository,
+    LectureLinkRepository,
     LectureParagraphRepository,
     LectureRepository,
 )
@@ -32,6 +34,8 @@ from app.features.lectures.schemas import (
     LectureDraftUpsert,
     LectureGenerateRead,
     LectureGenerateRequest,
+    LectureLinkCreate,
+    LectureLinkRead,
     LectureParagraphRead,
     ParagraphSourceMetadata,
     TeacherOfferingRead,
@@ -136,6 +140,7 @@ class LectureWizardService:
         self._drafts = LectureDraftRepository(session)
         self._lectures = LectureRepository(session)
         self._paragraphs = LectureParagraphRepository(session)
+        self._links = LectureLinkRepository(session)
         self._profiles = TeacherProfileRepository(session)
 
     async def _require_school_teacher(self, claims: dict[str, object]) -> User:
@@ -160,6 +165,20 @@ class LectureWizardService:
         ):
             raise NotFoundError("Grade-Subject offering not found")
         return offering
+
+    async def _require_owned_lecture(self, teacher: User, lecture_id: str) -> SchoolLecture:
+        """Ownership check mirrors the WS route (T-117): same school, owning teacher.
+
+        T-123 broadens this to real per-lecture ACLs.
+        """
+        lecture = await self._lectures.get_by_id(lecture_id)
+        if (
+            lecture is None
+            or lecture.school_id != teacher.school_id
+            or lecture.teacher_user_id != teacher.id
+        ):
+            raise NotFoundError("Lecture not found")
+        return lecture
 
     async def list_my_offerings(self, claims: dict[str, object]) -> list[TeacherOfferingRead]:
         teacher = await self._require_school_teacher(claims)
@@ -497,13 +516,7 @@ class LectureWizardService:
         teacher — T-123 broadens this to real per-lecture ACLs.
         """
         teacher = await self._require_school_teacher(claims)
-        lecture = await self._lectures.get_by_id(lecture_id)
-        if (
-            lecture is None
-            or lecture.school_id != teacher.school_id
-            or lecture.teacher_user_id != teacher.id
-        ):
-            raise NotFoundError("Lecture not found")
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
 
         if lecture.current_version_id is None:
             return []
@@ -519,3 +532,94 @@ class LectureWizardService:
             )
             for p in paragraphs
         ]
+
+    async def _read_link(self, link: SchoolLectureLink) -> LectureLinkRead | None:
+        offering = await self._offerings.get_by_id(link.target_grade_subject_offering_id)
+        if offering is None:
+            return None
+        grade = await self._grades.get_by_id(offering.grade_id)
+        subject = await self._subjects.get_by_id(offering.subject_id)
+        if grade is None or subject is None:
+            return None
+        return LectureLinkRead(
+            id=link.id,
+            lecture_id=link.lecture_id,
+            target_grade_subject_offering_id=offering.id,
+            target_grade_id=grade.id,
+            target_grade_name=grade.name,
+            target_grade_level_ordinal=grade.level_ordinal,
+            target_subject_id=offering.subject_id,
+            target_subject_name=subject.name,
+            created_at=link.created_at,
+        )
+
+    async def list_lecture_links(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> list[LectureLinkRead]:
+        """Links rendered in the lecture detail view (T-122, #21)."""
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+
+        links = await self._links.list_by_lecture(lecture.id)
+        result: list[LectureLinkRead] = []
+        for link in links:
+            read = await self._read_link(link)
+            if read is not None:
+                result.append(read)
+        return result
+
+    async def link_lecture(
+        self, claims: dict[str, object], lecture_id: str, payload: LectureLinkCreate
+    ) -> LectureLinkRead:
+        """Self-link a lecture into another Grade-Subject offering the teacher owns.
+
+        Auto-approved (no admin-approval workflow — see T-122 scope note). The
+        unidirectional cross-grade rule (target grade <= source grade) is enforced
+        by reusing T-047's ``assert_cross_grade_access_by_ordinal`` guard, not
+        reimplemented here. Cross-subject linking is allowed implicitly: the
+        target offering's subject need not match the source lecture's subject.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.grade_subject_offering_id is None:
+            raise ValidationError("Lecture has no source Grade-Subject offering to link from")
+
+        source_offering = await self._offerings.get_by_id(lecture.grade_subject_offering_id)
+        if source_offering is None:
+            raise NotFoundError("Source Grade-Subject offering not found")
+        source_grade = await self._grades.get_by_id(source_offering.grade_id)
+        if source_grade is None:
+            raise NotFoundError("Source grade not found")
+
+        target_offering = await self._require_owned_offering(
+            teacher, payload.target_grade_subject_offering_id
+        )
+        if target_offering.id == source_offering.id:
+            raise ValidationError("Cannot link a lecture to its own Grade-Subject offering")
+        target_grade = await self._grades.get_by_id(target_offering.grade_id)
+        if target_grade is None:
+            raise NotFoundError("Target grade not found")
+
+        assert_cross_grade_access_by_ordinal(source_grade.level_ordinal, target_grade.level_ordinal)
+
+        existing = await self._links.get_existing(lecture.id, target_offering.id)
+        if existing is not None:
+            raise ValidationError("Lecture is already linked to this Grade-Subject offering")
+
+        link = SchoolLectureLink(
+            lecture_id=lecture.id,
+            target_grade_subject_offering_id=target_offering.id,
+            created_by_user_id=teacher.id,
+        )
+        link = await self._links.create(link)
+
+        logger.info(
+            "lecture_link_created",
+            lecture_id=lecture.id,
+            target_grade_subject_offering_id=target_offering.id,
+            teacher_user_id=teacher.id,
+        )
+        read = await self._read_link(link)
+        if read is None:
+            raise NotFoundError("Target Grade-Subject offering not found")
+        return read

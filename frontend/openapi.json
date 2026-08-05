@@ -2803,6 +2803,77 @@
         "title": "LectureGenerateRequest",
         "type": "object"
       },
+      "LectureLinkCreate": {
+        "description": "Self-link a lecture into another Grade-Subject offering the teacher owns (T-122).",
+        "properties": {
+          "target_grade_subject_offering_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Target Grade Subject Offering Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_grade_subject_offering_id"
+        ],
+        "title": "LectureLinkCreate",
+        "type": "object"
+      },
+      "LectureLinkRead": {
+        "description": "A lecture's link into an additional Grade-Subject offering (T-122, #21).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "target_grade_id": {
+            "title": "Target Grade Id",
+            "type": "string"
+          },
+          "target_grade_level_ordinal": {
+            "title": "Target Grade Level Ordinal",
+            "type": "integer"
+          },
+          "target_grade_name": {
+            "title": "Target Grade Name",
+            "type": "string"
+          },
+          "target_grade_subject_offering_id": {
+            "title": "Target Grade Subject Offering Id",
+            "type": "string"
+          },
+          "target_subject_id": {
+            "title": "Target Subject Id",
+            "type": "string"
+          },
+          "target_subject_name": {
+            "title": "Target Subject Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "target_grade_subject_offering_id",
+          "target_grade_id",
+          "target_grade_name",
+          "target_grade_level_ordinal",
+          "target_subject_id",
+          "target_subject_name",
+          "created_at"
+        ],
+        "title": "LectureLinkRead",
+        "type": "object"
+      },
       "LectureParagraphRead": {
         "description": "One paragraph of the lecture's current version, with source attribution (T-118).",
         "properties": {
@@ -5449,6 +5520,23 @@
         "title": "SuccessEnvelope[LectureGenerateRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureLinkRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureLinkRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureLinkRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LibraryBookListResponse_": {
         "properties": {
           "data": {
@@ -6235,6 +6323,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[GraduationRequestRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_LectureLinkRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/LectureLinkRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[LectureLinkRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_LectureParagraphRead__": {
@@ -14595,6 +14704,98 @@
           }
         },
         "summary": "List topic-tree options for a curriculum (freeform when degraded)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/links": {
+      "get": {
+        "operationId": "teacher_list_lecture_links",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_LectureLinkRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List a lecture's cross-grade/subject links (T-122, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      },
+      "post": {
+        "operationId": "teacher_create_lecture_link",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureLinkCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureLinkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Self-link a lecture into another owned Grade-Subject offering (T-122, #21)",
         "tags": [
           "lecture-wizard"
         ]
