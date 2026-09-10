@@ -580,7 +580,7 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Milestone:** M-09
 **Estimate:** 0.5 day
 **Status:** done
-**Commit:** pending-pr
+**Commit:** `2250a7a`
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` v1 (generation portions)
