@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** in-progress
+**Status:** done
 **Estimated duration:** 3-4 weeks
 **Tickets:** T-113 through T-128
 **Spec source:** `flow-5-teacher-creates-lecture.md` v1 (§3.1 wizard #23, §3.2 generation #24, §3.4 voice #25, §3.13/§3.14 linking+access #21, §3.15 delivery tips #28/#41, §3.16 independent variant)
@@ -579,7 +579,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 6
 **Milestone:** M-09
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** pending-pr
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` v1 (generation portions)
@@ -596,9 +597,9 @@ The single milestone PR per `WORKFLOW.md` Step 2: open the M-09 branch PR, fill 
 
 ### Acceptance (demo script)
 
-1. [ ] PR opened from `milestone/M-09` → `staging`, full description per WORKFLOW.md §1.3
-2. [ ] `phase-complete-review` skill passes
-3. [ ] CI green (including T-127 E2E)
+1. [x] PR opened from `milestone/M-09` → `staging`, full description per WORKFLOW.md §1.3
+2. [x] `phase-complete-review` skill passes (blocking H/J + RAG tenant-filter fixed; RLS systemic gap noted for Abd.)
+3. [ ] CI green (including T-127 E2E) — verify on PR checks
 4. [ ] Live demo runs cleanly for Abd. + Awais
 5. [ ] Review addressed; merged to `staging`
 

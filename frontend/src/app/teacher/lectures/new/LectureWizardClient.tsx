@@ -230,6 +230,15 @@ export function LectureWizardClient() {
             <Skeleton className="h-24 w-full" />
           ) : null}
 
+          {data.curriculum_id && topicsQuery.isError ? (
+            <ErrorState
+              title={t("topics_error")}
+              description={t("topics_error")}
+              onRetry={() => void topicsQuery.refetch()}
+              retryLabel={t("retry")}
+            />
+          ) : null}
+
           {data.curriculum_id && parseDegraded ? (
             <div className="space-y-2">
               <p className="text-sm text-amber-800" role="status">
@@ -243,6 +252,16 @@ export function LectureWizardClient() {
                 maxLength={500}
               />
             </div>
+          ) : null}
+
+          {data.curriculum_id &&
+          !topicsQuery.isLoading &&
+          !topicsQuery.isError &&
+          !parseDegraded &&
+          topics.length === 0 ? (
+            <p className="text-sm text-gray-600" role="status">
+              {t("topics_empty")}
+            </p>
           ) : null}
 
           {data.curriculum_id && !parseDegraded && topics.length > 0 ? (
@@ -654,6 +673,14 @@ function Step5Confirm({
         {t("refs_summary", { count: refs.length })}
       </p>
       {estimateQuery.isLoading ? <Skeleton className="h-8 w-48" /> : null}
+      {estimateQuery.isError ? (
+        <ErrorState
+          title={t("estimate_error")}
+          description={t("estimate_error")}
+          onRetry={() => void estimateQuery.refetch()}
+          retryLabel={t("retry")}
+        />
+      ) : null}
       {estimateQuery.data ? (
         <p className="text-sm font-medium text-brand-800" role="status">
           {t("estimate_label", { seconds: estimateQuery.data.estimated_seconds })}

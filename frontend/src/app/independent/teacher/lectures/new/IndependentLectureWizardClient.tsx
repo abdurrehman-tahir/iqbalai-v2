@@ -104,6 +104,17 @@ export function IndependentLectureWizardClient() {
     );
   }
 
+  if (draftQuery.isError) {
+    return (
+      <ErrorState
+        title={t("draft_error")}
+        description={t("draft_error")}
+        onRetry={() => void draftQuery.refetch()}
+        retryLabel={t("retry")}
+      />
+    );
+  }
+
   if (referencesQuery.isError) {
     return (
       <ErrorState

@@ -203,7 +203,7 @@ test.describe("Lecture wizard @smoke", () => {
     await expect(page.getByText(/Step 2 — Confirm curriculum/i)).toBeVisible();
     await page.getByRole("button", { name: /Continue/i }).click();
 
-    await expect(page.getByText(/Step 3 — Select reference/i)).toBeVisible();
+    await expect(page.getByText(/Step 3 — Select reference/i )).toBeVisible();
     await page.getByText("Halliday").click();
     await page.getByRole("button", { name: /Continue/i }).click();
 
@@ -216,5 +216,152 @@ test.describe("Lecture wizard @smoke", () => {
     await page.getByRole("button", { name: /Generate lecture/i }).click();
     await expect(page.getByText(/Generation started/i)).toBeVisible();
     await expect(page.getByText(/GENERATING/i)).toBeVisible();
+  });
+});
+
+async function installIndependentWizardMocks(page: Page) {
+  await page.route(
+    (url) => url.pathname.includes("/api/v1/") || url.pathname.includes("/auth/me"),
+    async (route: Route) => {
+      const request = route.request();
+      const url = new URL(request.url());
+      let path = url.pathname.replace("/api/v1", "");
+      if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
+      const method = request.method();
+
+      if (method === "GET" && path === "/auth/me") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            user_id: "ind-teacher-1",
+            email: "ind@test.com",
+            role: "independent_teacher",
+            tenant_type: "independent",
+            school_id: null,
+            district_id: null,
+          }),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/independent/teachers/me/onboarding") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            state: "ready",
+            profile_complete: true,
+          }),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/independent/teachers/me/lecture-draft") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            id: null,
+            teacher_user_id: "ind-teacher-1",
+            step: 1,
+            data: {},
+            updated_at: null,
+          }),
+        });
+        return;
+      }
+
+      if (method === "PUT" && path === "/independent/teachers/me/lecture-draft") {
+        const body = request.postDataJSON() as { step?: number; data: object };
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            id: "ind-draft-1",
+            teacher_user_id: "ind-teacher-1",
+            step: body.step ?? 1,
+            data: body.data,
+            updated_at: "2026-07-30T00:00:00Z",
+          }),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/independent/teachers/me/lecture-wizard/references") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope([
+            {
+              id: "ind-ref-1",
+              title: "My Physics Notes",
+              language: "en",
+            },
+          ]),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/independent/teachers/me/lecture-wizard/estimate") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            estimated_seconds: 90,
+            reference_count: 1,
+            teaching_mode: "auto",
+          }),
+        });
+        return;
+      }
+
+      if (method === "POST" && path === "/independent/teachers/me/lecture-wizard/generate") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            lecture_id: "ind-lec-1",
+            status: "generating",
+            estimated_seconds: 90,
+          }),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/independent/teachers/me/lectures/ind-lec-1") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            id: "ind-lec-1",
+            title: "Newton's Laws",
+            topic: "Newton's Laws of Motion",
+            status: "generating",
+            current_version: null,
+          }),
+        });
+        return;
+      }
+
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({}),
+      });
+    }
+  );
+}
+
+test.describe("Independent lecture wizard @smoke", () => {
+  test("independent teacher can generate from stripped wizard", async ({ page }) => {
+    await installIndependentWizardMocks(page);
+    await page.goto(`${BASE_URL}/independent/teacher/lectures/new`);
+
+    await expect(page.getByRole("heading", { name: /Create a lecture/i })).toBeVisible();
+    await page.getByLabel(/Topic/i).fill("Newton's Laws of Motion");
+    await page.getByText("My Physics Notes").click();
+    await page.getByRole("button", { name: /Generate lecture/i }).click();
+    await expect(page.getByText(/Generating your lecture/i)).toBeVisible();
   });
 });

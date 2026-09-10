@@ -270,7 +270,12 @@ async def _run_teacher_tips_generation(
     )
 
 
-@shared_task(name="lectures.purge_voice_audio", queue="default")  # type: ignore[misc]
+@shared_task(  # type: ignore[misc]
+    name="lectures.purge_voice_audio",
+    queue="default",
+    soft_time_limit=120,
+    time_limit=180,
+)
 def purge_expired_voice_audio() -> dict[str, object]:
     """Delete raw voice-turn audio past retention (T-121 #25, flow-5 §6 Limits).
 
