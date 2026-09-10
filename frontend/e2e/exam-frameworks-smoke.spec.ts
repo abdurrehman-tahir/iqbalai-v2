@@ -262,6 +262,7 @@ test.describe("Platform Admin Exam Frameworks @smoke", () => {
       id: "framework-pending",
       name: "Matric Sindh — Chemistry",
       exam_target: "Matric Sindh Board — Chemistry",
+      subject_slug: "chemistry",
       region: "Sindh",
       target_grade_range: [9, 10],
       language: "en",

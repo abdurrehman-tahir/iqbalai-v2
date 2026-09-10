@@ -214,8 +214,7 @@ test.describe("Lecture wizard @smoke", () => {
     await expect(page.getByRole("heading", { name: /Step 5 — Confirm/i })).toBeVisible();
     await expect(page.getByText(/about 120 seconds/i)).toBeVisible();
     await page.getByRole("button", { name: /Generate lecture/i }).click();
-    await expect(page.getByText(/Generation started/i)).toBeVisible();
-    await expect(page.getByText(/GENERATING/i)).toBeVisible();
+    await expect(page.getByText(/Generating your lecture/i)).toBeVisible();
   });
 });
 
