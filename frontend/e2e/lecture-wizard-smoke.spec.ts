@@ -200,18 +200,18 @@ test.describe("Lecture wizard @smoke", () => {
     await page.getByText("Forces > Newton").click();
     await page.getByRole("button", { name: /Continue/i }).click();
 
-    await expect(page.getByText(/Step 2 — Confirm curriculum/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Step 2 — Confirm curriculum/i })).toBeVisible();
     await page.getByRole("button", { name: /Continue/i }).click();
 
-    await expect(page.getByText(/Step 3 — Select reference/i )).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Step 3 — Select reference/i })).toBeVisible();
     await page.getByText("Halliday").click();
     await page.getByRole("button", { name: /Continue/i }).click();
 
-    await expect(page.getByText(/Step 4 — Teaching mode/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Step 4 — Teaching mode/i })).toBeVisible();
     await page.getByText(/Auto — AI writes/i).click();
     await page.getByRole("button", { name: /Continue/i }).click();
 
-    await expect(page.getByText(/Step 5 — Confirm/i)).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Step 5 — Confirm/i })).toBeVisible();
     await expect(page.getByText(/about 120 seconds/i)).toBeVisible();
     await page.getByRole("button", { name: /Generate lecture/i }).click();
     await expect(page.getByText(/Generation started/i)).toBeVisible();

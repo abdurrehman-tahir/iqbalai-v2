@@ -250,6 +250,7 @@ async def test_m07_full_framework_lifecycle_e2e() -> None:
         ExamFrameworkCreate(
             name="Matric Punjab — Physics",
             exam_target="Matric Punjab Board — Physics",
+            subject_slug="physics",
             region="Punjab",
             target_grade_range=[9, 10],
             language="en",
@@ -263,6 +264,7 @@ async def test_m07_full_framework_lifecycle_e2e() -> None:
         ExamFrameworkCreate(
             name="Matric Sindh — Physics",
             exam_target="Matric Sindh Board — Physics",
+            subject_slug="physics",
             region="Sindh",
             target_grade_range=[9, 10],
             language="en",

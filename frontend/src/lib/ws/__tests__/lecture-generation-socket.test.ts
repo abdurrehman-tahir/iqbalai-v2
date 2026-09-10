@@ -30,7 +30,7 @@ class FakeWebSocket {
     this.sent.push(data);
   }
 
-  close(_code?: number): void {
+  close(): void {
     this.closed = true;
     this.onclose?.();
   }

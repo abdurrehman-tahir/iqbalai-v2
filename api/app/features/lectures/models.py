@@ -428,6 +428,7 @@ class SchoolLectureLink(AuditMixin, Base):
         String(36),
         ForeignKey("school.users.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
 
     def __init__(self, **kwargs: object) -> None:
@@ -477,16 +478,19 @@ class SchoolLectureAssignment(AuditMixin, Base):
         String(36),
         ForeignKey("school.users.id", ondelete="CASCADE"),
         nullable=True,
+        index=True,
     )
     section_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("school.sections.id", ondelete="CASCADE"),
         nullable=True,
+        index=True,
     )
     created_by_user_id: Mapped[str | None] = mapped_column(
         String(36),
         ForeignKey("school.users.id", ondelete="SET NULL"),
         nullable=True,
+        index=True,
     )
 
     def __init__(self, **kwargs: object) -> None:

@@ -61,10 +61,7 @@ def generate_independent_lecture(
     target_language: str = "en",
 ) -> dict[str, object]:
     """Run reference-only generation; on soft timeout mark lecture timed_out."""
-    from celery.exceptions import (  # type: ignore[import-untyped]
-        SoftTimeLimitExceeded,
-        TimeLimitExceeded,
-    )
+    from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 
     logger.info(
         "independent_lecture_generate_task_started",

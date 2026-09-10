@@ -59,10 +59,7 @@ def generate_lecture(
     target_language: str = "en",
 ) -> dict[str, object]:
     """Run dual-RAG generation; on soft timeout mark lecture timed_out."""
-    from celery.exceptions import (  # type: ignore[import-untyped]
-        SoftTimeLimitExceeded,
-        TimeLimitExceeded,
-    )
+    from celery.exceptions import SoftTimeLimitExceeded, TimeLimitExceeded
 
     logger.info(
         "lecture_generate_task_started",

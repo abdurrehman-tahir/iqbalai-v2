@@ -20,6 +20,7 @@ interface MockFramework {
   id: string;
   name: string;
   exam_target: string;
+  subject_slug: string;
   region: string;
   target_grade_range: number[];
   language: string;
@@ -111,6 +112,7 @@ async function installAdminMocks(page: Page, seed: MockFramework[] = []) {
         const body = (await request.postDataJSON()) as {
           name: string;
           exam_target: string;
+          subject_slug: string;
           region: string;
           target_grade_range: number[];
           language: string;
@@ -119,6 +121,7 @@ async function installAdminMocks(page: Page, seed: MockFramework[] = []) {
           id: `framework-${frameworks.length + 1}`,
           name: body.name,
           exam_target: body.exam_target,
+          subject_slug: body.subject_slug,
           region: body.region,
           target_grade_range: body.target_grade_range,
           language: body.language,
@@ -235,6 +238,7 @@ test.describe("Platform Admin Exam Frameworks @smoke", () => {
       .click();
     await page.fill("#fw-name", "Matric Punjab — Physics");
     await page.fill("#fw-exam-target", "Matric Punjab Board — Physics");
+    await page.fill("#fw-subject-slug", "physics");
     await page.fill("#fw-region", "Punjab");
     await page.fill("#fw-grades", "9, 10");
     await page.getByRole("button", { name: /^create$/i }).click();

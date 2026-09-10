@@ -15,9 +15,10 @@ def test_build_tenant_filter_none_when_empty() -> None:
 def test_build_tenant_filter_school_id() -> None:
     result = build_tenant_filter({"school_id": "school-1"})
     assert isinstance(result, Filter)
-    assert result.must is not None
-    assert len(result.must) == 1
-    condition = result.must[0]
+    must = result.must
+    assert isinstance(must, list)
+    assert len(must) == 1
+    condition = must[0]
     assert isinstance(condition, FieldCondition)
     assert condition.key == "school_id"
     assert isinstance(condition.match, MatchValue)
