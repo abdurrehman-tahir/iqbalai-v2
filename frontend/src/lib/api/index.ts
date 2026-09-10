@@ -49,6 +49,25 @@ import type {
   TeacherCapacityUpdate,
   TeacherCapacityUpdateRead,
   TeacherProfileComplete,
+  TeacherOfferingRead,
+  WizardCurriculumRead,
+  WizardTopicsRead,
+  WizardReferenceRead,
+  WizardEstimateRead,
+  LectureDraftRead,
+  LectureDraftUpsert,
+  LectureGenerateRequest,
+  LectureGenerateRead,
+  LectureParagraphRead,
+  LectureLinkCreate,
+  LectureLinkRead,
+  LectureAccessSettingsRead,
+  LectureAccessSettingsUpdate,
+  LectureRosterRead,
+  LectureTeacherTipsRead,
+  IndependentWizardReferenceRead,
+  IndependentLectureGenerateRequest,
+  IndependentLectureRead,
   SchoolStudentOnboardingRead,
   StudentProfileBasicComplete,
   StudentModeSelect,
@@ -1064,6 +1083,139 @@ export const teacherOnboardingApi = {
     request<TeacherCapacityUpdateRead>(
       "/teachers/me/capacity",
       { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+export const lectureWizardApi = {
+  listOfferings: (token: string) =>
+    request<TeacherOfferingRead[]>("/teachers/me/offerings", {}, token),
+  listCurricula: (token: string, gradeSubjectOfferingId: string) => {
+    const qs = new URLSearchParams({
+      grade_subject_offering_id: gradeSubjectOfferingId,
+    });
+    return request<WizardCurriculumRead[]>(
+      `/teachers/me/lecture-wizard/curricula?${qs}`,
+      {},
+      token
+    );
+  },
+  listTopics: (token: string, curriculumId: string, gradeSubjectOfferingId: string) => {
+    const qs = new URLSearchParams({
+      curriculum_id: curriculumId,
+      grade_subject_offering_id: gradeSubjectOfferingId,
+    });
+    return request<WizardTopicsRead>(`/teachers/me/lecture-wizard/topics?${qs}`, {}, token);
+  },
+  listReferences: (
+    token: string,
+    gradeSubjectOfferingId: string,
+    includeCrossGrade = false
+  ) => {
+    const qs = new URLSearchParams({
+      grade_subject_offering_id: gradeSubjectOfferingId,
+      include_cross_grade: String(includeCrossGrade),
+    });
+    return request<WizardReferenceRead[]>(
+      `/teachers/me/lecture-wizard/references?${qs}`,
+      {},
+      token
+    );
+  },
+  getEstimate: (token: string, teachingMode: string, referenceCount: number) => {
+    const qs = new URLSearchParams({
+      teaching_mode: teachingMode,
+      reference_count: String(referenceCount),
+    });
+    return request<WizardEstimateRead>(
+      `/teachers/me/lecture-wizard/estimate?${qs}`,
+      {},
+      token
+    );
+  },
+  generate: (token: string, data: LectureGenerateRequest) =>
+    request<LectureGenerateRead>("/teachers/me/lecture-wizard/generate", {
+      method: "POST",
+      body: JSON.stringify(data),
+    }, token),
+  getDraft: (token: string) =>
+    request<LectureDraftRead>("/teachers/me/lecture-draft", {}, token),
+  upsertDraft: (token: string, data: LectureDraftUpsert) =>
+    request<LectureDraftRead>("/teachers/me/lecture-draft", {
+      method: "PUT",
+      body: JSON.stringify(data),
+    }, token),
+  getParagraphs: (token: string, lectureId: string) =>
+    request<LectureParagraphRead[]>(`/teachers/me/lectures/${lectureId}/paragraphs`, {}, token),
+  listLinks: (token: string, lectureId: string) =>
+    request<LectureLinkRead[]>(`/teachers/me/lectures/${lectureId}/links`, {}, token),
+  createLink: (token: string, lectureId: string, data: LectureLinkCreate) =>
+    request<LectureLinkRead>(
+      `/teachers/me/lectures/${lectureId}/links`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        // Idempotency-Key (ARCH §5.9): a retried POST (double-click, network retry)
+        // returns the cached link instead of creating a duplicate.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  getAccessSettings: (token: string, lectureId: string) =>
+    request<LectureAccessSettingsRead>(`/teachers/me/lectures/${lectureId}/access`, {}, token),
+  setAccessSettings: (token: string, lectureId: string, data: LectureAccessSettingsUpdate) =>
+    request<LectureAccessSettingsRead>(
+      `/teachers/me/lectures/${lectureId}/access`,
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  getRoster: (token: string, lectureId: string) =>
+    request<LectureRosterRead>(`/teachers/me/lectures/${lectureId}/roster`, {}, token),
+  getTeacherTips: (token: string, lectureId: string) =>
+    request<LectureTeacherTipsRead>(`/teachers/me/lectures/${lectureId}/teacher-tips`, {}, token),
+};
+
+// ── Independent teacher lecture wizard (T-125) ──────────────────────────────
+// Stripped variant: no offerings/curricula/topics (no Grade-Subject concept).
+
+export const independentLectureWizardApi = {
+  listReferences: (token: string) =>
+    request<IndependentWizardReferenceRead[]>(
+      "/independent/teachers/me/lecture-wizard/references",
+      {},
+      token
+    ),
+  getDraft: (token: string) =>
+    request<LectureDraftRead>("/independent/teachers/me/lecture-draft", {}, token),
+  upsertDraft: (token: string, data: LectureDraftUpsert) =>
+    request<LectureDraftRead>(
+      "/independent/teachers/me/lecture-draft",
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  getEstimate: (token: string, teachingMode: string, referenceCount: number) => {
+    const qs = new URLSearchParams({
+      teaching_mode: teachingMode,
+      reference_count: String(referenceCount),
+    });
+    return request<WizardEstimateRead>(
+      `/independent/teachers/me/lecture-wizard/estimate?${qs}`,
+      {},
+      token
+    );
+  },
+  generate: (token: string, data: IndependentLectureGenerateRequest) =>
+    request<LectureGenerateRead>(
+      "/independent/teachers/me/lecture-wizard/generate",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  getLecture: (token: string, lectureId: string) =>
+    request<IndependentLectureRead>(`/independent/teachers/me/lectures/${lectureId}`, {}, token),
+  getParagraphs: (token: string, lectureId: string) =>
+    request<LectureParagraphRead[]>(
+      `/independent/teachers/me/lectures/${lectureId}/paragraphs`,
+      {},
       token
     ),
 };

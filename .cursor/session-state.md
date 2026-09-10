@@ -1,7 +1,8 @@
-# Session state (Cursor)
+# Session state (live)
 
-- Ticket: M-08 T-101–T-112 done; CI fixes pushed
-- Status: PR #28 open → staging (rebase onto staging tip)
-- Branch: milestone/M-08-mode-diagnostic
-- Next: wait CI green; then M-09 after merge
-- Fixes: PR header `Milestone & feature reference`; ROADMAP M-08=done; unused import
+**Milestone:** M-09 Lecture Wizard + AI Generation
+**Branch:** milestone/M-09-lecture-wizard-generation
+**Done:** T-113 … T-128 (all)
+**Current ticket:** T-128 complete — PR open for Abd. review
+**Next:** live demo + address review + merge to staging (human)
+**Out of scope reminder:** Edit+versions → M-10; quiz/publish → M-11; viewer → M-12

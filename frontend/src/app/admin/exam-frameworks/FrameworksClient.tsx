@@ -58,9 +58,14 @@ function gradesValid(raw: string): boolean {
   );
 }
 
+// Kebab-case controlled vocabulary mirroring the backend validator
+// (exam_frameworks/schemas.py _SLUG_RE) — T-120's subject-overlay match key.
+const SLUG_RE = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+
 const frameworkSchema = z.object({
   name: z.string().min(1).max(255),
   exam_target: z.string().min(1).max(255),
+  subject_slug: z.string().min(1).max(50).regex(SLUG_RE, { message: "subject_slug" }),
   region: z.string().min(1).max(100),
   grades: z.string().min(1).refine(gradesValid, { message: "grades" }),
 });
@@ -71,6 +76,7 @@ function toCreatePayload(values: FrameworkFormValues): ExamFrameworkCreate {
   return {
     name: values.name,
     exam_target: values.exam_target,
+    subject_slug: values.subject_slug,
     region: values.region,
     target_grade_range: parseGrades(values.grades),
     language: "en",
@@ -81,6 +87,7 @@ function toUpdatePayload(values: FrameworkFormValues): ExamFrameworkUpdate {
   return {
     name: values.name,
     exam_target: values.exam_target,
+    subject_slug: values.subject_slug,
     region: values.region,
     target_grade_range: parseGrades(values.grades),
   };
@@ -187,7 +194,7 @@ export function FrameworksClient() {
 
   const form = useForm<FrameworkFormValues>({
     resolver: zodResolver(frameworkSchema),
-    defaultValues: { name: "", exam_target: "", region: "", grades: "" },
+    defaultValues: { name: "", exam_target: "", subject_slug: "", region: "", grades: "" },
   });
 
   function openEdit(framework: Framework) {
@@ -196,6 +203,7 @@ export function FrameworksClient() {
     form.reset({
       name: framework.name,
       exam_target: framework.exam_target,
+      subject_slug: framework.subject_slug,
       region: framework.region,
       grades: framework.target_grade_range.join(", "),
     });
@@ -204,7 +212,7 @@ export function FrameworksClient() {
   function openCreate() {
     setFormError("");
     setShowCreate(true);
-    form.reset({ name: "", exam_target: "", region: "", grades: "" });
+    form.reset({ name: "", exam_target: "", subject_slug: "", region: "", grades: "" });
   }
 
   function closeFormModal() {
@@ -273,6 +281,9 @@ export function FrameworksClient() {
                 <th className="px-4 py-3 text-start font-medium text-gray-500 hidden md:table-cell">
                   {t("col.exam_target")}
                 </th>
+                <th className="px-4 py-3 text-start font-medium text-gray-500 hidden lg:table-cell">
+                  {t("col.subject_slug")}
+                </th>
                 <th className="px-4 py-3 text-start font-medium text-gray-500 hidden sm:table-cell">
                   {t("col.region")}
                 </th>
@@ -291,6 +302,9 @@ export function FrameworksClient() {
                   <td className="px-4 py-3 font-medium text-gray-900">{framework.name}</td>
                   <td className="px-4 py-3 text-gray-500 hidden md:table-cell max-w-xs truncate">
                     {framework.exam_target}
+                  </td>
+                  <td className="px-4 py-3 text-gray-500 hidden lg:table-cell">
+                    {framework.subject_slug}
                   </td>
                   <td className="px-4 py-3 text-gray-500 hidden sm:table-cell">
                     {framework.region}
@@ -433,6 +447,23 @@ export function FrameworksClient() {
             {form.formState.errors.exam_target && (
               <p className="text-xs text-red-600 mt-1" role="alert">
                 {form.formState.errors.exam_target.message}
+              </p>
+            )}
+          </div>
+
+          <div>
+            <Label htmlFor="fw-subject-slug" required>
+              {t("modal.subject_slug_label")}
+            </Label>
+            <Input
+              id="fw-subject-slug"
+              {...form.register("subject_slug")}
+              placeholder={t("modal.subject_slug_placeholder")}
+            />
+            <p className="text-xs text-gray-500 mt-1">{t("modal.subject_slug_hint")}</p>
+            {form.formState.errors.subject_slug && (
+              <p className="text-xs text-red-600 mt-1" role="alert">
+                {t("modal.subject_slug_error")}
               </p>
             )}
           </div>

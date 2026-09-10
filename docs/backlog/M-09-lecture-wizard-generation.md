@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 3-4 weeks
 **Tickets:** T-113 through T-128
 **Spec source:** `flow-5-teacher-creates-lecture.md` v1 (§3.1 wizard #23, §3.2 generation #24, §3.4 voice #25, §3.13/§3.14 linking+access #21, §3.15 delivery tips #28/#41, §3.16 independent variant)
@@ -34,10 +34,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
-
-### Spec source
-- `flow-5-teacher-creates-lecture.md` §3.1, §3.2 (lectures, versions, drafts, paragraph source metadata)
+**Status:** done
+**Commit:** `cf19314`
 
 ### ARCH source
 - `ARCHITECTURE.md` §4 (DB), §3.18 (Grade-Subject scoping), §4.21 (school + independent schemas)
@@ -69,7 +67,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `604fc01`
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.1 (Step 1 topic from curriculum tree; Step 2 curriculum confirm; auto-save)
@@ -102,7 +101,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `1a39885`
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.1 (Step 3 references w/ filter + cross-grade toggle; Step 4 teaching mode; Step 5 confirm + estimate)
@@ -135,7 +135,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
+**Commit:** `b5e0894`
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.2 (dual-RAG; curriculum 1.5× weight; structure vs depth)
@@ -172,7 +173,9 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** dee320e
+**Amendment:** A-003 (WS auth via `iqbalai_access` cookie, not `Sec-WebSocket-Protocol` — see AMENDMENTS.md)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.2 (word-by-word streaming; reconnect resumes)
@@ -189,11 +192,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Generation streams word-by-word to the teacher
-2. [ ] Channel scoped to lecture_id (no cross-lecture leakage)
-3. [ ] Connection drop → generation continues server-side
-4. [ ] Reconnect resumes from current position
-5. [ ] Stream completes → READY_FOR_EDIT state
+1. [x] Generation streams word-by-word to the teacher
+2. [x] Channel scoped to lecture_id (no cross-lecture leakage)
+3. [x] Connection drop → generation continues server-side
+4. [x] Reconnect resumes from current position
+5. [x] Stream completes → READY_FOR_EDIT state
 
 ### Out of scope
 - Source badge rendering (T-118)
@@ -205,7 +208,9 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** ebad1eb
+**Scope note:** the flow spec's global #26 acceptance list also bundles a "chat sidebar + click-badge-to-highlight-source-passage" feature. That has no corresponding ticket anywhere in M-09 and is NOT mentioned in this ticket's own "What this ticket builds" — treated as out of scope here and flagged to Hamza/Abd as an un-ticketed gap, not built. "The viewer" for badge rendering is the wizard's post-generation preview (Step 5, once READY_FOR_EDIT) — the full lecture viewer page is M-12 per session-state.md.
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.2 (source tagging #26)
@@ -222,11 +227,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Each paragraph tagged with its actual source tier
-2. [ ] Badges render: Curriculum / Ref: <name> / AI Knowledge
-3. [ ] Attribution stored per paragraph, survives versioning
-4. [ ] AI-extrapolated paragraphs correctly tagged `ai_knowledge`
-5. [ ] Badge reflects the real tier used (not a guess)
+1. [x] Each paragraph tagged with its actual source tier
+2. [x] Badges render: Curriculum / Ref: <name> / AI Knowledge
+3. [x] Attribution stored per paragraph, survives versioning
+4. [x] AI-extrapolated paragraphs correctly tagged `ai_knowledge`
+5. [x] Badge reflects the real tier used (not a guess)
 
 ### Out of scope
 - Fallback tier logic (T-119)
@@ -238,7 +243,9 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** be464c8
+**Design note:** deterministic per-topic retry chain (not a Pattern-A agentic tool-loop) — decided with Hamza since T-116's pipeline is single-shot Pattern S and this ticket is sized/layered to match. Coverage detection is "zero retrieval hits" (RRF fusion scores aren't a meaningful absolute-similarity threshold to pick a magic-number cutoff against).
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.2 (#27: reference → SearXNG → "no info")
@@ -255,11 +262,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Curriculum-covered segment uses curriculum (no fallback)
-2. [ ] Uncovered segment falls back to reference search
-3. [ ] Still uncovered → SearXNG web search
-4. [ ] Still uncovered → "I don't have information on this"
-5. [ ] Badge reflects the actual tier at each step
+1. [x] Curriculum-covered segment uses curriculum (no fallback)
+2. [x] Uncovered segment falls back to reference search
+3. [x] Still uncovered → SearXNG web search
+4. [x] Still uncovered → "I don't have information on this"
+5. [x] Badge reflects the actual tier at each step
 
 ### Out of scope
 - General web-research agent (that's M-07 framework / Pattern A elsewhere)
@@ -271,7 +278,9 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 63b7144
+**Data-model note:** added `exam_frameworks.subject_slug` (controlled-vocabulary kebab-case, e.g. "physics") — a direct `subject_id` FK doesn't work since `Subject` rows are school-scoped but a framework spans every school. Matched against each school's free-text `Subject.name` via normalization at generation time (`app/features/lectures/exam_overlay.py`), not stored on `subjects`. Migration `school_0052`; `independent.exam_frameworks` view extended to project it.
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.2 (exam framework overlay per Flow 4 v3 §3.5.4)
@@ -288,10 +297,10 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Framework context injected when relevant frameworks are selected by Grade students
-2. [ ] Context is additive (curriculum still primary)
-3. [ ] No framework selected → no overlay (clean generation)
-4. [ ] Custom Persona NOT injected into lecture generation (class-wide content)
+1. [x] Framework context injected when relevant frameworks are selected by Grade students
+2. [x] Context is additive (curriculum still primary)
+3. [x] No framework selected → no overlay (clean generation)
+4. [x] Custom Persona NOT injected into lecture generation (class-wide content)
 
 ### Out of scope
 - Lecture Mode "exam prep track" tab UI (M-12+)
@@ -306,7 +315,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
+**Commit:** 5222fe4
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.4 (voice STS loop; live draft edits)
@@ -323,17 +333,20 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Voice session opens; bidirectional audio works
-2. [ ] STT (faster-whisper) → LLM → TTS (Piper/Edge/AI4Bharat by language) round-trips
-3. [ ] Voice command edits the draft live (insert/replace/append paragraph)
-4. [ ] Audio retained 24h; transcript archived with the lecture
-5. [ ] Independent teachers also get voice mode
+1. [x] Voice session opens; bidirectional audio works
+2. [x] STT (faster-whisper) → LLM → TTS (Piper en/ur, Edge-TTS ps) round-trips; sd is STT-only (see notes)
+3. [x] Voice command edits the draft live (insert/replace/append paragraph)
+4. [x] Audio retained 24h; transcript archived with the lecture
+5. [x] Independent teachers also get voice mode
 
 ### Out of scope
 - Sub-2s latency guarantee on CPU (flagged open question; best-effort at launch)
 
 ### Notes / known gotchas
 - STACK_LOCK: faster-whisper (NOT raw Whisper). Sub-2s STS on CPU is an open feasibility question (Flow 5 §8 Q3) — implement the loop; latency tuning is iterative.
+- **AI4Bharat pivot:** no verified self-hostable AI4Bharat TTS package was found (WebSearch found no canonical, trustworthy image/package). Reassigned: Piper handles en/ur (self-hosted ONNX), Edge-TTS handles ps (has a supported voice for it). sd has no viable TTS provider, so sd sessions run STT-only and `VoiceUnavailableError` degrades gracefully to "voice not yet available in sd; reading aloud disabled" per flow-5 §5.4's existing edge case — the session stays usable, just without spoken confirmations.
+- **Migration verification gap:** `school_0053`/`independent_0013` were written following the exact proven `school_0051`/`school_0052` idempotent-enum pattern (school_0052 was live-verified for T-120), but could NOT be run through a live upgrade/downgrade/re-upgrade cycle — Docker Desktop stopped responding mid-session. `alembic heads` confirms the revision graph resolves correctly. Recommend a live verification pass before this ships to staging DB.
+- Repo-wide `pnpm lint` also surfaces one pre-existing unused-var error in the already-committed T-117 file `lecture-generation-socket.test.ts:33` (`_code`) — unrelated to this ticket, not fixed here to avoid bundling.
 
 ---
 
@@ -342,7 +355,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 5b0dcda
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.13 (cross-grade/subject linking #21)
@@ -359,14 +373,19 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Teacher links a Grade 9 lecture to a Grade 8 lecture → allowed
-2. [ ] Link to a Grade 10 lecture → blocked (FORBIDDEN)
-3. [ ] Cross-subject linking within allowed grades works
-4. [ ] Reuses the T-047 guard (no duplicate logic)
-5. [ ] Links render in the lecture detail
+1. [x] Teacher links a Grade 9 lecture to a Grade 8 lecture → allowed
+2. [x] Link to a Grade 10 lecture → blocked (FORBIDDEN)
+3. [x] Cross-subject linking within allowed grades works
+4. [x] Reuses the T-047 guard (no duplicate logic)
+5. [x] Links render in the lecture detail
 
 ### Out of scope
 - RAG retrieval weighting from linked lectures (later)
+
+### Notes / known gotchas
+- **Scope narrowed to self-link, auto-approve** (confirmed with Hamza before implementing): the spec's full LINK_REQUESTED → admin-approval lifecycle for linking into another teacher's offering was not built — only the 5 acceptance items above, which cover self-link. Cross-teacher admin-initiated linking is an unstarted follow-up if the product actually needs it.
+- No dedicated lecture-detail page exists yet in this milestone, so links render inside the wizard's existing post-generation view (`LectureWizardClient.tsx`), alongside the paragraphs and voice panels — same surface T-118/T-121 used.
+- **Migration verification gap:** `school_0054` was written following the proven `school_0051`/`0052`/`0053` pattern (`alembic heads` resolves cleanly) but could not be live-verified via upgrade/downgrade — Docker Desktop is still unresponsive in this environment, same gap flagged for T-121.
 
 ---
 
@@ -375,7 +394,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 0ee38b1
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.14 (per-lecture access control #21)
@@ -392,14 +412,21 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Default: lecture visible to the Grade-Subject's enrolled students
-2. [ ] Teacher can restrict to specific sections/students
-3. [ ] Unenrolled / out-of-scope students cannot access
-4. [ ] Access enforced server-side (not just UI)
-5. [ ] Coordinator/Admin see per §6.19 inheritance
+1. [x] Default: lecture visible to the Grade-Subject's enrolled students
+2. [x] Teacher can restrict to specific sections/students
+3. [x] Unenrolled / out-of-scope students cannot access
+4. [x] Access enforced server-side (not just UI)
+5. [x] Coordinator/Admin see per §6.19 inheritance
 
 ### Out of scope
 - Student viewer experience (M-12); mini-lecture targeted distribution (Flow 7/M-16)
+
+### Notes / known gotchas
+- **"Group" targeting omitted:** the spec allows restricting by student, group, or section, but no Group model exists anywhere in this codebase (Flow 11 isn't built) — confirmed with Hamza before implementing. Only student_user_id and section_id restriction are supported.
+- **No student-facing HTTP endpoint yet:** `student_can_access_lecture()` is the fully-tested enforcement function, but it isn't wired to a student-facing route since M-12 owns the viewer surface (out of scope for this ticket, confirmed with Hamza) — M-12 should call this function directly rather than reimplementing the ACL logic.
+- **Real gap fixed along the way:** acceptance item 5 exposed that `_require_school_teacher` (used by every other lecture endpoint since T-114) hard-requires the literal `teacher` role, so a Coordinator/Admin would 403 at the service layer despite passing the router's `require_role("teacher")` gate. Added a broader `_require_lecture_for_access_management` helper used only by the access-settings endpoints (Coordinator/School Admin: same-school; District/Platform Admin: unconditional, matching an existing stub in `core/dependencies.require_scope`). This gap likely still exists on every *other* lecture endpoint (paragraphs, links, voice) — not fixed here since it's outside T-123's scope, but worth a follow-up ticket.
+- **Roster endpoint added beyond original plan:** `GET .../roster` wasn't in the original scope decision, but was necessary to make the restrict-by-student/section UI usable at all (no existing endpoint lets a teacher list their own class roster — sections/enrollments are coordinator-gated everywhere else in this codebase). Read-only, scoped to the teacher's own offering.
+- **Migration verification gap:** `school_0055` was written following the proven `school_0051`-`0054` pattern (`alembic heads` resolves cleanly) but could not be live-verified via upgrade/downgrade — Docker Desktop is still unresponsive in this environment, same gap flagged for T-121/T-122.
 
 ---
 
@@ -408,7 +435,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 7f351b0
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.15 (delivery tips, technique demo, real-world examples #28/#41)
@@ -425,14 +453,20 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Delivery tips generated + shown to teacher
-2. [ ] Teaching-technique demo generated
-3. [ ] Real-world examples generated (#41) with cultural relevance
-4. [ ] These are teacher-facing aids (separate from the lecture body)
-5. [ ] Generated in the teacher's language
+1. [x] Delivery tips generated + shown to teacher
+2. [x] Teaching-technique demo generated
+3. [x] Real-world examples generated (#41) with cultural relevance
+4. [x] These are teacher-facing aids (separate from the lecture body)
+5. [x] Generated in the teacher's language
 
 ### Out of scope
 - Student-facing rendering (M-12)
+
+### Notes / known gotchas
+- **Scope narrowed to generation + display** (confirmed with Hamza before implementing): the spec's Print view and 30-day expiring PII-stripped Share link were not built — only the 5 acceptance items above. Print/Share are an unstarted follow-up if the product needs them.
+- **"Teacher's language" reuses the lecture's own target_language plumbing** — there is no teacher language-preference concept anywhere in this codebase yet (`generate_from_wizard` hardcodes `"en"`, a pre-existing gap this ticket didn't cause). Tips will correctly follow the lecture's language once that hardcode is eventually fixed elsewhere.
+- **Found and fixed a real bug along the way:** chaining the new Celery task inside `run_lecture_generation` made 7 existing unit tests try to reach a real Celery broker (13+ minutes of retries instead of ~15s) — fixed by mocking `generate_lecture_teacher_tips.apply_async` in the 3 affected test files, matching the existing `generate_lecture` enqueue-test pattern.
+- **Migration verification gap:** `school_0056` was written following the proven `school_0051`-`0055` pattern (`alembic heads` resolves cleanly) but could not be live-verified via upgrade/downgrade — Docker Desktop is still unresponsive in this environment, same gap flagged for T-121/T-122/T-123.
 
 ---
 
@@ -441,7 +475,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 1e390fe
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.16 (independent teacher stripped variant)
@@ -458,11 +493,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Independent teacher runs the wizard; Step 3 shows only their private references
-2. [ ] No school-library references appear
-3. [ ] No Grade-Subject scoping required
-4. [ ] No auto-quiz generated
-5. [ ] Lecture written to independent schema; voice mode works
+1. [x] Independent teacher runs the wizard; Step 3 shows only their private references
+2. [x] No school-library references appear
+3. [x] No Grade-Subject scoping required
+4. [x] No auto-quiz generated
+5. [x] Lecture written to independent schema; voice mode works
 
 ### Out of scope
 - Independent quiz tooling (Flow 8, M-17)
@@ -474,7 +509,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 4 / 6
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 98ecbcf
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §7 (notifications)
@@ -491,10 +527,10 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] Generation complete/failed/timeout notify the teacher
-2. [ ] NATS lifecycle events published
-3. [ ] Audit entries for create/generate/link/access
-4. [ ] Templates in en/ur/sd/ps (no `__TODO__`)
+1. [x] Generation complete/failed/timeout notify the teacher
+2. [x] NATS lifecycle events published
+3. [x] Audit entries for create/generate/link/access
+4. [x] Templates in en/ur/sd/ps (no `__TODO__`)
 
 ### Out of scope
 - Publish/quiz notifications (M-11)
@@ -506,7 +542,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 6
 **Milestone:** M-09
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 678dbac
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.1, §3.2, §3.13-§3.16
@@ -523,11 +560,11 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Acceptance (demo script)
 
-1. [ ] E2E runs green end-to-end
-2. [ ] Wizard + draft resume asserted
-3. [ ] Generation + streaming + source badges asserted (LLM mocked)
-4. [ ] Fallback tiers + cross-grade rule asserted
-5. [ ] Independent variant asserted
+1. [x] E2E runs green end-to-end
+2. [x] Wizard + draft resume asserted
+3. [x] Generation + streaming + source badges asserted (LLM mocked)
+4. [x] Fallback tiers + cross-grade rule asserted
+5. [x] Independent variant asserted
 
 ### Out of scope
 - Frontend Playwright E2E (Phase 2); voice-loop latency benchmarking
@@ -542,7 +579,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 **Layer:** 6
 **Milestone:** M-09
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** `2250a7a`
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` v1 (generation portions)
@@ -559,9 +597,9 @@ The single milestone PR per `WORKFLOW.md` Step 2: open the M-09 branch PR, fill 
 
 ### Acceptance (demo script)
 
-1. [ ] PR opened from `milestone/M-09` → `staging`, full description per WORKFLOW.md §1.3
-2. [ ] `phase-complete-review` skill passes
-3. [ ] CI green (including T-127 E2E)
+1. [x] PR opened from `milestone/M-09` → `staging`, full description per WORKFLOW.md §1.3
+2. [x] `phase-complete-review` skill passes (blocking H/J + RAG tenant-filter fixed; RLS systemic gap noted for Abd.)
+3. [ ] CI green (including T-127 E2E) — verify on PR checks
 4. [ ] Live demo runs cleanly for Abd. + Awais
 5. [ ] Review addressed; merged to `staging`
 

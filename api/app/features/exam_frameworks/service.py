@@ -75,6 +75,7 @@ class ExamFrameworkService:
         framework = ExamFramework(
             name=payload.name,
             exam_target=payload.exam_target,
+            subject_slug=payload.subject_slug,
             region=payload.region,
             target_grade_range=payload.target_grade_range,
             language=payload.language,
@@ -104,6 +105,8 @@ class ExamFrameworkService:
             framework.name = payload.name
         if payload.exam_target is not None:
             framework.exam_target = payload.exam_target
+        if payload.subject_slug is not None:
+            framework.subject_slug = payload.subject_slug
         if payload.region is not None:
             framework.region = payload.region
         if payload.target_grade_range is not None:

@@ -11,6 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from prometheus_fastapi_instrumentator import Instrumentator
 
 from app.api.v1.router import router as v1_router
+from app.api.ws_router import router as ws_router
 from app.config import get_settings
 from app.core.exceptions import setup_exception_handlers
 from app.core.logging import configure_logging
@@ -64,6 +65,7 @@ def create_app() -> FastAPI:
 
     # Routers
     application.include_router(v1_router, prefix="/api/v1")
+    application.include_router(ws_router, prefix="/ws/v1")
 
     # Prometheus metrics at /metrics
     Instrumentator().instrument(application).expose(application, endpoint="/metrics")

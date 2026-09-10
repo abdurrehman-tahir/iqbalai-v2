@@ -90,6 +90,7 @@ def _framework(status: FrameworkStatus = FrameworkStatus.DRAFT) -> ExamFramework
         id="fw-1",
         name="Matric Punjab — Physics",
         exam_target="Matric Punjab Board — Physics",
+        subject_slug="physics",
         region="Punjab",
         target_grade_range=[9, 10],
         language="en",

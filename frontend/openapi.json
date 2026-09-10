@@ -1297,6 +1297,12 @@
             "title": "Region",
             "type": "string"
           },
+          "subject_slug": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Subject Slug",
+            "type": "string"
+          },
           "target_grade_range": {
             "items": {
               "type": "integer"
@@ -1309,6 +1315,7 @@
         "required": [
           "name",
           "exam_target",
+          "subject_slug",
           "region",
           "target_grade_range"
         ],
@@ -1379,6 +1386,10 @@
           "status": {
             "$ref": "#/components/schemas/FrameworkStatus"
           },
+          "subject_slug": {
+            "title": "Subject Slug",
+            "type": "string"
+          },
           "target_grade_range": {
             "items": {
               "type": "integer"
@@ -1391,6 +1402,7 @@
           "id",
           "name",
           "exam_target",
+          "subject_slug",
           "region",
           "target_grade_range",
           "language",
@@ -1455,6 +1467,19 @@
               }
             ],
             "title": "Region"
+          },
+          "subject_slug": {
+            "anyOf": [
+              {
+                "maxLength": 50,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Slug"
           },
           "target_grade_range": {
             "anyOf": [
@@ -2104,6 +2129,69 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "IndependentLectureGenerateRequest": {
+        "description": "Commit the independent wizard \u2014 no Grade-Subject offering, no curriculum.",
+        "properties": {
+          "reference_content_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Reference Content Ids",
+            "type": "array"
+          },
+          "teaching_mode": {
+            "$ref": "#/components/schemas/TeachingMode"
+          },
+          "topic": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "topic",
+          "teaching_mode"
+        ],
+        "title": "IndependentLectureGenerateRequest",
+        "type": "object"
+      },
+      "IndependentLectureRead": {
+        "description": "Minimal lecture status, for the frontend to poll until generation completes.",
+        "properties": {
+          "current_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Version Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "title"
+        ],
+        "title": "IndependentLectureRead",
+        "type": "object"
+      },
       "IndependentPersonalContentRead": {
         "description": "Private pool item returned to the owning independent user.",
         "properties": {
@@ -2639,6 +2727,494 @@
         ],
         "title": "IndependentUserRole",
         "type": "string"
+      },
+      "IndependentWizardReferenceRead": {
+        "description": "One of an independent teacher's own private references (T-125, Step 3).",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title"
+        ],
+        "title": "IndependentWizardReferenceRead",
+        "type": "object"
+      },
+      "LectureAccessSettingsRead": {
+        "description": "A lecture's current access-restriction state (T-123, #21).",
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/LectureAssignmentRead"
+            },
+            "title": "Assignments",
+            "type": "array"
+          },
+          "is_restricted": {
+            "title": "Is Restricted",
+            "type": "boolean"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "is_restricted",
+          "assignments"
+        ],
+        "title": "LectureAccessSettingsRead",
+        "type": "object"
+      },
+      "LectureAccessSettingsUpdate": {
+        "description": "Replace-all update for a lecture's restriction rows. Empty list = unrestricted.",
+        "properties": {
+          "assignments": {
+            "items": {
+              "$ref": "#/components/schemas/LectureAssignmentInput"
+            },
+            "maxItems": 200,
+            "title": "Assignments",
+            "type": "array"
+          }
+        },
+        "title": "LectureAccessSettingsUpdate",
+        "type": "object"
+      },
+      "LectureAssignmentInput": {
+        "additionalProperties": false,
+        "description": "One restriction row in a PUT to the lecture's access settings.",
+        "properties": {
+          "scope": {
+            "$ref": "#/components/schemas/LectureAssignmentScope"
+          },
+          "section_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Id"
+          },
+          "student_user_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student User Id"
+          }
+        },
+        "required": [
+          "scope"
+        ],
+        "title": "LectureAssignmentInput",
+        "type": "object"
+      },
+      "LectureAssignmentRead": {
+        "description": "One restriction row, enriched with a display name for the teacher UI (T-123, #21).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "scope": {
+            "$ref": "#/components/schemas/LectureAssignmentScope"
+          },
+          "section_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Id"
+          },
+          "section_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Section Name"
+          },
+          "student_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student Name"
+          },
+          "student_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student User Id"
+          }
+        },
+        "required": [
+          "id",
+          "scope",
+          "created_at"
+        ],
+        "title": "LectureAssignmentRead",
+        "type": "object"
+      },
+      "LectureAssignmentScope": {
+        "description": "What a lecture_assignments row restricts access to (T-123, #21).",
+        "enum": [
+          "student",
+          "section"
+        ],
+        "title": "LectureAssignmentScope",
+        "type": "string"
+      },
+      "LectureDraftRead": {
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id"
+          },
+          "step": {
+            "title": "Step",
+            "type": "integer"
+          },
+          "teacher_user_id": {
+            "title": "Teacher User Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          }
+        },
+        "required": [
+          "teacher_user_id",
+          "step",
+          "data"
+        ],
+        "title": "LectureDraftRead",
+        "type": "object"
+      },
+      "LectureDraftUpsert": {
+        "description": "PUT body \u2014 full wizard state replace (auto-save).",
+        "properties": {
+          "data": {
+            "additionalProperties": true,
+            "title": "Data",
+            "type": "object"
+          },
+          "step": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Step",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "step"
+        ],
+        "title": "LectureDraftUpsert",
+        "type": "object"
+      },
+      "LectureGenerateRead": {
+        "properties": {
+          "estimated_seconds": {
+            "title": "Estimated Seconds",
+            "type": "integer"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "status",
+          "estimated_seconds"
+        ],
+        "title": "LectureGenerateRead",
+        "type": "object"
+      },
+      "LectureGenerateRequest": {
+        "description": "Commit wizard \u2192 create lecture in GENERATING (pipeline is T-116).",
+        "properties": {
+          "curriculum_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Curriculum Id",
+            "type": "string"
+          },
+          "grade_subject_offering_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Grade Subject Offering Id",
+            "type": "string"
+          },
+          "include_cross_grade": {
+            "default": false,
+            "title": "Include Cross Grade",
+            "type": "boolean"
+          },
+          "reference_book_ids": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 20,
+            "title": "Reference Book Ids",
+            "type": "array"
+          },
+          "teaching_mode": {
+            "$ref": "#/components/schemas/TeachingMode"
+          },
+          "topic": {
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "grade_subject_offering_id",
+          "topic",
+          "curriculum_id",
+          "teaching_mode"
+        ],
+        "title": "LectureGenerateRequest",
+        "type": "object"
+      },
+      "LectureLinkCreate": {
+        "description": "Self-link a lecture into another Grade-Subject offering the teacher owns (T-122).",
+        "properties": {
+          "target_grade_subject_offering_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Target Grade Subject Offering Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_grade_subject_offering_id"
+        ],
+        "title": "LectureLinkCreate",
+        "type": "object"
+      },
+      "LectureLinkRead": {
+        "description": "A lecture's link into an additional Grade-Subject offering (T-122, #21).",
+        "properties": {
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "target_grade_id": {
+            "title": "Target Grade Id",
+            "type": "string"
+          },
+          "target_grade_level_ordinal": {
+            "title": "Target Grade Level Ordinal",
+            "type": "integer"
+          },
+          "target_grade_name": {
+            "title": "Target Grade Name",
+            "type": "string"
+          },
+          "target_grade_subject_offering_id": {
+            "title": "Target Grade Subject Offering Id",
+            "type": "string"
+          },
+          "target_subject_id": {
+            "title": "Target Subject Id",
+            "type": "string"
+          },
+          "target_subject_name": {
+            "title": "Target Subject Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "target_grade_subject_offering_id",
+          "target_grade_id",
+          "target_grade_name",
+          "target_grade_level_ordinal",
+          "target_subject_id",
+          "target_subject_name",
+          "created_at"
+        ],
+        "title": "LectureLinkRead",
+        "type": "object"
+      },
+      "LectureParagraphRead": {
+        "description": "One paragraph of the lecture's current version, with source attribution (T-118).",
+        "properties": {
+          "book_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Name"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/SourceTier"
+          }
+        },
+        "required": [
+          "ordinal",
+          "text",
+          "tier"
+        ],
+        "title": "LectureParagraphRead",
+        "type": "object"
+      },
+      "LectureRosterRead": {
+        "description": "The lecture's grade roster, for building the access-restriction picker.",
+        "properties": {
+          "sections": {
+            "items": {
+              "$ref": "#/components/schemas/RosterSectionRead"
+            },
+            "title": "Sections",
+            "type": "array"
+          },
+          "students": {
+            "items": {
+              "$ref": "#/components/schemas/RosterStudentRead"
+            },
+            "title": "Students",
+            "type": "array"
+          }
+        },
+        "required": [
+          "sections",
+          "students"
+        ],
+        "title": "LectureRosterRead",
+        "type": "object"
+      },
+      "LectureTeacherTipsRead": {
+        "description": "Teacher-facing delivery tips / technique demo / real-world examples (T-124).\n\n``status`` is ``\"pending\"`` until the background generation call completes\n(or fails silently \u2014 tips are supplementary and never block the lecture);\n``tips`` is only populated once ``status`` is ``\"ready\"``.",
+        "properties": {
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "ready"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "tips": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/TeacherTips"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "lecture_id",
+          "status"
+        ],
+        "title": "LectureTeacherTipsRead",
+        "type": "object"
       },
       "LibraryBookListResponse": {
         "description": "Paginated list of platform reference books.",
@@ -3589,6 +4165,49 @@
         "title": "ResearchJobStatus",
         "type": "string"
       },
+      "RosterSectionRead": {
+        "description": "A section option for the access-restriction picker (T-123, #21).",
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name"
+        ],
+        "title": "RosterSectionRead",
+        "type": "object"
+      },
+      "RosterStudentRead": {
+        "description": "A student option for the access-restriction picker (T-123, #21).",
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "section_id": {
+            "title": "Section Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "display_name",
+          "section_id"
+        ],
+        "title": "RosterStudentRead",
+        "type": "object"
+      },
       "SchoolCreate": {
         "description": "Payload for creating a new School within a district.",
         "properties": {
@@ -3991,6 +4610,17 @@
           "abandoned"
         ],
         "title": "SelectionStatus",
+        "type": "string"
+      },
+      "SourceTier": {
+        "description": "Provenance tier for a generated paragraph (Flow 5 #26 / #27).",
+        "enum": [
+          "curriculum",
+          "reference",
+          "ai_knowledge",
+          "web"
+        ],
+        "title": "SourceTier",
         "type": "string"
       },
       "StudentBannerDismiss": {
@@ -5077,6 +5707,23 @@
         "title": "SuccessEnvelope[GraduationRequestRead]",
         "type": "object"
       },
+      "SuccessEnvelope_IndependentLectureRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/IndependentLectureRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[IndependentLectureRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_IndependentPersonalContentRead_": {
         "properties": {
           "data": {
@@ -5194,6 +5841,108 @@
           "data"
         ],
         "title": "SuccessEnvelope[IndependentTeacherOnboardingRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureAccessSettingsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureAccessSettingsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureAccessSettingsRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureDraftRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureDraftRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureDraftRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureGenerateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureGenerateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureGenerateRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureLinkRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureLinkRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureLinkRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureRosterRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureRosterRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureRosterRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureTeacherTipsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureTeacherTipsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureTeacherTipsRead]",
         "type": "object"
       },
       "SuccessEnvelope_LibraryBookListResponse_": {
@@ -5740,6 +6489,40 @@
         "title": "SuccessEnvelope[UserRead]",
         "type": "object"
       },
+      "SuccessEnvelope_WizardEstimateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/WizardEstimateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[WizardEstimateRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_WizardTopicsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/WizardTopicsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[WizardTopicsRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_AcademicSessionRead__": {
         "properties": {
           "data": {
@@ -5950,6 +6733,69 @@
         "title": "SuccessEnvelope[list[GraduationRequestRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_IndependentWizardReferenceRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/IndependentWizardReferenceRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[IndependentWizardReferenceRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_LectureLinkRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/LectureLinkRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[LectureLinkRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_LectureParagraphRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/LectureParagraphRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[LectureParagraphRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_OfferingRead__": {
         "properties": {
           "data": {
@@ -6097,6 +6943,27 @@
         "title": "SuccessEnvelope[list[SyllabusTopicRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_TeacherOfferingRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherOfferingRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[TeacherOfferingRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_TosVersionRead__": {
         "properties": {
           "data": {
@@ -6116,6 +6983,48 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[TosVersionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_WizardCurriculumRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/WizardCurriculumRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[WizardCurriculumRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_WizardReferenceRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/WizardReferenceRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[WizardReferenceRead]]",
         "type": "object"
       },
       "SyllabusTopicCreate": {
@@ -6244,6 +7153,50 @@
           "capacity_below_assignments"
         ],
         "title": "TeacherCapacityUpdateRead",
+        "type": "object"
+      },
+      "TeacherOfferingRead": {
+        "description": "Grade-Subject offering assigned to the calling teacher.",
+        "properties": {
+          "academic_session": {
+            "title": "Academic Session",
+            "type": "string"
+          },
+          "grade_id": {
+            "title": "Grade Id",
+            "type": "string"
+          },
+          "grade_level_ordinal": {
+            "title": "Grade Level Ordinal",
+            "type": "integer"
+          },
+          "grade_name": {
+            "title": "Grade Name",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "grade_id",
+          "grade_name",
+          "grade_level_ordinal",
+          "subject_id",
+          "subject_name",
+          "academic_session"
+        ],
+        "title": "TeacherOfferingRead",
         "type": "object"
       },
       "TeacherOnboardingRead": {
@@ -6445,6 +7398,71 @@
         ],
         "title": "TeacherProfileRead",
         "type": "object"
+      },
+      "TeacherTips": {
+        "additionalProperties": false,
+        "description": "Stored in ``lecture_versions.teacher_tips_jsonb`` (T-124, #28, #41).",
+        "properties": {
+          "delivery_tips": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Delivery Tips",
+            "type": "array"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "real_world_examples": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherTipsRealWorldExample"
+            },
+            "title": "Real World Examples",
+            "type": "array"
+          },
+          "technique_demo": {
+            "title": "Technique Demo",
+            "type": "string"
+          }
+        },
+        "required": [
+          "delivery_tips",
+          "technique_demo",
+          "real_world_examples",
+          "language"
+        ],
+        "title": "TeacherTips",
+        "type": "object"
+      },
+      "TeacherTipsRealWorldExample": {
+        "description": "One of exactly 2 real-world examples (#41) \u2014 T-124.",
+        "properties": {
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "text"
+        ],
+        "title": "TeacherTipsRealWorldExample",
+        "type": "object"
+      },
+      "TeachingMode": {
+        "description": "Wizard Step 4 teaching mode (Flow 5 \u00a73.1).",
+        "enum": [
+          "auto",
+          "manual",
+          "voice_assisted"
+        ],
+        "title": "TeachingMode",
+        "type": "string"
       },
       "TosAcceptRequest": {
         "description": "User accepts the current ToS.",
@@ -6788,6 +7806,192 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "WizardCurriculumRead": {
+        "description": "Curriculum candidate for Step 2 (primary flagged).",
+        "properties": {
+          "grade_level_ordinal": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Level Ordinal"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_primary": {
+            "title": "Is Primary",
+            "type": "boolean"
+          },
+          "parse_degraded": {
+            "title": "Parse Degraded",
+            "type": "boolean"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic_tree_jsonb": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Tree Jsonb"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "subject_id",
+          "grade_level_ordinal",
+          "is_primary",
+          "parse_degraded"
+        ],
+        "title": "WizardCurriculumRead",
+        "type": "object"
+      },
+      "WizardEstimateRead": {
+        "description": "Step 5 estimated generation time.",
+        "properties": {
+          "estimated_seconds": {
+            "title": "Estimated Seconds",
+            "type": "integer"
+          },
+          "reference_count": {
+            "title": "Reference Count",
+            "type": "integer"
+          },
+          "teaching_mode": {
+            "$ref": "#/components/schemas/TeachingMode"
+          }
+        },
+        "required": [
+          "estimated_seconds",
+          "reference_count",
+          "teaching_mode"
+        ],
+        "title": "WizardEstimateRead",
+        "type": "object"
+      },
+      "WizardReferenceRead": {
+        "description": "Reference book option for Step 3.",
+        "properties": {
+          "grade_level_ordinal": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Grade Level Ordinal"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_cross_grade": {
+            "title": "Is Cross Grade",
+            "type": "boolean"
+          },
+          "language": {
+            "title": "Language",
+            "type": "string"
+          },
+          "subject_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subject Id"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "subject_id",
+          "grade_level_ordinal",
+          "language",
+          "is_cross_grade"
+        ],
+        "title": "WizardReferenceRead",
+        "type": "object"
+      },
+      "WizardTopicOption": {
+        "description": "Flattened topic path from curriculum topic_tree_jsonb.",
+        "properties": {
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "path": {
+            "title": "Path",
+            "type": "string"
+          }
+        },
+        "required": [
+          "path",
+          "label"
+        ],
+        "title": "WizardTopicOption",
+        "type": "object"
+      },
+      "WizardTopicsRead": {
+        "properties": {
+          "curriculum_id": {
+            "title": "Curriculum Id",
+            "type": "string"
+          },
+          "parse_degraded": {
+            "title": "Parse Degraded",
+            "type": "boolean"
+          },
+          "topics": {
+            "items": {
+              "$ref": "#/components/schemas/WizardTopicOption"
+            },
+            "title": "Topics",
+            "type": "array"
+          }
+        },
+        "required": [
+          "curriculum_id",
+          "parse_degraded",
+          "topics"
+        ],
+        "title": "WizardTopicsRead",
         "type": "object"
       }
     }
@@ -10904,6 +12108,265 @@
         ]
       }
     },
+    "/api/v1/independent/teachers/me/lecture-draft": {
+      "get": {
+        "operationId": "independent_teacher_get_lecture_draft",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureDraftRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get the teacher's active lecture wizard draft (resume)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      },
+      "put": {
+        "operationId": "independent_teacher_upsert_lecture_draft",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureDraftUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureDraftRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Auto-save lecture wizard draft state",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lecture-wizard/estimate": {
+      "get": {
+        "operationId": "independent_teacher_get_wizard_estimate",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "teaching_mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeachingMode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reference_count",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 20,
+              "minimum": 0,
+              "title": "Reference Count",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_WizardEstimateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Estimated generation time",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lecture-wizard/generate": {
+      "post": {
+        "operationId": "independent_teacher_generate_lecture",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IndependentLectureGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureGenerateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Commit wizard and transition lecture to GENERATING (T-125)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lecture-wizard/references": {
+      "get": {
+        "operationId": "independent_teacher_list_wizard_references",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_IndependentWizardReferenceRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List the teacher's own private references for Step 3 (T-125)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}": {
+      "get": {
+        "operationId": "independent_teacher_get_lecture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_IndependentLectureRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Lecture status, for the frontend to poll until generation completes (T-125)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/paragraphs": {
+      "get": {
+        "operationId": "independent_teacher_get_lecture_paragraphs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_LectureParagraphRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List a lecture's current-version paragraphs with source attribution",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
     "/api/v1/independent/teachers/me/onboarding": {
       "get": {
         "operationId": "independent_teacher_get_onboarding",
@@ -13679,6 +15142,644 @@
         "summary": "Update teacher self-edit capacity (1\u201320 grade-subject assignments)",
         "tags": [
           "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-draft": {
+      "get": {
+        "operationId": "teacher_get_lecture_draft",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureDraftRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get the teacher's active lecture wizard draft (resume)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      },
+      "put": {
+        "operationId": "teacher_upsert_lecture_draft",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureDraftUpsert"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureDraftRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Auto-save lecture wizard draft state",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/curricula": {
+      "get": {
+        "operationId": "teacher_list_wizard_curricula",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "grade_subject_offering_id",
+            "required": true,
+            "schema": {
+              "maxLength": 36,
+              "minLength": 1,
+              "title": "Grade Subject Offering Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_WizardCurriculumRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List curricula for an assigned Grade-Subject (primary flagged)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/estimate": {
+      "get": {
+        "operationId": "teacher_get_wizard_estimate",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "teaching_mode",
+            "required": true,
+            "schema": {
+              "$ref": "#/components/schemas/TeachingMode"
+            }
+          },
+          {
+            "in": "query",
+            "name": "reference_count",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "maximum": 20,
+              "minimum": 0,
+              "title": "Reference Count",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_WizardEstimateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Estimated generation time for Step 5",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/generate": {
+      "post": {
+        "operationId": "teacher_generate_lecture",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureGenerateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureGenerateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Commit wizard and transition lecture to GENERATING",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/references": {
+      "get": {
+        "operationId": "teacher_list_wizard_references",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "grade_subject_offering_id",
+            "required": true,
+            "schema": {
+              "maxLength": 36,
+              "minLength": 1,
+              "title": "Grade Subject Offering Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "include_cross_grade",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Include Cross Grade",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_WizardReferenceRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List reference books for Step 3 (cross-grade toggle)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lecture-wizard/topics": {
+      "get": {
+        "operationId": "teacher_list_wizard_topics",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "curriculum_id",
+            "required": true,
+            "schema": {
+              "maxLength": 36,
+              "minLength": 1,
+              "title": "Curriculum Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_subject_offering_id",
+            "required": true,
+            "schema": {
+              "maxLength": 36,
+              "minLength": 1,
+              "title": "Grade Subject Offering Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_WizardTopicsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List topic-tree options for a curriculum (freeform when degraded)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/access": {
+      "get": {
+        "operationId": "teacher_get_lecture_access_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureAccessSettingsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a lecture's access-restriction settings (T-123, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      },
+      "put": {
+        "operationId": "teacher_set_lecture_access_settings",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureAccessSettingsUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureAccessSettingsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Replace a lecture's access restrictions; empty list clears to default (T-123, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/links": {
+      "get": {
+        "operationId": "teacher_list_lecture_links",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_LectureLinkRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List a lecture's cross-grade/subject links (T-122, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      },
+      "post": {
+        "operationId": "teacher_create_lecture_link",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureLinkCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureLinkRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Self-link a lecture into another owned Grade-Subject offering (T-122, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/paragraphs": {
+      "get": {
+        "operationId": "teacher_get_lecture_paragraphs",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_LectureParagraphRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List a lecture's current-version paragraphs with source attribution",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/roster": {
+      "get": {
+        "operationId": "teacher_get_lecture_roster",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureRosterRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Grade roster (sections + students) for the access-restriction picker (T-123, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/teacher-tips": {
+      "get": {
+        "operationId": "teacher_get_lecture_teacher_tips",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureTeacherTipsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delivery tips + technique demo + real-world examples (T-124, #28, #41)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/offerings": {
+      "get": {
+        "operationId": "teacher_list_my_offerings",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TeacherOfferingRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List Grade-Subject offerings assigned to the teacher",
+        "tags": [
+          "lecture-wizard"
         ]
       }
     },
