@@ -96,9 +96,7 @@ def test_plagiarism_flag_status_enum_and_similarity_range() -> None:
     table = cast(Table, SchoolLecturePlagiarismFlag.__table__)
     names = {c.name for c in table.constraints if isinstance(c, CheckConstraint)}
     assert "lecture_plagiarism_flags_similarity_range_check" in names
-    row = SchoolLecturePlagiarismFlag(
-        lecture_version_id="v-1", similarity_score=Decimal("0.900")
-    )
+    row = SchoolLecturePlagiarismFlag(lecture_version_id="v-1", similarity_score=Decimal("0.900"))
     assert row.status == PlagiarismFlagStatus.OPEN
 
 
@@ -130,9 +128,7 @@ def test_migrations_define_expected_objects() -> None:
     for name in indie_files:
         assert (_INDEPENDENT_DIR / name).exists(), name
 
-    plagiarism_text = (_SCHOOL_DIR / "0062_lecture_plagiarism_flags.py").read_text(
-        encoding="utf-8"
-    )
+    plagiarism_text = (_SCHOOL_DIR / "0062_lecture_plagiarism_flags.py").read_text(encoding="utf-8")
     assert "lecture_plagiarism_flags_status_enum" in plagiarism_text
     # Idempotent enum creation, never sa.Enum in create_table (AUDIT_LOG [migration-enum-create]).
     assert "DO $$" in plagiarism_text

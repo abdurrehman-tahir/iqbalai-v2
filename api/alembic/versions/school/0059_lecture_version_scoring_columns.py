@@ -40,9 +40,7 @@ def upgrade() -> None:
     )
     op.add_column(
         "lecture_versions",
-        sa.Column(
-            "edit_summary", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("edit_summary", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         schema=_SCHEMA,
     )
 

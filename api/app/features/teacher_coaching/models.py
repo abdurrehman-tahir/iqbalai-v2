@@ -20,13 +20,11 @@ this ticket (T-129) only establishes the schema.
 
 from __future__ import annotations
 
-from datetime import datetime
 from enum import StrEnum
 
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
-    DateTime,
     ForeignKey,
     Index,
     Integer,
