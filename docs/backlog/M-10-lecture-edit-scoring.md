@@ -150,7 +150,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** bebef3a
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5 (image upload #30; AI proactively suggests reference-book diagrams)
@@ -167,14 +168,20 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Drag-drop image → uploaded via `lecture_image` profile → URL inserted in editor
-2. [ ] Upload respects the profile's size/type limits (§11.19)
-3. [ ] AI surfaces a "Diagram on page N of Ref Book X — add it?" prompt when a relevant diagram exists
-4. [ ] Accepting inserts the referenced diagram; declining dismisses
-5. [ ] Image insert produces a new version like any other edit
+1. [x] Drag-drop image → uploaded via `lecture_image` profile → URL inserted in editor
+2. [x] Upload respects the profile's size/type limits (§11.19) — server-enforced (files/pipeline.py) + client-side pre-check
+3. [x] AI surfaces a "Diagram on page N of Ref Book X — add it?" prompt when a relevant diagram exists
+4. [x] Accepting inserts the referenced diagram; declining dismisses (client-side only, no persistence)
+5. [x] Image insert produces a new version like any other edit (unchanged T-130 save path — image node lives in content_jsonb)
 
 ### Out of scope
 - General media library (Phase 2)
+
+### Notes / known gotchas
+- **Two open architecture questions resolved by implementation choice, not by guessing silently** (both documented in the commit message and PR):
+  (a) MinIO bucket name for `lecture_image` — not locked anywhere; used `bucket="images"` (new bucket, content-type-scoped per §11.1; precedented by `BULK_IMPORT`'s `bucket="imports"` already sitting outside ARCH §11.3's older enum).
+  (b) Diagram-detection data source — M-04's ingestion (verified in code) never extracted diagram/figure metadata from reference-book PDFs, despite STACK_LOCK's MinerU row mentioning image capability. Building a new vision-LLM ingestion pass was judged out of proportion for one ticket (expensive, touches shared RAG infra). Implemented instead: one LLM call over the reference chunks the lecture's own v1 draft already cited, flagging chunks that textually describe a diagram; accepted suggestions render the exact PDF page on demand via pdfplumber. Real, tested, but a narrower scope than "AI scans the whole reference library for diagrams" — flagging for Hamza/Abd to confirm this reading is acceptable, or to scope a proper vision-ingestion pass as a follow-up ticket.
+- AI diagram suggestions are **school-tenant only** — independent teachers' personal reference content has no page-chunked structure to draw suggestions from. Independent teachers still get full image upload.
 
 ---
 
