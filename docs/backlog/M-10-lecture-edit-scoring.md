@@ -37,7 +37,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** fbba2bb, fe88afa
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5, §3.6, §3.7, §3.10, §3.11
@@ -56,11 +57,11 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] All tables/columns exist in both schemas with constraints
-2. [ ] `lecture_versions` are immutable except `scores_json` / `topic_relevance_pct` / `originality_score` populated by the async scoring job
-3. [ ] `teacher_ai_memory` exists with a `category` column (extensible — Flow 7 adds a category later)
-4. [ ] `teacher_benchmarks` has `opted_out` + cohort keys (subject, grade_range, region)
-5. [ ] `lecture_originality_index` is admin-scoped per §3.7
+1. [x] All tables/columns exist in both schemas with constraints
+2. [x] `lecture_versions` are immutable except `scores_json` / `topic_relevance_pct` / `originality_score` populated by the async scoring job
+3. [x] `teacher_ai_memory` exists with a `category` column (extensible — Flow 7 adds a category later)
+4. [x] `teacher_benchmarks` has `opted_out` + cohort keys (subject, grade_range, region)
+5. [x] `lecture_originality_index` is admin-scoped per §3.7 (implemented as the locked Qdrant collection per ARCH §7.6/§7.15 — school-tenant only, `lecture_plagiarism_flags` Postgres table added for the admin triage queue)
 
 ### Out of scope
 - Population logic (T-134–T-139)
@@ -72,7 +73,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** 099c62b (backend), ee35ac7 (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5 (edit lifecycle; "every save = new version row")
@@ -89,17 +91,20 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Teacher edits the draft in TipTap; Save creates a new version row
-2. [ ] The prior version is untouched (immutable)
-3. [ ] Auto-save also produces a version (debounced, not per keystroke)
-4. [ ] `lecture.version.created` emitted on each save
-5. [ ] Editing is server-validated against teacher ownership of the lecture's Grade-Subject
+1. [x] Teacher edits the draft in TipTap; Save creates a new version row
+2. [x] The prior version is untouched (immutable)
+3. [x] Auto-save also produces a version (debounced 3s, not per keystroke)
+4. [x] `lecture.version.created` emitted on each save
+5. [x] Editing is server-validated against teacher ownership of the lecture's Grade-Subject (reuses `_require_owned_lecture`)
 
 ### Out of scope
 - Scoring (T-134), voice (T-131), images (T-132), effort metrics (T-133)
 
 ### Notes / known gotchas
 - Flow 5 §3.5 states the editor is **TipTap** ("locked per STACK_LOCK"). Confirm TipTap is actually listed in STACK_LOCK §12 (frontend) before implementing; if absent, that's a STACK_LOCK gap to raise (do not substitute a different editor).
+- **Resolved:** TipTap is locked (STACK_LOCK.md §2 — the actual Frontend section number; the ticket's "§12" citation was stale). Installed `@tiptap/react @tiptap/pm @tiptap/starter-kit @tiptap/extension-image @tiptap/extension-placeholder` (core + free extensions only).
+- Added `lecture_versions.content_jsonb` (STACK_LOCK §2's locked storage shape for TipTap's JSON output) — not listed in T-129's explicit field list but required by the lock; `body` stays as a derived plain-text extraction for scoring/embedding/RAG code paths.
+- Playwright `@smoke` spec authored (`e2e/lecture-wizard-smoke.spec.ts`, "Lecture editor @smoke (T-130)") but not executed in the dev sandbox — its frontend container is Alpine/musl and Playwright's bundled Chromium needs glibc. Needs a run on CI or a glibc dev box before sign-off.
 
 ---
 
