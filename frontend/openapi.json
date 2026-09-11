@@ -3216,6 +3216,134 @@
         "title": "LectureTeacherTipsRead",
         "type": "object"
       },
+      "LectureVersionRead": {
+        "description": "A single immutable lecture version, as returned after a save (T-130).",
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "content_jsonb": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Jsonb"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "edit_summary": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edit Summary"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "originality_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Originality Score"
+          },
+          "scores_jsonb": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scores Jsonb"
+          },
+          "topic_relevance_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Relevance Pct"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "version",
+          "body",
+          "created_at"
+        ],
+        "title": "LectureVersionRead",
+        "type": "object"
+      },
+      "LectureVersionSaveRequest": {
+        "additionalProperties": false,
+        "description": "Manual or debounced auto-save from the TipTap editor (T-130, #29-#31).\n\nShared shape for both tenants \u2014 the editor has no tenant-specific fields.",
+        "properties": {
+          "content_jsonb": {
+            "additionalProperties": true,
+            "title": "Content Jsonb",
+            "type": "object"
+          },
+          "edit_session_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edit Session Id"
+          },
+          "is_autosave": {
+            "default": false,
+            "title": "Is Autosave",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "content_jsonb"
+        ],
+        "title": "LectureVersionSaveRequest",
+        "type": "object"
+      },
       "LibraryBookListResponse": {
         "description": "Paginated list of platform reference books.",
         "properties": {
@@ -5943,6 +6071,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LectureTeacherTipsRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureVersionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureVersionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureVersionRead]",
         "type": "object"
       },
       "SuccessEnvelope_LibraryBookListResponse_": {
@@ -12367,6 +12512,100 @@
         ]
       }
     },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/versions": {
+      "post": {
+        "operationId": "independent_teacher_save_lecture_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureVersionSaveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save a TipTap edit as a new immutable lecture version (T-130, #29-#31)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/versions/current": {
+      "get": {
+        "operationId": "independent_teacher_get_current_lecture_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Load the current version's content into the TipTap editor (T-130)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
     "/api/v1/independent/teachers/me/onboarding": {
       "get": {
         "operationId": "independent_teacher_get_onboarding",
@@ -15757,6 +15996,100 @@
           }
         },
         "summary": "Delivery tips + technique demo + real-world examples (T-124, #28, #41)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/versions": {
+      "post": {
+        "operationId": "teacher_save_lecture_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureVersionSaveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save a TipTap edit as a new immutable lecture version (T-130, #29-#31)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/versions/current": {
+      "get": {
+        "operationId": "teacher_get_current_lecture_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Load the current version's content into the TipTap editor (T-130)",
         "tags": [
           "lecture-wizard"
         ]

@@ -19,6 +19,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LectureEditorPanel } from "@/components/lectures/LectureEditorPanel";
 
 type WizardData = {
   grade_subject_offering_id?: string;
@@ -62,17 +63,9 @@ export function LectureWizardClient() {
   const topicsQuery = useQuery({
     queryKey: ["teacher", "wizard-topics", data.curriculum_id, data.grade_subject_offering_id],
     queryFn: () =>
-      lectureWizardApi.listTopics(
-        token!,
-        data.curriculum_id!,
-        data.grade_subject_offering_id!
-      ),
+      lectureWizardApi.listTopics(token!, data.curriculum_id!, data.grade_subject_offering_id!),
     enabled:
-      mounted &&
-      !!token &&
-      !!data.curriculum_id &&
-      !!data.grade_subject_offering_id &&
-      step === 1,
+      mounted && !!token && !!data.curriculum_id && !!data.grade_subject_offering_id && step === 1,
   });
 
   useEffect(() => {
@@ -95,8 +88,7 @@ export function LectureWizardClient() {
   }, [step, curriculaQuery.data, data.curriculum_id]);
 
   const saveMutation = useMutation({
-    mutationFn: (payload: LectureDraftUpsert) =>
-      lectureWizardApi.upsertDraft(token ?? "", payload),
+    mutationFn: (payload: LectureDraftUpsert) => lectureWizardApi.upsertDraft(token ?? "", payload),
     onSuccess: async () => {
       setSaveError(null);
       await qc.invalidateQueries({ queryKey: ["teacher", "lecture-draft"] });
@@ -116,10 +108,7 @@ export function LectureWizardClient() {
     [saveMutation, token]
   );
 
-  const offerings = useMemo(
-    () => offeringsQuery.data ?? [],
-    [offeringsQuery.data]
-  );
+  const offerings = useMemo(() => offeringsQuery.data ?? [], [offeringsQuery.data]);
   const selectedOffering: TeacherOfferingRead | undefined = useMemo(
     () => offerings.find((o) => o.id === data.grade_subject_offering_id),
     [offerings, data.grade_subject_offering_id]
@@ -328,9 +317,7 @@ export function LectureWizardClient() {
               })}
             </p>
           ) : null}
-          <p className="text-sm text-gray-700">
-            {t("topic_summary", { topic: data.topic ?? "" })}
-          </p>
+          <p className="text-sm text-gray-700">{t("topic_summary", { topic: data.topic ?? "" })}</p>
 
           {curriculaQuery.isLoading ? <Skeleton className="h-24 w-full" /> : null}
           {curriculaQuery.isError ? (
@@ -350,9 +337,7 @@ export function LectureWizardClient() {
 
           {curriculaQuery.data && curriculaQuery.data.length > 0 ? (
             <fieldset className="space-y-2">
-              <legend className="text-sm font-medium text-gray-900">
-                {t("curriculum_label")}
-              </legend>
+              <legend className="text-sm font-medium text-gray-900">{t("curriculum_label")}</legend>
               <ul className="space-y-2">
                 {curriculaQuery.data.map((c) => (
                   <li key={c.id}>
@@ -362,9 +347,7 @@ export function LectureWizardClient() {
                         name="curriculum"
                         className="mt-1 size-4"
                         checked={data.curriculum_id === c.id}
-                        onChange={() =>
-                          setData((prev) => ({ ...prev, curriculum_id: c.id }))
-                        }
+                        onChange={() => setData((prev) => ({ ...prev, curriculum_id: c.id }))}
                       />
                       <span className="text-sm text-gray-900">
                         {c.title}
@@ -374,9 +357,7 @@ export function LectureWizardClient() {
                           </span>
                         ) : null}
                         {c.parse_degraded ? (
-                          <span className="ms-2 text-xs text-amber-700">
-                            {t("degraded_badge")}
-                          </span>
+                          <span className="ms-2 text-xs text-amber-700">{t("degraded_badge")}</span>
                         ) : null}
                       </span>
                     </label>
@@ -387,18 +368,10 @@ export function LectureWizardClient() {
           ) : null}
 
           <div className="flex justify-between gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => persist(1, data)}
-            >
+            <Button type="button" variant="outline" onClick={() => persist(1, data)}>
               {t("back")}
             </Button>
-            <Button
-              type="button"
-              disabled={!data.curriculum_id}
-              onClick={() => persist(3, data)}
-            >
+            <Button type="button" disabled={!data.curriculum_id} onClick={() => persist(3, data)}>
               {t("next")}
             </Button>
           </div>
@@ -495,11 +468,7 @@ export function LectureWizardClient() {
             <Button type="button" variant="outline" onClick={() => persist(3, data)}>
               {t("back")}
             </Button>
-            <Button
-              type="button"
-              disabled={!data.teaching_mode}
-              onClick={() => persist(5, data)}
-            >
+            <Button type="button" disabled={!data.teaching_mode} onClick={() => persist(5, data)}>
               {t("next")}
             </Button>
           </div>
@@ -640,8 +609,7 @@ function Step5Confirm({
   });
 
   const generateMutation = useMutation({
-    mutationFn: (payload: LectureGenerateRequest) =>
-      lectureWizardApi.generate(token, payload),
+    mutationFn: (payload: LectureGenerateRequest) => lectureWizardApi.generate(token, payload),
     onSuccess: (result) => {
       onGenerated(result.lecture_id);
     },
@@ -669,9 +637,7 @@ function Step5Confirm({
       ) : null}
       <p className="text-sm text-gray-700">{t("topic_summary", { topic: data.topic ?? "" })}</p>
       <p className="text-sm text-gray-700">{t(`mode_${mode}`)}</p>
-      <p className="text-sm text-gray-700">
-        {t("refs_summary", { count: refs.length })}
-      </p>
+      <p className="text-sm text-gray-700">{t("refs_summary", { count: refs.length })}</p>
       {estimateQuery.isLoading ? <Skeleton className="h-8 w-48" /> : null}
       {estimateQuery.isError ? (
         <ErrorState
@@ -764,6 +730,13 @@ function GenerationStreamPanel({
           <h3 className="text-lg font-medium text-gray-900">{t("generating_complete_title")}</h3>
           <p className="text-sm text-gray-700">{t("generating_complete_body")}</p>
         </div>
+        <LectureEditorPanel
+          token={token!}
+          lectureId={lectureId}
+          api={lectureWizardApi}
+          t={t}
+          queryKeyPrefix="teacher"
+        />
         <LectureParagraphsView token={token!} lectureId={lectureId} t={t} />
         <LectureLinksPanel token={token!} lectureId={lectureId} t={t} />
         <LectureAccessPanel token={token!} lectureId={lectureId} t={t} />
@@ -1355,7 +1328,10 @@ function VoiceConversationPanel({
   const isBusy = voice.status === "recording" || voice.status === "processing";
 
   return (
-    <section className="space-y-3 border-t border-gray-100 pt-4" aria-labelledby="voice-panel-heading">
+    <section
+      className="space-y-3 border-t border-gray-100 pt-4"
+      aria-labelledby="voice-panel-heading"
+    >
       <h3 id="voice-panel-heading" className="text-lg font-medium text-gray-900">
         {t("voice_panel_title")}
       </h3>
@@ -1413,10 +1389,7 @@ function VoiceConversationPanel({
       ) : null}
 
       {voice.turns.length > 0 ? (
-        <ul
-          className="max-h-64 space-y-2 overflow-y-auto"
-          aria-label={t("voice_transcript_label")}
-        >
+        <ul className="max-h-64 space-y-2 overflow-y-auto" aria-label={t("voice_transcript_label")}>
           {voice.turns.map((turn, i) => (
             <li key={i} className="rounded-md border border-gray-200 p-2 text-sm">
               <p dir="auto" className="text-gray-500">

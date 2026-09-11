@@ -364,3 +364,168 @@ test.describe("Independent lecture wizard @smoke", () => {
     await expect(page.getByText(/Generating your lecture/i)).toBeVisible();
   });
 });
+
+// T-130 — TipTap editor + immutable-version save, reached once the lecture is
+// READY_FOR_EDIT. Uses the independent tenant's HTTP-polling completion path
+// (no WebSocket mock needed, unlike the school tenant's streaming path).
+test.describe("Lecture editor @smoke (T-130)", () => {
+  test("teacher opens a READY_FOR_EDIT lecture, edits, and saves a new version", async ({
+    page,
+  }) => {
+    let savedVersion = 1;
+    let currentContentJsonb: unknown = {
+      type: "doc",
+      content: [{ type: "paragraph", content: [{ type: "text", text: "Original AI draft." }] }],
+    };
+
+    await page.route(
+      (url) => url.pathname.includes("/api/v1/") || url.pathname.includes("/auth/me"),
+      async (route: Route) => {
+        const request = route.request();
+        const url = new URL(request.url());
+        let path = url.pathname.replace("/api/v1", "");
+        if (path.length > 1 && path.endsWith("/")) path = path.slice(0, -1);
+        const method = request.method();
+
+        if (method === "GET" && path === "/auth/me") {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope({
+              user_id: "ind-teacher-1",
+              email: "ind@test.com",
+              role: "independent_teacher",
+              tenant_type: "independent",
+              school_id: null,
+              district_id: null,
+            }),
+          });
+          return;
+        }
+
+        if (method === "GET" && path === "/independent/teachers/me/onboarding") {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope({ state: "ready", profile_complete: true }),
+          });
+          return;
+        }
+
+        if (method === "GET" && path === "/independent/teachers/me/lecture-draft") {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope({
+              id: "ind-draft-1",
+              teacher_user_id: "ind-teacher-1",
+              step: 1,
+              data: { lecture_id: "ind-lec-1" },
+              updated_at: "2026-08-05T00:00:00Z",
+            }),
+          });
+          return;
+        }
+
+        if (method === "GET" && path === "/independent/teachers/me/lecture-wizard/references") {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope([]),
+          });
+          return;
+        }
+
+        if (method === "GET" && path === "/independent/teachers/me/lectures/ind-lec-1") {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope({
+              id: "ind-lec-1",
+              status: "ready_for_edit",
+              title: "Newton's Laws",
+              current_version_id: "v-1",
+            }),
+          });
+          return;
+        }
+
+        if (method === "GET" && path === "/independent/teachers/me/lectures/ind-lec-1/paragraphs") {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope([]),
+          });
+          return;
+        }
+
+        if (
+          method === "GET" &&
+          path === "/independent/teachers/me/lectures/ind-lec-1/versions/current"
+        ) {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope({
+              id: "v-1",
+              lecture_id: "ind-lec-1",
+              version: savedVersion,
+              content_jsonb: currentContentJsonb,
+              body: "Original AI draft.",
+              scores_jsonb: null,
+              topic_relevance_pct: null,
+              originality_score: null,
+              edit_summary: null,
+              created_at: "2026-08-05T00:00:00Z",
+            }),
+          });
+          return;
+        }
+
+        if (method === "POST" && path === "/independent/teachers/me/lectures/ind-lec-1/versions") {
+          const posted = request.postDataJSON() as { content_jsonb: unknown };
+          savedVersion += 1;
+          currentContentJsonb = posted.content_jsonb;
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope({
+              id: `v-${savedVersion}`,
+              lecture_id: "ind-lec-1",
+              version: savedVersion,
+              content_jsonb: currentContentJsonb,
+              body: "Original AI draft. Edited by teacher.",
+              scores_jsonb: null,
+              topic_relevance_pct: null,
+              originality_score: null,
+              edit_summary: ["Added content"],
+              created_at: "2026-08-05T00:05:00Z",
+            }),
+          });
+          return;
+        }
+
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({}),
+        });
+      }
+    );
+
+    await page.goto(`${BASE_URL}/independent/teacher/lectures/new`);
+
+    // Reachable: resumes straight into the READY_FOR_EDIT view from the saved draft.
+    await expect(page.getByRole("heading", { name: /Lecture ready/i })).toBeVisible();
+    await expect(page.getByRole("heading", { name: /Edit lecture/i })).toBeVisible();
+    await expect(page.getByText("Original AI draft.")).toBeVisible();
+
+    const editorBody = page.locator('[role="toolbar"] ~ div [contenteditable="true"]');
+    await editorBody.click();
+    await page.keyboard.press("End");
+    await page.keyboard.type(" Edited by teacher.");
+
+    await page.getByRole("button", { name: /^Save$/ }).click();
+    await expect(page.getByText(/^Saved$/)).toBeVisible();
+  });
+});

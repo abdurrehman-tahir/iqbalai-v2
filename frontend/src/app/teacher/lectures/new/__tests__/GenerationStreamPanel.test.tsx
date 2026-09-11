@@ -55,6 +55,8 @@ const getAccessSettings = vi.fn();
 const setAccessSettings = vi.fn();
 const getRoster = vi.fn();
 const getTeacherTips = vi.fn();
+const getCurrentVersion = vi.fn();
+const saveVersion = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   lectureWizardApi: {
@@ -73,6 +75,8 @@ vi.mock("@/lib/api", () => ({
     setAccessSettings: (...args: unknown[]) => setAccessSettings(...args),
     getRoster: (...args: unknown[]) => getRoster(...args),
     getTeacherTips: (...args: unknown[]) => getTeacherTips(...args),
+    getCurrentVersion: (...args: unknown[]) => getCurrentVersion(...args),
+    saveVersion: (...args: unknown[]) => saveVersion(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -130,6 +134,18 @@ function renderAtStep5GeneratingLecture(
     assignments: [],
   });
   getTeacherTips.mockResolvedValue({ lecture_id: "lec-1", status: "pending", tips: null });
+  getCurrentVersion.mockResolvedValue({
+    id: "ver-1",
+    lecture_id: "lec-1",
+    version: 1,
+    content_jsonb: null,
+    body: "Newton's first law states that...",
+    scores_jsonb: null,
+    topic_relevance_pct: null,
+    originality_score: null,
+    edit_summary: null,
+    created_at: "2026-08-05T00:00:00Z",
+  });
 
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -172,9 +188,7 @@ describe("GenerationStreamPanel", () => {
     });
     renderAtStep5GeneratingLecture();
 
-    expect(
-      await screen.findByText(/Newton's first law states that/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Newton's first law states that/i)).toBeInTheDocument();
   });
 
   it("shows a reconnecting notice without losing the transcript so far", async () => {
@@ -327,12 +341,8 @@ describe("VoiceConversationPanel (T-121)", () => {
     });
     renderAtStep5GeneratingLecture();
 
-    expect(
-      await screen.findByText("add an example about Newton's third law")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Adding an example about Newton's third law.")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("add an example about Newton's third law")).toBeInTheDocument();
+    expect(screen.getByText("Adding an example about Newton's third law.")).toBeInTheDocument();
     expect(screen.getByText(/lecture draft updated/i)).toBeInTheDocument();
   });
 

@@ -65,6 +65,8 @@ import type {
   LectureAccessSettingsUpdate,
   LectureRosterRead,
   LectureTeacherTipsRead,
+  LectureVersionSaveRequest,
+  LectureVersionRead,
   IndependentWizardReferenceRead,
   IndependentLectureGenerateRequest,
   IndependentLectureRead,
@@ -386,19 +388,15 @@ export const parentChildLinksApi = {
     request<ParentChildLinkRead>(
       "/parents/me/link-requests",
       { method: "POST", body: JSON.stringify({ student_email }) },
-      token,
+      token
     ),
   revokeLink: (token: string, linkId: string) =>
-    request<ParentChildLinkRead>(
-      `/parents/me/links/${linkId}/revoke`,
-      { method: "POST" },
-      token,
-    ),
+    request<ParentChildLinkRead>(`/parents/me/links/${linkId}/revoke`, { method: "POST" }, token),
   getStudentAccessState: (token: string, studentUserId: string) =>
     request<ParentStudentAccessStateRead>(
       `/parents/me/students/${studentUserId}/access-state`,
       {},
-      token,
+      token
     ),
   listStudentPending: (token: string) =>
     request<StudentLinkRequestList>("/students/me/link-requests", {}, token),
@@ -408,14 +406,10 @@ export const parentChildLinksApi = {
     request<ParentChildLinkRead>(
       `/students/me/link-requests/${linkId}/approve`,
       { method: "POST" },
-      token,
+      token
     ),
   revokeParentLink: (token: string, linkId: string) =>
-    request<ParentChildLinkRead>(
-      `/students/me/links/${linkId}/revoke`,
-      { method: "POST" },
-      token,
-    ),
+    request<ParentChildLinkRead>(`/students/me/links/${linkId}/revoke`, { method: "POST" }, token),
 };
 
 // ── Independent teacher onboarding ────────────────────────────────────────────
@@ -443,11 +437,7 @@ export const independentStudentOnboardingApi = {
   listExamFrameworks: () =>
     request<ExamFrameworkOption[]>("/independent/students/me/exam-frameworks"),
   getOnboarding: (token: string) =>
-    request<IndependentStudentOnboardingRead>(
-      "/independent/students/me/onboarding",
-      {},
-      token,
-    ),
+    request<IndependentStudentOnboardingRead>("/independent/students/me/onboarding", {}, token),
   completeProfile: (token: string, data: IndependentStudentProfileComplete) =>
     request<IndependentStudentOnboardingRead>(
       "/independent/students/me/profile",
@@ -1107,11 +1097,7 @@ export const lectureWizardApi = {
     });
     return request<WizardTopicsRead>(`/teachers/me/lecture-wizard/topics?${qs}`, {}, token);
   },
-  listReferences: (
-    token: string,
-    gradeSubjectOfferingId: string,
-    includeCrossGrade = false
-  ) => {
+  listReferences: (token: string, gradeSubjectOfferingId: string, includeCrossGrade = false) => {
     const qs = new URLSearchParams({
       grade_subject_offering_id: gradeSubjectOfferingId,
       include_cross_grade: String(includeCrossGrade),
@@ -1127,24 +1113,27 @@ export const lectureWizardApi = {
       teaching_mode: teachingMode,
       reference_count: String(referenceCount),
     });
-    return request<WizardEstimateRead>(
-      `/teachers/me/lecture-wizard/estimate?${qs}`,
-      {},
-      token
-    );
+    return request<WizardEstimateRead>(`/teachers/me/lecture-wizard/estimate?${qs}`, {}, token);
   },
   generate: (token: string, data: LectureGenerateRequest) =>
-    request<LectureGenerateRead>("/teachers/me/lecture-wizard/generate", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }, token),
-  getDraft: (token: string) =>
-    request<LectureDraftRead>("/teachers/me/lecture-draft", {}, token),
+    request<LectureGenerateRead>(
+      "/teachers/me/lecture-wizard/generate",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+      token
+    ),
+  getDraft: (token: string) => request<LectureDraftRead>("/teachers/me/lecture-draft", {}, token),
   upsertDraft: (token: string, data: LectureDraftUpsert) =>
-    request<LectureDraftRead>("/teachers/me/lecture-draft", {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }, token),
+    request<LectureDraftRead>(
+      "/teachers/me/lecture-draft",
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      },
+      token
+    ),
   getParagraphs: (token: string, lectureId: string) =>
     request<LectureParagraphRead[]>(`/teachers/me/lectures/${lectureId}/paragraphs`, {}, token),
   listLinks: (token: string, lectureId: string) =>
@@ -1173,6 +1162,20 @@ export const lectureWizardApi = {
     request<LectureRosterRead>(`/teachers/me/lectures/${lectureId}/roster`, {}, token),
   getTeacherTips: (token: string, lectureId: string) =>
     request<LectureTeacherTipsRead>(`/teachers/me/lectures/${lectureId}/teacher-tips`, {}, token),
+  getCurrentVersion: (token: string, lectureId: string) =>
+    request<LectureVersionRead>(`/teachers/me/lectures/${lectureId}/versions/current`, {}, token),
+  saveVersion: (token: string, lectureId: string, data: LectureVersionSaveRequest) =>
+    request<LectureVersionRead>(
+      `/teachers/me/lectures/${lectureId}/versions`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        // Idempotency-Key (ARCH §5.9): a retried POST (network retry, double
+        // click) returns the cached version instead of creating a duplicate.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
 };
 
 // ── Independent teacher lecture wizard (T-125) ──────────────────────────────
@@ -1216,6 +1219,22 @@ export const independentLectureWizardApi = {
     request<LectureParagraphRead[]>(
       `/independent/teachers/me/lectures/${lectureId}/paragraphs`,
       {},
+      token
+    ),
+  getCurrentVersion: (token: string, lectureId: string) =>
+    request<LectureVersionRead>(
+      `/independent/teachers/me/lectures/${lectureId}/versions/current`,
+      {},
+      token
+    ),
+  saveVersion: (token: string, lectureId: string, data: LectureVersionSaveRequest) =>
+    request<LectureVersionRead>(
+      `/independent/teachers/me/lectures/${lectureId}/versions`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
       token
     ),
 };

@@ -669,7 +669,21 @@
         "tips_pending": "Preparing delivery tips, a technique demo, and real-world examples for this lecture…",
         "tips_delivery_tips_label": "Delivery tips",
         "tips_technique_demo_label": "Teaching technique demo",
-        "tips_real_world_examples_label": "Real-world examples"
+        "tips_real_world_examples_label": "Real-world examples",
+        "editor_title": "Edit lecture",
+        "editor_save_button": "Save",
+        "editor_saving": "Saving...",
+        "editor_saved": "Saved",
+        "editor_save_error": "Could not save your edit. Please try again.",
+        "editor_error": "Could not load the lecture editor.",
+        "editor_placeholder": "Start editing your lecture...",
+        "editor_toolbar_label": "Formatting",
+        "editor_toolbar_bold": "Bold",
+        "editor_toolbar_italic": "Italic",
+        "editor_toolbar_heading": "Heading",
+        "editor_toolbar_bullet_list": "Bullet list",
+        "editor_toolbar_ordered_list": "Numbered list",
+        "editor_version_label": "Version {version}"
       }
     },
     "onboarding": {
@@ -1602,7 +1616,21 @@
           "voice_session_ended": "Voice session ended.",
           "voice_error_title": "Voice session error",
           "voice_error_body": "Something went wrong with the voice session. Please try again.",
-          "voice_tts_unavailable": "Voice not yet available in this language; reading aloud disabled."
+          "voice_tts_unavailable": "Voice not yet available in this language; reading aloud disabled.",
+          "editor_title": "Edit lecture",
+          "editor_save_button": "Save",
+          "editor_saving": "Saving...",
+          "editor_saved": "Saved",
+          "editor_save_error": "Could not save your edit. Please try again.",
+          "editor_error": "Could not load the lecture editor.",
+          "editor_placeholder": "Start editing your lecture...",
+          "editor_toolbar_label": "Formatting",
+          "editor_toolbar_bold": "Bold",
+          "editor_toolbar_italic": "Italic",
+          "editor_toolbar_heading": "Heading",
+          "editor_toolbar_bullet_list": "Bullet list",
+          "editor_toolbar_ordered_list": "Numbered list",
+          "editor_version_label": "Version {version}"
         }
       }
     },

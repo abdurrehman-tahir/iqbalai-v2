@@ -1317,6 +1317,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save a TipTap edit as a new immutable lecture version (T-130, #29-#31) */
+        post: operations["independent_teacher_save_lecture_version"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/versions/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Load the current version's content into the TipTap editor (T-130) */
+        get: operations["independent_teacher_get_current_lecture_version"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/independent/teachers/me/onboarding": {
         parameters: {
             query?: never;
@@ -2567,6 +2601,40 @@ export interface paths {
         };
         /** Delivery tips + technique demo + real-world examples (T-124, #28, #41) */
         get: operations["teacher_get_lecture_teacher_tips"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lectures/{lecture_id}/versions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Save a TipTap edit as a new immutable lecture version (T-130, #29-#31) */
+        post: operations["teacher_save_lecture_version"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lectures/{lecture_id}/versions/current": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Load the current version's content into the TipTap editor (T-130) */
+        get: operations["teacher_get_current_lecture_version"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4039,6 +4107,58 @@ export interface components {
             tips?: components["schemas"]["TeacherTips"] | null;
         };
         /**
+         * LectureVersionRead
+         * @description A single immutable lecture version, as returned after a save (T-130).
+         */
+        LectureVersionRead: {
+            /** Body */
+            body: string;
+            /** Content Jsonb */
+            content_jsonb?: {
+                [key: string]: unknown;
+            } | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Edit Summary */
+            edit_summary?: string[] | null;
+            /** Id */
+            id: string;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Originality Score */
+            originality_score?: number | null;
+            /** Scores Jsonb */
+            scores_jsonb?: {
+                [key: string]: unknown;
+            } | null;
+            /** Topic Relevance Pct */
+            topic_relevance_pct?: number | null;
+            /** Version */
+            version: number;
+        };
+        /**
+         * LectureVersionSaveRequest
+         * @description Manual or debounced auto-save from the TipTap editor (T-130, #29-#31).
+         *
+         *     Shared shape for both tenants — the editor has no tenant-specific fields.
+         */
+        LectureVersionSaveRequest: {
+            /** Content Jsonb */
+            content_jsonb: {
+                [key: string]: unknown;
+            };
+            /** Edit Session Id */
+            edit_session_id?: string | null;
+            /**
+             * Is Autosave
+             * @default false
+             */
+            is_autosave: boolean;
+        };
+        /**
          * LibraryBookListResponse
          * @description Paginated list of platform reference books.
          */
@@ -5244,6 +5364,15 @@ export interface components {
         /** SuccessEnvelope[LectureTeacherTipsRead] */
         SuccessEnvelope_LectureTeacherTipsRead_: {
             data: components["schemas"]["LectureTeacherTipsRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[LectureVersionRead] */
+        SuccessEnvelope_LectureVersionRead_: {
+            data: components["schemas"]["LectureVersionRead"];
             /**
              * Message
              * @default ok
@@ -9353,6 +9482,72 @@ export interface operations {
             };
         };
     };
+    independent_teacher_save_lecture_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureVersionSaveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureVersionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_get_current_lecture_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureVersionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     independent_teacher_get_onboarding: {
         parameters: {
             query?: never;
@@ -11727,6 +11922,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_LectureTeacherTipsRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_save_lecture_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureVersionSaveRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureVersionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_current_lecture_version: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureVersionRead_"];
                 };
             };
             /** @description Validation Error */
