@@ -73,6 +73,22 @@ def school_library_collection(content_type: str) -> str:
     return reference_book_chunks_collection()
 
 
+def lecture_originality_index_collection() -> str:
+    """Global cross-teacher originality index, school tenant only (ARCH §7.6/§7.15).
+
+    Dense-only, one vector per lecture *version* (not per chunk). Production is
+    locked to BGE-M3 1024-d; the ``_local`` variant exists only so CI/local dev
+    can run the same code path against the low-dim fixture embedder without a
+    dimension mismatch (T-135 provides a fixture originality index for CI —
+    M-10 §11 "CI must use a fixture originality index, never live cross-tenant
+    data"). Independent-tenant lectures are never written here (tenant-isolated
+    originality per Flow 5 §3.7) — see ``independent_personal_collection`` instead.
+    """
+    if embedding_provider() == "local":
+        return "lecture_originality_index_local"
+    return "lecture_originality_index"
+
+
 def independent_personal_collection(user_id: str) -> str:
     """Per-user Qdrant namespace for independent private pool (ARCH §3.16)."""
     prefix = (
