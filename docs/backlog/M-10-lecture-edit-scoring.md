@@ -113,7 +113,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** ed39a24
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5 (voice edits — transcribe, insert-at-cursor or replace-selection)
@@ -130,14 +131,17 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Teacher dictates; transcription inserts at cursor
-2. [ ] With text selected, transcription replaces the selection (teacher's choice)
-3. [ ] STT uses faster-whisper (STACK_LOCK §4), not raw Whisper
-4. [ ] A voice-originated save still creates a normal new version
-5. [ ] Works in en/ur (Piper-paired languages) + sd/ps per the M-09 voice stack
+1. [x] Teacher dictates; transcription inserts at cursor (TipTap `insertContent`)
+2. [x] With text selected, transcription replaces the selection (`insertContent` replaces the current selection natively — no server/client insert-vs-replace branching needed)
+3. [x] STT uses faster-whisper (STACK_LOCK §4), not raw Whisper (single entry point `infrastructure/voice/router.transcribe`)
+4. [x] A voice-originated save still creates a normal new version (`used_voice_edit` flag -> "Applied voice edit" edit_summary annotation)
+5. [x] Works in en/ur/sd/ps (STT language param; TTS-language pairing from M-09's voice stack doesn't apply here — no TTS in this ticket)
 
 ### Out of scope
 - Voice-quality scoring dimension (T-134 computes it)
+
+### Notes / known gotchas
+- **Deliberately does NOT reuse T-121's WS "Talk to AI" conversational pipeline** (`ws_voice_router.py`/`voice_session.py`) — that pipeline is LLM-interpreted commands over a live back-and-forth and writes `lecture_versions.body` directly, bypassing T-130's `content_jsonb`. T-131 only reuses the STT primitive (`transcribe()`); a plain multipart REST endpoint replaces it, matching the ticket's simpler acceptance criteria. Flagged and confirmed via the ticket-loader dossier before implementation, not guessed.
 
 ---
 
