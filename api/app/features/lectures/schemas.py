@@ -361,3 +361,34 @@ class IndependentLectureRead(BaseModel):
     status: str
     title: str
     current_version_id: str | None = None
+
+
+# --- M-10 T-130 — TipTap editor save / immutable versioning ----------------
+
+
+class LectureVersionSaveRequest(BaseModel):
+    """Manual or debounced auto-save from the TipTap editor (T-130, #29-#31).
+
+    Shared shape for both tenants — the editor has no tenant-specific fields.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    content_jsonb: dict[str, Any] = Field(...)
+    is_autosave: bool = False
+    edit_session_id: str | None = Field(default=None, max_length=36)
+
+
+class LectureVersionRead(BaseModel):
+    """A single immutable lecture version, as returned after a save (T-130)."""
+
+    id: str
+    lecture_id: str
+    version: int
+    content_jsonb: dict[str, Any] | None = None
+    body: str
+    scores_jsonb: dict[str, Any] | None = None
+    topic_relevance_pct: float | None = None
+    originality_score: float | None = None
+    edit_summary: list[str] | None = None
+    created_at: datetime

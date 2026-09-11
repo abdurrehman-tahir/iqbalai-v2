@@ -22,6 +22,8 @@ from app.features.grades.cross_grade import (
     library_item_visible_for_grade_context,
 )
 from app.features.grades.repository import GradeRepository
+from app.features.lectures.edit_summary import derive_edit_summary
+from app.features.lectures.events import LECTURE_VERSION_CREATED, publish_lecture_event
 from app.features.lectures.models import (
     LectureAssignmentScope as AssignmentScopeModel,
 )
@@ -32,6 +34,7 @@ from app.features.lectures.models import (
     SchoolLectureAssignment,
     SchoolLectureDraft,
     SchoolLectureLink,
+    SchoolLectureVersion,
 )
 from app.features.lectures.repository import (
     LectureAssignmentRepository,
@@ -54,6 +57,8 @@ from app.features.lectures.schemas import (
     LectureParagraphRead,
     LectureRosterRead,
     LectureTeacherTipsRead,
+    LectureVersionRead,
+    LectureVersionSaveRequest,
     ParagraphSourceMetadata,
     RosterSectionRead,
     RosterStudentRead,
@@ -70,6 +75,7 @@ from app.features.lectures.schemas import (
 from app.features.lectures.schemas import (
     LectureAssignmentScope as AssignmentScopeSchema,
 )
+from app.features.lectures.tiptap import InvalidTipTapDocumentError, extract_plain_text
 from app.features.library.school_library_repository import SchoolLibraryRepository
 from app.features.library.school_models import (
     LibraryContentType,
@@ -594,6 +600,112 @@ class LectureWizardService:
 
         tips = TeacherTips.from_jsonb(version.teacher_tips_jsonb)
         return LectureTeacherTipsRead(lecture_id=lecture.id, status="ready", tips=tips)
+
+    @staticmethod
+    def _to_version_read(version: SchoolLectureVersion) -> LectureVersionRead:
+        return LectureVersionRead(
+            id=version.id,
+            lecture_id=version.lecture_id,
+            version=version.version,
+            content_jsonb=version.content_jsonb,
+            body=version.body,
+            scores_jsonb=version.scores_jsonb,
+            topic_relevance_pct=(
+                float(version.topic_relevance_pct)
+                if version.topic_relevance_pct is not None
+                else None
+            ),
+            originality_score=(
+                float(version.originality_score) if version.originality_score is not None else None
+            ),
+            edit_summary=version.edit_summary,
+            created_at=version.created_at,
+        )
+
+    async def get_current_lecture_version(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> LectureVersionRead:
+        """Loads the editor's initial content (T-130)."""
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.current_version_id is None:
+            raise NotFoundError("Lecture has no version yet")
+        version = await self._versions.get_by_id(lecture.current_version_id)
+        if version is None:
+            raise NotFoundError("Lecture version not found")
+        return self._to_version_read(version)
+
+    async def save_lecture_version(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        payload: LectureVersionSaveRequest,
+        *,
+        extra_annotations: list[str] | None = None,
+    ) -> LectureVersionRead:
+        """Save an edit as a new immutable version (T-130, #29-#31).
+
+        Every save — manual or (frontend-)debounced auto-save — creates a new
+        ``lecture_versions`` row; the prior row is never touched (§4.18). Server
+        re-validates teacher ownership of the lecture's Grade-Subject via
+        ``_require_owned_lecture`` (the same check every other mutation on this
+        lecture uses) — the frontend's READY_FOR_EDIT gate is not trusted alone.
+        ``extra_annotations`` lets T-131 (voice) / T-132 (image) contribute their
+        own edit_summary entries without duplicating this method.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        latest = await self._versions.get_latest_for_lecture(lecture.id)
+        if latest is None:
+            raise NotFoundError("Lecture has no existing version to edit")
+
+        try:
+            body = extract_plain_text(payload.content_jsonb)
+        except InvalidTipTapDocumentError as exc:
+            raise ValidationError(str(exc)) from exc
+        if not body:
+            raise ValidationError("Lecture content cannot be empty")
+
+        annotations = derive_edit_summary(
+            previous_body=latest.body,
+            new_body=body,
+            extra_annotations=extra_annotations,
+        )
+
+        version = SchoolLectureVersion(
+            lecture_id=lecture.id,
+            version=latest.version + 1,
+            body=body,
+            content_jsonb=payload.content_jsonb,
+            edit_summary=annotations,
+        )
+        lecture.current_version_id = version.id
+        version = await self._versions.create(version)
+
+        await publish_lecture_event(
+            event_type=LECTURE_VERSION_CREATED,
+            payload={
+                "lecture_id": lecture.id,
+                "version_id": version.id,
+                "version": version.version,
+                "school_id": teacher.school_id,
+                "teacher_user_id": teacher.id,
+                "tenant_type": "school",
+                "is_autosave": payload.is_autosave,
+            },
+        )
+        logger.info(
+            "lecture_version_saved",
+            lecture_id=lecture.id,
+            version_id=version.id,
+            version=version.version,
+            is_autosave=payload.is_autosave,
+        )
+        return self._to_version_read(version)
 
     async def _read_link(self, link: SchoolLectureLink) -> LectureLinkRead | None:
         offering = await self._offerings.get_by_id(link.target_grade_subject_offering_id)

@@ -75,6 +75,26 @@ class IndependentLectureVersionRepository:
     async def get_by_id(self, version_id: str) -> IndependentLectureVersion | None:
         return await self._session.get(IndependentLectureVersion, version_id)
 
+    async def get_latest_for_lecture(self, lecture_id: str) -> IndependentLectureVersion | None:
+        """Highest ``version`` row for a lecture (T-130 save path)."""
+        result = await self._session.execute(
+            select(IndependentLectureVersion)
+            .where(IndependentLectureVersion.lecture_id == lecture_id)
+            .order_by(IndependentLectureVersion.version.desc())
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
+    async def create(self, version: IndependentLectureVersion) -> IndependentLectureVersion:
+        """Commits the version AND any pending change on its parent ``lecture``
+        (e.g. ``current_version_id``) already attached to this session — one
+        unit of work (T-130 save path).
+        """
+        self._session.add(version)
+        await self._session.commit()
+        await self._session.refresh(version)
+        return version
+
 
 class IndependentLectureParagraphRepository:
     def __init__(self, session: AsyncSession) -> None:

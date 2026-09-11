@@ -265,6 +265,11 @@ class SchoolLectureVersion(AuditMixin, Base):
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
+    # M-10 T-130: TipTap's native JSON doc (STACK_LOCK §2 rich-text-editor row).
+    # Null for v1 rows predating the editor (LLM-generated plain text only) —
+    # every version created via the save endpoint populates this alongside body
+    # (a derived plain-text extraction kept for scoring/embedding/RAG code paths).
+    content_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     # M-10 fills 7-dimension scores; nullable until then.
     scores_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     # T-124 (#28, #41): teacher-facing delivery tips + technique demo + real-world
@@ -760,6 +765,7 @@ class IndependentLectureVersion(AuditMixin, Base):
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
+    content_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     scores_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     topic_relevance_pct: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
     # Compared only against this same teacher's own prior versions (tenant-isolated,

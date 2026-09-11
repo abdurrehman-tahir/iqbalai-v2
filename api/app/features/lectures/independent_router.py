@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
+from app.core.idempotency import IdempotencyContext, idempotency_key
 from app.core.responses import SuccessEnvelope, success
 from app.features.lectures.independent_service import IndependentLectureWizardService
 from app.features.lectures.schemas import (
@@ -18,6 +19,8 @@ from app.features.lectures.schemas import (
     LectureDraftUpsert,
     LectureGenerateRead,
     LectureParagraphRead,
+    LectureVersionRead,
+    LectureVersionSaveRequest,
     TeachingMode,
     WizardEstimateRead,
 )
@@ -142,3 +145,48 @@ async def get_lecture_paragraphs(
     svc = IndependentLectureWizardService(db)
     rows = await svc.get_lecture_paragraphs(claims, lecture_id)
     return success([r.model_dump(mode="json") for r in rows])
+
+
+@router.get(
+    "/lectures/{lecture_id}/versions/current",
+    response_model=SuccessEnvelope[LectureVersionRead],
+    operation_id="independent_teacher_get_current_lecture_version",
+    summary="Load the current version's content into the TipTap editor (T-130)",
+    dependencies=[require_role("independent_teacher")],
+)
+async def get_current_lecture_version(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = IndependentLectureWizardService(db)
+    result = await svc.get_current_lecture_version(claims, lecture_id)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/lectures/{lecture_id}/versions",
+    response_model=SuccessEnvelope[LectureVersionRead],
+    operation_id="independent_teacher_save_lecture_version",
+    summary="Save a TipTap edit as a new immutable lecture version (T-130, #29-#31)",
+    dependencies=[require_role("independent_teacher")],
+)
+async def save_lecture_version(
+    lecture_id: str,
+    payload: LectureVersionSaveRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    idem: IdempotencyContext | None = Depends(idempotency_key),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    if idem is not None:
+        cached = await idem.cached_response()
+        if cached is not None:
+            return cached
+
+    svc = IndependentLectureWizardService(db)
+    result = await svc.save_lecture_version(claims, lecture_id, payload)
+    response = success(result.model_dump(mode="json"))
+
+    if idem is not None:
+        await idem.store_response(response)
+    return response
