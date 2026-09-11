@@ -6,9 +6,24 @@ import type { useTranslations } from "next-intl";
 import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Bold, Italic, Heading2, List, ListOrdered, Mic, Square } from "lucide-react";
+import Image from "@tiptap/extension-image";
+import {
+  Bold,
+  Italic,
+  Heading2,
+  List,
+  ListOrdered,
+  Mic,
+  Square,
+  ImagePlus,
+  Check,
+  X,
+} from "lucide-react";
 import { ApiError } from "@/lib/api";
 import type {
+  DiagramSuggestionAccept,
+  DiagramSuggestionsRead,
+  LectureImageUploadRead,
   LectureVersionRead,
   LectureVersionSaveRequest,
   VoiceTranscribeRead,
@@ -18,6 +33,8 @@ import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const AUTOSAVE_DEBOUNCE_MS = 3000;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif"]);
 
 const VOICE_LANGUAGES = ["auto", "en", "ur", "sd", "ps"] as const;
 type VoiceLanguage = (typeof VOICE_LANGUAGES)[number];
@@ -79,6 +96,20 @@ export interface LectureEditorApi {
     audio: Blob,
     language?: string
   ) => Promise<VoiceTranscribeRead>;
+  uploadImage: (
+    token: string,
+    lectureId: string,
+    image: File | Blob
+  ) => Promise<LectureImageUploadRead>;
+  /** Undefined for the independent tenant — no AI diagram suggestion there
+   * (T-132: independent teachers' personal reference content has no
+   * page-chunked structure to draw suggestions from). */
+  getDiagramSuggestions?: (token: string, lectureId: string) => Promise<DiagramSuggestionsRead>;
+  acceptDiagramSuggestion?: (
+    token: string,
+    lectureId: string,
+    data: DiagramSuggestionAccept
+  ) => Promise<LectureImageUploadRead>;
 }
 
 /** TipTap editor + immutable-version save/autosave (T-130). Shared between the
@@ -106,17 +137,28 @@ export function LectureEditorPanel({
   const [isRecording, setIsRecording] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [dismissedSuggestionKeys, setDismissedSuggestionKeys] = useState<Set<string>>(new Set());
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initializedRef = useRef(false);
   const usedVoiceEditRef = useRef(false);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
   const queryKey = [queryKeyPrefix, "lecture-version-current", lectureId];
 
   const versionQuery = useQuery({
     queryKey,
     queryFn: () => api.getCurrentVersion(token, lectureId),
+  });
+
+  const diagramSuggestionsQuery = useQuery({
+    queryKey: [queryKeyPrefix, "diagram-suggestions", lectureId],
+    queryFn: () => api.getDiagramSuggestions!(token, lectureId),
+    enabled: !!api.getDiagramSuggestions,
   });
 
   const saveMutation = useMutation({
@@ -139,7 +181,11 @@ export function LectureEditorPanel({
 
   const editor = useEditor(
     {
-      extensions: [StarterKit, Placeholder.configure({ placeholder: t("editor_placeholder") })],
+      extensions: [
+        StarterKit,
+        Placeholder.configure({ placeholder: t("editor_placeholder") }),
+        Image,
+      ],
       immediatelyRender: false,
       editorProps: {
         attributes: {
@@ -247,6 +293,65 @@ export function LectureEditorPanel({
     };
   }, [stopStream]);
 
+  const insertImage = useCallback(
+    (src: string) => {
+      editor?.chain().focus().setImage({ src }).run();
+      setJustSaved(false);
+    },
+    [editor]
+  );
+
+  const handleImageFile = useCallback(
+    async (file: File) => {
+      setImageError(null);
+      if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+        setImageError(t("editor_image_type_error"));
+        return;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        setImageError(t("editor_image_size_error"));
+        return;
+      }
+      setIsUploadingImage(true);
+      try {
+        const result = await api.uploadImage(token, lectureId, file);
+        insertImage(result.image_url);
+      } catch (err) {
+        setImageError(err instanceof ApiError ? err.message : t("editor_image_upload_error"));
+      } finally {
+        setIsUploadingImage(false);
+      }
+    },
+    [api, insertImage, lectureId, t, token]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDraggingOver(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) void handleImageFile(file);
+    },
+    [handleImageFile]
+  );
+
+  const acceptSuggestionMutation = useMutation({
+    mutationFn: (payload: DiagramSuggestionAccept) =>
+      api.acceptDiagramSuggestion!(token, lectureId, payload),
+    onSuccess: (result) => {
+      insertImage(result.image_url);
+    },
+    onError: (err: unknown) => {
+      setImageError(err instanceof ApiError ? err.message : t("editor_image_upload_error"));
+    },
+  });
+
+  const suggestionKey = (s: { library_item_id: string; page_number: number }) =>
+    `${s.library_item_id}:${s.page_number}`;
+  const activeSuggestion = diagramSuggestionsQuery.data?.suggestions.find(
+    (s) => !dismissedSuggestionKeys.has(suggestionKey(s))
+  );
+
   if (versionQuery.isLoading) {
     return (
       <section className="space-y-2" aria-busy="true">
@@ -334,6 +439,25 @@ export function LectureEditorPanel({
           >
             <ListOrdered className="size-4" aria-hidden="true" />
           </ToolbarButton>
+          <ToolbarButton
+            label={t("editor_image_insert")}
+            active={false}
+            onClick={() => imageInputRef.current?.click()}
+          >
+            <ImagePlus className="size-4" aria-hidden="true" />
+          </ToolbarButton>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif"
+            className="sr-only"
+            aria-label={t("editor_image_insert")}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleImageFile(file);
+              e.target.value = "";
+            }}
+          />
 
           <div className="ms-auto flex items-center gap-2">
             <label className="sr-only" htmlFor="voice-edit-language">
@@ -369,7 +493,16 @@ export function LectureEditorPanel({
             </Button>
           </div>
         </div>
-        <div dir="auto" className="p-3">
+        <div
+          dir="auto"
+          className={`p-3 ${isDraggingOver ? "bg-blue-50 outline-2 outline-dashed outline-blue-300" : ""}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDraggingOver(true);
+          }}
+          onDragLeave={() => setIsDraggingOver(false)}
+          onDrop={handleDrop}
+        >
           <EditorContent editor={editor} />
         </div>
       </div>
@@ -379,12 +512,62 @@ export function LectureEditorPanel({
           ? t("editor_voice_recording")
           : isTranscribing
             ? t("editor_voice_transcribing")
-            : null}
+            : isUploadingImage
+              ? t("editor_image_uploading")
+              : null}
       </div>
       {voiceError ? (
         <p className="text-sm text-red-600" role="alert">
           {voiceError}
         </p>
+      ) : null}
+      {imageError ? (
+        <p className="text-sm text-red-600" role="alert">
+          {imageError}
+        </p>
+      ) : null}
+
+      {activeSuggestion ? (
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 p-3"
+          role="status"
+        >
+          <p className="text-sm text-amber-900">
+            {t("editor_diagram_suggestion", {
+              page: activeSuggestion.page_number,
+              book: activeSuggestion.book_name,
+            })}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={acceptSuggestionMutation.isPending}
+              onClick={() =>
+                acceptSuggestionMutation.mutate({
+                  library_item_id: activeSuggestion.library_item_id,
+                  page_number: activeSuggestion.page_number,
+                })
+              }
+            >
+              <Check className="me-1 size-4" aria-hidden="true" />
+              {t("editor_diagram_accept")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setDismissedSuggestionKeys((prev) =>
+                  new Set(prev).add(suggestionKey(activeSuggestion))
+                )
+              }
+            >
+              <X className="me-1 size-4" aria-hidden="true" />
+              {t("editor_diagram_decline")}
+            </Button>
+          </div>
+        </div>
       ) : null}
 
       {versionQuery.data ? (

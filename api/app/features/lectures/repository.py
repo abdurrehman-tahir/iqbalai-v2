@@ -81,6 +81,18 @@ class LectureVersionRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_first_for_lecture(self, lecture_id: str) -> SchoolLectureVersion | None:
+        """Version 1 — the only version with tier-tagged paragraphs (T-132's
+        diagram suggestions read the AI-generated draft's source attribution,
+        not whatever a teacher has edited it into since).
+        """
+        result = await self._session.execute(
+            select(SchoolLectureVersion)
+            .where(SchoolLectureVersion.lecture_id == lecture_id, SchoolLectureVersion.version == 1)
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
     async def create(self, version: SchoolLectureVersion) -> SchoolLectureVersion:
         """Commits the version AND any pending change on its parent ``lecture``
         (e.g. ``current_version_id``) already attached to this session — one

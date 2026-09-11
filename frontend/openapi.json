@@ -464,6 +464,20 @@
         "title": "Body_independent_teacher_transcribe_voice_edit",
         "type": "object"
       },
+      "Body_independent_teacher_upload_lecture_image": {
+        "properties": {
+          "image": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "title": "Body_independent_teacher_upload_lecture_image",
+        "type": "object"
+      },
       "Body_school_library_upload": {
         "properties": {
           "file": {
@@ -490,6 +504,20 @@
           "audio"
         ],
         "title": "Body_teacher_transcribe_voice_edit",
+        "type": "object"
+      },
+      "Body_teacher_upload_lecture_image": {
+        "properties": {
+          "image": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "title": "Body_teacher_upload_lecture_image",
         "type": "object"
       },
       "Body_upload_file": {
@@ -1089,6 +1117,75 @@
           }
         },
         "title": "DiagnosticStartRequest",
+        "type": "object"
+      },
+      "DiagramSuggestion": {
+        "description": "One AI-flagged reference-book page likely containing a relevant diagram.",
+        "properties": {
+          "book_name": {
+            "title": "Book Name",
+            "type": "string"
+          },
+          "library_item_id": {
+            "title": "Library Item Id",
+            "type": "string"
+          },
+          "page_number": {
+            "minimum": 1.0,
+            "title": "Page Number",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "library_item_id",
+          "book_name",
+          "page_number",
+          "reason"
+        ],
+        "title": "DiagramSuggestion",
+        "type": "object"
+      },
+      "DiagramSuggestionAccept": {
+        "additionalProperties": false,
+        "description": "Renders the named reference-book page and uploads it as a lecture image.",
+        "properties": {
+          "library_item_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Library Item Id",
+            "type": "string"
+          },
+          "page_number": {
+            "minimum": 1.0,
+            "title": "Page Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "library_item_id",
+          "page_number"
+        ],
+        "title": "DiagramSuggestionAccept",
+        "type": "object"
+      },
+      "DiagramSuggestionsRead": {
+        "properties": {
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/DiagramSuggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "suggestions"
+        ],
+        "title": "DiagramSuggestionsRead",
         "type": "object"
       },
       "DisclaimerVersionCreate": {
@@ -3068,6 +3165,25 @@
           "teaching_mode"
         ],
         "title": "LectureGenerateRequest",
+        "type": "object"
+      },
+      "LectureImageUploadRead": {
+        "description": "Servable URL for a just-uploaded lecture image (T-132).",
+        "properties": {
+          "image_id": {
+            "title": "Image Id",
+            "type": "string"
+          },
+          "image_url": {
+            "title": "Image Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image_id",
+          "image_url"
+        ],
+        "title": "LectureImageUploadRead",
         "type": "object"
       },
       "LectureLinkCreate": {
@@ -5749,6 +5865,23 @@
         "title": "SuccessEnvelope[DiagnosticResultRead]",
         "type": "object"
       },
+      "SuccessEnvelope_DiagramSuggestionsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DiagramSuggestionsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[DiagramSuggestionsRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DisclaimerVersionRead_": {
         "properties": {
           "data": {
@@ -6053,6 +6186,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LectureGenerateRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureImageUploadRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureImageUploadRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureImageUploadRead]",
         "type": "object"
       },
       "SuccessEnvelope_LectureLinkRead_": {
@@ -12534,6 +12684,107 @@
         ]
       }
     },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/images": {
+      "post": {
+        "operationId": "independent_teacher_upload_lecture_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_independent_teacher_upload_lecture_image"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureImageUploadRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Drag-drop image upload into the lecture editor (T-132, #30)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/images/{image_id}": {
+      "get": {
+        "operationId": "independent_teacher_get_lecture_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Serve a previously-uploaded lecture image (T-132, #30)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
     "/api/v1/independent/teachers/me/lectures/{lecture_id}/paragraphs": {
       "get": {
         "operationId": "independent_teacher_get_lecture_paragraphs",
@@ -15911,6 +16162,201 @@
           }
         },
         "summary": "Replace a lecture's access restrictions; empty list clears to default (T-123, #21)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/diagram-suggestions": {
+      "get": {
+        "operationId": "teacher_get_diagram_suggestions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DiagramSuggestionsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "AI-flagged reference-book diagrams relevant to this lecture (T-132, #30)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/diagram-suggestions/accept": {
+      "post": {
+        "operationId": "teacher_accept_diagram_suggestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagramSuggestionAccept"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureImageUploadRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Render + insert an accepted reference-book diagram (T-132, #30)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/images": {
+      "post": {
+        "operationId": "teacher_upload_lecture_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_teacher_upload_lecture_image"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureImageUploadRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Drag-drop image upload into the lecture editor (T-132, #30)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/images/{image_id}": {
+      "get": {
+        "operationId": "teacher_get_lecture_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Serve a previously-uploaded lecture image (T-132, #30)",
         "tags": [
           "lecture-wizard"
         ]

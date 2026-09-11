@@ -2,21 +2,26 @@
 
 from __future__ import annotations
 
+import mimetypes
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query, UploadFile
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.idempotency import IdempotencyContext, idempotency_key
 from app.core.responses import SuccessEnvelope, success
 from app.features.lectures.schemas import (
+    DiagramSuggestionAccept,
+    DiagramSuggestionsRead,
     LectureAccessSettingsRead,
     LectureAccessSettingsUpdate,
     LectureDraftRead,
     LectureDraftUpsert,
     LectureGenerateRead,
     LectureGenerateRequest,
+    LectureImageUploadRead,
     LectureLinkCreate,
     LectureLinkRead,
     LectureParagraphRead,
@@ -372,4 +377,77 @@ async def transcribe_voice_edit(
     audio_bytes = await audio.read()
     svc = LectureWizardService(db)
     result = await svc.transcribe_voice_edit(claims, lecture_id, audio_bytes, language)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/lectures/{lecture_id}/images",
+    response_model=SuccessEnvelope[LectureImageUploadRead],
+    operation_id="teacher_upload_lecture_image",
+    summary="Drag-drop image upload into the lecture editor (T-132, #30)",
+    dependencies=[require_role("teacher")],
+)
+async def upload_lecture_image(
+    lecture_id: str,
+    image: UploadFile,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    data = await image.read()
+    svc = LectureWizardService(db)
+    result = await svc.upload_lecture_image(claims, lecture_id, data, image.filename or "image")
+    return success(result.model_dump(mode="json"))
+
+
+@router.get(
+    "/lectures/{lecture_id}/images/{image_id}",
+    response_model=None,
+    operation_id="teacher_get_lecture_image",
+    summary="Serve a previously-uploaded lecture image (T-132, #30)",
+    dependencies=[require_role("teacher")],
+)
+async def get_lecture_image(
+    lecture_id: str,
+    image_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    svc = LectureWizardService(db)
+    data, filename = await svc.get_lecture_image(claims, lecture_id, image_id)
+    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    return Response(content=data, media_type=content_type)
+
+
+@router.get(
+    "/lectures/{lecture_id}/diagram-suggestions",
+    response_model=SuccessEnvelope[DiagramSuggestionsRead],
+    operation_id="teacher_get_diagram_suggestions",
+    summary="AI-flagged reference-book diagrams relevant to this lecture (T-132, #30)",
+    dependencies=[require_role("teacher")],
+)
+async def get_diagram_suggestions(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.suggest_diagrams(claims, lecture_id)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/lectures/{lecture_id}/diagram-suggestions/accept",
+    response_model=SuccessEnvelope[LectureImageUploadRead],
+    operation_id="teacher_accept_diagram_suggestion",
+    summary="Render + insert an accepted reference-book diagram (T-132, #30)",
+    dependencies=[require_role("teacher")],
+)
+async def accept_diagram_suggestion(
+    lecture_id: str,
+    payload: DiagramSuggestionAccept,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.accept_diagram_suggestion(claims, lecture_id, payload)
     return success(result.model_dump(mode="json"))

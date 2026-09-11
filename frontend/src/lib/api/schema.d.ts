@@ -1300,6 +1300,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Drag-drop image upload into the lecture editor (T-132, #30) */
+        post: operations["independent_teacher_upload_lecture_image"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/images/{image_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Serve a previously-uploaded lecture image (T-132, #30) */
+        get: operations["independent_teacher_get_lecture_image"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/independent/teachers/me/lectures/{lecture_id}/paragraphs": {
         parameters: {
             query?: never;
@@ -2557,6 +2591,74 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/lectures/{lecture_id}/diagram-suggestions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** AI-flagged reference-book diagrams relevant to this lecture (T-132, #30) */
+        get: operations["teacher_get_diagram_suggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lectures/{lecture_id}/diagram-suggestions/accept": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Render + insert an accepted reference-book diagram (T-132, #30) */
+        post: operations["teacher_accept_diagram_suggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lectures/{lecture_id}/images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Drag-drop image upload into the lecture editor (T-132, #30) */
+        post: operations["teacher_upload_lecture_image"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lectures/{lecture_id}/images/{image_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Serve a previously-uploaded lecture image (T-132, #30) */
+        get: operations["teacher_get_lecture_image"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/lectures/{lecture_id}/links": {
         parameters: {
             query?: never;
@@ -3048,6 +3150,11 @@ export interface components {
             /** Audio */
             audio: string;
         };
+        /** Body_independent_teacher_upload_lecture_image */
+        Body_independent_teacher_upload_lecture_image: {
+            /** Image */
+            image: string;
+        };
         /** Body_school_library_upload */
         Body_school_library_upload: {
             /** File */
@@ -3057,6 +3164,11 @@ export interface components {
         Body_teacher_transcribe_voice_edit: {
             /** Audio */
             audio: string;
+        };
+        /** Body_teacher_upload_lecture_image */
+        Body_teacher_upload_lecture_image: {
+            /** Image */
+            image: string;
         };
         /** Body_upload_file */
         Body_upload_file: {
@@ -3305,6 +3417,35 @@ export interface components {
              * @default
              */
             subject_name: string;
+        };
+        /**
+         * DiagramSuggestion
+         * @description One AI-flagged reference-book page likely containing a relevant diagram.
+         */
+        DiagramSuggestion: {
+            /** Book Name */
+            book_name: string;
+            /** Library Item Id */
+            library_item_id: string;
+            /** Page Number */
+            page_number: number;
+            /** Reason */
+            reason: string;
+        };
+        /**
+         * DiagramSuggestionAccept
+         * @description Renders the named reference-book page and uploads it as a lecture image.
+         */
+        DiagramSuggestionAccept: {
+            /** Library Item Id */
+            library_item_id: string;
+            /** Page Number */
+            page_number: number;
+        };
+        /** DiagramSuggestionsRead */
+        DiagramSuggestionsRead: {
+            /** Suggestions */
+            suggestions: components["schemas"]["DiagramSuggestion"][];
         };
         /**
          * DisclaimerVersionCreate
@@ -4071,6 +4212,16 @@ export interface components {
             teaching_mode: components["schemas"]["TeachingMode"];
             /** Topic */
             topic: string;
+        };
+        /**
+         * LectureImageUploadRead
+         * @description Servable URL for a just-uploaded lecture image (T-132).
+         */
+        LectureImageUploadRead: {
+            /** Image Id */
+            image_id: string;
+            /** Image Url */
+            image_url: string;
         };
         /**
          * LectureLinkCreate
@@ -5230,6 +5381,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[DiagramSuggestionsRead] */
+        SuccessEnvelope_DiagramSuggestionsRead_: {
+            data: components["schemas"]["DiagramSuggestionsRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[DisclaimerVersionRead] */
         SuccessEnvelope_DisclaimerVersionRead_: {
             data: components["schemas"]["DisclaimerVersionRead"];
@@ -5386,6 +5546,15 @@ export interface components {
         /** SuccessEnvelope[LectureGenerateRead] */
         SuccessEnvelope_LectureGenerateRead_: {
             data: components["schemas"]["LectureGenerateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[LectureImageUploadRead] */
+        SuccessEnvelope_LectureImageUploadRead_: {
+            data: components["schemas"]["LectureImageUploadRead"];
             /**
              * Message
              * @default ok
@@ -9517,6 +9686,73 @@ export interface operations {
             };
         };
     };
+    independent_teacher_upload_lecture_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_independent_teacher_upload_lecture_image"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureImageUploadRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_get_lecture_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+                image_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     independent_teacher_get_lecture_paragraphs: {
         parameters: {
             query?: never;
@@ -11866,6 +12102,139 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_LectureAccessSettingsRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_diagram_suggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DiagramSuggestionsRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_accept_diagram_suggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["DiagramSuggestionAccept"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureImageUploadRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_upload_lecture_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_teacher_upload_lecture_image"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureImageUploadRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_lecture_image: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+                image_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */

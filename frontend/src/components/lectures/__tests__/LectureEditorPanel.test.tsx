@@ -4,7 +4,7 @@
  */
 
 import { describe, it, expect, vi, afterEach } from "vitest";
-import { render, screen, waitFor } from "@testing-library/react";
+import { render, screen, waitFor, fireEvent } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { NextIntlClientProvider, useTranslations } from "next-intl";
@@ -45,7 +45,11 @@ const VERSION_1 = {
 };
 
 function renderPanel(api: Partial<LectureEditorApi>) {
-  const fullApi: LectureEditorApi = { transcribeVoice: vi.fn(), ...api } as LectureEditorApi;
+  const fullApi: LectureEditorApi = {
+    transcribeVoice: vi.fn(),
+    uploadImage: vi.fn(),
+    ...api,
+  } as LectureEditorApi;
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
@@ -256,5 +260,158 @@ describe("LectureEditorPanel — voice dictation (T-131)", () => {
     await user.click(screen.getByRole("button", { name: /Stop dictating/i }));
 
     expect(await screen.findByText("STT unavailable")).toBeInTheDocument();
+  });
+});
+
+describe("LectureEditorPanel — image upload + AI diagram suggestions (T-132)", () => {
+  it("acceptance #1 — file-picker upload inserts the returned image URL", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const uploadImage = vi.fn().mockResolvedValue({
+      image_id: "img-1",
+      image_url: "http://localhost:8000/api/v1/teachers/me/lectures/lec-1/images/img-1",
+    });
+    const user = userEvent.setup();
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn(), uploadImage });
+
+    await screen.findByText("Original AI draft.");
+    const file = new File(["fake-bytes"], "diagram.png", { type: "image/png" });
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, file);
+
+    await waitFor(() => expect(uploadImage).toHaveBeenCalledTimes(1));
+    expect(uploadImage.mock.calls[0][0]).toBe("tok");
+    expect(uploadImage.mock.calls[0][1]).toBe("lec-1");
+    await waitFor(() => {
+      const img = document.querySelector("img");
+      expect(img?.getAttribute("src")).toBe(
+        "http://localhost:8000/api/v1/teachers/me/lectures/lec-1/images/img-1"
+      );
+    });
+  });
+
+  it("acceptance #2 — client-side rejects an oversized image before uploading", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const uploadImage = vi.fn();
+    const user = userEvent.setup();
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn(), uploadImage });
+
+    await screen.findByText("Original AI draft.");
+    const oversized = new File([new Uint8Array(6 * 1024 * 1024)], "huge.png", {
+      type: "image/png",
+    });
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, oversized);
+
+    expect(await screen.findByText(/5 MB or smaller/i)).toBeInTheDocument();
+    expect(uploadImage).not.toHaveBeenCalled();
+  });
+
+  it("rejects an unsupported file type dropped into the editor", async () => {
+    // The file-picker's `accept` attribute already blocks wrong types at the
+    // OS level (and userEvent.upload respects it, so this path is exercised
+    // via drag-drop instead, which isn't `accept`-filtered).
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const uploadImage = vi.fn();
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn(), uploadImage });
+
+    await screen.findByText("Original AI draft.");
+    const badFile = new File(["not an image"], "notes.pdf", { type: "application/pdf" });
+    const dropTarget = document.querySelector('[dir="auto"].p-3') as HTMLElement;
+    const dataTransfer = { files: [badFile] } as unknown as DataTransfer;
+    fireEvent.drop(dropTarget, { dataTransfer });
+
+    expect(await screen.findByText(/JPEG, PNG, or GIF/i)).toBeInTheDocument();
+    expect(uploadImage).not.toHaveBeenCalled();
+  });
+
+  it("shows an inline error when the upload fails", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const uploadImage = vi
+      .fn()
+      .mockRejectedValue(new ApiError(422, "VALIDATION_ERROR", "Upload rejected"));
+    const user = userEvent.setup();
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn(), uploadImage });
+
+    await screen.findByText("Original AI draft.");
+    const file = new File(["fake-bytes"], "diagram.png", { type: "image/png" });
+    const input = document.querySelector('input[type="file"]') as HTMLInputElement;
+    await user.upload(input, file);
+
+    expect(await screen.findByText("Upload rejected")).toBeInTheDocument();
+  });
+
+  it("acceptance #3/#4 — shows a diagram suggestion and inserts it on accept", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const getDiagramSuggestions = vi.fn().mockResolvedValue({
+      suggestions: [
+        {
+          library_item_id: "lib-1",
+          book_name: "Physics 101",
+          page_number: 34,
+          reason: "Mentions Figure 3",
+        },
+      ],
+    });
+    const acceptDiagramSuggestion = vi.fn().mockResolvedValue({
+      image_id: "img-2",
+      image_url: "http://localhost:8000/api/v1/teachers/me/lectures/lec-1/images/img-2",
+    });
+    const user = userEvent.setup();
+    renderPanel({
+      getCurrentVersion,
+      saveVersion: vi.fn(),
+      getDiagramSuggestions,
+      acceptDiagramSuggestion,
+    });
+
+    await screen.findByText("Original AI draft.");
+    expect(
+      await screen.findByText(/Diagram on page 34 of Physics 101 — add it\?/)
+    ).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Add diagram/i }));
+
+    await waitFor(() => expect(acceptDiagramSuggestion).toHaveBeenCalledTimes(1));
+    expect(acceptDiagramSuggestion).toHaveBeenCalledWith("tok", "lec-1", {
+      library_item_id: "lib-1",
+      page_number: 34,
+    });
+    await waitFor(() => {
+      const img = document.querySelector("img");
+      expect(img?.getAttribute("src")).toBe(
+        "http://localhost:8000/api/v1/teachers/me/lectures/lec-1/images/img-2"
+      );
+    });
+  });
+
+  it("acceptance #4 — declining dismisses the suggestion without calling the API", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const getDiagramSuggestions = vi.fn().mockResolvedValue({
+      suggestions: [
+        { library_item_id: "lib-1", book_name: "Physics 101", page_number: 34, reason: "r" },
+      ],
+    });
+    const acceptDiagramSuggestion = vi.fn();
+    const user = userEvent.setup();
+    renderPanel({
+      getCurrentVersion,
+      saveVersion: vi.fn(),
+      getDiagramSuggestions,
+      acceptDiagramSuggestion,
+    });
+
+    await screen.findByText(/Diagram on page 34/i);
+    await user.click(screen.getByRole("button", { name: /Dismiss/i }));
+
+    await waitFor(() => expect(screen.queryByText(/Diagram on page 34/i)).not.toBeInTheDocument());
+    expect(acceptDiagramSuggestion).not.toHaveBeenCalled();
+  });
+
+  it("shows no suggestion banner when the tenant has no diagram-suggestion capability", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn() });
+
+    await screen.findByText("Original AI draft.");
+    expect(screen.queryByText(/Diagram on page/i)).not.toBeInTheDocument();
   });
 });

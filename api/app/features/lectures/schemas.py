@@ -405,3 +405,35 @@ class VoiceTranscribeRead(BaseModel):
     """faster-whisper transcript for a dictated audio clip (T-131)."""
 
     transcript: str
+
+
+# --- M-10 T-132 — image upload + AI diagram suggestions ---------------------
+
+
+class LectureImageUploadRead(BaseModel):
+    """Servable URL for a just-uploaded lecture image (T-132)."""
+
+    image_id: str
+    image_url: str
+
+
+class DiagramSuggestion(BaseModel):
+    """One AI-flagged reference-book page likely containing a relevant diagram."""
+
+    library_item_id: str
+    book_name: str
+    page_number: int = Field(ge=1)
+    reason: str
+
+
+class DiagramSuggestionsRead(BaseModel):
+    suggestions: list[DiagramSuggestion]
+
+
+class DiagramSuggestionAccept(BaseModel):
+    """Renders the named reference-book page and uploads it as a lecture image."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    library_item_id: str = Field(min_length=1, max_length=36)
+    page_number: int = Field(ge=1)

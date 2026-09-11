@@ -8,6 +8,7 @@ from __future__ import annotations
 from typing import Any
 
 import structlog
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
@@ -17,6 +18,9 @@ from app.features.audit.actions import (
     LECTURE_CREATED,
     LECTURE_LINKED,
 )
+from app.features.files.models import UploadRecord
+from app.features.files.pipeline import run_upload_pipeline
+from app.features.files.profiles import get_profile
 from app.features.grades.cross_grade import (
     assert_cross_grade_access_by_ordinal,
     library_item_visible_for_grade_context,
@@ -24,6 +28,12 @@ from app.features.grades.cross_grade import (
 from app.features.grades.repository import GradeRepository
 from app.features.lectures.edit_summary import derive_edit_summary
 from app.features.lectures.events import LECTURE_VERSION_CREATED, publish_lecture_event
+from app.features.lectures.images import (
+    DiagramRenderError,
+    IndexedChunk,
+    render_pdf_page_to_png,
+    suggest_diagrams_from_chunks,
+)
 from app.features.lectures.models import (
     LectureAssignmentScope as AssignmentScopeModel,
 )
@@ -45,6 +55,9 @@ from app.features.lectures.repository import (
     LectureVersionRepository,
 )
 from app.features.lectures.schemas import (
+    DiagramSuggestion,
+    DiagramSuggestionAccept,
+    DiagramSuggestionsRead,
     LectureAccessSettingsRead,
     LectureAccessSettingsUpdate,
     LectureAssignmentRead,
@@ -52,6 +65,7 @@ from app.features.lectures.schemas import (
     LectureDraftUpsert,
     LectureGenerateRead,
     LectureGenerateRequest,
+    LectureImageUploadRead,
     LectureLinkCreate,
     LectureLinkRead,
     LectureParagraphRead,
@@ -82,6 +96,7 @@ from app.features.library.school_models import (
     LibraryContentType,
     LibraryIngestionStatus,
     SchoolLibraryItem,
+    SchoolLibraryItemChunk,
 )
 from app.features.offerings.models import GradeSubjectOffering
 from app.features.offerings.repository import OfferingRepository
@@ -92,6 +107,7 @@ from app.features.teacher_onboarding.repository import TeacherProfileRepository
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
+from app.infrastructure.storage.client import download_bytes
 from app.infrastructure.voice.router import transcribe as voice_transcribe
 
 logger = structlog.get_logger(__name__)
@@ -752,6 +768,175 @@ class LectureWizardService:
             transcript_length=len(transcript),
         )
         return VoiceTranscribeRead(transcript=transcript)
+
+    async def upload_lecture_image(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        data: bytes,
+        filename: str,
+    ) -> LectureImageUploadRead:
+        """Drag-drop image upload into the TipTap editor (T-132, #30).
+
+        Display-only per ARCH §11.19/§11.12 — no ingestion_task_name, no OCR.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        profile = get_profile("lecture_image")
+        try:
+            result = await run_upload_pipeline(
+                data=data,
+                filename=filename,
+                profile=profile,
+                session=self._session,
+                school_id=teacher.school_id,
+                uploaded_by=teacher.id,
+            )
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        return LectureImageUploadRead(
+            image_id=result.upload_id,
+            image_url=f"/api/v1/teachers/me/lectures/{lecture.id}/images/{result.upload_id}",
+        )
+
+    async def get_lecture_image(
+        self, claims: dict[str, object], lecture_id: str, image_id: str
+    ) -> tuple[bytes, str]:
+        """Streams an uploaded lecture image back (bytes, filename) for `<img src>`."""
+        teacher = await self._require_school_teacher(claims)
+        await self._require_owned_lecture(teacher, lecture_id)
+
+        record = await self._session.get(UploadRecord, image_id)
+        if (
+            record is None
+            or record.profile != "lecture_image"
+            or record.school_id != teacher.school_id
+        ):
+            raise NotFoundError("Image not found")
+        data = download_bytes(record.bucket, record.minio_key)
+        return data, record.filename
+
+    async def suggest_diagrams(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> DiagramSuggestionsRead:
+        """AI-flagged reference-book pages likely containing a relevant diagram
+        (T-132, #30). Reuses only the reference chunks this lecture's v1 draft
+        actually cited — no new ingestion pass over the reference library.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+
+        v1 = await self._versions.get_first_for_lecture(lecture.id)
+        if v1 is None:
+            return DiagramSuggestionsRead(suggestions=[])
+
+        paragraphs = await self._paragraphs.list_by_version(v1.id)
+        book_names: set[str] = set()
+        for p in paragraphs:
+            meta = ParagraphSourceMetadata.from_jsonb(p.source_metadata_jsonb)
+            if meta.tier.value == "reference" and meta.book_name:
+                book_names.add(meta.book_name)
+        if not book_names:
+            return DiagramSuggestionsRead(suggestions=[])
+
+        items_result = await self._session.execute(
+            select(SchoolLibraryItem).where(
+                SchoolLibraryItem.school_id == teacher.school_id,
+                SchoolLibraryItem.title.in_(book_names),
+                SchoolLibraryItem.deleted_at.is_(None),
+            )
+        )
+        items = list(items_result.scalars().all())
+        if not items:
+            return DiagramSuggestionsRead(suggestions=[])
+
+        item_by_id = {item.id: item for item in items}
+        chunks_result = await self._session.execute(
+            select(SchoolLibraryItemChunk)
+            .where(SchoolLibraryItemChunk.library_item_id.in_(item_by_id.keys()))
+            .order_by(SchoolLibraryItemChunk.library_item_id, SchoolLibraryItemChunk.chunk_index)
+            .limit(40)
+        )
+        chunk_rows = list(chunks_result.scalars().all())
+
+        indexed_chunks: list[IndexedChunk] = [
+            {
+                "index": i,
+                "book_name": item_by_id[c.library_item_id].title,
+                "page_number": c.page_number or 1,
+                "text": c.chunk_text,
+                "library_item_id": c.library_item_id,
+            }
+            for i, c in enumerate(chunk_rows)
+        ]
+        flagged = await suggest_diagrams_from_chunks(topic=lecture.topic, chunks=indexed_chunks)
+
+        suggestions: list[DiagramSuggestion] = []
+        by_index: dict[int, IndexedChunk] = {c["index"]: c for c in indexed_chunks}
+        for flag in flagged:
+            idx = flag.get("index")
+            source = by_index.get(idx) if isinstance(idx, int) else None
+            if source is None:
+                continue
+            suggestions.append(
+                DiagramSuggestion(
+                    library_item_id=source["library_item_id"],
+                    book_name=source["book_name"],
+                    page_number=source["page_number"],
+                    reason=str(flag.get("reason", "")),
+                )
+            )
+        return DiagramSuggestionsRead(suggestions=suggestions[:3])
+
+    async def accept_diagram_suggestion(
+        self, claims: dict[str, object], lecture_id: str, payload: DiagramSuggestionAccept
+    ) -> LectureImageUploadRead:
+        """Renders the named reference-book page and stores it as a lecture image
+        (via the same lecture_image pipeline as a direct upload) — the frontend
+        then inserts it identically either way.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+
+        item = await self._library.get_by_id(payload.library_item_id)
+        if item is None or item.school_id != teacher.school_id:
+            raise NotFoundError("Reference book not found")
+
+        source_profile = get_profile("school_library_content")
+        try:
+            pdf_bytes = download_bytes(source_profile.bucket, item.storage_key)
+            png_bytes = render_pdf_page_to_png(pdf_bytes, payload.page_number)
+        except DiagramRenderError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        image_profile = get_profile("lecture_image")
+        try:
+            result = await run_upload_pipeline(
+                data=png_bytes,
+                filename=f"{item.title[:80]}-page-{payload.page_number}.png",
+                profile=image_profile,
+                session=self._session,
+                school_id=teacher.school_id,
+                uploaded_by=teacher.id,
+                skip_magic_check=True,  # server-rendered PNG, not a user-supplied file
+            )
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        logger.info(
+            "lecture_diagram_accepted",
+            lecture_id=lecture.id,
+            library_item_id=item.id,
+            page_number=payload.page_number,
+        )
+        return LectureImageUploadRead(
+            image_id=result.upload_id,
+            image_url=f"/api/v1/teachers/me/lectures/{lecture.id}/images/{result.upload_id}",
+        )
 
     async def _read_link(self, link: SchoolLectureLink) -> LectureLinkRead | None:
         offering = await self._offerings.get_by_id(link.target_grade_subject_offering_id)

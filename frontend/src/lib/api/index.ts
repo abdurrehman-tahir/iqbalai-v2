@@ -68,6 +68,9 @@ import type {
   LectureVersionSaveRequest,
   LectureVersionRead,
   VoiceTranscribeRead,
+  LectureImageUploadRead,
+  DiagramSuggestionsRead,
+  DiagramSuggestionAccept,
   IndependentWizardReferenceRead,
   IndependentLectureGenerateRequest,
   IndependentLectureRead,
@@ -101,6 +104,17 @@ import type {
 } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+
+/**
+ * The backend returns lecture-image URLs already prefixed with "/api/v1/..."
+ * (T-132) — since they're rendered as plain `<img src>` tags, not fetched via
+ * `request()`, they need the API's origin (not API_BASE, which already ends
+ * in "/api/v1" and would duplicate the prefix).
+ */
+function toAbsoluteApiUrl(pathWithApiV1Prefix: string): string {
+  const origin = API_BASE.replace(/\/api\/v1\/?$/, "");
+  return `${origin}${pathWithApiV1Prefix}`;
+}
 
 export type {
   Notification,
@@ -1187,6 +1201,34 @@ export const lectureWizardApi = {
       token
     );
   },
+  uploadImage: async (token: string, lectureId: string, image: File | Blob) => {
+    const formData = new FormData();
+    formData.append("image", image, image instanceof File ? image.name : "image.png");
+    const result = await requestFormData<LectureImageUploadRead>(
+      `/teachers/me/lectures/${lectureId}/images`,
+      formData,
+      token
+    );
+    return { ...result, image_url: toAbsoluteApiUrl(result.image_url) };
+  },
+  getDiagramSuggestions: (token: string, lectureId: string) =>
+    request<DiagramSuggestionsRead>(
+      `/teachers/me/lectures/${lectureId}/diagram-suggestions`,
+      {},
+      token
+    ),
+  acceptDiagramSuggestion: async (
+    token: string,
+    lectureId: string,
+    data: DiagramSuggestionAccept
+  ) => {
+    const result = await request<LectureImageUploadRead>(
+      `/teachers/me/lectures/${lectureId}/diagram-suggestions/accept`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    );
+    return { ...result, image_url: toAbsoluteApiUrl(result.image_url) };
+  },
 };
 
 // ── Independent teacher lecture wizard (T-125) ──────────────────────────────
@@ -1257,6 +1299,16 @@ export const independentLectureWizardApi = {
       formData,
       token
     );
+  },
+  uploadImage: async (token: string, lectureId: string, image: File | Blob) => {
+    const formData = new FormData();
+    formData.append("image", image, image instanceof File ? image.name : "image.png");
+    const result = await requestFormData<LectureImageUploadRead>(
+      `/independent/teachers/me/lectures/${lectureId}/images`,
+      formData,
+      token
+    );
+    return { ...result, image_url: toAbsoluteApiUrl(result.image_url) };
   },
 };
 

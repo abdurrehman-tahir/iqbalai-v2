@@ -15,6 +15,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
 from app.features.audit.actions import LECTURE_CREATED
+from app.features.files.models import UploadRecord
+from app.features.files.pipeline import run_upload_pipeline
+from app.features.files.profiles import get_profile
 from app.features.independent_users.models import IndependentUser, IndependentUserRole
 from app.features.independent_users.repository import IndependentUserRepository
 from app.features.lectures.edit_summary import derive_edit_summary
@@ -38,6 +41,7 @@ from app.features.lectures.schemas import (
     LectureDraftRead,
     LectureDraftUpsert,
     LectureGenerateRead,
+    LectureImageUploadRead,
     LectureParagraphRead,
     LectureVersionRead,
     LectureVersionSaveRequest,
@@ -57,6 +61,7 @@ from app.features.library.independent_personal_repository import (
     IndependentPersonalContentRepository,
 )
 from app.infrastructure.audit.log import audit
+from app.infrastructure.storage.client import download_bytes
 from app.infrastructure.voice.router import transcribe as voice_transcribe
 
 _MAX_VOICE_AUDIO_BYTES = 10 * 1024 * 1024
@@ -379,3 +384,55 @@ class IndependentLectureWizardService:
             transcript_length=len(transcript),
         )
         return VoiceTranscribeRead(transcript=transcript)
+
+    async def upload_lecture_image(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        data: bytes,
+        filename: str,
+    ) -> LectureImageUploadRead:
+        """Drag-drop image upload (T-132, #30). No AI diagram suggestion for
+        independent teachers — their personal-reference-content model has no
+        page-chunked structure to draw suggestions from (school-tenant only).
+        """
+        teacher = await self._require_independent_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        profile = get_profile("lecture_image")
+        try:
+            # UploadRecord lives in the school schema only — independent
+            # uploads reuse it the same way independent_personal_service.py
+            # already does, scoping "school_id" to the independent user's own
+            # id instead (per-user, not per-school dedup/scoping).
+            result = await run_upload_pipeline(
+                data=data,
+                filename=filename,
+                profile=profile,
+                session=self._session,
+                school_id=teacher.id,
+                uploaded_by=teacher.id,
+            )
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        return LectureImageUploadRead(
+            image_id=result.upload_id,
+            image_url=(
+                f"/api/v1/independent/teachers/me/lectures/{lecture.id}/images/{result.upload_id}"
+            ),
+        )
+
+    async def get_lecture_image(
+        self, claims: dict[str, object], lecture_id: str, image_id: str
+    ) -> tuple[bytes, str]:
+        teacher = await self._require_independent_teacher(claims)
+        await self._require_owned_lecture(teacher, lecture_id)
+
+        record = await self._session.get(UploadRecord, image_id)
+        if record is None or record.profile != "lecture_image" or record.school_id != teacher.id:
+            raise NotFoundError("Image not found")
+        data = download_bytes(record.bucket, record.minio_key)
+        return data, record.filename

@@ -695,7 +695,15 @@
         "editor_voice_language_en": "English",
         "editor_voice_language_ur": "Urdu",
         "editor_voice_language_sd": "Sindhi",
-        "editor_voice_language_ps": "Pashto"
+        "editor_voice_language_ps": "Pashto",
+        "editor_image_insert": "Insert image",
+        "editor_image_type_error": "Only JPEG, PNG, or GIF images are supported.",
+        "editor_image_size_error": "Image must be 5 MB or smaller.",
+        "editor_image_upload_error": "Could not upload the image. Please try again.",
+        "editor_image_uploading": "Uploading image...",
+        "editor_diagram_suggestion": "Diagram on page {page} of {book} — add it?",
+        "editor_diagram_accept": "Add diagram",
+        "editor_diagram_decline": "Dismiss"
       }
     },
     "onboarding": {
@@ -1654,7 +1662,15 @@
           "editor_voice_language_en": "English",
           "editor_voice_language_ur": "Urdu",
           "editor_voice_language_sd": "Sindhi",
-          "editor_voice_language_ps": "Pashto"
+          "editor_voice_language_ps": "Pashto",
+          "editor_image_insert": "Insert image",
+          "editor_image_type_error": "Only JPEG, PNG, or GIF images are supported.",
+          "editor_image_size_error": "Image must be 5 MB or smaller.",
+          "editor_image_upload_error": "Could not upload the image. Please try again.",
+          "editor_image_uploading": "Uploading image...",
+          "editor_diagram_suggestion": "Diagram on page {page} of {book} — add it?",
+          "editor_diagram_accept": "Add diagram",
+          "editor_diagram_decline": "Dismiss"
         }
       }
     },

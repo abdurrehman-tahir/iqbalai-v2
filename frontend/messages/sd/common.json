@@ -611,7 +611,15 @@
           "editor_voice_language_en": "__TODO__ English",
           "editor_voice_language_ur": "__TODO__ Urdu",
           "editor_voice_language_sd": "__TODO__ Sindhi",
-          "editor_voice_language_ps": "__TODO__ Pashto"
+          "editor_voice_language_ps": "__TODO__ Pashto",
+          "editor_image_insert": "__TODO__ Insert image",
+          "editor_image_type_error": "__TODO__ Only JPEG, PNG, or GIF images are supported.",
+          "editor_image_size_error": "__TODO__ Image must be 5 MB or smaller.",
+          "editor_image_upload_error": "__TODO__ Could not upload the image. Please try again.",
+          "editor_image_uploading": "__TODO__ Uploading image...",
+          "editor_diagram_suggestion": "__TODO__ Diagram on page {page} of {book} — add it?",
+          "editor_diagram_accept": "__TODO__ Add diagram",
+          "editor_diagram_decline": "__TODO__ Dismiss"
         }
       }
     },
@@ -782,7 +790,15 @@
         "editor_voice_language_en": "__TODO__ English",
         "editor_voice_language_ur": "__TODO__ Urdu",
         "editor_voice_language_sd": "__TODO__ Sindhi",
-        "editor_voice_language_ps": "__TODO__ Pashto"
+        "editor_voice_language_ps": "__TODO__ Pashto",
+        "editor_image_insert": "__TODO__ Insert image",
+        "editor_image_type_error": "__TODO__ Only JPEG, PNG, or GIF images are supported.",
+        "editor_image_size_error": "__TODO__ Image must be 5 MB or smaller.",
+        "editor_image_upload_error": "__TODO__ Could not upload the image. Please try again.",
+        "editor_image_uploading": "__TODO__ Uploading image...",
+        "editor_diagram_suggestion": "__TODO__ Diagram on page {page} of {book} — add it?",
+        "editor_diagram_accept": "__TODO__ Add diagram",
+        "editor_diagram_decline": "__TODO__ Dismiss"
       }
     }
   }
