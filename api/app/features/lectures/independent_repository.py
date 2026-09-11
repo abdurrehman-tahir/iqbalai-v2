@@ -17,6 +17,7 @@ from app.db.base import not_deleted
 from app.features.lectures.models import (
     IndependentLecture,
     IndependentLectureDraft,
+    IndependentLectureEditSession,
     IndependentLectureParagraph,
     IndependentLectureVersion,
     IndependentLectureVoiceSession,
@@ -94,6 +95,31 @@ class IndependentLectureVersionRepository:
         await self._session.commit()
         await self._session.refresh(version)
         return version
+
+
+class IndependentLectureEditSessionRepository:
+    """T-133 — mirrors LectureEditSessionRepository for the independent schema."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_by_id(self, session_id: str) -> IndependentLectureEditSession | None:
+        return await self._session.get(IndependentLectureEditSession, session_id)
+
+    async def create(
+        self, edit_session: IndependentLectureEditSession
+    ) -> IndependentLectureEditSession:
+        self._session.add(edit_session)
+        await self._session.commit()
+        await self._session.refresh(edit_session)
+        return edit_session
+
+    async def update(
+        self, edit_session: IndependentLectureEditSession
+    ) -> IndependentLectureEditSession:
+        await self._session.commit()
+        await self._session.refresh(edit_session)
+        return edit_session
 
 
 class IndependentLectureParagraphRepository:

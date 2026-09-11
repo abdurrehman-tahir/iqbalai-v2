@@ -15,6 +15,9 @@ from app.core.responses import SuccessEnvelope, success
 from app.features.lectures.schemas import (
     DiagramSuggestionAccept,
     DiagramSuggestionsRead,
+    EditSessionHeartbeatRequest,
+    EditSessionRead,
+    EditSessionStartRequest,
     LectureAccessSettingsRead,
     LectureAccessSettingsUpdate,
     LectureDraftRead,
@@ -450,4 +453,68 @@ async def accept_diagram_suggestion(
 ) -> dict[str, Any]:
     svc = LectureWizardService(db)
     result = await svc.accept_diagram_suggestion(claims, lecture_id, payload)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/edit-sessions",
+    response_model=SuccessEnvelope[EditSessionRead],
+    operation_id="teacher_start_edit_session",
+    summary="Open an effort-tracking edit session (T-133, #31)",
+    status_code=201,
+    dependencies=[require_role("teacher")],
+)
+async def start_edit_session(
+    payload: EditSessionStartRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    idem: IdempotencyContext | None = Depends(idempotency_key),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    if idem is not None:
+        cached = await idem.cached_response()
+        if cached is not None:
+            return cached
+
+    svc = LectureWizardService(db)
+    result = await svc.start_edit_session(claims, payload)
+    response = success(result.model_dump(mode="json"))
+
+    if idem is not None:
+        await idem.store_response(response)
+    return response
+
+
+@router.post(
+    "/edit-sessions/{edit_session_id}/heartbeat",
+    response_model=SuccessEnvelope[EditSessionRead],
+    operation_id="teacher_heartbeat_edit_session",
+    summary="30s effort-tracking heartbeat — cumulative totals (T-133, #31)",
+    dependencies=[require_role("teacher")],
+)
+async def heartbeat_edit_session(
+    edit_session_id: str,
+    payload: EditSessionHeartbeatRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.heartbeat_edit_session(claims, edit_session_id, payload)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/edit-sessions/{edit_session_id}/end",
+    response_model=SuccessEnvelope[EditSessionRead],
+    operation_id="teacher_end_edit_session",
+    summary="Close an effort-tracking edit session (T-133, #31)",
+    dependencies=[require_role("teacher")],
+)
+async def end_edit_session(
+    edit_session_id: str,
+    payload: EditSessionHeartbeatRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.end_edit_session(claims, edit_session_id, payload)
     return success(result.model_dump(mode="json"))

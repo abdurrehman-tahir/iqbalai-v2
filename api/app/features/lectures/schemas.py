@@ -437,3 +437,37 @@ class DiagramSuggestionAccept(BaseModel):
 
     library_item_id: str = Field(min_length=1, max_length=36)
     page_number: int = Field(ge=1)
+
+
+# --- M-10 T-133 — effort tracking ---------------------------------------
+
+
+class EditSessionStartRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    lecture_id: str = Field(min_length=1, max_length=36)
+
+
+class EditSessionHeartbeatRequest(BaseModel):
+    """Cumulative (not delta) totals for the session so far — a retried
+    heartbeat overwrites with the same values instead of double-counting
+    (ARCH §5.9 doesn't require Idempotency-Key here since this isn't a
+    resource-creating POST, but the values themselves must still be
+    idempotent-safe against a client retry).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    active_ms: int = Field(ge=0)
+    edits_count: int = Field(ge=0)
+    char_delta: int = Field(ge=0)
+
+
+class EditSessionRead(BaseModel):
+    id: str
+    active_ms: int
+    edits_count: int
+    char_delta: int
+    started_at: datetime
+    ended_at: datetime | None = None
+    effort_score: float

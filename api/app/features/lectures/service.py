@@ -5,6 +5,7 @@ School teachers only; independent stripped variant is T-125.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 import structlog
@@ -27,6 +28,7 @@ from app.features.grades.cross_grade import (
 )
 from app.features.grades.repository import GradeRepository
 from app.features.lectures.edit_summary import derive_edit_summary
+from app.features.lectures.effort import compute_effort_score
 from app.features.lectures.events import LECTURE_VERSION_CREATED, publish_lecture_event
 from app.features.lectures.images import (
     DiagramRenderError,
@@ -43,12 +45,14 @@ from app.features.lectures.models import (
     SchoolLecture,
     SchoolLectureAssignment,
     SchoolLectureDraft,
+    SchoolLectureEditSession,
     SchoolLectureLink,
     SchoolLectureVersion,
 )
 from app.features.lectures.repository import (
     LectureAssignmentRepository,
     LectureDraftRepository,
+    LectureEditSessionRepository,
     LectureLinkRepository,
     LectureParagraphRepository,
     LectureRepository,
@@ -58,6 +62,9 @@ from app.features.lectures.schemas import (
     DiagramSuggestion,
     DiagramSuggestionAccept,
     DiagramSuggestionsRead,
+    EditSessionHeartbeatRequest,
+    EditSessionRead,
+    EditSessionStartRequest,
     LectureAccessSettingsRead,
     LectureAccessSettingsUpdate,
     LectureAssignmentRead,
@@ -194,6 +201,7 @@ class LectureWizardService:
         self._drafts = LectureDraftRepository(session)
         self._lectures = LectureRepository(session)
         self._versions = LectureVersionRepository(session)
+        self._edit_sessions = LectureEditSessionRepository(session)
         self._paragraphs = LectureParagraphRepository(session)
         self._links = LectureLinkRepository(session)
         self._assignments = LectureAssignmentRepository(session)
@@ -711,6 +719,11 @@ class LectureWizardService:
         lecture.current_version_id = version.id
         version = await self._versions.create(version)
 
+        if payload.edit_session_id:
+            await self._link_edit_session(
+                payload.edit_session_id, teacher_user_id=teacher.id, version_id=version.id
+            )
+
         await publish_lecture_event(
             event_type=LECTURE_VERSION_CREATED,
             payload={
@@ -731,6 +744,98 @@ class LectureWizardService:
             is_autosave=payload.is_autosave,
         )
         return self._to_version_read(version)
+
+    async def _link_edit_session(
+        self, edit_session_id: str, *, teacher_user_id: str, version_id: str
+    ) -> None:
+        """Best-effort — an invalid/foreign session id must never fail the save
+        itself; effort data is a scoring input (T-134), not save-path-critical.
+        """
+        edit_session = await self._edit_sessions.get_by_id(edit_session_id)
+        if edit_session is None or edit_session.teacher_user_id != teacher_user_id:
+            logger.warning(
+                "lecture_edit_session_link_skipped",
+                edit_session_id=edit_session_id,
+                reason="not_found_or_not_owned",
+            )
+            return
+        edit_session.lecture_version_id = version_id
+        await self._edit_sessions.update(edit_session)
+
+    @staticmethod
+    def _to_edit_session_read(edit_session: SchoolLectureEditSession) -> EditSessionRead:
+        return EditSessionRead(
+            id=edit_session.id,
+            active_ms=edit_session.active_ms,
+            edits_count=edit_session.edits_count,
+            char_delta=edit_session.char_delta,
+            started_at=edit_session.started_at,
+            ended_at=edit_session.ended_at,
+            effort_score=compute_effort_score(
+                active_ms=edit_session.active_ms, char_delta=edit_session.char_delta
+            ),
+        )
+
+    async def start_edit_session(
+        self, claims: dict[str, object], payload: EditSessionStartRequest
+    ) -> EditSessionRead:
+        """Opens a new effort-tracking session (T-133, #31).
+
+        Not tied to a version yet — ``save_lecture_version`` links it once the
+        teacher's first save in this session completes (see ``_link_edit_session``).
+        A teacher may have several concurrent/sequential sessions against the
+        same in-progress draft before saving (model docstring, T-129).
+        """
+        teacher = await self._require_school_teacher(claims)
+        await self._require_owned_lecture(teacher, payload.lecture_id)
+
+        edit_session = SchoolLectureEditSession(teacher_user_id=teacher.id)
+        edit_session = await self._edit_sessions.create(edit_session)
+        return self._to_edit_session_read(edit_session)
+
+    async def _require_owned_edit_session(
+        self, claims: dict[str, object], edit_session_id: str
+    ) -> SchoolLectureEditSession:
+        teacher = await self._require_school_teacher(claims)
+        edit_session = await self._edit_sessions.get_by_id(edit_session_id)
+        if edit_session is None or edit_session.teacher_user_id != teacher.id:
+            raise NotFoundError("Edit session not found")
+        return edit_session
+
+    async def heartbeat_edit_session(
+        self,
+        claims: dict[str, object],
+        edit_session_id: str,
+        payload: EditSessionHeartbeatRequest,
+    ) -> EditSessionRead:
+        """30s heartbeat (T-133, #31) — the client sends cumulative totals, not
+        deltas, so a retried heartbeat (network hiccup) is a safe no-op overwrite
+        rather than double-counting.
+        """
+        edit_session = await self._require_owned_edit_session(claims, edit_session_id)
+        if edit_session.ended_at is not None:
+            raise ValidationError("Edit session has already ended")
+        edit_session.active_ms = payload.active_ms
+        edit_session.edits_count = payload.edits_count
+        edit_session.char_delta = payload.char_delta
+        edit_session = await self._edit_sessions.update(edit_session)
+        return self._to_edit_session_read(edit_session)
+
+    async def end_edit_session(
+        self,
+        claims: dict[str, object],
+        edit_session_id: str,
+        payload: EditSessionHeartbeatRequest,
+    ) -> EditSessionRead:
+        """Final cumulative totals + ``ended_at`` (tab close / editor unmount)."""
+        edit_session = await self._require_owned_edit_session(claims, edit_session_id)
+        if edit_session.ended_at is None:
+            edit_session.active_ms = payload.active_ms
+            edit_session.edits_count = payload.edits_count
+            edit_session.char_delta = payload.char_delta
+            edit_session.ended_at = datetime.now(timezone.utc)
+            edit_session = await self._edit_sessions.update(edit_session)
+        return self._to_edit_session_read(edit_session)
 
     async def transcribe_voice_edit(
         self,

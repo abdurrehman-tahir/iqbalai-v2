@@ -8,6 +8,7 @@ import pytest
 
 from app.features.lectures.images import (
     DiagramRenderError,
+    IndexedChunk,
     render_pdf_page_to_png,
     suggest_diagrams_from_chunks,
 )
@@ -71,13 +72,20 @@ async def test_suggest_diagrams_from_chunks_empty_input_short_circuits() -> None
 
 @pytest.mark.asyncio
 async def test_suggest_diagrams_from_chunks_parses_llm_json() -> None:
-    chunks = [
-        {"index": 0, "book_name": "Physics 101", "page_number": 12, "text": "plain text"},
+    chunks: list[IndexedChunk] = [
+        {
+            "index": 0,
+            "book_name": "Physics 101",
+            "page_number": 12,
+            "text": "plain text",
+            "library_item_id": "lib-1",
+        },
         {
             "index": 1,
             "book_name": "Physics 101",
             "page_number": 34,
             "text": "As shown in Figure 3, the forces balance.",
+            "library_item_id": "lib-1",
         },
     ]
     with patch(
@@ -91,7 +99,9 @@ async def test_suggest_diagrams_from_chunks_parses_llm_json() -> None:
 
 @pytest.mark.asyncio
 async def test_suggest_diagrams_from_chunks_handles_markdown_fenced_json() -> None:
-    chunks = [{"index": 0, "book_name": "B", "page_number": 1, "text": "t"}]
+    chunks: list[IndexedChunk] = [
+        {"index": 0, "book_name": "B", "page_number": 1, "text": "t", "library_item_id": "lib-1"}
+    ]
     with patch(
         "app.features.lectures.images.chat",
         return_value='```json\n[{"index": 0, "reason": "r"}]\n```',
@@ -102,7 +112,9 @@ async def test_suggest_diagrams_from_chunks_handles_markdown_fenced_json() -> No
 
 @pytest.mark.asyncio
 async def test_suggest_diagrams_from_chunks_never_raises_on_llm_failure() -> None:
-    chunks = [{"index": 0, "book_name": "B", "page_number": 1, "text": "t"}]
+    chunks: list[IndexedChunk] = [
+        {"index": 0, "book_name": "B", "page_number": 1, "text": "t", "library_item_id": "lib-1"}
+    ]
     with patch("app.features.lectures.images.chat", side_effect=RuntimeError("LLM down")):
         result = await suggest_diagrams_from_chunks(topic="T", chunks=chunks)
     assert result == []
@@ -110,7 +122,9 @@ async def test_suggest_diagrams_from_chunks_never_raises_on_llm_failure() -> Non
 
 @pytest.mark.asyncio
 async def test_suggest_diagrams_from_chunks_ignores_non_list_response() -> None:
-    chunks = [{"index": 0, "book_name": "B", "page_number": 1, "text": "t"}]
+    chunks: list[IndexedChunk] = [
+        {"index": 0, "book_name": "B", "page_number": 1, "text": "t", "library_item_id": "lib-1"}
+    ]
     with patch("app.features.lectures.images.chat", return_value='{"not": "a list"}'):
         result = await suggest_diagrams_from_chunks(topic="T", chunks=chunks)
     assert result == []

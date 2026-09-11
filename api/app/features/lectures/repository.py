@@ -12,6 +12,7 @@ from app.features.lectures.models import (
     SchoolLecture,
     SchoolLectureAssignment,
     SchoolLectureDraft,
+    SchoolLectureEditSession,
     SchoolLectureLink,
     SchoolLectureParagraph,
     SchoolLectureVersion,
@@ -102,6 +103,29 @@ class LectureVersionRepository:
         await self._session.commit()
         await self._session.refresh(version)
         return version
+
+
+class LectureEditSessionRepository:
+    """T-133 — effort-tracking session rows. No soft-delete (a session ends,
+    it isn't deleted — see the model docstring)."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_by_id(self, session_id: str) -> SchoolLectureEditSession | None:
+        return await self._session.get(SchoolLectureEditSession, session_id)
+
+    async def create(self, edit_session: SchoolLectureEditSession) -> SchoolLectureEditSession:
+        self._session.add(edit_session)
+        await self._session.commit()
+        await self._session.refresh(edit_session)
+        return edit_session
+
+    async def update(self, edit_session: SchoolLectureEditSession) -> SchoolLectureEditSession:
+        """Commits in-place mutations (heartbeat/end/save-linking)."""
+        await self._session.commit()
+        await self._session.refresh(edit_session)
+        return edit_session
 
 
 class LectureParagraphRepository:
