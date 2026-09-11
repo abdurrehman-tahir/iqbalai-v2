@@ -377,6 +377,10 @@ class LectureVersionSaveRequest(BaseModel):
     content_jsonb: dict[str, Any] = Field(...)
     is_autosave: bool = False
     edit_session_id: str | None = Field(default=None, max_length=36)
+    # T-131: set by the frontend when this save's content came from a voice
+    # dictation (insert-at-cursor/replace-selection), so the auto-derived
+    # edit_summary gets an "Applied voice edit" annotation.
+    used_voice_edit: bool = False
 
 
 class LectureVersionRead(BaseModel):
@@ -392,3 +396,12 @@ class LectureVersionRead(BaseModel):
     originality_score: float | None = None
     edit_summary: list[str] | None = None
     created_at: datetime
+
+
+# --- M-10 T-131 — voice dictation (STT insert/replace) ----------------------
+
+
+class VoiceTranscribeRead(BaseModel):
+    """faster-whisper transcript for a dictated audio clip (T-131)."""
+
+    transcript: str

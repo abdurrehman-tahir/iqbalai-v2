@@ -67,6 +67,7 @@ import type {
   LectureTeacherTipsRead,
   LectureVersionSaveRequest,
   LectureVersionRead,
+  VoiceTranscribeRead,
   IndependentWizardReferenceRead,
   IndependentLectureGenerateRequest,
   IndependentLectureRead,
@@ -1176,6 +1177,16 @@ export const lectureWizardApi = {
       },
       token
     ),
+  transcribeVoice: (token: string, lectureId: string, audio: Blob, language?: string) => {
+    const qs = language ? `?${new URLSearchParams({ language }).toString()}` : "";
+    const formData = new FormData();
+    formData.append("audio", audio, "clip.webm");
+    return requestFormData<VoiceTranscribeRead>(
+      `/teachers/me/lectures/${lectureId}/voice-transcribe${qs}`,
+      formData,
+      token
+    );
+  },
 };
 
 // ── Independent teacher lecture wizard (T-125) ──────────────────────────────
@@ -1237,6 +1248,16 @@ export const independentLectureWizardApi = {
       },
       token
     ),
+  transcribeVoice: (token: string, lectureId: string, audio: Blob, language?: string) => {
+    const qs = language ? `?${new URLSearchParams({ language }).toString()}` : "";
+    const formData = new FormData();
+    formData.append("audio", audio, "clip.webm");
+    return requestFormData<VoiceTranscribeRead>(
+      `/independent/teachers/me/lectures/${lectureId}/voice-transcribe${qs}`,
+      formData,
+      token
+    );
+  },
 };
 
 export const studentOnboardingApi = {

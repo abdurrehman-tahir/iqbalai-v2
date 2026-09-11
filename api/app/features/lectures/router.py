@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
@@ -26,6 +26,7 @@ from app.features.lectures.schemas import (
     LectureVersionSaveRequest,
     TeacherOfferingRead,
     TeachingMode,
+    VoiceTranscribeRead,
     WizardCurriculumRead,
     WizardEstimateRead,
     WizardReferenceRead,
@@ -352,3 +353,23 @@ async def save_lecture_version(
     if idem is not None:
         await idem.store_response(response)
     return response
+
+
+@router.post(
+    "/lectures/{lecture_id}/voice-transcribe",
+    response_model=SuccessEnvelope[VoiceTranscribeRead],
+    operation_id="teacher_transcribe_voice_edit",
+    summary="Transcribe a dictated audio clip via faster-whisper (T-131, #29)",
+    dependencies=[require_role("teacher")],
+)
+async def transcribe_voice_edit(
+    lecture_id: str,
+    audio: UploadFile,
+    language: str | None = Query(default=None, pattern="^(en|ur|sd|ps)$"),
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    audio_bytes = await audio.read()
+    svc = LectureWizardService(db)
+    result = await svc.transcribe_voice_edit(claims, lecture_id, audio_bytes, language)
+    return success(result.model_dump(mode="json"))

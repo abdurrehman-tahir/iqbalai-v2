@@ -683,7 +683,19 @@
         "editor_toolbar_heading": "Heading",
         "editor_toolbar_bullet_list": "Bullet list",
         "editor_toolbar_ordered_list": "Numbered list",
-        "editor_version_label": "Version {version}"
+        "editor_version_label": "Version {version}",
+        "editor_voice_dictate": "Dictate",
+        "editor_voice_stop": "Stop dictating",
+        "editor_voice_recording": "Recording... click Stop when done.",
+        "editor_voice_transcribing": "Transcribing...",
+        "editor_voice_error": "Could not transcribe your recording. Please try again.",
+        "editor_voice_mic_error": "Could not access the microphone.",
+        "editor_voice_language_label": "Dictation language",
+        "editor_voice_language_auto": "Auto-detect",
+        "editor_voice_language_en": "English",
+        "editor_voice_language_ur": "Urdu",
+        "editor_voice_language_sd": "Sindhi",
+        "editor_voice_language_ps": "Pashto"
       }
     },
     "onboarding": {
@@ -1630,7 +1642,19 @@
           "editor_toolbar_heading": "Heading",
           "editor_toolbar_bullet_list": "Bullet list",
           "editor_toolbar_ordered_list": "Numbered list",
-          "editor_version_label": "Version {version}"
+          "editor_version_label": "Version {version}",
+          "editor_voice_dictate": "Dictate",
+          "editor_voice_stop": "Stop dictating",
+          "editor_voice_recording": "Recording... click Stop when done.",
+          "editor_voice_transcribing": "Transcribing...",
+          "editor_voice_error": "Could not transcribe your recording. Please try again.",
+          "editor_voice_mic_error": "Could not access the microphone.",
+          "editor_voice_language_label": "Dictation language",
+          "editor_voice_language_auto": "Auto-detect",
+          "editor_voice_language_en": "English",
+          "editor_voice_language_ur": "Urdu",
+          "editor_voice_language_sd": "Sindhi",
+          "editor_voice_language_ps": "Pashto"
         }
       }
     },

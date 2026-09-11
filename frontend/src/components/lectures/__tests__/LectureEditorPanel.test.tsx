@@ -44,12 +44,13 @@ const VERSION_1 = {
   created_at: "2026-08-05T00:00:00Z",
 };
 
-function renderPanel(api: LectureEditorApi) {
+function renderPanel(api: Partial<LectureEditorApi>) {
+  const fullApi: LectureEditorApi = { transcribeVoice: vi.fn(), ...api } as LectureEditorApi;
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
     <QueryClientProvider client={client}>
       <NextIntlClientProvider locale="en" messages={en}>
-        <TestWrapper api={api} />
+        <TestWrapper api={fullApi} />
       </NextIntlClientProvider>
     </QueryClientProvider>
   );
@@ -144,5 +145,116 @@ describe("LectureEditorPanel", () => {
     await vi.advanceTimersByTimeAsync(3100);
     await waitFor(() => expect(saveVersion).toHaveBeenCalledTimes(1));
     expect(saveVersion.mock.calls[0][2]).toMatchObject({ is_autosave: true });
+  });
+});
+
+// jsdom has no MediaRecorder/getUserMedia — minimal fakes sufficient to drive
+// the record -> stop -> transcribe -> insert flow (T-131).
+class FakeMediaRecorder {
+  static instances: FakeMediaRecorder[] = [];
+  ondataavailable: ((event: { data: Blob }) => void) | null = null;
+  onstop: (() => void) | null = null;
+  mimeType = "audio/webm";
+  constructor(public stream: MediaStream) {
+    FakeMediaRecorder.instances.push(this);
+  }
+  start() {}
+  stop() {
+    this.ondataavailable?.({ data: new Blob(["fake-audio"], { type: "audio/webm" }) });
+    this.onstop?.();
+  }
+}
+
+function installVoiceMocks() {
+  FakeMediaRecorder.instances = [];
+  vi.stubGlobal("MediaRecorder", FakeMediaRecorder);
+  // Patch mediaDevices only — replacing the whole `navigator` object (even via
+  // spread) drops prototype-inherited getters (platform/userAgent) that
+  // TipTap's isiOS() keyboard-shortcut setup reads on every editor mount.
+  Object.defineProperty(navigator, "mediaDevices", {
+    configurable: true,
+    value: {
+      getUserMedia: vi.fn().mockResolvedValue({
+        getTracks: () => [{ stop: vi.fn() }],
+      } as unknown as MediaStream),
+    },
+  });
+}
+
+describe("LectureEditorPanel — voice dictation (T-131)", () => {
+  afterEach(() => {
+    vi.unstubAllGlobals();
+  });
+
+  it("acceptance #1/#3 — dictating with no selection inserts the transcript at the cursor", async () => {
+    installVoiceMocks();
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const transcribeVoice = vi.fn().mockResolvedValue({ transcript: "Dictated words." });
+    const user = userEvent.setup();
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn(), transcribeVoice });
+
+    await screen.findByText("Original AI draft.");
+    await user.click(screen.getByRole("button", { name: /^Dictate$/ }));
+    expect(await screen.findByText(/Recording/i)).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /Stop dictating/i }));
+
+    await waitFor(() => expect(transcribeVoice).toHaveBeenCalledTimes(1));
+    expect(transcribeVoice.mock.calls[0][0]).toBe("tok");
+    expect(transcribeVoice.mock.calls[0][1]).toBe("lec-1");
+    // Inserted somewhere in the doc — exact cursor position is ProseMirror's
+    // concern, not this test's; the transcript reaching the editor is.
+    expect(await screen.findByText(/Dictated words\./)).toBeInTheDocument();
+    expect(screen.getByText(/Original AI draft\./)).toBeInTheDocument();
+  });
+
+  it("acceptance #4 — a voice-originated save sets used_voice_edit", async () => {
+    installVoiceMocks();
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const transcribeVoice = vi.fn().mockResolvedValue({ transcript: "Dictated words." });
+    const saveVersion = vi.fn().mockResolvedValue({ ...VERSION_1, version: 2 });
+    const user = userEvent.setup();
+    renderPanel({ getCurrentVersion, saveVersion, transcribeVoice });
+
+    await screen.findByText("Original AI draft.");
+    await user.click(screen.getByRole("button", { name: /^Dictate$/ }));
+    await user.click(screen.getByRole("button", { name: /Stop dictating/i }));
+    await waitFor(() => expect(transcribeVoice).toHaveBeenCalledTimes(1));
+
+    await user.click(screen.getByRole("button", { name: /^Save$/ }));
+    await waitFor(() => expect(saveVersion).toHaveBeenCalledTimes(1));
+    expect(saveVersion.mock.calls[0][2]).toMatchObject({ used_voice_edit: true });
+  });
+
+  it("passes the selected language to the transcribe call", async () => {
+    installVoiceMocks();
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const transcribeVoice = vi.fn().mockResolvedValue({ transcript: "Dictated words." });
+    const user = userEvent.setup();
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn(), transcribeVoice });
+
+    await screen.findByText("Original AI draft.");
+    await user.selectOptions(screen.getByLabelText(/Dictation language/i), "ur");
+    await user.click(screen.getByRole("button", { name: /^Dictate$/ }));
+    await user.click(screen.getByRole("button", { name: /Stop dictating/i }));
+
+    await waitFor(() => expect(transcribeVoice).toHaveBeenCalledTimes(1));
+    expect(transcribeVoice.mock.calls[0][3]).toBe("ur");
+  });
+
+  it("shows an inline error when transcription fails", async () => {
+    installVoiceMocks();
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const transcribeVoice = vi
+      .fn()
+      .mockRejectedValue(new ApiError(500, "UNKNOWN_ERROR", "STT unavailable"));
+    const user = userEvent.setup();
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn(), transcribeVoice });
+
+    await screen.findByText("Original AI draft.");
+    await user.click(screen.getByRole("button", { name: /^Dictate$/ }));
+    await user.click(screen.getByRole("button", { name: /Stop dictating/i }));
+
+    expect(await screen.findByText("STT unavailable")).toBeInTheDocument();
   });
 });

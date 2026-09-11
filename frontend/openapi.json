@@ -450,6 +450,20 @@
         "title": "Body_independent_personal_content_upload",
         "type": "object"
       },
+      "Body_independent_teacher_transcribe_voice_edit": {
+        "properties": {
+          "audio": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Audio",
+            "type": "string"
+          }
+        },
+        "required": [
+          "audio"
+        ],
+        "title": "Body_independent_teacher_transcribe_voice_edit",
+        "type": "object"
+      },
       "Body_school_library_upload": {
         "properties": {
           "file": {
@@ -462,6 +476,20 @@
           "file"
         ],
         "title": "Body_school_library_upload",
+        "type": "object"
+      },
+      "Body_teacher_transcribe_voice_edit": {
+        "properties": {
+          "audio": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Audio",
+            "type": "string"
+          }
+        },
+        "required": [
+          "audio"
+        ],
+        "title": "Body_teacher_transcribe_voice_edit",
         "type": "object"
       },
       "Body_upload_file": {
@@ -3335,6 +3363,11 @@
           "is_autosave": {
             "default": false,
             "title": "Is Autosave",
+            "type": "boolean"
+          },
+          "used_voice_edit": {
+            "default": false,
+            "title": "Used Voice Edit",
             "type": "boolean"
           }
         },
@@ -6634,6 +6667,23 @@
         "title": "SuccessEnvelope[UserRead]",
         "type": "object"
       },
+      "SuccessEnvelope_VoiceTranscribeRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/VoiceTranscribeRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[VoiceTranscribeRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_WizardEstimateRead_": {
         "properties": {
           "data": {
@@ -7951,6 +8001,20 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VoiceTranscribeRead": {
+        "description": "faster-whisper transcript for a dictated audio clip (T-131).",
+        "properties": {
+          "transcript": {
+            "title": "Transcript",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transcript"
+        ],
+        "title": "VoiceTranscribeRead",
         "type": "object"
       },
       "WizardCurriculumRead": {
@@ -12606,6 +12670,75 @@
         ]
       }
     },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/voice-transcribe": {
+      "post": {
+        "operationId": "independent_teacher_transcribe_voice_edit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(en|ur|sd|ps)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Language"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_independent_teacher_transcribe_voice_edit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_VoiceTranscribeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transcribe a dictated audio clip via faster-whisper (T-131, #29)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
     "/api/v1/independent/teachers/me/onboarding": {
       "get": {
         "operationId": "independent_teacher_get_onboarding",
@@ -16090,6 +16223,75 @@
           }
         },
         "summary": "Load the current version's content into the TipTap editor (T-130)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/voice-transcribe": {
+      "post": {
+        "operationId": "teacher_transcribe_voice_edit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(en|ur|sd|ps)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Language"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_teacher_transcribe_voice_edit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_VoiceTranscribeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transcribe a dictated audio clip via faster-whisper (T-131, #29)",
         "tags": [
           "lecture-wizard"
         ]

@@ -43,6 +43,7 @@ from app.features.lectures.schemas import (
     LectureVersionSaveRequest,
     ParagraphSourceMetadata,
     TeachingMode,
+    VoiceTranscribeRead,
     WizardEstimateRead,
     WizardState,
 )
@@ -56,6 +57,9 @@ from app.features.library.independent_personal_repository import (
     IndependentPersonalContentRepository,
 )
 from app.infrastructure.audit.log import audit
+from app.infrastructure.voice.router import transcribe as voice_transcribe
+
+_MAX_VOICE_AUDIO_BYTES = 10 * 1024 * 1024
 
 logger = structlog.get_logger(__name__)
 
@@ -308,10 +312,13 @@ class IndependentLectureWizardService:
         if not body:
             raise ValidationError("Lecture content cannot be empty")
 
+        merged_annotations = list(extra_annotations or [])
+        if payload.used_voice_edit:
+            merged_annotations.append("Applied voice edit")
         annotations = derive_edit_summary(
             previous_body=latest.body,
             new_body=body,
-            extra_annotations=extra_annotations,
+            extra_annotations=merged_annotations,
         )
 
         version = IndependentLectureVersion(
@@ -343,3 +350,32 @@ class IndependentLectureWizardService:
             is_autosave=payload.is_autosave,
         )
         return self._to_version_read(version)
+
+    async def transcribe_voice_edit(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        audio_bytes: bytes,
+        language: str | None,
+    ) -> VoiceTranscribeRead:
+        """Voice dictation STT (T-131, #29). Mirrors the school variant."""
+        teacher = await self._require_independent_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        if not audio_bytes:
+            raise ValidationError("No audio received")
+        if len(audio_bytes) > _MAX_VOICE_AUDIO_BYTES:
+            raise ValidationError(
+                f"Audio exceeds the {_MAX_VOICE_AUDIO_BYTES // (1024 * 1024)} MB limit"
+            )
+
+        transcript = await voice_transcribe(audio_bytes, language=language)
+        logger.info(
+            "lecture_voice_edit_transcribed",
+            lecture_id=lecture.id,
+            language=language,
+            transcript_length=len(transcript),
+        )
+        return VoiceTranscribeRead(transcript=transcript)

@@ -1351,6 +1351,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/voice-transcribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transcribe a dictated audio clip via faster-whisper (T-131, #29) */
+        post: operations["independent_teacher_transcribe_voice_edit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/independent/teachers/me/onboarding": {
         parameters: {
             query?: never;
@@ -2643,6 +2660,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/lectures/{lecture_id}/voice-transcribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transcribe a dictated audio clip via faster-whisper (T-131, #29) */
+        post: operations["teacher_transcribe_voice_edit"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/offerings": {
         parameters: {
             query?: never;
@@ -3009,10 +3043,20 @@ export interface components {
             /** File */
             file: string;
         };
+        /** Body_independent_teacher_transcribe_voice_edit */
+        Body_independent_teacher_transcribe_voice_edit: {
+            /** Audio */
+            audio: string;
+        };
         /** Body_school_library_upload */
         Body_school_library_upload: {
             /** File */
             file: string;
+        };
+        /** Body_teacher_transcribe_voice_edit */
+        Body_teacher_transcribe_voice_edit: {
+            /** Audio */
+            audio: string;
         };
         /** Body_upload_file */
         Body_upload_file: {
@@ -4157,6 +4201,11 @@ export interface components {
              * @default false
              */
             is_autosave: boolean;
+            /**
+             * Used Voice Edit
+             * @default false
+             */
+            used_voice_edit: boolean;
         };
         /**
          * LibraryBookListResponse
@@ -5667,6 +5716,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[VoiceTranscribeRead] */
+        SuccessEnvelope_VoiceTranscribeRead_: {
+            data: components["schemas"]["VoiceTranscribeRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[WizardEstimateRead] */
         SuccessEnvelope_WizardEstimateRead_: {
             data: components["schemas"]["WizardEstimateRead"];
@@ -6276,6 +6334,14 @@ export interface components {
             msg: string;
             /** Error Type */
             type: string;
+        };
+        /**
+         * VoiceTranscribeRead
+         * @description faster-whisper transcript for a dictated audio clip (T-131).
+         */
+        VoiceTranscribeRead: {
+            /** Transcript */
+            transcript: string;
         };
         /**
          * WizardCurriculumRead
@@ -9548,6 +9614,43 @@ export interface operations {
             };
         };
     };
+    independent_teacher_transcribe_voice_edit: {
+        parameters: {
+            query?: {
+                language?: string | null;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_independent_teacher_transcribe_voice_edit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_VoiceTranscribeRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     independent_teacher_get_onboarding: {
         parameters: {
             query?: never;
@@ -11988,6 +12091,43 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_LectureVersionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_transcribe_voice_edit: {
+        parameters: {
+            query?: {
+                language?: string | null;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_teacher_transcribe_voice_edit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_VoiceTranscribeRead_"];
                 };
             };
             /** @description Validation Error */

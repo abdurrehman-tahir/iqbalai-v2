@@ -86,6 +86,7 @@ export type RosterStudentRead = Schemas["RosterStudentRead"];
 export type LectureTeacherTipsRead = Schemas["LectureTeacherTipsRead"];
 export type LectureVersionSaveRequest = Schemas["LectureVersionSaveRequest"];
 export type LectureVersionRead = Schemas["LectureVersionRead"];
+export type VoiceTranscribeRead = Schemas["VoiceTranscribeRead"];
 export type TeacherTips = Schemas["TeacherTips"];
 export type TeacherTipsRealWorldExample = Schemas["TeacherTipsRealWorldExample"];
 export type TeachingMode = Schemas["TeachingMode"];

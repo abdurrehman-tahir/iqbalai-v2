@@ -6,14 +6,21 @@ import type { useTranslations } from "next-intl";
 import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
-import { Bold, Italic, Heading2, List, ListOrdered } from "lucide-react";
+import { Bold, Italic, Heading2, List, ListOrdered, Mic, Square } from "lucide-react";
 import { ApiError } from "@/lib/api";
-import type { LectureVersionRead, LectureVersionSaveRequest } from "@/lib/api/types";
+import type {
+  LectureVersionRead,
+  LectureVersionSaveRequest,
+  VoiceTranscribeRead,
+} from "@/lib/api/types";
 import { Button } from "@/components/ui/button";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 
 const AUTOSAVE_DEBOUNCE_MS = 3000;
+
+const VOICE_LANGUAGES = ["auto", "en", "ur", "sd", "ps"] as const;
+type VoiceLanguage = (typeof VOICE_LANGUAGES)[number];
 
 /** Splits a plain-text body (M-09 v1's "\n\n"-joined paragraphs) into a TipTap
  * doc — used only to seed the editor the first time a lecture is opened for
@@ -66,6 +73,12 @@ export interface LectureEditorApi {
     lectureId: string,
     data: LectureVersionSaveRequest
   ) => Promise<LectureVersionRead>;
+  transcribeVoice: (
+    token: string,
+    lectureId: string,
+    audio: Blob,
+    language?: string
+  ) => Promise<VoiceTranscribeRead>;
 }
 
 /** TipTap editor + immutable-version save/autosave (T-130). Shared between the
@@ -89,8 +102,16 @@ export function LectureEditorPanel({
   const qc = useQueryClient();
   const [saveError, setSaveError] = useState<string | null>(null);
   const [justSaved, setJustSaved] = useState(false);
+  const [voiceLanguage, setVoiceLanguage] = useState<VoiceLanguage>("auto");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
   const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const initializedRef = useRef(false);
+  const usedVoiceEditRef = useRef(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
   const queryKey = [queryKeyPrefix, "lecture-version-current", lectureId];
 
   const versionQuery = useQuery({
@@ -103,10 +124,12 @@ export function LectureEditorPanel({
       api.saveVersion(token, lectureId, {
         content_jsonb: vars.contentJsonb,
         is_autosave: vars.isAutosave,
+        used_voice_edit: usedVoiceEditRef.current,
       }),
     onSuccess: (result) => {
       setSaveError(null);
       setJustSaved(true);
+      usedVoiceEditRef.current = false;
       qc.setQueryData(queryKey, result);
     },
     onError: (err: unknown) => {
@@ -156,6 +179,73 @@ export function LectureEditorPanel({
     if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     saveMutation.mutate({ contentJsonb: editor.getJSON(), isAutosave: false });
   }, [editor, saveMutation]);
+
+  const stopStream = useCallback(() => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
+  const handleStartRecording = useCallback(async () => {
+    setVoiceError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      audioChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      recorder.onstop = () => {
+        stopStream();
+        const blob = new Blob(audioChunksRef.current, {
+          type: recorder.mimeType || "audio/webm",
+        });
+        audioChunksRef.current = [];
+        setIsTranscribing(true);
+        api
+          .transcribeVoice(
+            token,
+            lectureId,
+            blob,
+            voiceLanguage === "auto" ? undefined : voiceLanguage
+          )
+          .then((result) => {
+            if (editor && result.transcript) {
+              // TipTap's insertContent replaces the current selection when one
+              // exists, or inserts at the cursor otherwise — acceptance #1/#2
+              // need no separate insert-vs-replace branching.
+              editor.chain().focus().insertContent(result.transcript).run();
+              usedVoiceEditRef.current = true;
+              setJustSaved(false);
+            }
+          })
+          .catch((err: unknown) => {
+            setVoiceError(err instanceof ApiError ? err.message : t("editor_voice_error"));
+          })
+          .finally(() => setIsTranscribing(false));
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch {
+      setVoiceError(t("editor_voice_mic_error"));
+    }
+  }, [api, editor, lectureId, stopStream, t, token, voiceLanguage]);
+
+  const handleStopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      mediaRecorderRef.current?.stop();
+      stopStream();
+    };
+  }, [stopStream]);
 
   if (versionQuery.isLoading) {
     return (
@@ -244,11 +334,58 @@ export function LectureEditorPanel({
           >
             <ListOrdered className="size-4" aria-hidden="true" />
           </ToolbarButton>
+
+          <div className="ms-auto flex items-center gap-2">
+            <label className="sr-only" htmlFor="voice-edit-language">
+              {t("editor_voice_language_label")}
+            </label>
+            <select
+              id="voice-edit-language"
+              className="h-10 rounded-md border border-gray-300 bg-white px-2 text-sm"
+              value={voiceLanguage}
+              disabled={isRecording || isTranscribing}
+              onChange={(e) => setVoiceLanguage(e.target.value as VoiceLanguage)}
+            >
+              {VOICE_LANGUAGES.map((lang) => (
+                <option key={lang} value={lang}>
+                  {t(`editor_voice_language_${lang}`)}
+                </option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              variant={isRecording ? "destructive" : "outline"}
+              size="icon"
+              className="size-10"
+              aria-label={isRecording ? t("editor_voice_stop") : t("editor_voice_dictate")}
+              disabled={isTranscribing}
+              onClick={isRecording ? handleStopRecording : handleStartRecording}
+            >
+              {isRecording ? (
+                <Square className="size-4" aria-hidden="true" />
+              ) : (
+                <Mic className="size-4" aria-hidden="true" />
+              )}
+            </Button>
+          </div>
         </div>
         <div dir="auto" className="p-3">
           <EditorContent editor={editor} />
         </div>
       </div>
+
+      <div className="text-sm text-gray-500" role="status" aria-live="polite">
+        {isRecording
+          ? t("editor_voice_recording")
+          : isTranscribing
+            ? t("editor_voice_transcribing")
+            : null}
+      </div>
+      {voiceError ? (
+        <p className="text-sm text-red-600" role="alert">
+          {voiceError}
+        </p>
+      ) : null}
 
       {versionQuery.data ? (
         <p className="text-xs text-gray-500">

@@ -599,7 +599,19 @@
           "editor_toolbar_heading": "__TODO__ Heading",
           "editor_toolbar_bullet_list": "__TODO__ Bullet list",
           "editor_toolbar_ordered_list": "__TODO__ Numbered list",
-          "editor_version_label": "__TODO__ Version {version}"
+          "editor_version_label": "__TODO__ Version {version}",
+          "editor_voice_dictate": "__TODO__ Dictate",
+          "editor_voice_stop": "__TODO__ Stop dictating",
+          "editor_voice_recording": "__TODO__ Recording... click Stop when done.",
+          "editor_voice_transcribing": "__TODO__ Transcribing...",
+          "editor_voice_error": "__TODO__ Could not transcribe your recording. Please try again.",
+          "editor_voice_mic_error": "__TODO__ Could not access the microphone.",
+          "editor_voice_language_label": "__TODO__ Dictation language",
+          "editor_voice_language_auto": "__TODO__ Auto-detect",
+          "editor_voice_language_en": "__TODO__ English",
+          "editor_voice_language_ur": "__TODO__ Urdu",
+          "editor_voice_language_sd": "__TODO__ Sindhi",
+          "editor_voice_language_ps": "__TODO__ Pashto"
         }
       }
     },
@@ -758,7 +770,19 @@
         "editor_toolbar_heading": "__TODO__ Heading",
         "editor_toolbar_bullet_list": "__TODO__ Bullet list",
         "editor_toolbar_ordered_list": "__TODO__ Numbered list",
-        "editor_version_label": "__TODO__ Version {version}"
+        "editor_version_label": "__TODO__ Version {version}",
+        "editor_voice_dictate": "__TODO__ Dictate",
+        "editor_voice_stop": "__TODO__ Stop dictating",
+        "editor_voice_recording": "__TODO__ Recording... click Stop when done.",
+        "editor_voice_transcribing": "__TODO__ Transcribing...",
+        "editor_voice_error": "__TODO__ Could not transcribe your recording. Please try again.",
+        "editor_voice_mic_error": "__TODO__ Could not access the microphone.",
+        "editor_voice_language_label": "__TODO__ Dictation language",
+        "editor_voice_language_auto": "__TODO__ Auto-detect",
+        "editor_voice_language_en": "__TODO__ English",
+        "editor_voice_language_ur": "__TODO__ Urdu",
+        "editor_voice_language_sd": "__TODO__ Sindhi",
+        "editor_voice_language_ps": "__TODO__ Pashto"
       }
     }
   }

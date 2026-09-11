@@ -65,6 +65,7 @@ from app.features.lectures.schemas import (
     TeacherOfferingRead,
     TeacherTips,
     TeachingMode,
+    VoiceTranscribeRead,
     WizardCurriculumRead,
     WizardEstimateRead,
     WizardReferenceRead,
@@ -91,6 +92,7 @@ from app.features.teacher_onboarding.repository import TeacherProfileRepository
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
+from app.infrastructure.voice.router import transcribe as voice_transcribe
 
 logger = structlog.get_logger(__name__)
 
@@ -99,6 +101,10 @@ _BASE_ESTIMATE_SECONDS = 90
 _PER_REFERENCE_SECONDS = 25
 _MANUAL_MODE_FACTOR = 0.6
 _VOICE_MODE_FACTOR = 1.2
+
+# Matches ws_voice_router.py's _MAX_TURN_AUDIO_BYTES (T-121 precedent) — one
+# dictated utterance, not a whole conversation.
+_MAX_VOICE_AUDIO_BYTES = 10 * 1024 * 1024
 
 
 def estimate_generation_seconds(*, reference_count: int, teaching_mode: TeachingMode) -> int:
@@ -670,10 +676,13 @@ class LectureWizardService:
         if not body:
             raise ValidationError("Lecture content cannot be empty")
 
+        merged_annotations = list(extra_annotations or [])
+        if payload.used_voice_edit:
+            merged_annotations.append("Applied voice edit")
         annotations = derive_edit_summary(
             previous_body=latest.body,
             new_body=body,
-            extra_annotations=extra_annotations,
+            extra_annotations=merged_annotations,
         )
 
         version = SchoolLectureVersion(
@@ -706,6 +715,43 @@ class LectureWizardService:
             is_autosave=payload.is_autosave,
         )
         return self._to_version_read(version)
+
+    async def transcribe_voice_edit(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        audio_bytes: bytes,
+        language: str | None,
+    ) -> VoiceTranscribeRead:
+        """Voice dictation STT (T-131, #29). Reuses the M-09 STT primitive only —
+
+        NOT T-121's conversational WS/LLM edit-interpretation pipeline. The
+        teacher dictates the content itself; the frontend inserts the returned
+        transcript at the cursor or over the current selection (TipTap's
+        ``insertContent`` already replaces a selection when one exists — no
+        server-side insert-vs-replace branching needed) and saves normally
+        through ``save_lecture_version`` with ``used_voice_edit=True``.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        if not audio_bytes:
+            raise ValidationError("No audio received")
+        if len(audio_bytes) > _MAX_VOICE_AUDIO_BYTES:
+            raise ValidationError(
+                f"Audio exceeds the {_MAX_VOICE_AUDIO_BYTES // (1024 * 1024)} MB limit"
+            )
+
+        transcript = await voice_transcribe(audio_bytes, language=language)
+        logger.info(
+            "lecture_voice_edit_transcribed",
+            lecture_id=lecture.id,
+            language=language,
+            transcript_length=len(transcript),
+        )
+        return VoiceTranscribeRead(transcript=transcript)
 
     async def _read_link(self, link: SchoolLectureLink) -> LectureLinkRead | None:
         offering = await self._offerings.get_by_id(link.target_grade_subject_offering_id)
