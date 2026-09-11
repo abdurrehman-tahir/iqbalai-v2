@@ -1329,6 +1329,101 @@
         "title": "DistrictUpdate",
         "type": "object"
       },
+      "EditSessionHeartbeatRequest": {
+        "additionalProperties": false,
+        "description": "Cumulative (not delta) totals for the session so far \u2014 a retried\nheartbeat overwrites with the same values instead of double-counting\n(ARCH \u00a75.9 doesn't require Idempotency-Key here since this isn't a\nresource-creating POST, but the values themselves must still be\nidempotent-safe against a client retry).",
+        "properties": {
+          "active_ms": {
+            "minimum": 0.0,
+            "title": "Active Ms",
+            "type": "integer"
+          },
+          "char_delta": {
+            "minimum": 0.0,
+            "title": "Char Delta",
+            "type": "integer"
+          },
+          "edits_count": {
+            "minimum": 0.0,
+            "title": "Edits Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "active_ms",
+          "edits_count",
+          "char_delta"
+        ],
+        "title": "EditSessionHeartbeatRequest",
+        "type": "object"
+      },
+      "EditSessionRead": {
+        "properties": {
+          "active_ms": {
+            "title": "Active Ms",
+            "type": "integer"
+          },
+          "char_delta": {
+            "title": "Char Delta",
+            "type": "integer"
+          },
+          "edits_count": {
+            "title": "Edits Count",
+            "type": "integer"
+          },
+          "effort_score": {
+            "title": "Effort Score",
+            "type": "number"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "active_ms",
+          "edits_count",
+          "char_delta",
+          "started_at",
+          "effort_score"
+        ],
+        "title": "EditSessionRead",
+        "type": "object"
+      },
+      "EditSessionStartRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "lecture_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Lecture Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id"
+        ],
+        "title": "EditSessionStartRequest",
+        "type": "object"
+      },
       "EligibleTeacherRead": {
         "properties": {
           "assignment_count": {
@@ -5897,6 +5992,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[DisclaimerVersionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_EditSessionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/EditSessionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[EditSessionRead]",
         "type": "object"
       },
       "SuccessEnvelope_ExamFrameworkRead_": {
@@ -12467,6 +12579,151 @@
         ]
       }
     },
+    "/api/v1/independent/teachers/me/edit-sessions": {
+      "post": {
+        "operationId": "independent_teacher_start_edit_session",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open an effort-tracking edit session (T-133, #31)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/edit-sessions/{edit_session_id}/end": {
+      "post": {
+        "operationId": "independent_teacher_end_edit_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edit_session_id",
+            "required": true,
+            "schema": {
+              "title": "Edit Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionHeartbeatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close an effort-tracking edit session (T-133, #31)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/edit-sessions/{edit_session_id}/heartbeat": {
+      "post": {
+        "operationId": "independent_teacher_heartbeat_edit_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edit_session_id",
+            "required": true,
+            "schema": {
+              "title": "Edit Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionHeartbeatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "30s effort-tracking heartbeat \u2014 cumulative totals (T-133, #31)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
     "/api/v1/independent/teachers/me/lecture-draft": {
       "get": {
         "operationId": "independent_teacher_get_lecture_draft",
@@ -15765,6 +16022,151 @@
         "summary": "Update teacher self-edit capacity (1\u201320 grade-subject assignments)",
         "tags": [
           "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/edit-sessions": {
+      "post": {
+        "operationId": "teacher_start_edit_session",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open an effort-tracking edit session (T-133, #31)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/edit-sessions/{edit_session_id}/end": {
+      "post": {
+        "operationId": "teacher_end_edit_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edit_session_id",
+            "required": true,
+            "schema": {
+              "title": "Edit Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionHeartbeatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close an effort-tracking edit session (T-133, #31)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/edit-sessions/{edit_session_id}/heartbeat": {
+      "post": {
+        "operationId": "teacher_heartbeat_edit_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edit_session_id",
+            "required": true,
+            "schema": {
+              "title": "Edit Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionHeartbeatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "30s effort-tracking heartbeat \u2014 cumulative totals (T-133, #31)",
+        "tags": [
+          "lecture-wizard"
         ]
       }
     },

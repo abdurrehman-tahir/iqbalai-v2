@@ -57,6 +57,13 @@ const getRoster = vi.fn();
 const getTeacherTips = vi.fn();
 const getCurrentVersion = vi.fn();
 const saveVersion = vi.fn();
+const transcribeVoice = vi.fn();
+const uploadImage = vi.fn();
+const getDiagramSuggestions = vi.fn();
+const acceptDiagramSuggestion = vi.fn();
+const startEditSession = vi.fn();
+const heartbeatEditSession = vi.fn();
+const endEditSession = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   lectureWizardApi: {
@@ -77,6 +84,13 @@ vi.mock("@/lib/api", () => ({
     getTeacherTips: (...args: unknown[]) => getTeacherTips(...args),
     getCurrentVersion: (...args: unknown[]) => getCurrentVersion(...args),
     saveVersion: (...args: unknown[]) => saveVersion(...args),
+    transcribeVoice: (...args: unknown[]) => transcribeVoice(...args),
+    uploadImage: (...args: unknown[]) => uploadImage(...args),
+    getDiagramSuggestions: (...args: unknown[]) => getDiagramSuggestions(...args),
+    acceptDiagramSuggestion: (...args: unknown[]) => acceptDiagramSuggestion(...args),
+    startEditSession: (...args: unknown[]) => startEditSession(...args),
+    heartbeatEditSession: (...args: unknown[]) => heartbeatEditSession(...args),
+    endEditSession: (...args: unknown[]) => endEditSession(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -145,6 +159,34 @@ function renderAtStep5GeneratingLecture(
     originality_score: null,
     edit_summary: null,
     created_at: "2026-08-05T00:00:00Z",
+  });
+  getDiagramSuggestions.mockResolvedValue({ suggestions: [] });
+  startEditSession.mockResolvedValue({
+    id: "effort-session-1",
+    active_ms: 0,
+    edits_count: 0,
+    char_delta: 0,
+    started_at: "2026-08-05T00:00:00Z",
+    ended_at: null,
+    effort_score: 0,
+  });
+  heartbeatEditSession.mockResolvedValue({
+    id: "effort-session-1",
+    active_ms: 0,
+    edits_count: 0,
+    char_delta: 0,
+    started_at: "2026-08-05T00:00:00Z",
+    ended_at: null,
+    effort_score: 0,
+  });
+  endEditSession.mockResolvedValue({
+    id: "effort-session-1",
+    active_ms: 0,
+    edits_count: 0,
+    char_delta: 0,
+    started_at: "2026-08-05T00:00:00Z",
+    ended_at: "2026-08-05T00:05:00Z",
+    effort_score: 0,
   });
 
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });

@@ -24,6 +24,11 @@ const getLecture = vi.fn();
 const getParagraphs = vi.fn();
 const getCurrentVersion = vi.fn();
 const saveVersion = vi.fn();
+const transcribeVoice = vi.fn();
+const uploadImage = vi.fn();
+const startEditSession = vi.fn();
+const heartbeatEditSession = vi.fn();
+const endEditSession = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   independentLectureWizardApi: {
@@ -35,6 +40,11 @@ vi.mock("@/lib/api", () => ({
     getParagraphs: (...args: unknown[]) => getParagraphs(...args),
     getCurrentVersion: (...args: unknown[]) => getCurrentVersion(...args),
     saveVersion: (...args: unknown[]) => saveVersion(...args),
+    transcribeVoice: (...args: unknown[]) => transcribeVoice(...args),
+    uploadImage: (...args: unknown[]) => uploadImage(...args),
+    startEditSession: (...args: unknown[]) => startEditSession(...args),
+    heartbeatEditSession: (...args: unknown[]) => heartbeatEditSession(...args),
+    endEditSession: (...args: unknown[]) => endEditSession(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -84,6 +94,18 @@ describe("IndependentLectureWizardClient", () => {
       updated_at: null,
     });
     listReferences.mockResolvedValue([{ id: "ref-1", title: "My Notes.pdf" }]);
+    const effortSession = {
+      id: "effort-session-1",
+      active_ms: 0,
+      edits_count: 0,
+      char_delta: 0,
+      started_at: "2026-08-05T00:00:00Z",
+      ended_at: null,
+      effort_score: 0,
+    };
+    startEditSession.mockResolvedValue(effortSession);
+    heartbeatEditSession.mockResolvedValue(effortSession);
+    endEditSession.mockResolvedValue({ ...effortSession, ended_at: "2026-08-05T00:05:00Z" });
     upsertDraft.mockResolvedValue({
       id: "draft-1",
       teacher_user_id: "t-1",
@@ -147,6 +169,15 @@ describe("IndependentLectureWizardClient", () => {
       originality_score: null,
       edit_summary: null,
       created_at: "2026-08-05T00:00:00Z",
+    });
+    startEditSession.mockResolvedValue({
+      id: "effort-session-1",
+      active_ms: 0,
+      edits_count: 0,
+      char_delta: 0,
+      started_at: "2026-08-05T00:00:00Z",
+      ended_at: null,
+      effort_score: 0,
     });
 
     renderWizard();

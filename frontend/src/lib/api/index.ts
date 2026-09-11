@@ -71,6 +71,8 @@ import type {
   LectureImageUploadRead,
   DiagramSuggestionsRead,
   DiagramSuggestionAccept,
+  EditSessionHeartbeatRequest,
+  EditSessionRead,
   IndependentWizardReferenceRead,
   IndependentLectureGenerateRequest,
   IndependentLectureRead,
@@ -1229,6 +1231,29 @@ export const lectureWizardApi = {
     );
     return { ...result, image_url: toAbsoluteApiUrl(result.image_url) };
   },
+  startEditSession: (token: string, lectureId: string) =>
+    request<EditSessionRead>(
+      "/teachers/me/edit-sessions",
+      {
+        method: "POST",
+        body: JSON.stringify({ lecture_id: lectureId }),
+        // Idempotency-Key (ARCH §5.9): this POST creates a resource.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  heartbeatEditSession: (token: string, editSessionId: string, data: EditSessionHeartbeatRequest) =>
+    request<EditSessionRead>(
+      `/teachers/me/edit-sessions/${editSessionId}/heartbeat`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  endEditSession: (token: string, editSessionId: string, data: EditSessionHeartbeatRequest) =>
+    request<EditSessionRead>(
+      `/teachers/me/edit-sessions/${editSessionId}/end`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
 };
 
 // ── Independent teacher lecture wizard (T-125) ──────────────────────────────
@@ -1310,6 +1335,28 @@ export const independentLectureWizardApi = {
     );
     return { ...result, image_url: toAbsoluteApiUrl(result.image_url) };
   },
+  startEditSession: (token: string, lectureId: string) =>
+    request<EditSessionRead>(
+      "/independent/teachers/me/edit-sessions",
+      {
+        method: "POST",
+        body: JSON.stringify({ lecture_id: lectureId }),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  heartbeatEditSession: (token: string, editSessionId: string, data: EditSessionHeartbeatRequest) =>
+    request<EditSessionRead>(
+      `/independent/teachers/me/edit-sessions/${editSessionId}/heartbeat`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  endEditSession: (token: string, editSessionId: string, data: EditSessionHeartbeatRequest) =>
+    request<EditSessionRead>(
+      `/independent/teachers/me/edit-sessions/${editSessionId}/end`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
 };
 
 export const studentOnboardingApi = {

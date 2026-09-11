@@ -23,6 +23,8 @@ import { ApiError } from "@/lib/api";
 import type {
   DiagramSuggestionAccept,
   DiagramSuggestionsRead,
+  EditSessionHeartbeatRequest,
+  EditSessionRead,
   LectureImageUploadRead,
   LectureVersionRead,
   LectureVersionSaveRequest,
@@ -35,6 +37,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 const AUTOSAVE_DEBOUNCE_MS = 3000;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif"]);
+const EFFORT_HEARTBEAT_INTERVAL_MS = 30_000;
 
 const VOICE_LANGUAGES = ["auto", "en", "ur", "sd", "ps"] as const;
 type VoiceLanguage = (typeof VOICE_LANGUAGES)[number];
@@ -110,6 +113,17 @@ export interface LectureEditorApi {
     lectureId: string,
     data: DiagramSuggestionAccept
   ) => Promise<LectureImageUploadRead>;
+  startEditSession: (token: string, lectureId: string) => Promise<EditSessionRead>;
+  heartbeatEditSession: (
+    token: string,
+    editSessionId: string,
+    data: EditSessionHeartbeatRequest
+  ) => Promise<EditSessionRead>;
+  endEditSession: (
+    token: string,
+    editSessionId: string,
+    data: EditSessionHeartbeatRequest
+  ) => Promise<EditSessionRead>;
 }
 
 /** TipTap editor + immutable-version save/autosave (T-130). Shared between the
@@ -148,6 +162,17 @@ export function LectureEditorPanel({
   const audioChunksRef = useRef<Blob[]>([]);
   const streamRef = useRef<MediaStream | null>(null);
   const imageInputRef = useRef<HTMLInputElement | null>(null);
+  // Effort tracking (T-133, #31) — never surfaced to the teacher (out of
+  // scope per the ticket), so this all lives in refs, not state: no re-render
+  // needed for a background counter feeding T-134's scoring pipeline.
+  const editSessionIdRef = useRef<string | null>(null);
+  const activeMsRef = useRef(0);
+  const lastActiveAtRef = useRef(Date.now());
+  const isVisibleRef = useRef(typeof document === "undefined" || !document.hidden);
+  const editsCountRef = useRef(0);
+  const charDeltaRef = useRef(0);
+  const prevTextLengthRef = useRef(0);
+  const heartbeatTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const queryKey = [queryKeyPrefix, "lecture-version-current", lectureId];
 
   const versionQuery = useQuery({
@@ -167,6 +192,7 @@ export function LectureEditorPanel({
         content_jsonb: vars.contentJsonb,
         is_autosave: vars.isAutosave,
         used_voice_edit: usedVoiceEditRef.current,
+        edit_session_id: editSessionIdRef.current ?? undefined,
       }),
     onSuccess: (result) => {
       setSaveError(null);
@@ -194,6 +220,14 @@ export function LectureEditorPanel({
       },
       onUpdate: ({ editor: current }) => {
         setJustSaved(false);
+        editsCountRef.current += 1;
+        // Cumulative |inserted|+|deleted| char count, not net diff — matches
+        // the backend column's semantics (models.py: monotonic effort signal
+        // even for heavy rewrites, not offset by same-length replacements).
+        const newLength = current.state.doc.textContent.length;
+        charDeltaRef.current += Math.abs(newLength - prevTextLengthRef.current);
+        prevTextLengthRef.current = newLength;
+
         if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
         // Debounced auto-save — never fires per keystroke (T-130 acceptance #3).
         autosaveTimer.current = setTimeout(() => {
@@ -211,6 +245,7 @@ export function LectureEditorPanel({
     if (!editor || initializedRef.current || !versionQuery.data) return;
     const doc = versionQuery.data.content_jsonb ?? bodyToInitialDoc(versionQuery.data.body);
     editor.commands.setContent(doc as JSONContent);
+    prevTextLengthRef.current = editor.state.doc.textContent.length;
     initializedRef.current = true;
   }, [editor, versionQuery.data]);
 
@@ -218,6 +253,72 @@ export function LectureEditorPanel({
     return () => {
       if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
     };
+  }, []);
+
+  // Effort-tracking session lifecycle (T-133, #31): start once on mount, a
+  // 30s heartbeat while active, Page Visibility API pause/resume, end on
+  // unmount. Runs once per mounted editor regardless of lectureId/token
+  // identity churn (there is none in practice — a panel instance is scoped
+  // to one lecture for its lifetime).
+  useEffect(() => {
+    let cancelled = false;
+
+    const currentActiveMs = () =>
+      activeMsRef.current + (isVisibleRef.current ? Date.now() - lastActiveAtRef.current : 0);
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        activeMsRef.current += Date.now() - lastActiveAtRef.current;
+        isVisibleRef.current = false;
+      } else {
+        lastActiveAtRef.current = Date.now();
+        isVisibleRef.current = true;
+      }
+    };
+
+    const sendHeartbeat = (end: boolean) => {
+      const sessionId = editSessionIdRef.current;
+      if (!sessionId) return;
+      const payload: EditSessionHeartbeatRequest = {
+        active_ms: currentActiveMs(),
+        edits_count: editsCountRef.current,
+        char_delta: charDeltaRef.current,
+      };
+      const call = end
+        ? api.endEditSession(token, sessionId, payload)
+        : api.heartbeatEditSession(token, sessionId, payload);
+      call.catch(() => {
+        // Effort data is a scoring input, not a blocking UX concern — a
+        // dropped heartbeat is logged server-side via the next successful
+        // one's absolute totals, never surfaced to the teacher.
+      });
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    api
+      .startEditSession(token, lectureId)
+      .then((session) => {
+        if (cancelled) return;
+        editSessionIdRef.current = session.id;
+        lastActiveAtRef.current = Date.now();
+        heartbeatTimerRef.current = setInterval(
+          () => sendHeartbeat(false),
+          EFFORT_HEARTBEAT_INTERVAL_MS
+        );
+      })
+      .catch(() => {
+        // No session id -> save() just omits edit_session_id; effort data
+        // for this session is lost, but editing/saving itself still works.
+      });
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (heartbeatTimerRef.current) clearInterval(heartbeatTimerRef.current);
+      sendHeartbeat(true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one session per mount, not per token/lectureId re-render
   }, []);
 
   const handleManualSave = useCallback(() => {

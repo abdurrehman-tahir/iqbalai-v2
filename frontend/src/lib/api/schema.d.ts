@@ -1214,6 +1214,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/independent/teachers/me/edit-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open an effort-tracking edit session (T-133, #31) */
+        post: operations["independent_teacher_start_edit_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/edit-sessions/{edit_session_id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close an effort-tracking edit session (T-133, #31) */
+        post: operations["independent_teacher_end_edit_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/edit-sessions/{edit_session_id}/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 30s effort-tracking heartbeat — cumulative totals (T-133, #31) */
+        post: operations["independent_teacher_heartbeat_edit_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/independent/teachers/me/lecture-draft": {
         parameters: {
             query?: never;
@@ -2470,6 +2521,57 @@ export interface paths {
         patch: operations["teacher_update_capacity"];
         trace?: never;
     };
+    "/api/v1/teachers/me/edit-sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open an effort-tracking edit session (T-133, #31) */
+        post: operations["teacher_start_edit_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/edit-sessions/{edit_session_id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Close an effort-tracking edit session (T-133, #31) */
+        post: operations["teacher_end_edit_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/edit-sessions/{edit_session_id}/heartbeat": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** 30s effort-tracking heartbeat — cumulative totals (T-133, #31) */
+        post: operations["teacher_heartbeat_edit_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/lecture-draft": {
         parameters: {
             query?: never;
@@ -3502,6 +3604,47 @@ export interface components {
             name?: string | null;
             /** Region */
             region?: string | null;
+        };
+        /**
+         * EditSessionHeartbeatRequest
+         * @description Cumulative (not delta) totals for the session so far — a retried
+         *     heartbeat overwrites with the same values instead of double-counting
+         *     (ARCH §5.9 doesn't require Idempotency-Key here since this isn't a
+         *     resource-creating POST, but the values themselves must still be
+         *     idempotent-safe against a client retry).
+         */
+        EditSessionHeartbeatRequest: {
+            /** Active Ms */
+            active_ms: number;
+            /** Char Delta */
+            char_delta: number;
+            /** Edits Count */
+            edits_count: number;
+        };
+        /** EditSessionRead */
+        EditSessionRead: {
+            /** Active Ms */
+            active_ms: number;
+            /** Char Delta */
+            char_delta: number;
+            /** Edits Count */
+            edits_count: number;
+            /** Effort Score */
+            effort_score: number;
+            /** Ended At */
+            ended_at?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Started At
+             * Format: date-time
+             */
+            started_at: string;
+        };
+        /** EditSessionStartRequest */
+        EditSessionStartRequest: {
+            /** Lecture Id */
+            lecture_id: string;
         };
         /** EligibleTeacherRead */
         EligibleTeacherRead: {
@@ -5393,6 +5536,15 @@ export interface components {
         /** SuccessEnvelope[DisclaimerVersionRead] */
         SuccessEnvelope_DisclaimerVersionRead_: {
             data: components["schemas"]["DisclaimerVersionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[EditSessionRead] */
+        SuccessEnvelope_EditSessionRead_: {
+            data: components["schemas"]["EditSessionRead"];
             /**
              * Message
              * @default ok
@@ -9517,6 +9669,109 @@ export interface operations {
             };
         };
     };
+    independent_teacher_start_edit_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditSessionStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_EditSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_end_edit_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                edit_session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditSessionHeartbeatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_EditSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    independent_teacher_heartbeat_edit_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                edit_session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditSessionHeartbeatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_EditSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     independent_teacher_get_lecture_draft: {
         parameters: {
             query?: never;
@@ -11823,6 +12078,109 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_TeacherCapacityUpdateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_start_edit_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditSessionStartRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_EditSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_end_edit_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                edit_session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditSessionHeartbeatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_EditSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_heartbeat_edit_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                edit_session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["EditSessionHeartbeatRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_EditSessionRead_"];
                 };
             };
             /** @description Validation Error */

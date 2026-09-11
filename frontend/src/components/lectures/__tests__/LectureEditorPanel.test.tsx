@@ -48,6 +48,33 @@ function renderPanel(api: Partial<LectureEditorApi>) {
   const fullApi: LectureEditorApi = {
     transcribeVoice: vi.fn(),
     uploadImage: vi.fn(),
+    startEditSession: vi.fn().mockResolvedValue({
+      id: "effort-session-1",
+      active_ms: 0,
+      edits_count: 0,
+      char_delta: 0,
+      started_at: "2026-08-05T00:00:00Z",
+      ended_at: null,
+      effort_score: 0,
+    }),
+    heartbeatEditSession: vi.fn().mockResolvedValue({
+      id: "effort-session-1",
+      active_ms: 0,
+      edits_count: 0,
+      char_delta: 0,
+      started_at: "2026-08-05T00:00:00Z",
+      ended_at: null,
+      effort_score: 0,
+    }),
+    endEditSession: vi.fn().mockResolvedValue({
+      id: "effort-session-1",
+      active_ms: 0,
+      edits_count: 0,
+      char_delta: 0,
+      started_at: "2026-08-05T00:00:00Z",
+      ended_at: "2026-08-05T00:05:00Z",
+      effort_score: 0,
+    }),
     ...api,
   } as LectureEditorApi;
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
@@ -413,5 +440,166 @@ describe("LectureEditorPanel — image upload + AI diagram suggestions (T-132)",
 
     await screen.findByText("Original AI draft.");
     expect(screen.queryByText(/Diagram on page/i)).not.toBeInTheDocument();
+  });
+});
+
+const EFFORT_SESSION = {
+  id: "effort-session-1",
+  active_ms: 0,
+  edits_count: 0,
+  char_delta: 0,
+  started_at: "2026-08-05T00:00:00Z",
+  ended_at: null,
+  effort_score: 0,
+};
+
+describe("LectureEditorPanel — effort tracking (T-133)", () => {
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  it("starts an edit session as soon as the editor mounts", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const startEditSession = vi.fn().mockResolvedValue(EFFORT_SESSION);
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn(), startEditSession });
+
+    await waitFor(() => expect(startEditSession).toHaveBeenCalledWith("tok", "lec-1"));
+  });
+
+  it("acceptance #2/#3 — sends a 30s heartbeat with accumulated edits_count and char_delta", async () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true });
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const startEditSession = vi.fn().mockResolvedValue(EFFORT_SESSION);
+    const heartbeatEditSession = vi.fn().mockResolvedValue(EFFORT_SESSION);
+    const user = userEvent.setup({ delay: null, advanceTimers: vi.advanceTimersByTime });
+    renderPanel({
+      getCurrentVersion,
+      saveVersion: vi.fn(),
+      startEditSession,
+      heartbeatEditSession,
+    });
+
+    await screen.findByText("Original AI draft.");
+    await waitFor(() => expect(startEditSession).toHaveBeenCalled());
+
+    const editable = document.querySelector('[contenteditable="true"]') as HTMLElement;
+    editable.focus();
+    await user.type(editable, "!!!");
+
+    expect(heartbeatEditSession).not.toHaveBeenCalled();
+
+    await vi.advanceTimersByTimeAsync(30_100);
+    await waitFor(() => expect(heartbeatEditSession).toHaveBeenCalledTimes(1));
+    const [, sessionId, payload] = heartbeatEditSession.mock.calls[0];
+    expect(sessionId).toBe("effort-session-1");
+    expect(payload.edits_count).toBeGreaterThan(0);
+    expect(payload.char_delta).toBeGreaterThan(0);
+  });
+
+  it("acceptance #1 — active time does not accumulate while the tab is hidden", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-05T00:00:00Z"));
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const startEditSession = vi.fn().mockResolvedValue(EFFORT_SESSION);
+    const heartbeatEditSession = vi.fn().mockResolvedValue(EFFORT_SESSION);
+    renderPanel({
+      getCurrentVersion,
+      saveVersion: vi.fn(),
+      startEditSession,
+      heartbeatEditSession,
+    });
+
+    await vi.waitFor(() => expect(startEditSession).toHaveBeenCalled());
+    // Flush the startEditSession promise microtask so the heartbeat interval's
+    // first tick is anchored at a known fake-clock instant (t=0 below).
+    await vi.advanceTimersByTimeAsync(0);
+
+    // Visible for 10s, then hidden for 20.1s — total elapsed to the first 30s
+    // heartbeat tick is >30s, but only the visible 10s should count as active.
+    vi.advanceTimersByTime(10_000);
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    await vi.advanceTimersByTimeAsync(20_100);
+
+    await vi.waitFor(() => expect(heartbeatEditSession).toHaveBeenCalledTimes(1));
+    const activeMs = heartbeatEditSession.mock.calls[0][2].active_ms;
+    // ~10s active, not ~30s — the hidden time must not be counted.
+    expect(activeMs).toBeLessThan(20_000);
+
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => false });
+  });
+
+  it("acceptance #1 — resumes accumulating active time after the tab becomes visible again", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-08-05T00:00:00Z"));
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const startEditSession = vi.fn().mockResolvedValue(EFFORT_SESSION);
+    const heartbeatEditSession = vi.fn().mockResolvedValue(EFFORT_SESSION);
+    renderPanel({
+      getCurrentVersion,
+      saveVersion: vi.fn(),
+      startEditSession,
+      heartbeatEditSession,
+    });
+
+    await vi.waitFor(() => expect(startEditSession).toHaveBeenCalled());
+    // Flush the startEditSession promise microtask so the heartbeat interval's
+    // first tick is anchored at a known fake-clock instant (t=0 below).
+    await vi.advanceTimersByTimeAsync(0);
+
+    // The heartbeat interval's first tick fires at a fixed t=30s regardless of
+    // how the visible/hidden segments are split, so the hidden gap (8s) is what
+    // determines the active_ms sent: 30s elapsed - 8s hidden = ~22s active.
+    vi.advanceTimersByTime(5_000);
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => true });
+    document.dispatchEvent(new Event("visibilitychange"));
+    vi.advanceTimersByTime(8_000);
+    Object.defineProperty(document, "hidden", { configurable: true, get: () => false });
+    document.dispatchEvent(new Event("visibilitychange"));
+
+    await vi.advanceTimersByTimeAsync(17_100);
+    await vi.waitFor(() => expect(heartbeatEditSession).toHaveBeenCalledTimes(1));
+    const activeMs = heartbeatEditSession.mock.calls[0][2].active_ms;
+    // ~22s active (5s + 17s), NOT the 8s hidden gap.
+    expect(activeMs).toBeGreaterThan(20_000);
+    expect(activeMs).toBeLessThan(35_000);
+  });
+
+  it("acceptance #5 — a save carries the edit_session_id so effort data links to the version", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const startEditSession = vi.fn().mockResolvedValue(EFFORT_SESSION);
+    const saveVersion = vi.fn().mockResolvedValue({ ...VERSION_1, version: 2 });
+    const user = userEvent.setup();
+    renderPanel({ getCurrentVersion, saveVersion, startEditSession });
+
+    await screen.findByText("Original AI draft.");
+    await waitFor(() => expect(startEditSession).toHaveBeenCalled());
+    await user.click(screen.getByRole("button", { name: /^Save$/ }));
+
+    await waitFor(() => expect(saveVersion).toHaveBeenCalledTimes(1));
+    expect(saveVersion.mock.calls[0][2]).toMatchObject({ edit_session_id: "effort-session-1" });
+  });
+
+  it("ends the edit session when the editor unmounts", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    const startEditSession = vi.fn().mockResolvedValue(EFFORT_SESSION);
+    const endEditSession = vi.fn().mockResolvedValue({ ...EFFORT_SESSION, ended_at: "x" });
+    const { unmount } = renderPanel({
+      getCurrentVersion,
+      saveVersion: vi.fn(),
+      startEditSession,
+      endEditSession,
+    });
+
+    await waitFor(() => expect(startEditSession).toHaveBeenCalled());
+    unmount();
+
+    await waitFor(() =>
+      expect(endEditSession).toHaveBeenCalledWith("tok", "effort-session-1", {
+        active_ms: expect.any(Number),
+        edits_count: expect.any(Number),
+        char_delta: expect.any(Number),
+      })
+    );
   });
 });
