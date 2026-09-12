@@ -244,7 +244,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2.5 days
-**Status:** todo
+**Status:** done
+**Commits:** 8569aaf
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.6 (7-dimension scoring; triggered every save; async)
@@ -261,15 +262,43 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Every save triggers async scoring; teacher sees scores within seconds of completion
-2. [ ] 7 dimensions scored; total max 55; per-dimension breakdown in `scores_json`
-3. [ ] Voice quality = NULL for text-only edits
-4. [ ] AI Learning baseline = 0 on the first version
-5. [ ] Scoring uses `SCORING_MODEL` (separate, smaller model), NOT the generation model
-6. [ ] Cultural relevance uses `teacher_region`
+1. [x] Every save triggers async scoring; teacher sees scores within seconds of completion
+2. [x] 7 dimensions scored; total max 55; per-dimension breakdown in `scores_json`
+3. [x] Voice quality = NULL for text-only edits
+4. [x] AI Learning baseline = 0 on the first version
+5. [x] Scoring uses `SCORING_MODEL` (separate, smaller model), NOT the generation model
+6. [x] Cultural relevance uses `teacher_region`
 
 ### Out of scope
 - Originality internals (T-135), relevance internals (T-136), timeline UI (T-137)
+
+### Notes / known gotchas
+- **No `lecture_score` Celery queue exists.** ARCH §10.2 locks exactly four
+  queue names (`default`/`ingestion`/`ml`/`notifications`) despite the
+  ticket's own text citing a `lecture_score` queue — resolved by running on
+  `default` per §10.2's decision table ("call an external API as a follow-up
+  to a user action"). The ticket's `§4138` ARCH citation isn't a real
+  subsection either; it resolves to ARCH line 4140, inside §7.10.
+- **`SCORING_MODEL` / `task="scoring"` routing already existed** (built for
+  an earlier ticket, wired in `infrastructure/llm/client.py`) — this ticket
+  is its first real caller. ARCH's own diagram (line 241) names a different
+  env var, `LECTURE_SCORE_MODEL`; STACK_LOCK §4.1 and the actual code both
+  say `SCORING_MODEL`, which is what's used — flagging the ARCH inconsistency
+  rather than silently picking one.
+- **T-138 (Innovation Record) doesn't exist yet.** `SchoolTeacherAiMemory` /
+  `IndependentTeacherAiMemory` rows (T-129 schema) are read as the "Innovation
+  Record context" input; empty until T-138 populates them, which the scoring
+  prompt already treats as "no context" (AI Learning scores conservatively /
+  is forced to 0 on the first version regardless).
+- **Independent teachers have no region field** (`IndependentTeacherProfile`
+  has no `region_province`/`region_district`, unlike school's
+  `TeacherProfile`) — `teacher_region` is always `None` for independent
+  lectures; the prompt is explicitly instructed not to penalize a missing
+  region.
+- `voice_quality` and `ai_learning` are two LOCKED rules the code enforces
+  post-hoc on the LLM's JSON response (never trusted to the model itself):
+  voice_quality forced `null` unless the version's `edit_summary` contains
+  "Applied voice edit"; ai_learning forced `0` when `version == 1`.
 
 ---
 

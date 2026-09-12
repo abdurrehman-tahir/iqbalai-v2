@@ -4,25 +4,22 @@
 **Branch:** milestone/M-10-lecture-edit-scoring (forked from M-09 tip — M-09 PR #30
 still OPEN/unmerged; flagged in PR description, retarget to staging once #30 merges)
 
-**Done:**
-- T-129 (fbba2bb, fe88afa) — edit/scoring data model.
-- T-130 (099c62b, ee35ac7, 76147a1, 09351dc) — TipTap editor, save/autosave.
-  Playwright @smoke authored, NOT run (Alpine/musl container, no glibc Chromium).
-- T-131 (ed39a24) — voice dictation via faster-whisper (REST, not T-121's WS).
-- T-132 (bebef3a) — image upload (lecture_image profile, bucket="images", new)
-  + AI diagram suggestions (LLM over already-cited reference chunks + on-demand
-  pdfplumber page render — NOT a new vision-ingestion pipeline; flagged as a
-  scoped interpretation in the backlog notes). School-tenant only for
-  suggestions; both tenants get image upload. 251 backend / 308 frontend tests.
+**Done (SHAs in the M-10 backlog file, not repeated here):**
+- T-129 data model. T-130 TipTap editor/save (Playwright @smoke authored,
+  NOT runnable — Alpine/musl container, no glibc Chromium). T-131 voice
+  dictation (REST, not T-121's WS). T-132 image upload + AI diagram
+  suggestions (reused reference chunks, no new vision pipeline; school-only
+  suggestions). T-133 effort tracking (Page Visibility pause/resume, refs
+  not state, normalize() formula flagged as an assumption).
+- T-134 (8569aaf) — 7-dim scoring: separate LLM call (task="scoring" ->
+  SCORING_MODEL), chained Celery task off generation + every save, queue
+  `default` (no `lecture_score` queue exists — ARCH §10.2 locks 4 names).
+  voice_quality/ai_learning locked rules enforced in code, not trusted to
+  the LLM. Reads teacher_ai_memory as Innovation Record stand-in (T-138 not
+  built yet — empty context handled gracefully). 294 lectures+llm tests green.
 
-- T-133 (e179eb8 backend, bf979bc frontend) — effort tracking: edit-session
-  start/heartbeat/end endpoints, frontend Page Visibility API pause/resume +
-  30s heartbeat via refs (no UI surface, feeds T-134 only). normalize()
-  formula gap documented as an assumption in effort.py (tunable caps).
-  271 backend / 314 frontend tests, all green; typecheck/lint/mypy clean.
-
-**Current ticket:** T-134 (7-dimension quality scoring pipeline) — next up
-**Next:** invoke ticket-loader for T-134.
+**Current ticket:** T-135 (system-wide originality check) — next up
+**Next:** invoke ticket-loader for T-135.
 
 **Tooling (all working, don't redo workarounds):**
 - Backend: `uv run ruff format|check|mypy|pytest` all work normally.
