@@ -1,0 +1,303 @@
+"""7-dimension quality scoring pipeline (T-134, Flow 5 §3.6 #32, ARCH §7.10).
+
+Triggered as a Celery task on every ``lecture.version.created`` (v1 generation
+AND every subsequent teacher save). A single, separate LLM call scores the
+saved version across 7 dimensions (max 55) and writes ``scores_jsonb``.
+
+Originality-index checking (T-135) and topic-relevance scoring (T-136) are
+separate tickets that extend ``scores_jsonb``'s sibling columns
+(``originality_score`` / ``topic_relevance_pct``) — out of scope here.
+
+Best-effort, matching the established pattern for post-save/post-generation
+LLM enrichment steps (``generate_lecture_teacher_tips``,
+``suggest_diagrams_from_chunks``): a scoring failure must never affect the
+lecture or version that already saved successfully, so failures are logged
+and swallowed rather than raised/retried.
+"""
+
+from __future__ import annotations
+
+import difflib
+import json
+import re
+from typing import Any, cast
+
+import structlog
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.features.lectures.independent_repository import (
+    IndependentLectureEditSessionRepository,
+    IndependentLectureVersionRepository,
+)
+from app.features.lectures.models import (
+    IndependentLecture,
+    IndependentLectureVersion,
+    SchoolLecture,
+    SchoolLectureVersion,
+)
+from app.features.lectures.repository import (
+    LectureEditSessionRepository,
+    LectureVersionRepository,
+)
+from app.features.teacher_coaching.models import (
+    IndependentTeacherAiMemory,
+    SchoolTeacherAiMemory,
+)
+from app.features.teacher_onboarding.models import TeacherProfile
+from app.infrastructure.llm.client import chat
+from app.infrastructure.llm.prompts.lecture_scoring_v1 import (
+    LectureScoringInput,
+    LectureScoringOutput,
+)
+from app.infrastructure.llm.prompts.lecture_scoring_v1 import render as render_scoring
+
+logger = structlog.get_logger(__name__)
+
+_JSON_FENCE_RE = re.compile(r"^```(?:json)?|```$", re.MULTILINE)
+_MAX_MEMORY_CONTEXT_ROWS = 5
+_MAX_BODY_CHARS = 6000
+_MAX_DIFF_CHARS = 4000
+_MAX_DIFF_LINES = 200
+
+_DIMENSION_CAPS: dict[str, int] = {
+    "originality": 10,
+    "depth": 10,
+    "cultural_relevance": 5,
+    "engagement": 5,
+    "alignment": 10,
+    "voice_quality": 5,
+    "ai_learning": 10,
+}
+
+
+def _parse_json_payload(raw: str) -> dict[str, Any]:
+    text = _JSON_FENCE_RE.sub("", raw.strip()).strip()
+    return cast(dict[str, Any], json.loads(text))
+
+
+def _clamp(value: int, cap: int) -> int:
+    """Defends the locked dimension caps against a non-compliant LLM response
+    (Pydantic already guarantees ``value`` is an int by the time this runs —
+    this only guards the numeric range, not the type)."""
+    return max(0, min(cap, value))
+
+
+def _build_diff(original: str, edited: str) -> str:
+    if original == edited:
+        return "(no textual change from the first version)"
+    lines = list(
+        difflib.unified_diff(
+            original.splitlines(),
+            edited.splitlines(),
+            lineterm="",
+            n=1,
+        )
+    )[:_MAX_DIFF_LINES]
+    return "\n".join(lines)[:_MAX_DIFF_CHARS]
+
+
+def _memory_context_lines(
+    rows: list[SchoolTeacherAiMemory] | list[IndependentTeacherAiMemory],
+) -> list[str]:
+    return [
+        f"{row.weakness_type}: {row.last_suggestion} "
+        f"(teacher previously {row.teacher_response.value} this suggestion, seen {row.frequency}x)"
+        for row in rows
+    ]
+
+
+async def _score_version(
+    *,
+    topic: str,
+    original_body: str,
+    edited_body: str,
+    edit_summary: list[str] | None,
+    is_first_version: bool,
+    active_ms: int,
+    edits_count: int,
+    char_delta: int,
+    teacher_region: str | None,
+    innovation_record_context: list[str],
+) -> dict[str, object]:
+    """Core scoring call — tenant-agnostic, given already-resolved inputs."""
+    is_voice_edit = edit_summary is not None and "Applied voice edit" in edit_summary
+
+    prompt_input = LectureScoringInput(
+        topic=(topic or "Untitled lecture")[:500],
+        original_body=original_body[:_MAX_BODY_CHARS] or "(empty)",
+        edited_body=edited_body[:_MAX_BODY_CHARS] or "(empty)",
+        diff=_build_diff(original_body, edited_body),
+        edit_summary=list(edit_summary or [])[:20],
+        active_ms=max(active_ms, 0),
+        edits_count=max(edits_count, 0),
+        char_delta=max(char_delta, 0),
+        teacher_region=teacher_region,
+        innovation_record_context=innovation_record_context[:_MAX_MEMORY_CONTEXT_ROWS],
+        is_first_version=is_first_version,
+    )
+    prompt = render_scoring(prompt_input)
+    raw = await chat(
+        [
+            {"role": "system", "content": prompt.system},
+            {"role": "user", "content": prompt.user},
+        ],
+        task="scoring",
+        temperature=prompt.temperature,
+        max_tokens=prompt.max_tokens,
+    )
+    parsed = LectureScoringOutput.model_validate(_parse_json_payload(raw))
+
+    scores: dict[str, object] = {
+        "originality": _clamp(parsed.originality, _DIMENSION_CAPS["originality"]),
+        "depth": _clamp(parsed.depth, _DIMENSION_CAPS["depth"]),
+        "cultural_relevance": _clamp(
+            parsed.cultural_relevance, _DIMENSION_CAPS["cultural_relevance"]
+        ),
+        "engagement": _clamp(parsed.engagement, _DIMENSION_CAPS["engagement"]),
+        "alignment": _clamp(parsed.alignment, _DIMENSION_CAPS["alignment"]),
+        # Locked rules (Flow 5 §3.6), enforced here rather than trusted to the
+        # LLM: voice_quality is null for text-only edits; ai_learning is a
+        # deterministic 0 baseline on the first version.
+        "voice_quality": (
+            _clamp(parsed.voice_quality or 0, _DIMENSION_CAPS["voice_quality"])
+            if is_voice_edit
+            else None
+        ),
+        "ai_learning": 0
+        if is_first_version
+        else _clamp(parsed.ai_learning, _DIMENSION_CAPS["ai_learning"]),
+    }
+    scores["total"] = sum(v for v in scores.values() if isinstance(v, int))
+    return scores
+
+
+async def score_school_lecture_version(
+    session: AsyncSession, *, lecture_id: str, school_id: str, version_id: str
+) -> None:
+    lecture = await session.get(SchoolLecture, lecture_id)
+    if lecture is None or lecture.school_id != school_id:
+        logger.warning("lecture_scoring_lecture_not_found", lecture_id=lecture_id)
+        return
+    version = await session.get(SchoolLectureVersion, version_id)
+    if version is None or version.lecture_id != lecture_id:
+        logger.warning(
+            "lecture_scoring_version_not_found", lecture_id=lecture_id, version_id=version_id
+        )
+        return
+
+    first_version = await LectureVersionRepository(session).get_first_for_lecture(lecture_id)
+    if first_version is None:
+        logger.warning("lecture_scoring_no_first_version", lecture_id=lecture_id)
+        return
+
+    edit_sessions = await LectureEditSessionRepository(session).list_by_version_id(version_id)
+
+    teacher_region: str | None = None
+    memory_context: list[str] = []
+    if lecture.teacher_user_id:
+        profile = await session.get(TeacherProfile, lecture.teacher_user_id)
+        teacher_region = profile.region_province if profile else None
+
+        result = await session.execute(
+            select(SchoolTeacherAiMemory)
+            .where(SchoolTeacherAiMemory.teacher_user_id == lecture.teacher_user_id)
+            .order_by(SchoolTeacherAiMemory.frequency.desc())
+            .limit(_MAX_MEMORY_CONTEXT_ROWS)
+        )
+        memory_context = _memory_context_lines(list(result.scalars().all()))
+
+    try:
+        scores = await _score_version(
+            topic=lecture.title,
+            original_body=first_version.body,
+            edited_body=version.body,
+            edit_summary=version.edit_summary,
+            is_first_version=version.version == 1,
+            active_ms=sum(s.active_ms for s in edit_sessions),
+            edits_count=sum(s.edits_count for s in edit_sessions),
+            char_delta=sum(s.char_delta for s in edit_sessions),
+            teacher_region=teacher_region,
+            innovation_record_context=memory_context,
+        )
+    except Exception as exc:
+        logger.warning(
+            "lecture_scoring_failed", lecture_id=lecture_id, version_id=version_id, error=str(exc)
+        )
+        return
+
+    version.scores_jsonb = scores
+    await session.commit()
+    logger.info(
+        "lecture_scoring_complete",
+        lecture_id=lecture_id,
+        version_id=version_id,
+        total=scores["total"],
+    )
+
+
+async def score_independent_lecture_version(
+    session: AsyncSession, *, lecture_id: str, version_id: str
+) -> None:
+    """Mirrors ``score_school_lecture_version`` — no school_id scoping, no
+    teacher region (independent teachers have no region field, per
+    ``IndependentTeacherProfile`` — flagged as N/A rather than assumed)."""
+    lecture = await session.get(IndependentLecture, lecture_id)
+    if lecture is None:
+        logger.warning("lecture_scoring_lecture_not_found", lecture_id=lecture_id)
+        return
+    version = await session.get(IndependentLectureVersion, version_id)
+    if version is None or version.lecture_id != lecture_id:
+        logger.warning(
+            "lecture_scoring_version_not_found", lecture_id=lecture_id, version_id=version_id
+        )
+        return
+
+    first_version = await IndependentLectureVersionRepository(session).get_first_for_lecture(
+        lecture_id
+    )
+    if first_version is None:
+        logger.warning("lecture_scoring_no_first_version", lecture_id=lecture_id)
+        return
+
+    edit_sessions = await IndependentLectureEditSessionRepository(session).list_by_version_id(
+        version_id
+    )
+
+    memory_context: list[str] = []
+    if lecture.teacher_user_id:
+        result = await session.execute(
+            select(IndependentTeacherAiMemory)
+            .where(IndependentTeacherAiMemory.teacher_user_id == lecture.teacher_user_id)
+            .order_by(IndependentTeacherAiMemory.frequency.desc())
+            .limit(_MAX_MEMORY_CONTEXT_ROWS)
+        )
+        memory_context = _memory_context_lines(list(result.scalars().all()))
+
+    try:
+        scores = await _score_version(
+            topic=lecture.title,
+            original_body=first_version.body,
+            edited_body=version.body,
+            edit_summary=version.edit_summary,
+            is_first_version=version.version == 1,
+            active_ms=sum(s.active_ms for s in edit_sessions),
+            edits_count=sum(s.edits_count for s in edit_sessions),
+            char_delta=sum(s.char_delta for s in edit_sessions),
+            teacher_region=None,
+            innovation_record_context=memory_context,
+        )
+    except Exception as exc:
+        logger.warning(
+            "lecture_scoring_failed", lecture_id=lecture_id, version_id=version_id, error=str(exc)
+        )
+        return
+
+    version.scores_jsonb = scores
+    await session.commit()
+    logger.info(
+        "lecture_scoring_complete",
+        lecture_id=lecture_id,
+        version_id=version_id,
+        total=scores["total"],
+    )

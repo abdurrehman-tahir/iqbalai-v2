@@ -92,6 +92,11 @@ async def test_relevant_framework_context_reaches_the_prompt(
         "app.features.lectures.tasks.generate_lecture_teacher_tips.apply_async",
         MagicMock(),
     )
+    # T-134: same for the scoring task chained right after.
+    monkeypatch.setattr(
+        "app.features.lectures.tasks.score_lecture_version.apply_async",
+        MagicMock(),
+    )
 
     await run_lecture_generation(
         session,
@@ -158,6 +163,11 @@ async def test_no_overlay_leaves_prompt_clean(monkeypatch: pytest.MonkeyPatch) -
     # unit test touch a real broker.
     monkeypatch.setattr(
         "app.features.lectures.tasks.generate_lecture_teacher_tips.apply_async",
+        MagicMock(),
+    )
+    # T-134: same for the scoring task chained right after.
+    monkeypatch.setattr(
+        "app.features.lectures.tasks.score_lecture_version.apply_async",
         MagicMock(),
     )
 

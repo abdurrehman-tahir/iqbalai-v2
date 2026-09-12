@@ -86,6 +86,18 @@ class IndependentLectureVersionRepository:
         )
         return result.scalar_one_or_none()
 
+    async def get_first_for_lecture(self, lecture_id: str) -> IndependentLectureVersion | None:
+        """T-134: version 1 — the scoring pipeline's "original AI draft" input."""
+        result = await self._session.execute(
+            select(IndependentLectureVersion)
+            .where(
+                IndependentLectureVersion.lecture_id == lecture_id,
+                IndependentLectureVersion.version == 1,
+            )
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
     async def create(self, version: IndependentLectureVersion) -> IndependentLectureVersion:
         """Commits the version AND any pending change on its parent ``lecture``
         (e.g. ``current_version_id``) already attached to this session — one
@@ -105,6 +117,15 @@ class IndependentLectureEditSessionRepository:
 
     async def get_by_id(self, session_id: str) -> IndependentLectureEditSession | None:
         return await self._session.get(IndependentLectureEditSession, session_id)
+
+    async def list_by_version_id(self, version_id: str) -> list[IndependentLectureEditSession]:
+        """T-134: mirrors LectureEditSessionRepository.list_by_version_id."""
+        result = await self._session.execute(
+            select(IndependentLectureEditSession).where(
+                IndependentLectureEditSession.lecture_version_id == version_id
+            )
+        )
+        return list(result.scalars().all())
 
     async def create(
         self, edit_session: IndependentLectureEditSession

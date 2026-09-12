@@ -178,6 +178,11 @@ async def test_run_lecture_generation_persists_version_and_paragraphs(
         "app.features.lectures.tasks.generate_lecture_teacher_tips.apply_async",
         MagicMock(),
     )
+    # T-134: same for the scoring task chained right after.
+    monkeypatch.setattr(
+        "app.features.lectures.tasks.score_lecture_version.apply_async",
+        MagicMock(),
+    )
 
     version_id = await run_lecture_generation(
         session,

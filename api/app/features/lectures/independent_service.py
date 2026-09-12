@@ -368,6 +368,14 @@ class IndependentLectureWizardService:
             version=version.version,
             is_autosave=payload.is_autosave,
         )
+
+        # T-134 (#32): every save scores the new version asynchronously.
+        from app.features.lectures.independent_tasks import score_independent_lecture_version
+
+        score_independent_lecture_version.apply_async(
+            kwargs={"lecture_id": lecture.id, "version_id": version.id}
+        )
+
         return self._to_version_read(version)
 
     async def _link_edit_session(

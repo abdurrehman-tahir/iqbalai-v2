@@ -592,4 +592,13 @@ async def run_lecture_generation(
         }
     )
 
+    # T-134 (#32): 7-dimension quality scoring, chained the same way — its own
+    # Celery task so a slow/failing scoring call never affects this task's
+    # already-succeeded generation or its soft_time_limit.
+    from app.features.lectures.tasks import score_lecture_version
+
+    score_lecture_version.apply_async(
+        kwargs={"lecture_id": lecture_id, "school_id": school_id, "version_id": version.id}
+    )
+
     return version.id

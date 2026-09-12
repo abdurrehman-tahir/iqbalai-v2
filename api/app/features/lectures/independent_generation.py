@@ -209,4 +209,13 @@ async def run_independent_lecture_generation(
         version_id=version.id,
         paragraph_count=len(parsed.paragraphs),
     )
+
+    # T-134 (#32): 7-dimension quality scoring, chained as its own Celery task
+    # (mirrors tasks.py's generation -> scoring chain for the school schema).
+    from app.features.lectures.independent_tasks import score_independent_lecture_version
+
+    score_independent_lecture_version.apply_async(
+        kwargs={"lecture_id": lecture_id, "version_id": version.id}
+    )
+
     return version.id

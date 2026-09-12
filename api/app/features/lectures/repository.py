@@ -115,6 +115,17 @@ class LectureEditSessionRepository:
     async def get_by_id(self, session_id: str) -> SchoolLectureEditSession | None:
         return await self._session.get(SchoolLectureEditSession, session_id)
 
+    async def list_by_version_id(self, version_id: str) -> list[SchoolLectureEditSession]:
+        """T-134: sessions linked to a version, for the scoring pipeline's effort
+        input. Normally exactly one (the session passed to the save call), but
+        queried as a list since nothing enforces that at the DB level."""
+        result = await self._session.execute(
+            select(SchoolLectureEditSession).where(
+                SchoolLectureEditSession.lecture_version_id == version_id
+            )
+        )
+        return list(result.scalars().all())
+
     async def create(self, edit_session: SchoolLectureEditSession) -> SchoolLectureEditSession:
         self._session.add(edit_session)
         await self._session.commit()
