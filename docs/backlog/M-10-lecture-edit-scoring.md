@@ -190,7 +190,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commits:** e179eb8 (backend), bf979bc (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5 (effort tracking #31 — visibility-API pause, 30s heartbeat, effort score formula)
@@ -207,14 +208,34 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Timer pauses on tab blur, resumes on focus (Visibility API)
-2. [ ] 30s heartbeat persists `active_ms`
-3. [ ] `edits_count` + `char_delta` recorded per edit session
-4. [ ] Effort score computed per the locked formula
-5. [ ] Effort data available to the scoring pipeline
+1. [x] Timer pauses on tab blur, resumes on focus (Visibility API)
+2. [x] 30s heartbeat persists `active_ms`
+3. [x] `edits_count` + `char_delta` recorded per edit session
+4. [x] Effort score computed per the locked formula
+5. [x] Effort data available to the scoring pipeline
 
 ### Out of scope
 - Surfacing effort as a teacher-visible metric (it feeds scoring, not a standalone display)
+
+### Notes / known gotchas
+- **`normalize()` has no defined basis in the spec.** Implemented as a min-max
+  clamp to `[0,1]` against two named, tunable constants in `effort.py`:
+  `ACTIVE_MS_NORMALIZATION_CAP = 30*60*1000` (30 min = "full effort" active
+  time) and `CHAR_DELTA_NORMALIZATION_CAP = 2000` (2000 chars = "full effort"
+  edit volume). Flagged as an assumption, not a locked spec value — confirm
+  with product before relying on the absolute score scale.
+- `POST .../edit-sessions` requires `Idempotency-Key` (creates a resource);
+  the heartbeat/end actions do not (ARCH §5.9 — non-creating POSTs).
+- Frontend keeps all effort state in `useRef`, not `useState` — no re-render
+  is needed for a background counter that's never rendered (T-133 explicitly
+  scopes out a teacher-visible display).
+- Session lifecycle: started once per `LectureEditorPanel` mount, ended via
+  the unmount cleanup's `sendHeartbeat(true)` (best-effort, errors swallowed
+  — effort data is a scoring input, not a blocking UX concern).
+- Also fixed a pre-existing `mypy --strict` gap in T-132's
+  `test_lecture_images.py` (untyped dict literals passed where `IndexedChunk`
+  TypedDict was expected) — unrelated to this ticket but caught while
+  running the format gate.
 
 ---
 

@@ -15,13 +15,14 @@ still OPEN/unmerged; flagged in PR description, retarget to staging once #30 mer
   scoped interpretation in the backlog notes). School-tenant only for
   suggestions; both tenants get image upload. 251 backend / 308 frontend tests.
 
-**Current ticket:** T-133 (effort tracking) — next up
-**Next:** ticket-loader T-133 → wire lecture_edit_sessions (already modeled in
-T-129: active_ms, edits_count, char_delta, started_at, ended_at) → frontend
-Page Visibility API pause/resume + 30s heartbeat → backend session start/
-heartbeat/end endpoints → effort score = normalize(active_ms)×0.4 +
-normalize(char_delta)×0.6 feeding T-134's scoring pipeline (not a standalone
-teacher-facing metric per the ticket).
+- T-133 (e179eb8 backend, bf979bc frontend) — effort tracking: edit-session
+  start/heartbeat/end endpoints, frontend Page Visibility API pause/resume +
+  30s heartbeat via refs (no UI surface, feeds T-134 only). normalize()
+  formula gap documented as an assumption in effort.py (tunable caps).
+  271 backend / 314 frontend tests, all green; typecheck/lint/mypy clean.
+
+**Current ticket:** T-134 (7-dimension quality scoring pipeline) — next up
+**Next:** invoke ticket-loader for T-134.
 
 **Tooling (all working, don't redo workarounds):**
 - Backend: `uv run ruff format|check|mypy|pytest` all work normally.
