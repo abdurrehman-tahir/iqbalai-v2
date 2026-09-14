@@ -76,6 +76,9 @@ import type {
   EditSessionRead,
   CoachingSuggestionRead,
   CoachingResponseRequest,
+  TeacherBenchmarkRead,
+  BenchmarkOptOutRequest,
+  TeacherMetricsRead,
   IndependentWizardReferenceRead,
   IndependentLectureGenerateRequest,
   IndependentLectureRead,
@@ -1396,6 +1399,43 @@ export const independentTeacherCoachingApi = {
       { method: "POST", body: JSON.stringify(data) },
       token
     ),
+};
+
+export const teacherBenchmarksApi = {
+  list: (token: string) =>
+    request<TeacherBenchmarkRead[]>("/teachers/me/benchmarks", {}, token),
+  setOptOut: (token: string, data: BenchmarkOptOutRequest) =>
+    request<{ rows_changed: number }>(
+      "/teachers/me/benchmarks/opt-out",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+export interface AdminTeacherMetricsFilters {
+  subject_id?: string;
+  grade_range?: string;
+  school_id?: string;
+}
+
+function _adminMetricsQuery(filters: AdminTeacherMetricsFilters): string {
+  const qs = new URLSearchParams();
+  if (filters.subject_id) qs.set("subject_id", filters.subject_id);
+  if (filters.grade_range) qs.set("grade_range", filters.grade_range);
+  if (filters.school_id) qs.set("school_id", filters.school_id);
+  const s = qs.toString();
+  return s ? `?${s}` : "";
+}
+
+export const adminMetricsApi = {
+  listTeacherMetrics: (token: string, filters: AdminTeacherMetricsFilters = {}) =>
+    request<TeacherMetricsRead[]>(
+      `/admin/teacher-metrics${_adminMetricsQuery(filters)}`,
+      {},
+      token
+    ),
+  exportTeacherMetricsCsv: (token: string, filters: AdminTeacherMetricsFilters = {}) =>
+    downloadRequest(`/admin/teacher-metrics/export${_adminMetricsQuery(filters)}`, token),
 };
 
 export const studentOnboardingApi = {

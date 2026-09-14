@@ -79,7 +79,9 @@
       "audit_log": "__TODO__ Audit Log",
       "tos_tab_tos": "خدمت جون شرطون",
       "tos_tab_disclaimer": "دستبردار",
-      "districts": "__TODO__ Districts"
+      "districts": "__TODO__ Districts",
+      "users": "__TODO__ Users",
+      "teacher_metrics": "__TODO__ Teacher Metrics"
     },
     "notifications": {
       "aria_label": "__TODO__ {count, plural, =0 {Notifications} one {1 unread notification} other {{count} unread notifications}}",
@@ -509,6 +511,30 @@
         "apply": "__TODO__ Apply",
         "clear": "__TODO__ Clear"
       }
+    },
+    "metrics": {
+      "title": "__TODO__ Teacher Metrics",
+      "subtitle": "__TODO__ Compare 7-dimension lecture quality scores across teachers in your scope.",
+      "error": "__TODO__ Failed to load teacher metrics",
+      "retry": "__TODO__ Retry",
+      "export_csv": "__TODO__ Export CSV",
+      "search_placeholder": "__TODO__ Search teacher, subject, or school…",
+      "table_label": "__TODO__ Teacher metrics table",
+      "sort_by": "__TODO__ Sort by {column}",
+      "empty": {
+        "title": "__TODO__ No scored lectures yet",
+        "description": "__TODO__ Metrics appear here once teachers in your scope have scored lecture versions."
+      },
+      "col": {
+        "teacher": "__TODO__ Teacher",
+        "subject": "__TODO__ Subject",
+        "grade": "__TODO__ Grade",
+        "school": "__TODO__ School",
+        "lecture_count": "__TODO__ Lectures",
+        "avg_total": "__TODO__ Avg. total",
+        "avg_topic_relevance": "__TODO__ Avg. topic relevance",
+        "na": "__TODO__ N/A"
+      }
     }
   },
   "diagnostics": {
@@ -665,6 +691,15 @@
         "diagnostic_retaken": "__TODO__ Diagnostic retaken",
         "cognitive_dna_seeded": "__TODO__ Cognitive DNA seeded from diagnostic"
       }
+    },
+    "nav": {
+      "aria_label": "__TODO__ School admin navigation",
+      "dashboard": "__TODO__ Dashboard",
+      "users": "__TODO__ Users",
+      "coordinators": "__TODO__ Coordinators",
+      "teachers": "__TODO__ Teachers",
+      "audit_log": "__TODO__ Audit Log",
+      "teacher_metrics": "__TODO__ Teacher Metrics"
     }
   },
   "teacher": {
@@ -838,8 +873,23 @@
         "coaching_title": "__TODO__ A tip for you",
         "coaching_error": "__TODO__ Could not load your coaching tips.",
         "coaching_act": "__TODO__ I'll try this",
-        "coaching_dismiss": "__TODO__ Not now"
+        "coaching_dismiss": "__TODO__ Not now",
+        "benchmark_title": "__TODO__ Your standing",
+        "benchmark_error": "__TODO__ Could not load your benchmark standing.",
+        "benchmark_empty": "__TODO__ Not enough peer data yet to show your standing.",
+        "benchmark_line": "__TODO__ Top {percent}% of {subject} teachers in {region}",
+        "benchmark_opt_out": "__TODO__ Stop comparing me to peers",
+        "benchmark_opt_in": "__TODO__ Resume peer comparison"
       }
+    }
+  },
+  "district_admin": {
+    "nav": {
+      "aria_label": "__TODO__ District admin navigation",
+      "open_menu": "__TODO__ Open menu",
+      "schools": "__TODO__ Schools",
+      "users": "__TODO__ Users",
+      "teacher_metrics": "__TODO__ Teacher Metrics"
     }
   }
 }

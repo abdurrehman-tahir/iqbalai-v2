@@ -80,7 +80,8 @@
       "aria_label": "District admin navigation",
       "open_menu": "Open menu",
       "schools": "Schools",
-      "users": "Users"
+      "users": "Users",
+      "teacher_metrics": "Teacher Metrics"
     },
     "schools": {
       "title": "Schools",
@@ -144,7 +145,8 @@
       "users": "Users",
       "coordinators": "Coordinators",
       "teachers": "Teachers",
-      "audit_log": "Audit Log"
+      "audit_log": "Audit Log",
+      "teacher_metrics": "Teacher Metrics"
     },
     "dashboard": {
       "title": "Welcome to your school",
@@ -723,7 +725,13 @@
         "coaching_title": "A tip for you",
         "coaching_error": "Could not load your coaching tips.",
         "coaching_act": "I'll try this",
-        "coaching_dismiss": "Not now"
+        "coaching_dismiss": "Not now",
+        "benchmark_title": "Your standing",
+        "benchmark_error": "Could not load your benchmark standing.",
+        "benchmark_empty": "Not enough peer data yet to show your standing.",
+        "benchmark_line": "Top {percent}% of {subject} teachers in {region}",
+        "benchmark_opt_out": "Stop comparing me to peers",
+        "benchmark_opt_in": "Resume peer comparison"
       }
     },
     "onboarding": {
@@ -1070,7 +1078,8 @@
       "library": "Platform Library",
       "audit_log": "Audit Log",
       "tos_tab_tos": "Terms of Service",
-      "tos_tab_disclaimer": "Disclaimer"
+      "tos_tab_disclaimer": "Disclaimer",
+      "teacher_metrics": "Teacher Metrics"
     },
     "users": {
       "title": "Users",
@@ -1126,6 +1135,30 @@
           "description": "Permanently deactivate \"{name}\"? This cannot be undone.",
           "confirm": "Deactivate"
         }
+      }
+    },
+    "metrics": {
+      "title": "Teacher Metrics",
+      "subtitle": "Compare 7-dimension lecture quality scores across teachers in your scope.",
+      "error": "Failed to load teacher metrics",
+      "retry": "Retry",
+      "export_csv": "Export CSV",
+      "search_placeholder": "Search teacher, subject, or school…",
+      "table_label": "Teacher metrics table",
+      "sort_by": "Sort by {column}",
+      "empty": {
+        "title": "No scored lectures yet",
+        "description": "Metrics appear here once teachers in your scope have scored lecture versions."
+      },
+      "col": {
+        "teacher": "Teacher",
+        "subject": "Subject",
+        "grade": "Grade",
+        "school": "School",
+        "lecture_count": "Lectures",
+        "avg_total": "Avg. total",
+        "avg_topic_relevance": "Avg. topic relevance",
+        "na": "N/A"
       }
     },
     "notifications": {

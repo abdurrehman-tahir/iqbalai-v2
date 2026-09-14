@@ -14,6 +14,7 @@ import {
   Library,
   Building2,
   Target,
+  BarChart3,
   Menu,
   X,
   LogOut,
@@ -61,6 +62,12 @@ const NAV_ITEMS: NavItem[] = [
   { key: "tos", href: "/admin/tos", icon: FileText, roles: [PLATFORM_ADMIN] },
   { key: "library", href: "/admin/library", icon: Library, roles: [PLATFORM_ADMIN] },
   { key: "audit_log", href: "/admin/audit-log", icon: ClipboardList, roles: [PLATFORM_ADMIN] },
+  {
+    key: "teacher_metrics",
+    href: "/admin/teacher-metrics",
+    icon: BarChart3,
+    roles: [PLATFORM_ADMIN],
+  },
 ];
 
 /** Nav items the given role is permitted to see. `null` (no/unknown user) → none. */

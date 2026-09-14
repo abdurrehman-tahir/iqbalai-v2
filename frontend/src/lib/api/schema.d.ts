@@ -356,6 +356,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/admin/teacher-metrics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Comparative 7-dim quality metrics across teachers, scoped by admin level (T-139, #38) */
+        get: operations["admin_list_teacher_metrics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/admin/teacher-metrics/export": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** CSV export of the comparative teacher metrics table (T-139, #38) */
+        get: operations["admin_export_teacher_metrics_csv"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/admin/tos": {
         parameters: {
             query?: never;
@@ -2539,6 +2573,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/teachers/me/benchmarks": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Positively-framed peer-cohort standing, e.g. "Top 23%" (T-139, #37) */
+        get: operations["teacher_list_benchmarks"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/benchmarks/opt-out": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Opt in/out of anonymized peer benchmarking (T-139, #37) */
+        post: operations["teacher_set_benchmark_opt_out"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/capacity": {
         parameters: {
             query?: never;
@@ -3306,6 +3374,11 @@ export interface components {
             region: string;
             /** Target Grade Range */
             target_grade_range: number[];
+        };
+        /** BenchmarkOptOutRequest */
+        BenchmarkOptOutRequest: {
+            /** Opted Out */
+            opted_out: boolean;
         };
         /** Body_create_bulk_import_dry_run */
         Body_create_bulk_import_dry_run: {
@@ -6184,6 +6257,18 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[dict[str, int]] */
+        SuccessEnvelope_dict_str__int__: {
+            /** Data */
+            data: {
+                [key: string]: number;
+            };
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[AcademicSessionRead]] */
         SuccessEnvelope_list_AcademicSessionRead__: {
             /** Data */
@@ -6394,6 +6479,26 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[list[TeacherBenchmarkRead]] */
+        SuccessEnvelope_list_TeacherBenchmarkRead__: {
+            /** Data */
+            data: components["schemas"]["TeacherBenchmarkRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[TeacherMetricsRead]] */
+        SuccessEnvelope_list_TeacherMetricsRead__: {
+            /** Data */
+            data: components["schemas"]["TeacherMetricsRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[TeacherOfferingRead]] */
         SuccessEnvelope_list_TeacherOfferingRead__: {
             /** Data */
@@ -6475,6 +6580,24 @@ export interface components {
             title: string;
         };
         /**
+         * TeacherBenchmarkRead
+         * @description One positively-framed benchmark row ("Top 23%", never "bottom 30%" —
+         *     Flow 5 §3.11 locked rule). Opted-out / not-yet-computed rows never
+         *     reach this schema (T-139).
+         */
+        TeacherBenchmarkRead: {
+            /** Grade Range */
+            grade_range: string;
+            /** Id */
+            id: string;
+            /** Region */
+            region: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Top Percent */
+            top_percent: number;
+        };
+        /**
          * TeacherCapacityUpdate
          * @description Teacher self-edit capacity payload (flow-3 §3.5 — range [1, 20]).
          */
@@ -6493,6 +6616,48 @@ export interface components {
             capacity_below_assignments: boolean;
             /** Teacher Capacity */
             teacher_capacity: number;
+        };
+        /**
+         * TeacherMetricsRead
+         * @description One (teacher, subject, grade) aggregate row — averaged across every
+         *     scored lecture version in scope. Unlike the teacher-facing benchmark
+         *     (#37), this is not anonymized: admins see real names/schools.
+         */
+        TeacherMetricsRead: {
+            /** Avg Ai Learning */
+            avg_ai_learning: number;
+            /** Avg Alignment */
+            avg_alignment: number;
+            /** Avg Cultural Relevance */
+            avg_cultural_relevance: number;
+            /** Avg Depth */
+            avg_depth: number;
+            /** Avg Engagement */
+            avg_engagement: number;
+            /** Avg Originality */
+            avg_originality: number;
+            /** Avg Topic Relevance Pct */
+            avg_topic_relevance_pct: number | null;
+            /** Avg Total */
+            avg_total: number;
+            /** Avg Voice Quality */
+            avg_voice_quality: number | null;
+            /** Grade Range */
+            grade_range: string;
+            /** Lecture Count */
+            lecture_count: number;
+            /** School Id */
+            school_id: string;
+            /** School Name */
+            school_name: string;
+            /** Subject Id */
+            subject_id: string;
+            /** Subject Name */
+            subject_name: string;
+            /** Teacher Name */
+            teacher_name: string;
+            /** Teacher User Id */
+            teacher_user_id: string;
         };
         /**
          * TeacherOfferingRead
@@ -7969,6 +8134,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_DeletedResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_list_teacher_metrics: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                grade_range?: string | null;
+                school_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_TeacherMetricsRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    admin_export_teacher_metrics_csv: {
+        parameters: {
+            query?: {
+                subject_id?: string | null;
+                grade_range?: string | null;
+                school_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
                 };
             };
             /** @description Validation Error */
@@ -12264,6 +12495,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_SubjectRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_benchmarks: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_TeacherBenchmarkRead__"];
+                };
+            };
+        };
+    };
+    teacher_set_benchmark_opt_out: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["BenchmarkOptOutRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_dict_str__int__"];
                 };
             };
             /** @description Validation Error */

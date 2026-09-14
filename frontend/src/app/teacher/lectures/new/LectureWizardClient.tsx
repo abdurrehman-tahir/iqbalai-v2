@@ -22,6 +22,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { LectureEditorPanel } from "@/components/lectures/LectureEditorPanel";
 import { ScoreTimelineChart } from "@/components/lectures/ScoreTimelineChart";
 import { TeachingInnovationCard } from "@/components/lectures/TeachingInnovationCard";
+import { BenchmarkCard } from "@/components/lectures/BenchmarkCard";
 
 type WizardData = {
   grade_subject_offering_id?: string;
@@ -738,6 +739,7 @@ function GenerationStreamPanel({
           t={t}
           queryKeyPrefix="teacher"
         />
+        <BenchmarkCard token={token!} t={t} queryKeyPrefix="teacher" />
         <LectureEditorPanel
           token={token!}
           lectureId={lectureId}

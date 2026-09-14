@@ -422,6 +422,19 @@
         "title": "AvailableFrameworkRead",
         "type": "object"
       },
+      "BenchmarkOptOutRequest": {
+        "properties": {
+          "opted_out": {
+            "title": "Opted Out",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "opted_out"
+        ],
+        "title": "BenchmarkOptOutRequest",
+        "type": "object"
+      },
       "Body_create_bulk_import_dry_run": {
         "properties": {
           "file": {
@@ -7085,6 +7098,27 @@
         "title": "SuccessEnvelope[WizardTopicsRead]",
         "type": "object"
       },
+      "SuccessEnvelope_dict_str__int__": {
+        "properties": {
+          "data": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Data",
+            "type": "object"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[dict[str, int]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_AcademicSessionRead__": {
         "properties": {
           "data": {
@@ -7526,6 +7560,48 @@
         "title": "SuccessEnvelope[list[SyllabusTopicRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_TeacherBenchmarkRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherBenchmarkRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[TeacherBenchmarkRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_TeacherMetricsRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherMetricsRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[TeacherMetricsRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_TeacherOfferingRead__": {
         "properties": {
           "data": {
@@ -7698,6 +7774,40 @@
         "title": "SyllabusTopicRead",
         "type": "object"
       },
+      "TeacherBenchmarkRead": {
+        "description": "One positively-framed benchmark row (\"Top 23%\", never \"bottom 30%\" \u2014\nFlow 5 \u00a73.11 locked rule). Opted-out / not-yet-computed rows never\nreach this schema (T-139).",
+        "properties": {
+          "grade_range": {
+            "title": "Grade Range",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "top_percent": {
+            "title": "Top Percent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "subject_name",
+          "grade_range",
+          "region",
+          "top_percent"
+        ],
+        "title": "TeacherBenchmarkRead",
+        "type": "object"
+      },
       "TeacherCapacityUpdate": {
         "description": "Teacher self-edit capacity payload (flow-3 \u00a73.5 \u2014 range [1, 20]).",
         "properties": {
@@ -7736,6 +7846,114 @@
           "capacity_below_assignments"
         ],
         "title": "TeacherCapacityUpdateRead",
+        "type": "object"
+      },
+      "TeacherMetricsRead": {
+        "description": "One (teacher, subject, grade) aggregate row \u2014 averaged across every\nscored lecture version in scope. Unlike the teacher-facing benchmark\n(#37), this is not anonymized: admins see real names/schools.",
+        "properties": {
+          "avg_ai_learning": {
+            "title": "Avg Ai Learning",
+            "type": "number"
+          },
+          "avg_alignment": {
+            "title": "Avg Alignment",
+            "type": "number"
+          },
+          "avg_cultural_relevance": {
+            "title": "Avg Cultural Relevance",
+            "type": "number"
+          },
+          "avg_depth": {
+            "title": "Avg Depth",
+            "type": "number"
+          },
+          "avg_engagement": {
+            "title": "Avg Engagement",
+            "type": "number"
+          },
+          "avg_originality": {
+            "title": "Avg Originality",
+            "type": "number"
+          },
+          "avg_topic_relevance_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Topic Relevance Pct"
+          },
+          "avg_total": {
+            "title": "Avg Total",
+            "type": "number"
+          },
+          "avg_voice_quality": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Voice Quality"
+          },
+          "grade_range": {
+            "title": "Grade Range",
+            "type": "string"
+          },
+          "lecture_count": {
+            "title": "Lecture Count",
+            "type": "integer"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "school_name": {
+            "title": "School Name",
+            "type": "string"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "teacher_name": {
+            "title": "Teacher Name",
+            "type": "string"
+          },
+          "teacher_user_id": {
+            "title": "Teacher User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "teacher_user_id",
+          "teacher_name",
+          "school_id",
+          "school_name",
+          "subject_id",
+          "subject_name",
+          "grade_range",
+          "lecture_count",
+          "avg_originality",
+          "avg_depth",
+          "avg_cultural_relevance",
+          "avg_engagement",
+          "avg_alignment",
+          "avg_voice_quality",
+          "avg_ai_learning",
+          "avg_total",
+          "avg_topic_relevance_pct"
+        ],
+        "title": "TeacherMetricsRead",
         "type": "object"
       },
       "TeacherOfferingRead": {
@@ -10155,6 +10373,166 @@
         "summary": "Update a subscription tier",
         "tags": [
           "subscriptions"
+        ]
+      }
+    },
+    "/api/v1/admin/teacher-metrics": {
+      "get": {
+        "operationId": "admin_list_teacher_metrics",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_range",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Range"
+            }
+          },
+          {
+            "in": "query",
+            "name": "school_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "School Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TeacherMetricsRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Comparative 7-dim quality metrics across teachers, scoped by admin level (T-139, #38)",
+        "tags": [
+          "admin-metrics"
+        ]
+      }
+    },
+    "/api/v1/admin/teacher-metrics/export": {
+      "get": {
+        "operationId": "admin_export_teacher_metrics_csv",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_range",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Range"
+            }
+          },
+          {
+            "in": "query",
+            "name": "school_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "School Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "CSV export of the comparative teacher metrics table (T-139, #38)",
+        "tags": [
+          "admin-metrics"
         ]
       }
     },
@@ -16243,6 +16621,68 @@
         "summary": "Archive a subject (status -> archived)",
         "tags": [
           "subjects"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/benchmarks": {
+      "get": {
+        "operationId": "teacher_list_benchmarks",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TeacherBenchmarkRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Positively-framed peer-cohort standing, e.g. \"Top 23%\" (T-139, #37)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/benchmarks/opt-out": {
+      "post": {
+        "operationId": "teacher_set_benchmark_opt_out",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenchmarkOptOutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_dict_str__int__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Opt in/out of anonymized peer benchmarking (T-139, #37)",
+        "tags": [
+          "teacher-coaching"
         ]
       }
     },
