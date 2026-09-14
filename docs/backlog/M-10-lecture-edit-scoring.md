@@ -416,7 +416,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commits:** db00e55 (backend), 6cf8bd1 (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.9 (score timeline — line chart, hover dims, auto annotations)
@@ -433,14 +434,32 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Timeline plots total score across versions
-2. [ ] Hover reveals all 7 dimensions for that version
-3. [ ] Annotations auto-derived from edit metadata
-4. [ ] Default = last 6 versions; pagination for older
-5. [ ] Renders in the teacher's language (RTL-aware)
+1. [x] Timeline plots total score across versions
+2. [x] Hover reveals all 7 dimensions for that version
+3. [x] Annotations auto-derived from edit metadata
+4. [x] Default = last 6 versions; pagination for older
+5. [x] Renders in the teacher's language (RTL-aware)
 
 ### Out of scope
 - Cross-lecture timelines (per-lecture only)
+
+### Notes / known gotchas
+- **New `GET .../lectures/{lecture_id}/versions` list endpoint** (paginated,
+  newest-first) — reuses the existing `LectureVersionRead` schema rather than
+  a slimmer summary type, trading a little payload size for zero new schema
+  surface; `scores_jsonb`/`edit_summary`/`topic_relevance_pct`/
+  `originality_score` were all already on it.
+- **RTL acceptance (#5) handled via `dir="ltr"` on the chart container only**
+  — the x-axis is a version-number time series, which ARCH §13.12 locks to
+  always read left-to-right regardless of app locale; the heading/buttons/
+  tooltip text around it still render in the teacher's language normally.
+- Recharts (already STACK_LOCK-approved, no new dependency) is the first
+  chart in this codebase — no shared shadcn `chart.tsx` wrapper existed, and
+  building one was out of scope for a single line chart; used directly.
+- The `stroke`/`fill` SVG props on Recharts elements are NOT caught by the
+  repo's `style`-prop ESLint ban (T-226, see the T-136 note above) — they're
+  distinct typed props on Recharts' own components, not the DOM `style`
+  attribute.
 
 ---
 

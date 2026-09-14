@@ -10,15 +10,17 @@ runnable here — Alpine/musl). T-131 voice dictation. T-132 image upload + AI
 diagram suggestions. T-133 effort tracking. T-134 7-dim LLM scoring (queue
 `default`, no dedicated queue exists). T-135 originality check (global
 cross-school index for school tenant, tenant-isolated for independent, new
-`system` notification namespace). T-136 topic relevance gauge (embeds
-lecture.topic vs body; native `<progress>`, not a styled div — repo ESLint
-bans the `style` prop outright, T-226).
+`system` notification namespace). T-136 topic relevance gauge (native
+`<progress>`, not a styled div — repo ESLint bans `style` outright, T-226).
+T-137 score timeline chart (new paginated GET .../versions list endpoint,
+reuses LectureVersionRead; Recharts LineChart, first chart in this repo,
+dir="ltr" wrapper for the RTL acceptance per ARCH §13.12).
 
-All three T-134/135/136 checks run from `scoring.py`'s two tenant functions,
-each its own decoupled try/except so one failing never discards the others.
+T-134/135/136 checks all run from `scoring.py`'s two tenant functions, each
+its own decoupled try/except so one failing never discards the others.
 
-**Current ticket:** T-137 (version-by-version score timeline) — next up
-**Next:** invoke ticket-loader for T-137.
+**Current ticket:** T-138 (Teaching Innovation Record) — next up
+**Next:** invoke ticket-loader for T-138.
 
 **Tooling (all working, don't redo workarounds):**
 - Backend: `uv run ruff format|check|mypy|pytest` all work normally.
