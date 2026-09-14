@@ -468,7 +468,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** 01d8fc9 (backend), aa7e7e0 (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.10 (Teaching Innovation Record — adaptive coaching from per-teacher memory)
@@ -485,17 +486,41 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Recurring weakness detected → suggestion presented to the teacher
-2. [ ] Teacher response (acted/ignored) tracked per suggestion
-3. [ ] Repeated ignore → AI changes its angle (not a repeat)
-4. [ ] Memory loaded into scoring + generation prompts (closes the AI-Learning dimension loop)
-5. [ ] Coaching tone, never grading; independent teachers get the simplified variant
+1. [x] Recurring weakness detected → suggestion presented to the teacher
+2. [x] Teacher response (acted/ignored) tracked per suggestion
+3. [x] Repeated ignore → AI changes its angle (not a repeat)
+4. [x] Memory loaded into scoring + generation prompts (closes the AI-Learning dimension loop)
+5. [x] Coaching tone, never grading; independent teachers get the simplified variant
 
 ### Out of scope
 - Student Cognitive DNA (that's Flow 9 / M-18 — explicitly different from `teacher_ai_memory`)
 
 ### Notes / known gotchas
 - `teacher_ai_memory` is the teacher-coaching store; do NOT conflate with student Cognitive DNA (M-08 seed / Flow 9). Flow 7 (M-16) later adds a `reflective_response_pattern` category to this same table.
+- **Suggestion generated on FIRST detection, not after N recurrences** — the
+  flow spec's own lifecycle diagram goes straight from `WEAKNESS_DETECTED`
+  to `SUGGESTION_PRESENTED`, no "wait and see if it recurs" gate. "Recurring"
+  is expressed via the `frequency` counter growing, not a suggestion-delay
+  threshold. A new suggestion is (re)generated only when a previous round's
+  suggestion has already been responded to (acted/ignored) — while one is
+  still pending, recurrences bump `frequency` silently so the teacher is
+  never shown a second tip before reacting to the first.
+- **Weakness dimensions tracked: originality, depth, cultural_relevance,
+  engagement, alignment only** — `ai_learning` and `voice_quality` excluded.
+  `ai_learning` baselines to 0 on every first version (T-134's own locked
+  rule), which would look like a permanent weakness from day one; `voice_quality`
+  is null for most edits (text-only), so it rarely has a comparable signal.
+  "Weak" = below 50% of the dimension's max score — not itself spec-locked,
+  flagged as an assumption (documented in `service.py`).
+- `respond_to_suggestion_*` distinguishes not-found (404) from wrong-owner
+  (403, `PermissionDeniedError`) rather than hiding both behind 404 — unlike
+  the lectures feature's ownership checks, a coaching-suggestion ID isn't
+  sensitive the way a lecture's existence is.
+- The generation-prompt overlay (acceptance #4's other half) mirrors T-120's
+  exam-framework overlay exactly: plain fields on `LectureGenerateInput`
+  (`teacher_coaching_context: list[str]`), populated by a service call
+  outside the prompt module, applied "quietly" per the system prompt (never
+  mentioned explicitly in the generated lecture text).
 
 ---
 
