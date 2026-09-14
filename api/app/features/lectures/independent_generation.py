@@ -121,6 +121,15 @@ async def run_independent_lecture_generation(
             web_hits=len(web_refs),
         )
 
+    # T-138 (#36): additive Teaching Innovation Record nudges.
+    from app.features.teacher_coaching.service import (
+        get_generation_coaching_context_independent,
+    )
+
+    coaching_context = await get_generation_coaching_context_independent(
+        session, teacher_user_id=user_id
+    )
+
     lang = target_language if target_language in ("en", "ur", "sd", "ps") else "en"
     mode = teaching_mode if teaching_mode in ("auto", "manual", "voice_assisted") else "auto"
     prompt = render(
@@ -132,6 +141,7 @@ async def run_independent_lecture_generation(
             reference_chunks=ref_refs,
             web_chunks=web_refs,
             no_coverage=no_coverage,
+            teacher_coaching_context=coaching_context,
         )
     )
     raw = await chat(

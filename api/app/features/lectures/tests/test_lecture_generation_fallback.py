@@ -137,6 +137,10 @@ async def test_curriculum_covered_topic_never_calls_web_search(
     monkeypatch.setattr("app.features.lectures.generation.append_token", AsyncMock(return_value=1))
     monkeypatch.setattr("app.features.lectures.generation.mark_complete", AsyncMock())
     monkeypatch.setattr("app.features.lectures.generation.notify_generation_complete", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service.get_generation_coaching_context_school",
+        AsyncMock(return_value=[]),
+    )
     # T-124: run_lecture_generation chains a Celery task at the end — never let a
     # unit test touch a real broker.
     monkeypatch.setattr(
@@ -222,6 +226,10 @@ async def test_curriculum_empty_reference_covered_escalates_to_reference_only(
     monkeypatch.setattr("app.features.lectures.generation.append_token", AsyncMock(return_value=1))
     monkeypatch.setattr("app.features.lectures.generation.mark_complete", AsyncMock())
     monkeypatch.setattr("app.features.lectures.generation.notify_generation_complete", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service.get_generation_coaching_context_school",
+        AsyncMock(return_value=[]),
+    )
     # T-124: run_lecture_generation chains a Celery task at the end — never let a
     # unit test touch a real broker.
     monkeypatch.setattr(
@@ -289,6 +297,10 @@ async def test_uncovered_topic_escalates_to_web_and_tags_paragraph(
     monkeypatch.setattr("app.features.lectures.generation.append_token", AsyncMock(return_value=1))
     monkeypatch.setattr("app.features.lectures.generation.mark_complete", AsyncMock())
     monkeypatch.setattr("app.features.lectures.generation.notify_generation_complete", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service.get_generation_coaching_context_school",
+        AsyncMock(return_value=[]),
+    )
     # T-124: run_lecture_generation chains a Celery task at the end — never let a
     # unit test touch a real broker.
     monkeypatch.setattr(
@@ -352,6 +364,10 @@ async def test_all_tiers_empty_injects_no_coverage_notice(
     monkeypatch.setattr("app.features.lectures.generation.append_token", AsyncMock(return_value=1))
     monkeypatch.setattr("app.features.lectures.generation.mark_complete", AsyncMock())
     monkeypatch.setattr("app.features.lectures.generation.notify_generation_complete", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service.get_generation_coaching_context_school",
+        AsyncMock(return_value=[]),
+    )
     # T-124: run_lecture_generation chains a Celery task at the end — never let a
     # unit test touch a real broker.
     monkeypatch.setattr(

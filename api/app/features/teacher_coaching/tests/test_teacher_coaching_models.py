@@ -11,7 +11,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import cast
 
-from sqlalchemy import CheckConstraint, Table, UniqueConstraint
+from sqlalchemy import CheckConstraint, String, Table, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
 
 from app.db.base import Base
@@ -43,7 +43,7 @@ def test_category_is_extensible_plain_string_not_enum() -> None:
     for model_cls in (SchoolTeacherAiMemory, IndependentTeacherAiMemory):
         col = cast(Table, model_cls.__table__).columns["category"]
         assert not isinstance(col.type, SAEnum)
-        assert col.type.length == 50
+        assert cast(String, col.type).length == 50
 
 
 def test_teacher_response_enum_stable_three_values() -> None:

@@ -56,6 +56,10 @@ from app.features.student_mode.router import router as student_mode_router
 from app.features.student_onboarding.router import router as student_onboarding_router
 from app.features.subjects.router import router as subjects_router
 from app.features.subscriptions.router import router as subscriptions_router
+from app.features.teacher_coaching.independent_router import (
+    router as independent_teacher_coaching_router,
+)
+from app.features.teacher_coaching.router import router as teacher_coaching_router
 from app.features.teacher_onboarding.router import router as teacher_onboarding_router
 from app.features.tos.router import router as tos_router
 from app.features.users.admin_router import router as admin_users_router
@@ -103,6 +107,8 @@ router.include_router(subjects_router)
 router.include_router(teacher_onboarding_router)
 router.include_router(lecture_wizard_router)
 router.include_router(independent_lecture_wizard_router)
+router.include_router(teacher_coaching_router)
+router.include_router(independent_teacher_coaching_router)
 router.include_router(subscriptions_router)
 router.include_router(library_router)
 router.include_router(platform_library_router)

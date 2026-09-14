@@ -52,6 +52,10 @@ from app.features.teacher_coaching.models import (
     IndependentTeacherAiMemory,
     SchoolTeacherAiMemory,
 )
+from app.features.teacher_coaching.service import (
+    detect_and_track_weakness_independent,
+    detect_and_track_weakness_school,
+)
 from app.features.teacher_onboarding.models import TeacherProfile
 from app.infrastructure.llm.client import chat
 from app.infrastructure.llm.prompts.lecture_scoring_v1 import (
@@ -308,6 +312,27 @@ async def score_school_lecture_version(
             error=str(exc),
         )
 
+    # T-138: Teaching Innovation Record — detects recurring weak dimensions
+    # and (re)generates a coaching suggestion. Its own try/except, same
+    # decoupled pattern as originality/topic-relevance above; writes its own
+    # rows via teacher_coaching's repository, no version-column mutation
+    # here, so nothing to roll into the commit below beyond what it already
+    # committed itself.
+    try:
+        await detect_and_track_weakness_school(
+            session,
+            teacher_user_id=lecture.teacher_user_id or "",
+            scores=scores,
+            region=teacher_region,
+        )
+    except Exception as exc:
+        logger.warning(
+            "teacher_coaching_check_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+        )
+
     await session.commit()
     logger.info(
         "lecture_scoring_complete",
@@ -402,6 +427,18 @@ async def score_independent_lecture_version(
     except Exception as exc:
         logger.warning(
             "lecture_topic_relevance_check_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+        )
+
+    try:
+        await detect_and_track_weakness_independent(
+            session, teacher_user_id=lecture.teacher_user_id or "", scores=scores
+        )
+    except Exception as exc:
+        logger.warning(
+            "teacher_coaching_check_failed",
             lecture_id=lecture_id,
             version_id=version_id,
             error=str(exc),

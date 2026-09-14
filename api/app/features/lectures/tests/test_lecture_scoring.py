@@ -333,6 +333,9 @@ async def test_score_school_lecture_version_writes_scores_jsonb(
         "app.features.lectures.scoring.compute_topic_relevance",
         AsyncMock(return_value=_TOPIC_RELEVANCE_MOCK),
     )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.detect_and_track_weakness_school", AsyncMock()
+    )
 
     await score_school_lecture_version(
         session, lecture_id="lec-1", school_id="school-1", version_id="ver-2"
@@ -405,6 +408,9 @@ async def test_score_school_lecture_version_raises_flag_above_threshold(
     monkeypatch.setattr(
         "app.features.lectures.scoring.compute_topic_relevance",
         AsyncMock(return_value=_TOPIC_RELEVANCE_MOCK),
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.detect_and_track_weakness_school", AsyncMock()
     )
     monkeypatch.setattr("app.features.lectures.scoring.notify_all_platform_admins", notify_mock)
 
@@ -529,6 +535,9 @@ async def test_score_independent_lecture_version_writes_scores_jsonb(
     monkeypatch.setattr(
         "app.features.lectures.scoring.compute_topic_relevance",
         AsyncMock(return_value=_TOPIC_RELEVANCE_MOCK),
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.detect_and_track_weakness_independent", AsyncMock()
     )
 
     await score_independent_lecture_version(session, lecture_id="lec-1", version_id="ver-1")
