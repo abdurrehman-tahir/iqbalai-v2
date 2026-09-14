@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.features.academic_sessions.router import router as academic_sessions_router
+from app.features.admin_metrics.router import router as admin_metrics_router
 from app.features.audit.router import router as audit_router
 from app.features.audit.school_admin_router import router as school_audit_router
 from app.features.auth.router import router as auth_router
@@ -59,6 +60,7 @@ from app.features.subscriptions.router import router as subscriptions_router
 from app.features.teacher_coaching.independent_router import (
     router as independent_teacher_coaching_router,
 )
+from app.features.teacher_coaching.router import benchmarks_router as teacher_benchmarks_router
 from app.features.teacher_coaching.router import router as teacher_coaching_router
 from app.features.teacher_onboarding.router import router as teacher_onboarding_router
 from app.features.tos.router import router as tos_router
@@ -91,6 +93,7 @@ router.include_router(independent_student_onboarding_router)
 router.include_router(bulk_imports_router)
 router.include_router(personas_router)
 router.include_router(academic_sessions_router)
+router.include_router(admin_metrics_router)
 router.include_router(grades_router)
 router.include_router(sections_router)
 router.include_router(student_enrollments_router)
@@ -108,6 +111,7 @@ router.include_router(teacher_onboarding_router)
 router.include_router(lecture_wizard_router)
 router.include_router(independent_lecture_wizard_router)
 router.include_router(teacher_coaching_router)
+router.include_router(teacher_benchmarks_router)
 router.include_router(independent_teacher_coaching_router)
 router.include_router(subscriptions_router)
 router.include_router(library_router)
