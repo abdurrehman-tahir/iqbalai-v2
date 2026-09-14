@@ -25,9 +25,24 @@ T-134/135/136/138's weakness-detection step all run from `scoring.py`'s two
 tenant functions, each its own decoupled try/except so one failing never
 discards the others.
 
-**Current ticket:** T-139 (anonymized benchmarking + admin comparative
-metrics) — next up
-**Next:** invoke ticket-loader for T-139.
+T-139 anonymized benchmarking + admin comparative metrics (#37/#38) — DONE.
+benchmark_service.py/benchmark_repository.py/benchmark_tasks.py (weekly
+beat, queue=ml, Sunday 01:00 PKT) + GET/POST /teachers/me/benchmarks
+(school-only). New admin_metrics feature (router/service/repository/schemas)
+for #38: GET + CSV export /admin/teacher-metrics, scoped by ROLE_HIERARCHY
+mirroring schools/service.py's Platform/District/School precedent, Redis-
+cached 1h (first cache-aside pattern in this repo). Frontend: BenchmarkCard
+(school wizard only) + TeacherMetricsClient shared across all 3 admin
+shells via thin page.tsx re-exports. Commits: backend 5ff9929, frontend
+5eba0a8, docs cca4ed2. Full gotcha list in the M-10 backlog file.
+Noted-but-not-fixed (pre-existing, out of scope): GenerationStreamPanel.test.tsx
+now fails 6 tests under both full-suite and isolated runs (untouched by
+T-139); ur/sd/ps locales are missing ~777 keys present in en (whole
+namespaces like district_admin.* never got translated in an earlier
+milestone) — T-139 only added its own new keys with TODO placeholders.
+
+**Current ticket:** T-140 (final M-10 ticket) — next up.
+**Next:** invoke ticket-loader for T-140.
 
 **Tooling (all working, don't redo workarounds):**
 - Backend: `uv run ruff format|check|mypy|pytest` all work normally.
