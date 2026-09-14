@@ -368,7 +368,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commits:** 3bd41f4
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.8 (topic relevance — embed lecture vs curriculum topic; gauge; <70% warning)
@@ -385,13 +386,28 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] `relevance_pct` computed + stored per version
-2. [ ] Gauge renders in the editor
-3. [ ] Warning shown when < 70%
-4. [ ] Uses the curriculum topic definition the lecture was generated against
+1. [x] `relevance_pct` computed + stored per version
+2. [x] Gauge renders in the editor
+3. [x] Warning shown when < 70%
+4. [x] Uses the curriculum topic definition the lecture was generated against
 
 ### Out of scope
 - Blocking publish on low relevance (advisory only)
+
+### Notes / known gotchas
+- **"Curriculum topic definition" resolves to `lecture.topic`** — the Lecture
+  row has no persisted FK to a curriculum topic-tree node (`curriculum_id` is
+  only an ephemeral generation-request param, never stored); `topic` is the
+  flattened `WizardTopicOption.label` the teacher selected in the wizard,
+  submitted verbatim at generate time, so it durably represents the topic
+  definition without needing a schema change.
+- **Native `<progress>` element, not a styled div** — the repo's ESLint
+  config (`react/forbid-dom-props`, T-226) bans the `style` prop project-wide
+  with no documented exception, which rules out the dynamic-width-via-inline-
+  style pattern a generic gauge would normally use. `<progress value max>`
+  needs no inline style for its fill.
+- ur/sd/ps translations added as `__TODO__` placeholders, matching this
+  editor namespace's existing convention (T-131/T-132 already did the same).
 
 ---
 
