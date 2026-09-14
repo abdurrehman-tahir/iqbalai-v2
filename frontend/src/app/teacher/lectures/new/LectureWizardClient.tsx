@@ -20,6 +20,7 @@ import { Label } from "@/components/ui/label";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LectureEditorPanel } from "@/components/lectures/LectureEditorPanel";
+import { ScoreTimelineChart } from "@/components/lectures/ScoreTimelineChart";
 
 type WizardData = {
   grade_subject_offering_id?: string;
@@ -731,6 +732,13 @@ function GenerationStreamPanel({
           <p className="text-sm text-gray-700">{t("generating_complete_body")}</p>
         </div>
         <LectureEditorPanel
+          token={token!}
+          lectureId={lectureId}
+          api={lectureWizardApi}
+          t={t}
+          queryKeyPrefix="teacher"
+        />
+        <ScoreTimelineChart
           token={token!}
           lectureId={lectureId}
           api={lectureWizardApi}

@@ -67,6 +67,7 @@ import type {
   LectureTeacherTipsRead,
   LectureVersionSaveRequest,
   LectureVersionRead,
+  LectureVersionListResponse,
   VoiceTranscribeRead,
   LectureImageUploadRead,
   DiagramSuggestionsRead,
@@ -1181,6 +1182,12 @@ export const lectureWizardApi = {
     request<LectureTeacherTipsRead>(`/teachers/me/lectures/${lectureId}/teacher-tips`, {}, token),
   getCurrentVersion: (token: string, lectureId: string) =>
     request<LectureVersionRead>(`/teachers/me/lectures/${lectureId}/versions/current`, {}, token),
+  listVersions: (token: string, lectureId: string, page = 1, pageSize = 6) =>
+    request<LectureVersionListResponse>(
+      `/teachers/me/lectures/${lectureId}/versions?page=${page}&page_size=${pageSize}`,
+      {},
+      token
+    ),
   saveVersion: (token: string, lectureId: string, data: LectureVersionSaveRequest) =>
     request<LectureVersionRead>(
       `/teachers/me/lectures/${lectureId}/versions`,
@@ -1302,6 +1309,12 @@ export const independentLectureWizardApi = {
   getCurrentVersion: (token: string, lectureId: string) =>
     request<LectureVersionRead>(
       `/independent/teachers/me/lectures/${lectureId}/versions/current`,
+      {},
+      token
+    ),
+  listVersions: (token: string, lectureId: string, page = 1, pageSize = 6) =>
+    request<LectureVersionListResponse>(
+      `/independent/teachers/me/lectures/${lectureId}/versions?page=${page}&page_size=${pageSize}`,
       {},
       token
     ),

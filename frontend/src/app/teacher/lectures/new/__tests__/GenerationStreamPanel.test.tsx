@@ -56,6 +56,7 @@ const setAccessSettings = vi.fn();
 const getRoster = vi.fn();
 const getTeacherTips = vi.fn();
 const getCurrentVersion = vi.fn();
+const listVersions = vi.fn();
 const saveVersion = vi.fn();
 const transcribeVoice = vi.fn();
 const uploadImage = vi.fn();
@@ -83,6 +84,7 @@ vi.mock("@/lib/api", () => ({
     getRoster: (...args: unknown[]) => getRoster(...args),
     getTeacherTips: (...args: unknown[]) => getTeacherTips(...args),
     getCurrentVersion: (...args: unknown[]) => getCurrentVersion(...args),
+    listVersions: (...args: unknown[]) => listVersions(...args),
     saveVersion: (...args: unknown[]) => saveVersion(...args),
     transcribeVoice: (...args: unknown[]) => transcribeVoice(...args),
     uploadImage: (...args: unknown[]) => uploadImage(...args),
@@ -161,6 +163,7 @@ function renderAtStep5GeneratingLecture(
     created_at: "2026-08-05T00:00:00Z",
   });
   getDiagramSuggestions.mockResolvedValue({ suggestions: [] });
+  listVersions.mockResolvedValue({ items: [], total: 0, page: 1, page_size: 6, pages: 0 });
   startEditSession.mockResolvedValue({
     id: "effort-session-1",
     active_ms: 0,

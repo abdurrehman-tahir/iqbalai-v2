@@ -1409,7 +1409,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Score timeline data — versions newest-first, paginated (T-137, #35) */
+        get: operations["independent_teacher_list_lecture_versions"];
         put?: never;
         /** Save a TipTap edit as a new immutable lecture version (T-130, #29-#31) */
         post: operations["independent_teacher_save_lecture_version"];
@@ -2837,7 +2838,8 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        /** Score timeline data — versions newest-first, paginated (T-137, #35) */
+        get: operations["teacher_list_lecture_versions"];
         put?: never;
         /** Save a TipTap edit as a new immutable lecture version (T-130, #29-#31) */
         post: operations["teacher_save_lecture_version"];
@@ -4701,6 +4703,19 @@ export interface components {
         PaginatedEnvelope_AuditLogEntryRead_: {
             /** Items */
             items: components["schemas"]["AuditLogEntryRead"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Pages */
+            pages: number;
+            /** Total */
+            total: number;
+        };
+        /** PaginatedEnvelope[LectureVersionRead] */
+        PaginatedEnvelope_LectureVersionRead_: {
+            /** Items */
+            items: components["schemas"]["LectureVersionRead"][];
             /** Page */
             page: number;
             /** Page Size */
@@ -10039,6 +10054,40 @@ export interface operations {
             };
         };
     };
+    independent_teacher_list_lecture_versions: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedEnvelope_LectureVersionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     independent_teacher_save_lecture_version: {
         parameters: {
             query?: never;
@@ -12752,6 +12801,40 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_LectureTeacherTipsRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_lecture_versions: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedEnvelope_LectureVersionRead_"];
                 };
             };
             /** @description Validation Error */

@@ -23,6 +23,7 @@ const generate = vi.fn();
 const getLecture = vi.fn();
 const getParagraphs = vi.fn();
 const getCurrentVersion = vi.fn();
+const listVersions = vi.fn();
 const saveVersion = vi.fn();
 const transcribeVoice = vi.fn();
 const uploadImage = vi.fn();
@@ -39,6 +40,7 @@ vi.mock("@/lib/api", () => ({
     getLecture: (...args: unknown[]) => getLecture(...args),
     getParagraphs: (...args: unknown[]) => getParagraphs(...args),
     getCurrentVersion: (...args: unknown[]) => getCurrentVersion(...args),
+    listVersions: (...args: unknown[]) => listVersions(...args),
     saveVersion: (...args: unknown[]) => saveVersion(...args),
     transcribeVoice: (...args: unknown[]) => transcribeVoice(...args),
     uploadImage: (...args: unknown[]) => uploadImage(...args),
@@ -106,6 +108,7 @@ describe("IndependentLectureWizardClient", () => {
     startEditSession.mockResolvedValue(effortSession);
     heartbeatEditSession.mockResolvedValue(effortSession);
     endEditSession.mockResolvedValue({ ...effortSession, ended_at: "2026-08-05T00:05:00Z" });
+    listVersions.mockResolvedValue({ items: [], total: 0, page: 1, page_size: 6, pages: 0 });
     upsertDraft.mockResolvedValue({
       id: "draft-1",
       teacher_user_id: "t-1",

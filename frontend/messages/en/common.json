@@ -705,7 +705,21 @@
         "editor_diagram_accept": "Add diagram",
         "editor_diagram_decline": "Dismiss",
         "editor_topic_relevance_label": "Topic Relevance: {pct}%",
-        "editor_topic_relevance_warning": "This version may have drifted off the lecture's topic."
+        "editor_topic_relevance_warning": "This version may have drifted off the lecture's topic.",
+        "timeline_title": "Score Timeline",
+        "timeline_error": "Could not load the score timeline.",
+        "timeline_empty": "No scored versions yet.",
+        "timeline_older": "Older",
+        "timeline_newer": "Newer",
+        "timeline_total_label": "Total: {total}/{max}",
+        "timeline_dimension_originality": "Originality",
+        "timeline_dimension_depth": "Depth",
+        "timeline_dimension_cultural_relevance": "Cultural relevance",
+        "timeline_dimension_engagement": "Engagement",
+        "timeline_dimension_alignment": "Alignment",
+        "timeline_dimension_voice_quality": "Voice quality",
+        "timeline_dimension_ai_learning": "AI learning",
+        "timeline_dimension_na": "N/A"
       }
     },
     "onboarding": {
@@ -1674,7 +1688,21 @@
           "editor_diagram_accept": "Add diagram",
           "editor_diagram_decline": "Dismiss",
           "editor_topic_relevance_label": "Topic Relevance: {pct}%",
-          "editor_topic_relevance_warning": "This version may have drifted off the lecture's topic."
+          "editor_topic_relevance_warning": "This version may have drifted off the lecture's topic.",
+          "timeline_title": "Score Timeline",
+          "timeline_error": "Could not load the score timeline.",
+          "timeline_empty": "No scored versions yet.",
+          "timeline_older": "Older",
+          "timeline_newer": "Newer",
+          "timeline_total_label": "Total: {total}/{max}",
+          "timeline_dimension_originality": "Originality",
+          "timeline_dimension_depth": "Depth",
+          "timeline_dimension_cultural_relevance": "Cultural relevance",
+          "timeline_dimension_engagement": "Engagement",
+          "timeline_dimension_alignment": "Alignment",
+          "timeline_dimension_voice_quality": "Voice quality",
+          "timeline_dimension_ai_learning": "AI learning",
+          "timeline_dimension_na": "N/A"
         }
       }
     },

@@ -621,7 +621,21 @@
           "editor_diagram_accept": "__TODO__ Add diagram",
           "editor_diagram_decline": "__TODO__ Dismiss",
           "editor_topic_relevance_label": "__TODO__ Topic Relevance: {pct}%",
-          "editor_topic_relevance_warning": "__TODO__ This version may have drifted off the lecture's topic."
+          "editor_topic_relevance_warning": "__TODO__ This version may have drifted off the lecture's topic.",
+          "timeline_title": "__TODO__ Score Timeline",
+          "timeline_error": "__TODO__ Could not load the score timeline.",
+          "timeline_empty": "__TODO__ No scored versions yet.",
+          "timeline_older": "__TODO__ Older",
+          "timeline_newer": "__TODO__ Newer",
+          "timeline_total_label": "__TODO__ Total: {total}/{max}",
+          "timeline_dimension_originality": "__TODO__ Originality",
+          "timeline_dimension_depth": "__TODO__ Depth",
+          "timeline_dimension_cultural_relevance": "__TODO__ Cultural relevance",
+          "timeline_dimension_engagement": "__TODO__ Engagement",
+          "timeline_dimension_alignment": "__TODO__ Alignment",
+          "timeline_dimension_voice_quality": "__TODO__ Voice quality",
+          "timeline_dimension_ai_learning": "__TODO__ AI learning",
+          "timeline_dimension_na": "__TODO__ N/A"
         }
       }
     },
@@ -802,7 +816,21 @@
         "editor_diagram_accept": "__TODO__ Add diagram",
         "editor_diagram_decline": "__TODO__ Dismiss",
         "editor_topic_relevance_label": "__TODO__ Topic Relevance: {pct}%",
-        "editor_topic_relevance_warning": "__TODO__ This version may have drifted off the lecture's topic."
+        "editor_topic_relevance_warning": "__TODO__ This version may have drifted off the lecture's topic.",
+        "timeline_title": "__TODO__ Score Timeline",
+        "timeline_error": "__TODO__ Could not load the score timeline.",
+        "timeline_empty": "__TODO__ No scored versions yet.",
+        "timeline_older": "__TODO__ Older",
+        "timeline_newer": "__TODO__ Newer",
+        "timeline_total_label": "__TODO__ Total: {total}/{max}",
+        "timeline_dimension_originality": "__TODO__ Originality",
+        "timeline_dimension_depth": "__TODO__ Depth",
+        "timeline_dimension_cultural_relevance": "__TODO__ Cultural relevance",
+        "timeline_dimension_engagement": "__TODO__ Engagement",
+        "timeline_dimension_alignment": "__TODO__ Alignment",
+        "timeline_dimension_voice_quality": "__TODO__ Voice quality",
+        "timeline_dimension_ai_learning": "__TODO__ AI learning",
+        "timeline_dimension_na": "__TODO__ N/A"
       }
     }
   }

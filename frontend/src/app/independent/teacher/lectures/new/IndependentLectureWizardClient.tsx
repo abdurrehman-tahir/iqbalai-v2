@@ -14,6 +14,7 @@ import { Label } from "@/components/ui/label";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LectureEditorPanel } from "@/components/lectures/LectureEditorPanel";
+import { ScoreTimelineChart } from "@/components/lectures/ScoreTimelineChart";
 
 /**
  * Independent teacher lecture wizard (T-125) — the stripped variant of the
@@ -305,6 +306,13 @@ function GeneratingOrCompletePanel({
         <p className="text-sm text-gray-700">{t("complete_body")}</p>
       </div>
       <LectureEditorPanel
+        token={token}
+        lectureId={lectureId}
+        api={independentLectureWizardApi}
+        t={t}
+        queryKeyPrefix="independent-teacher"
+      />
+      <ScoreTimelineChart
         token={token}
         lectureId={lectureId}
         api={independentLectureWizardApi}
