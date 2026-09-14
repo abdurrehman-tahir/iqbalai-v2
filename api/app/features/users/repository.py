@@ -30,6 +30,13 @@ class UserRepository:
         )
         return result.scalar_one_or_none()
 
+    async def list_by_role(self, role: UserRole) -> list[User]:
+        """Active users with a given role (T-135: fan-out Platform-Admin alerts)."""
+        result = await self._session.execute(
+            select(User).where(User.role == role, not_deleted(User))
+        )
+        return list(result.scalars().all())
+
     async def get_by_authentik_id_any(self, authentik_id: str) -> User | None:
         """Return a user row regardless of soft-delete (for login/middleware checks)."""
         result = await self._session.execute(select(User).where(User.authentik_id == authentik_id))

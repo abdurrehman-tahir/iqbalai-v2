@@ -20,6 +20,7 @@ from __future__ import annotations
 import difflib
 import json
 import re
+from decimal import Decimal
 from typing import Any, cast
 
 import structlog
@@ -34,7 +35,12 @@ from app.features.lectures.models import (
     IndependentLecture,
     IndependentLectureVersion,
     SchoolLecture,
+    SchoolLecturePlagiarismFlag,
     SchoolLectureVersion,
+)
+from app.features.lectures.originality import (
+    check_and_index_independent_originality,
+    check_and_index_school_originality,
 )
 from app.features.lectures.repository import (
     LectureEditSessionRepository,
@@ -51,6 +57,7 @@ from app.infrastructure.llm.prompts.lecture_scoring_v1 import (
     LectureScoringOutput,
 )
 from app.infrastructure.llm.prompts.lecture_scoring_v1 import render as render_scoring
+from app.infrastructure.notifications.system import notify_all_platform_admins
 
 logger = structlog.get_logger(__name__)
 
@@ -172,6 +179,35 @@ async def _score_version(
     return scores
 
 
+async def _raise_plagiarism_flag(
+    session: AsyncSession,
+    *,
+    lecture_version_id: str,
+    teacher_user_id: str | None,
+    matched_lecture_version_id: str | None,
+    similarity_score: Decimal,
+) -> None:
+    """Creates the admin-only flag row + notifies Platform Admins (T-135, #33).
+
+    The notification carries only a similarity percentage — never the matched
+    teacher's identity (Flow 5 §3.7 privacy rule). The flag row itself stores
+    ``matched_lecture_version_id`` for eventual admin triage (Phase 2 — out of
+    scope here per the ticket)."""
+    flag = SchoolLecturePlagiarismFlag(
+        lecture_version_id=lecture_version_id,
+        teacher_user_id=teacher_user_id,
+        matched_lecture_version_id=matched_lecture_version_id,
+        similarity_score=similarity_score,
+    )
+    session.add(flag)
+    await notify_all_platform_admins(
+        session,
+        template_key="system.plagiarism_flagged",
+        params={"similarity_pct": str(int(similarity_score * 100))},
+        metadata={"flag_id": flag.id},
+    )
+
+
 async def score_school_lecture_version(
     session: AsyncSession, *, lecture_id: str, school_id: str, version_id: str
 ) -> None:
@@ -227,6 +263,34 @@ async def score_school_lecture_version(
         return
 
     version.scores_jsonb = scores
+
+    # T-135: originality is a separate, embedding-based check (no LLM) — its
+    # own try/except so a failure here doesn't discard the 7-dim scores above.
+    try:
+        originality = await check_and_index_school_originality(
+            school_id=school_id,
+            teacher_id=lecture.teacher_user_id or "",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            body=version.body,
+        )
+        version.originality_score = originality.originality_score
+        if originality.is_flagged:
+            await _raise_plagiarism_flag(
+                session,
+                lecture_version_id=version_id,
+                teacher_user_id=lecture.teacher_user_id,
+                matched_lecture_version_id=originality.matched_version_id,
+                similarity_score=Decimal(str(round(originality.max_similarity, 3))),
+            )
+    except Exception as exc:
+        logger.warning(
+            "lecture_originality_check_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+        )
+
     await session.commit()
     logger.info(
         "lecture_scoring_complete",
@@ -294,6 +358,26 @@ async def score_independent_lecture_version(
         return
 
     version.scores_jsonb = scores
+
+    # T-135: same decoupled try/except as the school variant. No plagiarism
+    # flag here — independent originality is tenant-isolated (own prior
+    # versions only), and lecture_plagiarism_flags is a school-schema table.
+    try:
+        originality = await check_and_index_independent_originality(
+            teacher_id=lecture.teacher_user_id or "",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            body=version.body,
+        )
+        version.originality_score = originality.originality_score
+    except Exception as exc:
+        logger.warning(
+            "lecture_originality_check_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+        )
+
     await session.commit()
     logger.info(
         "lecture_scoring_complete",

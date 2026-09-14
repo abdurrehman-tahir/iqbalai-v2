@@ -8,6 +8,7 @@ handling — plus a thin DB-wired smoke test per tenant.
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import Any, cast
 from unittest.mock import AsyncMock, patch
 
@@ -21,8 +22,10 @@ from app.features.lectures.models import (
     IndependentLectureVersion,
     LectureStatus,
     SchoolLecture,
+    SchoolLecturePlagiarismFlag,
     SchoolLectureVersion,
 )
+from app.features.lectures.originality import OriginalityResult
 from app.features.lectures.scoring import (
     _build_diff,
     _clamp,
@@ -33,6 +36,13 @@ from app.features.lectures.scoring import (
 from app.features.lectures.tasks import score_lecture_version as score_lecture_version_task
 from app.features.teacher_coaching.models import SchoolTeacherAiMemory, TeacherResponseType
 from app.features.teacher_onboarding.models import TeacherProfile
+
+_NOT_FLAGGED = OriginalityResult(
+    originality_score=Decimal("0.800"),
+    max_similarity=0.2,
+    is_flagged=False,
+    matched_version_id=None,
+)
 
 _VALID_LLM_JSON = (
     '{"originality": 7, "depth": 8, "cultural_relevance": 4, "engagement": 3, '
@@ -314,6 +324,10 @@ async def test_score_school_lecture_version_writes_scores_jsonb(
     monkeypatch.setattr(
         "app.features.lectures.scoring.chat", AsyncMock(return_value=_VALID_LLM_JSON)
     )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.check_and_index_school_originality",
+        AsyncMock(return_value=_NOT_FLAGGED),
+    )
 
     await score_school_lecture_version(
         session, lecture_id="lec-1", school_id="school-1", version_id="ver-2"
@@ -322,7 +336,88 @@ async def test_score_school_lecture_version_writes_scores_jsonb(
     assert version.scores_jsonb is not None
     assert version.scores_jsonb["originality"] == 7
     assert cast(int, version.scores_jsonb["total"]) > 0
+    assert version.originality_score == Decimal("0.800")
     session.commit.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_score_school_lecture_version_raises_flag_above_threshold(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Above the locked 0.85 similarity threshold: a plagiarism flag row is
+    created and Platform Admins are notified — the teacher only ever sees
+    their own (low) originality score, never the flag itself (Flow 5 §3.7)."""
+    lecture = SchoolLecture(
+        id="lec-1",
+        school_id="school-1",
+        teacher_user_id="teacher-1",
+        title="Newton's Laws",
+        status=LectureStatus.READY_FOR_EDIT,
+        current_version_id="ver-2",
+    )
+    first_version = SchoolLectureVersion(
+        id="ver-1", lecture_id="lec-1", version=1, body="AI draft."
+    )
+    version = SchoolLectureVersion(
+        id="ver-2", lecture_id="lec-1", version=2, body="Near-duplicate body.", edit_summary=None
+    )
+    session = _fake_school_session(lecture, version, None, [])
+
+    class _FakeVersionRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        async def get_first_for_lecture(self, _lecture_id: str) -> SchoolLectureVersion:
+            return first_version
+
+    class _FakeEditSessionRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        async def list_by_version_id(self, _version_id: str) -> list[Any]:
+            return []
+
+    flagged_result = OriginalityResult(
+        originality_score=Decimal("0.070"),
+        max_similarity=0.93,
+        is_flagged=True,
+        matched_version_id="ver-other-teacher",
+    )
+    notify_mock = AsyncMock()
+
+    monkeypatch.setattr("app.features.lectures.scoring.LectureVersionRepository", _FakeVersionRepo)
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.LectureEditSessionRepository", _FakeEditSessionRepo
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.chat", AsyncMock(return_value=_VALID_LLM_JSON)
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.check_and_index_school_originality",
+        AsyncMock(return_value=flagged_result),
+    )
+    monkeypatch.setattr("app.features.lectures.scoring.notify_all_platform_admins", notify_mock)
+
+    added_rows: list[Any] = []
+    monkeypatch.setattr(session, "add", lambda row: added_rows.append(row))
+
+    await score_school_lecture_version(
+        session, lecture_id="lec-1", school_id="school-1", version_id="ver-2"
+    )
+
+    assert version.originality_score == Decimal("0.070")
+    flags = [row for row in added_rows if isinstance(row, SchoolLecturePlagiarismFlag)]
+    assert len(flags) == 1
+    assert flags[0].lecture_version_id == "ver-2"
+    assert flags[0].teacher_user_id == "teacher-1"
+    assert flags[0].matched_lecture_version_id == "ver-other-teacher"
+    assert flags[0].similarity_score == Decimal("0.930")
+    notify_mock.assert_awaited_once()
+    notify_kwargs = notify_mock.call_args.kwargs
+    assert notify_kwargs["template_key"] == "system.plagiarism_flagged"
+    # Privacy rule: no teacher/lecture identity in the notification params.
+    assert "teacher" not in str(notify_kwargs["params"]).lower()
+    assert "lec-1" not in str(notify_kwargs["params"])
 
 
 @pytest.mark.asyncio
@@ -417,11 +512,16 @@ async def test_score_independent_lecture_version_writes_scores_jsonb(
     monkeypatch.setattr(
         "app.features.lectures.scoring.chat", AsyncMock(return_value=_VALID_LLM_JSON)
     )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.check_and_index_independent_originality",
+        AsyncMock(return_value=_NOT_FLAGGED),
+    )
 
     await score_independent_lecture_version(session, lecture_id="lec-1", version_id="ver-1")
 
     assert version.scores_jsonb is not None
     assert version.scores_jsonb["ai_learning"] == 0  # first-version baseline, not the LLM's 6
+    assert version.originality_score == Decimal("0.800")
     session.commit.assert_awaited()
 
 
