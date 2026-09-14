@@ -10,7 +10,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import not_deleted
@@ -107,6 +107,24 @@ class IndependentLectureVersionRepository:
         await self._session.commit()
         await self._session.refresh(version)
         return version
+
+    async def list_paginated(
+        self, lecture_id: str, *, page: int, page_size: int
+    ) -> tuple[list[IndependentLectureVersion], int]:
+        """Mirrors LectureVersionRepository.list_paginated (T-137)."""
+        total = await self._session.scalar(
+            select(func.count())
+            .select_from(IndependentLectureVersion)
+            .where(IndependentLectureVersion.lecture_id == lecture_id)
+        )
+        result = await self._session.execute(
+            select(IndependentLectureVersion)
+            .where(IndependentLectureVersion.lecture_id == lecture_id)
+            .order_by(IndependentLectureVersion.version.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        return list(result.scalars().all()), total or 0
 
 
 class IndependentLectureEditSessionRepository:

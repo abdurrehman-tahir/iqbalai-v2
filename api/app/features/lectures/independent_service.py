@@ -296,6 +296,17 @@ class IndependentLectureWizardService:
             raise NotFoundError("Lecture version not found")
         return self._to_version_read(version)
 
+    async def list_lecture_versions(
+        self, claims: dict[str, object], lecture_id: str, *, page: int, page_size: int
+    ) -> tuple[list[LectureVersionRead], int]:
+        """Mirrors LectureWizardService.list_lecture_versions (T-137, #35)."""
+        teacher = await self._require_independent_teacher(claims)
+        await self._require_owned_lecture(teacher, lecture_id)
+        versions, total = await self._versions.list_paginated(
+            lecture_id, page=page, page_size=page_size
+        )
+        return [self._to_version_read(v) for v in versions], total
+
     async def save_lecture_version(
         self,
         claims: dict[str, object],

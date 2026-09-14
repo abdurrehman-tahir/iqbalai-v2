@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import not_deleted
@@ -103,6 +103,25 @@ class LectureVersionRepository:
         await self._session.commit()
         await self._session.refresh(version)
         return version
+
+    async def list_paginated(
+        self, lecture_id: str, *, page: int, page_size: int
+    ) -> tuple[list[SchoolLectureVersion], int]:
+        """Newest-first page of a lecture's versions (T-137 score timeline —
+        "default view = last 6 versions; older via pagination")."""
+        total = await self._session.scalar(
+            select(func.count())
+            .select_from(SchoolLectureVersion)
+            .where(SchoolLectureVersion.lecture_id == lecture_id)
+        )
+        result = await self._session.execute(
+            select(SchoolLectureVersion)
+            .where(SchoolLectureVersion.lecture_id == lecture_id)
+            .order_by(SchoolLectureVersion.version.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        return list(result.scalars().all()), total or 0
 
 
 class LectureEditSessionRepository:

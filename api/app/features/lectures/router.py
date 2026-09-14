@@ -11,7 +11,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.idempotency import IdempotencyContext, idempotency_key
-from app.core.responses import SuccessEnvelope, success
+from app.core.responses import PaginatedEnvelope, SuccessEnvelope, paginated, success
 from app.features.lectures.schemas import (
     DiagramSuggestionAccept,
     DiagramSuggestionsRead,
@@ -333,6 +333,32 @@ async def get_current_lecture_version(
     svc = LectureWizardService(db)
     result = await svc.get_current_lecture_version(claims, lecture_id)
     return success(result.model_dump(mode="json"))
+
+
+@router.get(
+    "/lectures/{lecture_id}/versions",
+    response_model=PaginatedEnvelope[LectureVersionRead],
+    operation_id="teacher_list_lecture_versions",
+    summary="Score timeline data — versions newest-first, paginated (T-137, #35)",
+    dependencies=[require_role("teacher")],
+)
+async def list_lecture_versions(
+    lecture_id: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=6, ge=1, le=50),
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    items, total = await svc.list_lecture_versions(
+        claims, lecture_id, page=page, page_size=page_size
+    )
+    return paginated(
+        items=[item.model_dump(mode="json") for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 
 @router.post(
