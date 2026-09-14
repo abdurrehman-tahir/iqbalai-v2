@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { lectureWizardApi, ApiError } from "@/lib/api";
+import { lectureWizardApi, teacherCoachingApi, ApiError } from "@/lib/api";
 import type {
   LectureDraftUpsert,
   LectureGenerateRequest,
@@ -21,6 +21,7 @@ import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LectureEditorPanel } from "@/components/lectures/LectureEditorPanel";
 import { ScoreTimelineChart } from "@/components/lectures/ScoreTimelineChart";
+import { TeachingInnovationCard } from "@/components/lectures/TeachingInnovationCard";
 
 type WizardData = {
   grade_subject_offering_id?: string;
@@ -731,6 +732,12 @@ function GenerationStreamPanel({
           <h3 className="text-lg font-medium text-gray-900">{t("generating_complete_title")}</h3>
           <p className="text-sm text-gray-700">{t("generating_complete_body")}</p>
         </div>
+        <TeachingInnovationCard
+          token={token!}
+          api={teacherCoachingApi}
+          t={t}
+          queryKeyPrefix="teacher"
+        />
         <LectureEditorPanel
           token={token!}
           lectureId={lectureId}

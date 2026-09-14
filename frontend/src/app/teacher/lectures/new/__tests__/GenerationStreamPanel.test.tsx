@@ -65,6 +65,8 @@ const acceptDiagramSuggestion = vi.fn();
 const startEditSession = vi.fn();
 const heartbeatEditSession = vi.fn();
 const endEditSession = vi.fn();
+const listCoachingSuggestions = vi.fn();
+const respondToCoachingSuggestion = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   lectureWizardApi: {
@@ -93,6 +95,10 @@ vi.mock("@/lib/api", () => ({
     startEditSession: (...args: unknown[]) => startEditSession(...args),
     heartbeatEditSession: (...args: unknown[]) => heartbeatEditSession(...args),
     endEditSession: (...args: unknown[]) => endEditSession(...args),
+  },
+  teacherCoachingApi: {
+    listSuggestions: (...args: unknown[]) => listCoachingSuggestions(...args),
+    respondToSuggestion: (...args: unknown[]) => respondToCoachingSuggestion(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -164,6 +170,7 @@ function renderAtStep5GeneratingLecture(
   });
   getDiagramSuggestions.mockResolvedValue({ suggestions: [] });
   listVersions.mockResolvedValue({ items: [], total: 0, page: 1, page_size: 6, pages: 0 });
+  listCoachingSuggestions.mockResolvedValue([]);
   startEditSession.mockResolvedValue({
     id: "effort-session-1",
     active_ms: 0,

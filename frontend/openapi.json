@@ -669,6 +669,58 @@
         "title": "BulkImportRowResult",
         "type": "object"
       },
+      "CoachingResponseRequest": {
+        "properties": {
+          "response": {
+            "enum": [
+              "acted",
+              "ignored"
+            ],
+            "title": "Response",
+            "type": "string"
+          }
+        },
+        "required": [
+          "response"
+        ],
+        "title": "CoachingResponseRequest",
+        "type": "object"
+      },
+      "CoachingSuggestionRead": {
+        "description": "One pending (unactioned) coaching tip. Coaching framing only \u2014 no\nscore/grade is ever exposed here (Flow 5 \u00a73.10 locked rule).",
+        "properties": {
+          "frequency": {
+            "title": "Frequency",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "suggestion": {
+            "title": "Suggestion",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "weakness_type": {
+            "title": "Weakness Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "weakness_type",
+          "suggestion",
+          "frequency",
+          "updated_at"
+        ],
+        "title": "CoachingSuggestionRead",
+        "type": "object"
+      },
       "DataRightsDeletionCreate": {
         "properties": {
           "confirm": {
@@ -5911,6 +5963,23 @@
         "title": "SuccessEnvelope[BulkImportRead]",
         "type": "object"
       },
+      "SuccessEnvelope_CoachingSuggestionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CoachingSuggestionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[CoachingSuggestionRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DataRightsRequestRead_": {
         "properties": {
           "data": {
@@ -7056,6 +7125,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[AvailableFrameworkRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_CoachingSuggestionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CoachingSuggestionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[CoachingSuggestionRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_DisclaimerVersionRead__": {
@@ -12615,6 +12705,79 @@
         ]
       }
     },
+    "/api/v1/independent/teachers/me/coaching": {
+      "get": {
+        "operationId": "independent_teacher_list_coaching_suggestions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_CoachingSuggestionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Pending (unactioned) coaching tips \u2014 the Teaching Innovation Record (T-138, #36)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/coaching/{memory_id}/respond": {
+      "post": {
+        "operationId": "independent_teacher_respond_to_coaching_suggestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memory_id",
+            "required": true,
+            "schema": {
+              "title": "Memory Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoachingResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_CoachingSuggestionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark a coaching tip acted-on or ignored (T-138, #36)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
     "/api/v1/independent/teachers/me/edit-sessions": {
       "post": {
         "operationId": "independent_teacher_start_edit_session",
@@ -16121,6 +16284,79 @@
         "summary": "Update teacher self-edit capacity (1\u201320 grade-subject assignments)",
         "tags": [
           "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/coaching": {
+      "get": {
+        "operationId": "teacher_list_coaching_suggestions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_CoachingSuggestionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Pending (unactioned) coaching tips \u2014 the Teaching Innovation Record (T-138, #36)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/coaching/{memory_id}/respond": {
+      "post": {
+        "operationId": "teacher_respond_to_coaching_suggestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memory_id",
+            "required": true,
+            "schema": {
+              "title": "Memory Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoachingResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_CoachingSuggestionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark a coaching tip acted-on or ignored (T-138, #36)",
+        "tags": [
+          "teacher-coaching"
         ]
       }
     },

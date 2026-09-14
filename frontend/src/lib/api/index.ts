@@ -74,6 +74,8 @@ import type {
   DiagramSuggestionAccept,
   EditSessionHeartbeatRequest,
   EditSessionRead,
+  CoachingSuggestionRead,
+  CoachingResponseRequest,
   IndependentWizardReferenceRead,
   IndependentLectureGenerateRequest,
   IndependentLectureRead,
@@ -1367,6 +1369,30 @@ export const independentLectureWizardApi = {
   endEditSession: (token: string, editSessionId: string, data: EditSessionHeartbeatRequest) =>
     request<EditSessionRead>(
       `/independent/teachers/me/edit-sessions/${editSessionId}/end`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+// T-138 (#36) — Teaching Innovation Record. Teacher-scoped, not lecture-scoped
+// (unlike lectureWizardApi above), so its own small api object.
+export const teacherCoachingApi = {
+  listSuggestions: (token: string) =>
+    request<CoachingSuggestionRead[]>("/teachers/me/coaching", {}, token),
+  respondToSuggestion: (token: string, memoryId: string, data: CoachingResponseRequest) =>
+    request<CoachingSuggestionRead>(
+      `/teachers/me/coaching/${memoryId}/respond`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+export const independentTeacherCoachingApi = {
+  listSuggestions: (token: string) =>
+    request<CoachingSuggestionRead[]>("/independent/teachers/me/coaching", {}, token),
+  respondToSuggestion: (token: string, memoryId: string, data: CoachingResponseRequest) =>
+    request<CoachingSuggestionRead>(
+      `/independent/teachers/me/coaching/${memoryId}/respond`,
       { method: "POST", body: JSON.stringify(data) },
       token
     ),

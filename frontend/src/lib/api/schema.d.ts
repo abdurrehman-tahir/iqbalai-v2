@@ -1214,6 +1214,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/independent/teachers/me/coaching": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pending (unactioned) coaching tips — the Teaching Innovation Record (T-138, #36) */
+        get: operations["independent_teacher_list_coaching_suggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/independent/teachers/me/coaching/{memory_id}/respond": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a coaching tip acted-on or ignored (T-138, #36) */
+        post: operations["independent_teacher_respond_to_coaching_suggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/independent/teachers/me/edit-sessions": {
         parameters: {
             query?: never;
@@ -2522,6 +2556,40 @@ export interface paths {
         patch: operations["teacher_update_capacity"];
         trace?: never;
     };
+    "/api/v1/teachers/me/coaching": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Pending (unactioned) coaching tips — the Teaching Innovation Record (T-138, #36) */
+        get: operations["teacher_list_coaching_suggestions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/coaching/{memory_id}/respond": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Mark a coaching tip acted-on or ignored (T-138, #36) */
+        post: operations["teacher_respond_to_coaching_suggestion"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/teachers/me/edit-sessions": {
         parameters: {
             query?: never;
@@ -3333,6 +3401,34 @@ export interface components {
              * @enum {string}
              */
             status: "valid" | "invalid" | "enrolled" | "failed";
+        };
+        /** CoachingResponseRequest */
+        CoachingResponseRequest: {
+            /**
+             * Response
+             * @enum {string}
+             */
+            response: "acted" | "ignored";
+        };
+        /**
+         * CoachingSuggestionRead
+         * @description One pending (unactioned) coaching tip. Coaching framing only — no
+         *     score/grade is ever exposed here (Flow 5 §3.10 locked rule).
+         */
+        CoachingSuggestionRead: {
+            /** Frequency */
+            frequency: number;
+            /** Id */
+            id: string;
+            /** Suggestion */
+            suggestion: string;
+            /**
+             * Updated At
+             * Format: date-time
+             */
+            updated_at: string;
+            /** Weakness Type */
+            weakness_type: string;
         };
         /** DataRightsDeletionCreate */
         DataRightsDeletionCreate: {
@@ -5494,6 +5590,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[CoachingSuggestionRead] */
+        SuccessEnvelope_CoachingSuggestionRead_: {
+            data: components["schemas"]["CoachingSuggestionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[DataRightsRequestRead] */
         SuccessEnvelope_DataRightsRequestRead_: {
             data: components["schemas"]["DataRightsRequestRead"];
@@ -6093,6 +6198,16 @@ export interface components {
         SuccessEnvelope_list_AvailableFrameworkRead__: {
             /** Data */
             data: components["schemas"]["AvailableFrameworkRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[CoachingSuggestionRead]] */
+        SuccessEnvelope_list_CoachingSuggestionRead__: {
+            /** Data */
+            data: components["schemas"]["CoachingSuggestionRead"][];
             /**
              * Message
              * @default ok
@@ -9684,6 +9799,61 @@ export interface operations {
             };
         };
     };
+    independent_teacher_list_coaching_suggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_CoachingSuggestionRead__"];
+                };
+            };
+        };
+    };
+    independent_teacher_respond_to_coaching_suggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoachingResponseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_CoachingSuggestionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     independent_teacher_start_edit_session: {
         parameters: {
             query?: never;
@@ -12127,6 +12297,61 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_TeacherCapacityUpdateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_coaching_suggestions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_CoachingSuggestionRead__"];
+                };
+            };
+        };
+    };
+    teacher_respond_to_coaching_suggestion: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                memory_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["CoachingResponseRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_CoachingSuggestionRead_"];
                 };
             };
             /** @description Validation Error */

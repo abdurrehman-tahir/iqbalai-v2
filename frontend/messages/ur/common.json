@@ -635,7 +635,11 @@
           "timeline_dimension_alignment": "__TODO__ Alignment",
           "timeline_dimension_voice_quality": "__TODO__ Voice quality",
           "timeline_dimension_ai_learning": "__TODO__ AI learning",
-          "timeline_dimension_na": "__TODO__ N/A"
+          "timeline_dimension_na": "__TODO__ N/A",
+          "coaching_title": "__TODO__ A tip for you",
+          "coaching_error": "__TODO__ Could not load your coaching tips.",
+          "coaching_act": "__TODO__ I'll try this",
+          "coaching_dismiss": "__TODO__ Not now"
         }
       }
     },
@@ -830,7 +834,11 @@
         "timeline_dimension_alignment": "__TODO__ Alignment",
         "timeline_dimension_voice_quality": "__TODO__ Voice quality",
         "timeline_dimension_ai_learning": "__TODO__ AI learning",
-        "timeline_dimension_na": "__TODO__ N/A"
+        "timeline_dimension_na": "__TODO__ N/A",
+        "coaching_title": "__TODO__ A tip for you",
+        "coaching_error": "__TODO__ Could not load your coaching tips.",
+        "coaching_act": "__TODO__ I'll try this",
+        "coaching_dismiss": "__TODO__ Not now"
       }
     }
   }

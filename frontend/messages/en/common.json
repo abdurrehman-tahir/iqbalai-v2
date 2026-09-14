@@ -719,7 +719,11 @@
         "timeline_dimension_alignment": "Alignment",
         "timeline_dimension_voice_quality": "Voice quality",
         "timeline_dimension_ai_learning": "AI learning",
-        "timeline_dimension_na": "N/A"
+        "timeline_dimension_na": "N/A",
+        "coaching_title": "A tip for you",
+        "coaching_error": "Could not load your coaching tips.",
+        "coaching_act": "I'll try this",
+        "coaching_dismiss": "Not now"
       }
     },
     "onboarding": {
@@ -1702,7 +1706,11 @@
           "timeline_dimension_alignment": "Alignment",
           "timeline_dimension_voice_quality": "Voice quality",
           "timeline_dimension_ai_learning": "AI learning",
-          "timeline_dimension_na": "N/A"
+          "timeline_dimension_na": "N/A",
+          "coaching_title": "A tip for you",
+          "coaching_error": "Could not load your coaching tips.",
+          "coaching_act": "I'll try this",
+          "coaching_dismiss": "Not now"
         }
       }
     },

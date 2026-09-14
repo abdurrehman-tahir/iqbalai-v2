@@ -30,6 +30,8 @@ const uploadImage = vi.fn();
 const startEditSession = vi.fn();
 const heartbeatEditSession = vi.fn();
 const endEditSession = vi.fn();
+const listCoachingSuggestions = vi.fn();
+const respondToCoachingSuggestion = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   independentLectureWizardApi: {
@@ -47,6 +49,10 @@ vi.mock("@/lib/api", () => ({
     startEditSession: (...args: unknown[]) => startEditSession(...args),
     heartbeatEditSession: (...args: unknown[]) => heartbeatEditSession(...args),
     endEditSession: (...args: unknown[]) => endEditSession(...args),
+  },
+  independentTeacherCoachingApi: {
+    listSuggestions: (...args: unknown[]) => listCoachingSuggestions(...args),
+    respondToSuggestion: (...args: unknown[]) => respondToCoachingSuggestion(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -109,6 +115,7 @@ describe("IndependentLectureWizardClient", () => {
     heartbeatEditSession.mockResolvedValue(effortSession);
     endEditSession.mockResolvedValue({ ...effortSession, ended_at: "2026-08-05T00:05:00Z" });
     listVersions.mockResolvedValue({ items: [], total: 0, page: 1, page_size: 6, pages: 0 });
+    listCoachingSuggestions.mockResolvedValue([]);
     upsertDraft.mockResolvedValue({
       id: "draft-1",
       teacher_user_id: "t-1",
