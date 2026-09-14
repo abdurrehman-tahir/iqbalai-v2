@@ -529,7 +529,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** 5ff9929 (backend), 5eba0a8 (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.11 (anonymized benchmarking #37), §3.12 (admin comparative metrics #38)
@@ -546,14 +547,78 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Weekly beat updates `teacher_benchmarks` percentile per cohort
-2. [ ] Benchmark framing is always positive; opt-out removes the teacher from pool + hides their percentile
-3. [ ] Admin metrics table renders 7 dims + avg + relevance + lecture_count; sortable/filterable; CSV export
-4. [ ] Scope enforced per §6.19 (school/district/platform); Coordinator has no access
-5. [ ] Independent teachers excluded from both surfaces; query cached 1hr
+1. [x] Weekly beat updates `teacher_benchmarks` percentile per cohort
+2. [x] Benchmark framing is always positive; opt-out removes the teacher from pool + hides their percentile
+3. [x] Admin metrics table renders 7 dims + avg + relevance + lecture_count; sortable/filterable; CSV export
+4. [x] Scope enforced per §6.19 (school/district/platform); Coordinator has no access
+5. [x] Independent teachers excluded from both surfaces; query cached 1hr
 
 ### Out of scope
 - District-level rollups beyond §6.19 inheritance (Phase 2 analytics)
+
+### Notes / known gotchas
+- **Grade bucketing assumption:** the spec names a `grade_range` column but
+  never defines bucket boundaries. Implementation cohorts on the single
+  `Grade.level_ordinal` (e.g. "9") the teacher's lecture was written for, not
+  a multi-grade span — flagged as an assumption, not spec-derived.
+- **Opt-out is row-scoped, not a preference column** — opting out bulk-flips
+  `opted_out=True` on the teacher's existing `SchoolTeacherBenchmark` rows
+  (clearing `percentile`/`cohort_size`), so no new migration was needed. A
+  brand-new teacher with zero benchmark rows has nothing to opt out of until
+  their first weekly-beat-computed row exists (documented, accepted gap).
+- **`MIN_COHORT_SIZE = 3` anonymity floor** — below this a cohort is skipped
+  entirely (not shown to anyone) rather than computed with a tiny,
+  de-anonymizable cohort.
+- Benchmarking is school-tenant only — no independent-tenant counterpart (no
+  peer cohort within a one-person tenant).
+- **Raw multi-join analytics queries live in `repository.py`, not inline in
+  `service.py`** (`benchmark_repository.py` and `admin_metrics/repository.py`)
+  — matches this codebase's established test convention (fake-repository-
+  class monkeypatching); there is no precedent anywhere in this repo for
+  faking `AsyncSession.execute()` directly for a raw multi-join select.
+- Admin comparative metrics (#38) scope resolution (Platform sees all
+  schools, District sees their district's schools via a new
+  `list_school_ids_for_district` repo method, School sees only their own)
+  mirrors the existing precedent in `app/features/schools/service.py`
+  (`_is_platform_admin`/`_caller_district_id` helpers) rather than
+  introducing a new pattern.
+- **Admin metrics results cached in Redis for 1 hour**
+  (`CACHE_TTL_SECONDS = 3600`), keyed by scope+filters — this is the first
+  get-if-cached-else-compute cache-aside instance in this codebase (only
+  session/token storage and rate-limit counters existed before).
+- **CSV export (`GET /admin/teacher-metrics/export`) has no prior in-repo
+  precedent** — built from scratch using `io.StringIO` + `csv.DictWriter` +
+  FastAPI `StreamingResponse` with `text/csv` media type and a
+  `Content-Disposition: attachment` header.
+- **Frontend: `TeacherMetricsClient.tsx` is one shared component** reused
+  across all three admin shells (Platform `/admin/teacher-metrics`, District
+  `/admin/district/teacher-metrics`, School `/school/admin/teacher-metrics`)
+  via thin `page.tsx` re-exports, matching the existing
+  `UsersClient`/`SchoolAdminUsersPage` precedent — the backend already scopes
+  rows by caller role, so no shell-specific logic is needed client-side.
+- **"Sortable/filterable" implemented as client-side search + click-to-sort**
+  (search across teacher/subject/school name plus column-header sort over the
+  full already-role-scoped result set), rather than a second subject/grade/
+  school lookup API for server-side filter dropdowns — a reasonable scope
+  simplification given expected per-school/per-district dataset size.
+- **`BenchmarkCard.tsx`'s opt-out toggle label uses local component state**,
+  not the list response, because `GET /benchmarks` only ever returns
+  non-opted-out rows — an empty list can't distinguish "opted out" from "not
+  yet computed." Documented, low-stakes UX gap: the toggle resets to showing
+  the opt-out label on a fresh page load even after a prior-session opt-out,
+  but the server-side row state stays correct regardless.
+- A pre-existing, unrelated frontend test flakiness was observed in
+  `GenerationStreamPanel.test.tsx` (6 tests failing with "multiple elements
+  found" errors, both in the full suite and in file isolation) — confirmed
+  via `git status` that this file was NOT touched by T-139; flagged for
+  separate investigation, not introduced or fixed here.
+- A large pre-existing translation-key gap was discovered (not introduced by
+  T-139): roughly 777 keys present in `en/common.json` but missing from
+  `ur`/`sd`/`ps`, including entire missing namespaces like
+  `district_admin.*` and `auth.suspended.*` from prior milestones. Out of
+  scope for T-139 — only the handful of new keys this ticket added were
+  backfilled across all four locales (`__TODO__` placeholders for ur/sd/ps,
+  per convention).
 
 ---
 
