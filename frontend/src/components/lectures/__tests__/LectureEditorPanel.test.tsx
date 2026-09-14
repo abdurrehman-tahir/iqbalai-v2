@@ -603,3 +603,38 @@ describe("LectureEditorPanel — effort tracking (T-133)", () => {
     );
   });
 });
+
+describe("LectureEditorPanel — topic relevance gauge (T-136)", () => {
+  it("does not render the gauge when topic_relevance_pct is null (score not computed yet)", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue(VERSION_1);
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn() });
+
+    await screen.findByText("Original AI draft.");
+    expect(screen.queryByRole("progressbar")).not.toBeInTheDocument();
+  });
+
+  it("renders the gauge with the percentage when topic_relevance_pct is set", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue({ ...VERSION_1, topic_relevance_pct: 87 });
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn() });
+
+    const gauge = await screen.findByRole("progressbar");
+    expect((gauge as HTMLProgressElement).value).toBe(87);
+    expect(screen.getByText(/Topic Relevance: 87%/i)).toBeInTheDocument();
+  });
+
+  it("shows the low-relevance warning below the 70% threshold", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue({ ...VERSION_1, topic_relevance_pct: 45 });
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn() });
+
+    await screen.findByRole("progressbar");
+    expect(screen.getByText(/drifted off/i)).toBeInTheDocument();
+  });
+
+  it("does not show the low-relevance warning at or above the 70% threshold", async () => {
+    const getCurrentVersion = vi.fn().mockResolvedValue({ ...VERSION_1, topic_relevance_pct: 70 });
+    renderPanel({ getCurrentVersion, saveVersion: vi.fn() });
+
+    await screen.findByRole("progressbar");
+    expect(screen.queryByText(/drifted off/i)).not.toBeInTheDocument();
+  });
+});

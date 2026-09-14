@@ -4,9 +4,10 @@ Triggered as a Celery task on every ``lecture.version.created`` (v1 generation
 AND every subsequent teacher save). A single, separate LLM call scores the
 saved version across 7 dimensions (max 55) and writes ``scores_jsonb``.
 
-Originality-index checking (T-135) and topic-relevance scoring (T-136) are
-separate tickets that extend ``scores_jsonb``'s sibling columns
-(``originality_score`` / ``topic_relevance_pct``) — out of scope here.
+Also runs the two other scoring-pipeline sub-checks that share this trigger:
+originality-index checking (T-135, ``originality.py``) and topic-relevance
+scoring (T-136, ``topic_relevance.py``) — each its own decoupled try/except so
+a failure in one never discards results already computed by the others.
 
 Best-effort, matching the established pattern for post-save/post-generation
 LLM enrichment steps (``generate_lecture_teacher_tips``,
@@ -46,6 +47,7 @@ from app.features.lectures.repository import (
     LectureEditSessionRepository,
     LectureVersionRepository,
 )
+from app.features.lectures.topic_relevance import compute_topic_relevance
 from app.features.teacher_coaching.models import (
     IndependentTeacherAiMemory,
     SchoolTeacherAiMemory,
@@ -291,6 +293,21 @@ async def score_school_lecture_version(
             error=str(exc),
         )
 
+    # T-136: topic relevance is its own decoupled try/except too — another
+    # embedding-based check, independent of both the 7-dim scores and the
+    # originality check above.
+    try:
+        version.topic_relevance_pct = await compute_topic_relevance(
+            topic=lecture.topic, body=version.body
+        )
+    except Exception as exc:
+        logger.warning(
+            "lecture_topic_relevance_check_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+        )
+
     await session.commit()
     logger.info(
         "lecture_scoring_complete",
@@ -373,6 +390,18 @@ async def score_independent_lecture_version(
     except Exception as exc:
         logger.warning(
             "lecture_originality_check_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+        )
+
+    try:
+        version.topic_relevance_pct = await compute_topic_relevance(
+            topic=lecture.topic, body=version.body
+        )
+    except Exception as exc:
+        logger.warning(
+            "lecture_topic_relevance_check_failed",
             lecture_id=lecture_id,
             version_id=version_id,
             error=str(exc),

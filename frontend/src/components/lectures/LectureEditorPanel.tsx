@@ -38,6 +38,9 @@ const AUTOSAVE_DEBOUNCE_MS = 3000;
 const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
 const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif"]);
 const EFFORT_HEARTBEAT_INTERVAL_MS = 30_000;
+// T-136 (#34) — locked rule (Flow 5 §3.8): warning shown below 70%. Matches
+// LOW_RELEVANCE_WARNING_THRESHOLD in api/app/features/lectures/topic_relevance.py.
+const LOW_RELEVANCE_WARNING_THRESHOLD = 70;
 
 const VOICE_LANGUAGES = ["auto", "en", "ur", "sd", "ps"] as const;
 type VoiceLanguage = (typeof VOICE_LANGUAGES)[number];
@@ -83,6 +86,44 @@ function ToolbarButton({ label, active, onClick, children }: ToolbarButtonProps)
     >
       {children}
     </Button>
+  );
+}
+
+interface TopicRelevanceGaugeProps {
+  t: ReturnType<typeof useTranslations>;
+  pct: number;
+}
+
+/** Topic-relevance gauge (T-136, #34) — the teacher-visible half of
+ * scoring.py's topic_relevance.py check. Advisory only (never blocks save/
+ * publish per the ticket's "Out of scope"). */
+function TopicRelevanceGauge({ t, pct }: TopicRelevanceGaugeProps) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  const rounded = Math.round(clamped);
+  const isLow = clamped < LOW_RELEVANCE_WARNING_THRESHOLD;
+  const label = t("editor_topic_relevance_label", { pct: rounded });
+
+  return (
+    <div className="max-w-xs space-y-1">
+      <p className="text-xs font-medium text-gray-600">{label}</p>
+      {/* Native <progress> (not a styled div) so the fill width never needs
+          an inline style — T-226 bans the `style` prop repo-wide. */}
+      <progress
+        className={
+          isLow
+            ? "h-2 w-full accent-amber-500 [&::-webkit-progress-value]:bg-amber-500"
+            : "h-2 w-full accent-emerald-500 [&::-webkit-progress-value]:bg-emerald-500"
+        }
+        value={rounded}
+        max={100}
+        aria-label={label}
+      />
+      {isLow ? (
+        <p className="text-xs text-amber-700" role="status">
+          {t("editor_topic_relevance_warning")}
+        </p>
+      ) : null}
+    </div>
   );
 }
 
@@ -675,6 +716,10 @@ export function LectureEditorPanel({
         <p className="text-xs text-gray-500">
           {t("editor_version_label", { version: versionQuery.data.version })}
         </p>
+      ) : null}
+
+      {typeof versionQuery.data?.topic_relevance_pct === "number" ? (
+        <TopicRelevanceGauge t={t} pct={versionQuery.data.topic_relevance_pct} />
       ) : null}
     </section>
   );

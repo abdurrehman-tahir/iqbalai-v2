@@ -43,6 +43,7 @@ _NOT_FLAGGED = OriginalityResult(
     is_flagged=False,
     matched_version_id=None,
 )
+_TOPIC_RELEVANCE_MOCK = Decimal("82.50")
 
 _VALID_LLM_JSON = (
     '{"originality": 7, "depth": 8, "cultural_relevance": 4, "engagement": 3, '
@@ -328,6 +329,10 @@ async def test_score_school_lecture_version_writes_scores_jsonb(
         "app.features.lectures.scoring.check_and_index_school_originality",
         AsyncMock(return_value=_NOT_FLAGGED),
     )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.compute_topic_relevance",
+        AsyncMock(return_value=_TOPIC_RELEVANCE_MOCK),
+    )
 
     await score_school_lecture_version(
         session, lecture_id="lec-1", school_id="school-1", version_id="ver-2"
@@ -337,6 +342,7 @@ async def test_score_school_lecture_version_writes_scores_jsonb(
     assert version.scores_jsonb["originality"] == 7
     assert cast(int, version.scores_jsonb["total"]) > 0
     assert version.originality_score == Decimal("0.800")
+    assert version.topic_relevance_pct == _TOPIC_RELEVANCE_MOCK
     session.commit.assert_awaited()
 
 
@@ -395,6 +401,10 @@ async def test_score_school_lecture_version_raises_flag_above_threshold(
     monkeypatch.setattr(
         "app.features.lectures.scoring.check_and_index_school_originality",
         AsyncMock(return_value=flagged_result),
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.compute_topic_relevance",
+        AsyncMock(return_value=_TOPIC_RELEVANCE_MOCK),
     )
     monkeypatch.setattr("app.features.lectures.scoring.notify_all_platform_admins", notify_mock)
 
@@ -516,12 +526,17 @@ async def test_score_independent_lecture_version_writes_scores_jsonb(
         "app.features.lectures.scoring.check_and_index_independent_originality",
         AsyncMock(return_value=_NOT_FLAGGED),
     )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.compute_topic_relevance",
+        AsyncMock(return_value=_TOPIC_RELEVANCE_MOCK),
+    )
 
     await score_independent_lecture_version(session, lecture_id="lec-1", version_id="ver-1")
 
     assert version.scores_jsonb is not None
     assert version.scores_jsonb["ai_learning"] == 0  # first-version baseline, not the LLM's 6
     assert version.originality_score == Decimal("0.800")
+    assert version.topic_relevance_pct == _TOPIC_RELEVANCE_MOCK
     session.commit.assert_awaited()
 
 

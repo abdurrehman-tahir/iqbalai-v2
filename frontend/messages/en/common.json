@@ -703,7 +703,9 @@
         "editor_image_uploading": "Uploading image...",
         "editor_diagram_suggestion": "Diagram on page {page} of {book} — add it?",
         "editor_diagram_accept": "Add diagram",
-        "editor_diagram_decline": "Dismiss"
+        "editor_diagram_decline": "Dismiss",
+        "editor_topic_relevance_label": "Topic Relevance: {pct}%",
+        "editor_topic_relevance_warning": "This version may have drifted off the lecture's topic."
       }
     },
     "onboarding": {
@@ -1670,7 +1672,9 @@
           "editor_image_uploading": "Uploading image...",
           "editor_diagram_suggestion": "Diagram on page {page} of {book} — add it?",
           "editor_diagram_accept": "Add diagram",
-          "editor_diagram_decline": "Dismiss"
+          "editor_diagram_decline": "Dismiss",
+          "editor_topic_relevance_label": "Topic Relevance: {pct}%",
+          "editor_topic_relevance_warning": "This version may have drifted off the lecture's topic."
         }
       }
     },
