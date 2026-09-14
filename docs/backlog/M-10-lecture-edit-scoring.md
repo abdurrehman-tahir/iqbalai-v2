@@ -307,7 +307,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** 99d20e7
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.7 (global cross-teacher originality; matched teacher hidden; plagiarism flag > 0.85)
@@ -324,14 +325,41 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Originality score = 1 − max cosine similarity vs the global index
-2. [ ] Global index = all published school-tenant lectures; independent lectures excluded
-3. [ ] Matched-teacher identity never exposed anywhere
-4. [ ] similarity > 0.85 → `system.plagiarism_flagged` to Platform Admin; teacher sees only the score
-5. [ ] Independent teacher originality is tenant-isolated (own prior versions only)
+1. [x] Originality score = 1 − max cosine similarity vs the global index
+2. [x] Global index = all published school-tenant lectures; independent lectures excluded
+3. [x] Matched-teacher identity never exposed anywhere
+4. [x] similarity > 0.85 → `system.plagiarism_flagged` to Platform Admin; teacher sees only the score
+5. [x] Independent teacher originality is tenant-isolated (own prior versions only)
 
 ### Out of scope
 - The Platform-Admin plagiarism dashboard view (surfaced via the notification + admin metrics; full triage UI is Phase 2)
+
+### Notes / known gotchas
+- **"Published lectures" read loosely.** No publish action exists anywhere in
+  the codebase yet (M-11 scope) — gating the index on `LectureStatus.PUBLISHED`
+  would make the index permanently empty within M-10, so every version save
+  indexes the content, matching T-134's own "every save" scoring trigger and
+  the milestone's own demo script ("a near-duplicate edit triggers a low
+  originality score"). Flagged as an interpretation, not silently assumed.
+  Revisit once M-11's publish endpoint exists.
+- **A lecture's own prior versions are excluded from its own similarity
+  search** (`must_not` filter on `lecture_id`) — not explicitly stated in the
+  spec, but without it every edit would match its own earlier version at
+  ~100% similarity and falsely flag as unoriginal.
+- **Independent-tenant originality reuses the existing per-user personal
+  Qdrant namespace** (`independent_personal_collection`, already used for
+  their uploaded reference PDFs) rather than a new collection, tagged
+  `content_type="lecture_version"` to stay logically separate from PDF
+  chunks — matches a pointer already left in `embedder.py`'s
+  `lecture_originality_index_collection` docstring from T-129.
+- **New `system` notification namespace** — first real caller
+  (`infrastructure/notifications/system.py` + `templates/system.py`,
+  mirroring the existing `lectures` namespace pattern). Fans out to every
+  active Platform Admin (`UserRepository.list_by_role`, new).
+- Fixed a pre-existing gap unrelated to this ticket: `infrastructure/
+  notifications/tests/` was missing `__init__.py` (one of ~12 such gaps
+  found repo-wide), blocking standalone collection of this ticket's own new
+  tests in that directory — added only that one file.
 
 ---
 

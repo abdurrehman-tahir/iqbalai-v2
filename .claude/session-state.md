@@ -16,10 +16,18 @@ still OPEN/unmerged; flagged in PR description, retarget to staging once #30 mer
   `default` (no `lecture_score` queue exists — ARCH §10.2 locks 4 names).
   voice_quality/ai_learning locked rules enforced in code, not trusted to
   the LLM. Reads teacher_ai_memory as Innovation Record stand-in (T-138 not
-  built yet — empty context handled gracefully). 294 lectures+llm tests green.
+  built yet — empty context handled gracefully).
+- T-135 (99d20e7) — originality check: embeds each version (BGE-M3, 1
+  vector/version), compares vs global cross-school index (school) or own
+  prior versions only (independent, reuses their personal Qdrant namespace).
+  >0.85 similarity -> SchoolLecturePlagiarismFlag + new `system` notification
+  namespace fan-out to all Platform Admins (identity never exposed). No
+  publish action exists yet (M-11) so indexing runs on every save, not
+  gated on PUBLISHED — flagged as an interpretation in the backlog notes.
+  1080 total backend tests green.
 
-**Current ticket:** T-135 (system-wide originality check) — next up
-**Next:** invoke ticket-loader for T-135.
+**Current ticket:** T-136 (topic relevance percentage) — next up
+**Next:** invoke ticket-loader for T-136.
 
 **Tooling (all working, don't redo workarounds):**
 - Backend: `uv run ruff format|check|mypy|pytest` all work normally.
