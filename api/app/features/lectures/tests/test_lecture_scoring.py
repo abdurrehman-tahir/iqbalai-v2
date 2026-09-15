@@ -336,6 +336,7 @@ async def test_score_school_lecture_version_writes_scores_jsonb(
     monkeypatch.setattr(
         "app.features.lectures.scoring.detect_and_track_weakness_school", AsyncMock()
     )
+    monkeypatch.setattr("app.features.lectures.scoring.notify_scoring_complete", AsyncMock())
 
     await score_school_lecture_version(
         session, lecture_id="lec-1", school_id="school-1", version_id="ver-2"
@@ -413,6 +414,8 @@ async def test_score_school_lecture_version_raises_flag_above_threshold(
         "app.features.lectures.scoring.detect_and_track_weakness_school", AsyncMock()
     )
     monkeypatch.setattr("app.features.lectures.scoring.notify_all_platform_admins", notify_mock)
+    monkeypatch.setattr("app.features.lectures.scoring.notify_scoring_complete", AsyncMock())
+    monkeypatch.setattr("app.features.lectures.scoring.audit", AsyncMock())
 
     added_rows: list[Any] = []
     monkeypatch.setattr(session, "add", lambda row: added_rows.append(row))
@@ -538,6 +541,9 @@ async def test_score_independent_lecture_version_writes_scores_jsonb(
     )
     monkeypatch.setattr(
         "app.features.lectures.scoring.detect_and_track_weakness_independent", AsyncMock()
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.notify_independent_scoring_complete", AsyncMock()
     )
 
     await score_independent_lecture_version(session, lecture_id="lec-1", version_id="ver-1")

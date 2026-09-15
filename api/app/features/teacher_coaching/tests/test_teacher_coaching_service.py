@@ -99,6 +99,20 @@ def _reset_fake_repo() -> None:
     _FakeSchoolRepo.updated = []
 
 
+@pytest.fixture(autouse=True)
+def _mock_coaching_notifications(monkeypatch: pytest.MonkeyPatch) -> None:
+    """T-140: every new-suggestion path fires a best-effort notification —
+    mocked here so no real notify_lecture_event/DB call runs inside these
+    unit tests (the notify functions have their own dedicated tests)."""
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service._notify_coaching_suggestion_school", AsyncMock()
+    )
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service._notify_coaching_suggestion_independent",
+        AsyncMock(),
+    )
+
+
 def test_is_weak_below_half_of_cap() -> None:
     assert service._is_weak("originality", 4) is True  # cap 10, half=5
     assert service._is_weak("originality", 5) is False

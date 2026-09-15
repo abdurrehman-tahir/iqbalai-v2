@@ -12,6 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.responses import SuccessEnvelope, success
+from app.features.audit.actions import BENCHMARK_OPT_OUT_TOGGLED
 from app.features.teacher_coaching import benchmark_service, service
 from app.features.teacher_coaching.schemas import (
     BenchmarkOptOutRequest,
@@ -19,6 +20,7 @@ from app.features.teacher_coaching.schemas import (
     CoachingSuggestionRead,
     TeacherBenchmarkRead,
 )
+from app.infrastructure.audit.log import audit
 
 router = APIRouter(prefix="/teachers/me/coaching", tags=["teacher-coaching"])
 benchmarks_router = APIRouter(prefix="/teachers/me/benchmarks", tags=["teacher-coaching"])
@@ -93,5 +95,15 @@ async def set_benchmark_opt_out(
     teacher_id = await service.resolve_school_teacher_id(db, claims)
     rows_changed = await benchmark_service.set_benchmark_opt_out(
         db, teacher_user_id=teacher_id, opted_out=payload.opted_out
+    )
+    await audit(
+        session=db,
+        action=BENCHMARK_OPT_OUT_TOGGLED,
+        actor_id=str(claims.get("sub", "")),
+        actor_role=str(claims.get("role", "")),
+        target_type="teacher_benchmark",
+        target_id=teacher_id,
+        school_id=str(claims["school_id"]) if claims.get("school_id") else None,
+        metadata={"opted_out": payload.opted_out, "rows_changed": rows_changed},
     )
     return success({"rows_changed": rows_changed})

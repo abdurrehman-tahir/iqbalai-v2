@@ -101,3 +101,13 @@ class SchoolTeacherBenchmarkRepository:
 
     async def commit(self) -> None:
         await self._session.commit()
+
+    async def get_subject_names(self, subject_ids: list[str]) -> dict[str, str]:
+        """Bulk subject-name lookup for the weekly beat's notification fan-out
+        — one query for every subject touched, instead of N+1 per teacher."""
+        if not subject_ids:
+            return {}
+        result = await self._session.execute(
+            select(Subject.id, Subject.name).where(Subject.id.in_(subject_ids))
+        )
+        return {subject_id: name for subject_id, name in result.all()}

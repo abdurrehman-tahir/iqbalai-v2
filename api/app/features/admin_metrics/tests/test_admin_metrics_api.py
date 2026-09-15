@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import FastAPI
@@ -14,6 +15,7 @@ from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import setup_exception_handlers
 from app.core.tests.test_idempotency import FakeRedis
 from app.features.admin_metrics.repository import TeacherMetricsRow
+from app.features.audit.actions import ADMIN_METRICS_ACCESSED, ADMIN_METRICS_EXPORTED
 
 ROW = TeacherMetricsRow(
     teacher_user_id="t-1",
@@ -55,13 +57,21 @@ class _FakeRepo:
         return []
 
 
-@pytest.fixture(autouse=True)
-def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.fixture
+def audit_mock(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     _FakeRepo.rows = [ROW]
     monkeypatch.setattr(
         "app.features.admin_metrics.service.AdminTeacherMetricsRepository", _FakeRepo
     )
     monkeypatch.setattr("app.features.admin_metrics.service.get_redis", lambda: FakeRedis())
+    mock = AsyncMock()
+    monkeypatch.setattr("app.features.admin_metrics.router.audit", mock)
+    return mock
+
+
+@pytest.fixture(autouse=True)
+def _patch_backend(audit_mock: AsyncMock) -> None:
+    pass
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
@@ -129,3 +139,20 @@ async def test_subject_filter_query_param(admin_client: AsyncClient) -> None:
     res = await admin_client.get("/api/v1/admin/teacher-metrics", params={"subject_id": "subj-2"})
     assert res.status_code == 200
     assert res.json()["data"] == []
+
+
+@pytest.mark.asyncio
+async def test_list_access_is_audit_logged(
+    admin_client: AsyncClient, audit_mock: AsyncMock
+) -> None:
+    await admin_client.get("/api/v1/admin/teacher-metrics")
+    audit_mock.assert_awaited_once()
+    assert audit_mock.call_args.kwargs["action"] == ADMIN_METRICS_ACCESSED
+    assert audit_mock.call_args.kwargs["actor_id"] == "auth-admin"
+
+
+@pytest.mark.asyncio
+async def test_csv_export_is_audit_logged(admin_client: AsyncClient, audit_mock: AsyncMock) -> None:
+    await admin_client.get("/api/v1/admin/teacher-metrics/export")
+    audit_mock.assert_awaited_once()
+    assert audit_mock.call_args.kwargs["action"] == ADMIN_METRICS_EXPORTED

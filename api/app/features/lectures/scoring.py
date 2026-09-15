@@ -28,10 +28,14 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.features.lectures.independent_lecture_notifications import (
+    notify_scoring_complete as notify_independent_scoring_complete,
+)
 from app.features.lectures.independent_repository import (
     IndependentLectureEditSessionRepository,
     IndependentLectureVersionRepository,
 )
+from app.features.lectures.lecture_notifications import notify_scoring_complete
 from app.features.lectures.models import (
     IndependentLecture,
     IndependentLectureVersion,
@@ -56,7 +60,9 @@ from app.features.teacher_coaching.service import (
     detect_and_track_weakness_independent,
     detect_and_track_weakness_school,
 )
+from app.features.audit.actions import LECTURE_PLAGIARISM_FLAGGED
 from app.features.teacher_onboarding.models import TeacherProfile
+from app.infrastructure.audit.log import audit
 from app.infrastructure.llm.client import chat
 from app.infrastructure.llm.prompts.lecture_scoring_v1 import (
     LectureScoringInput,
@@ -82,6 +88,7 @@ _DIMENSION_CAPS: dict[str, int] = {
     "voice_quality": 5,
     "ai_learning": 10,
 }
+MAX_TOTAL_SCORE = sum(_DIMENSION_CAPS.values())
 
 
 def _parse_json_payload(raw: str) -> dict[str, Any]:
@@ -192,13 +199,17 @@ async def _raise_plagiarism_flag(
     teacher_user_id: str | None,
     matched_lecture_version_id: str | None,
     similarity_score: Decimal,
+    school_id: str | None = None,
 ) -> None:
     """Creates the admin-only flag row + notifies Platform Admins (T-135, #33).
 
     The notification carries only a similarity percentage — never the matched
     teacher's identity (Flow 5 §3.7 privacy rule). The flag row itself stores
     ``matched_lecture_version_id`` for eventual admin triage (Phase 2 — out of
-    scope here per the ticket)."""
+    scope here per the ticket). Also audit-logged (T-140, ARCH §14.10) — a
+    compliance-relevant event even though it's system-raised, not admin-
+    initiated; ``metadata`` carries only the similarity percentage, same
+    privacy rule as the notification."""
     flag = SchoolLecturePlagiarismFlag(
         lecture_version_id=lecture_version_id,
         teacher_user_id=teacher_user_id,
@@ -211,6 +222,16 @@ async def _raise_plagiarism_flag(
         template_key="system.plagiarism_flagged",
         params={"similarity_pct": str(int(similarity_score * 100))},
         metadata={"flag_id": flag.id},
+    )
+    await audit(
+        session=session,
+        action=LECTURE_PLAGIARISM_FLAGGED,
+        actor_id=None,
+        actor_role=None,
+        target_type="lecture_version",
+        target_id=lecture_version_id,
+        school_id=school_id,
+        metadata={"flag_id": flag.id, "similarity_pct": int(similarity_score * 100)},
     )
 
 
@@ -288,6 +309,7 @@ async def score_school_lecture_version(
                 teacher_user_id=lecture.teacher_user_id,
                 matched_lecture_version_id=originality.matched_version_id,
                 similarity_score=Decimal(str(round(originality.max_similarity, 3))),
+                school_id=school_id,
             )
     except Exception as exc:
         logger.warning(
@@ -339,6 +361,14 @@ async def score_school_lecture_version(
         lecture_id=lecture_id,
         version_id=version_id,
         total=scores["total"],
+    )
+    # T-140: teacher-facing "scored" notification — best-effort, fired after
+    # the commit so a notification failure never masks a successful score.
+    await notify_scoring_complete(
+        session,
+        lecture=lecture,
+        total=cast(int, scores["total"]),
+        max_score=MAX_TOTAL_SCORE,
     )
 
 
@@ -450,4 +480,10 @@ async def score_independent_lecture_version(
         lecture_id=lecture_id,
         version_id=version_id,
         total=scores["total"],
+    )
+    await notify_independent_scoring_complete(
+        session,
+        lecture=lecture,
+        total=cast(int, scores["total"]),
+        max_score=MAX_TOTAL_SCORE,
     )

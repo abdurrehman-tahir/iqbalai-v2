@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import AsyncGenerator
 from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 from fastapi import FastAPI
@@ -12,6 +13,7 @@ from httpx import ASGITransport, AsyncClient
 from app.api.v1.router import router as v1_router
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import setup_exception_handlers
+from app.features.audit.actions import BENCHMARK_OPT_OUT_TOGGLED
 from app.features.teacher_coaching.models import SchoolTeacherBenchmark
 from app.features.users.models import User, UserAccountStatus, UserRole
 
@@ -70,8 +72,8 @@ class _FakeBenchmarkRepo:
         pass
 
 
-@pytest.fixture(autouse=True)
-def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
+@pytest.fixture
+def audit_mock(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     BENCHMARK_ROW.opted_out = False
     BENCHMARK_ROW.percentile = 77
     BENCHMARK_ROW.cohort_size = 10
@@ -84,6 +86,14 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
         "app.features.teacher_coaching.benchmark_service.SchoolTeacherBenchmarkRepository",
         _FakeBenchmarkRepo,
     )
+    mock = AsyncMock()
+    monkeypatch.setattr("app.features.teacher_coaching.router.audit", mock)
+    return mock
+
+
+@pytest.fixture(autouse=True)
+def _patch_backend(audit_mock: AsyncMock) -> None:
+    pass
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
@@ -142,3 +152,11 @@ async def test_opt_out_flips_existing_rows(client: AsyncClient) -> None:
 async def test_opt_out_rejects_missing_body_field(client: AsyncClient) -> None:
     res = await client.post("/api/v1/teachers/me/benchmarks/opt-out", json={})
     assert res.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_opt_out_is_audit_logged(client: AsyncClient, audit_mock: AsyncMock) -> None:
+    await client.post("/api/v1/teachers/me/benchmarks/opt-out", json={"opted_out": True})
+    audit_mock.assert_awaited_once()
+    assert audit_mock.call_args.kwargs["action"] == BENCHMARK_OPT_OUT_TOGGLED
+    assert audit_mock.call_args.kwargs["metadata"]["opted_out"] is True

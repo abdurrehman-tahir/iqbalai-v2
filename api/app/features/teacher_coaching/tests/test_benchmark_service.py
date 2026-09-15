@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from typing import Any
+from unittest.mock import AsyncMock
 
 import pytest
 
@@ -46,6 +47,9 @@ class _FakeRepo:
 
     async def commit(self) -> None:
         type(self).committed = True
+
+    async def get_subject_names(self, subject_ids: list[str]) -> dict[str, str]:
+        return {subject_id: "Mathematics" for subject_id in subject_ids}
 
 
 @pytest.fixture(autouse=True)
@@ -228,6 +232,89 @@ async def test_set_benchmark_opt_out_flips_and_clears_existing_rows() -> None:
     assert row.percentile is None
     assert row.cohort_size is None
     assert _FakeRepo.committed
+
+
+@pytest.mark.asyncio
+async def test_compute_weekly_benchmarks_notifies_each_updated_teacher(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class _FakeUser:
+        def __init__(self, authentik_id: str, school_id: str | None) -> None:
+            self.authentik_id = authentik_id
+            self.school_id = school_id
+
+    class _FakeUserRepo:
+        def __init__(self, session: Any) -> None:
+            pass
+
+        async def get_by_id(self, user_id: str) -> _FakeUser:
+            return _FakeUser(f"auth-{user_id}", "school-1")
+
+    class _FakeProfile:
+        def __init__(self, language_preference: str) -> None:
+            self.language_preference = language_preference
+
+    class _FakeProfileRepo:
+        def __init__(self, session: Any) -> None:
+            pass
+
+        async def get_by_user_id(self, user_id: str) -> _FakeProfile:
+            return _FakeProfile("en")
+
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.benchmark_service.UserRepository", _FakeUserRepo
+    )
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.benchmark_service.TeacherProfileRepository",
+        _FakeProfileRepo,
+    )
+    fired: list[dict[str, Any]] = []
+
+    async def _fake_notify(**kwargs: Any) -> None:
+        fired.append(kwargs)
+
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.benchmark_service.notify_lecture_event", _fake_notify
+    )
+
+    _FakeRepo.scored_versions = [
+        _scored("t-1", 90.0),
+        _scored("t-2", 60.0),
+        _scored("t-3", 30.0),
+    ]
+
+    await benchmark_service.compute_and_store_weekly_benchmarks(None)  # type: ignore[arg-type]
+
+    assert len(fired) == 3
+    by_recipient = {f["recipient_user_id"]: f for f in fired}
+    assert by_recipient["auth-t-1"]["template_key"] == "lectures.benchmark_updated"
+    assert by_recipient["auth-t-1"]["params"]["percent"] == "1"  # highest scorer -> top 1%
+    assert by_recipient["auth-t-1"]["params"]["subject"] == "Mathematics"
+    assert by_recipient["auth-t-1"]["params"]["region"] == "Punjab"
+    assert by_recipient["auth-t-3"]["params"]["percent"] == "67"
+
+
+@pytest.mark.asyncio
+async def test_compute_weekly_benchmarks_notify_failure_does_not_break_the_beat(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """A notification batch failure (e.g. repo error) must never fail the
+    weekly recompute itself — matches the best-effort pattern used
+    everywhere else in the scoring/notification pipeline."""
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.benchmark_service._notify_benchmark_updates",
+        AsyncMock(side_effect=RuntimeError("boom")),
+    )
+
+    _FakeRepo.scored_versions = [
+        _scored("t-1", 90.0),
+        _scored("t-2", 60.0),
+        _scored("t-3", 30.0),
+    ]
+
+    result = await benchmark_service.compute_and_store_weekly_benchmarks(None)  # type: ignore[arg-type]
+
+    assert result == {"cohorts_computed": 1, "teachers_updated": 3}
 
 
 @pytest.mark.asyncio

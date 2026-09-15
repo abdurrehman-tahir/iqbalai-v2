@@ -31,6 +31,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.teacher_coaching.benchmark_repository import SchoolTeacherBenchmarkRepository
 from app.features.teacher_coaching.models import SchoolTeacherBenchmark
+from app.features.teacher_onboarding.repository import TeacherProfileRepository
+from app.features.users.repository import UserRepository
+from app.infrastructure.notifications.lectures import notify_lecture_event
+from app.infrastructure.notifications.templates.lectures import DEFAULT_LOCALE
 
 logger = structlog.get_logger(__name__)
 
@@ -68,6 +72,7 @@ async def compute_and_store_weekly_benchmarks(session: AsyncSession) -> dict[str
 
     cohorts_computed = 0
     teachers_updated = 0
+    updated_rows: list[SchoolTeacherBenchmark] = []
     for (subject_id, grade_range, region), teacher_scores in cohorts.items():
         active = {
             teacher_id: statistics.mean(scores)
@@ -95,6 +100,7 @@ async def compute_and_store_weekly_benchmarks(session: AsyncSession) -> dict[str
             row.percentile = percentile
             row.cohort_size = cohort_size
             teachers_updated += 1
+            updated_rows.append(row)
 
     await repo.commit()
     logger.info(
@@ -102,7 +108,50 @@ async def compute_and_store_weekly_benchmarks(session: AsyncSession) -> dict[str
         cohorts_computed=cohorts_computed,
         teachers_updated=teachers_updated,
     )
+    # T-140: notify each teacher of their new standing — best-effort, after
+    # the commit so a notification failure never rolls back the recompute.
+    # Wrapped here (not just per-row inside) so even a repository-level
+    # failure (e.g. the subject-name bulk lookup) can't fail the whole beat.
+    try:
+        await _notify_benchmark_updates(session, repo, updated_rows)
+    except Exception as exc:
+        logger.warning("benchmark_updated_notify_batch_failed", error=str(exc))
     return {"cohorts_computed": cohorts_computed, "teachers_updated": teachers_updated}
+
+
+async def _notify_benchmark_updates(
+    session: AsyncSession,
+    repo: SchoolTeacherBenchmarkRepository,
+    rows: list[SchoolTeacherBenchmark],
+) -> None:
+    subject_names = await repo.get_subject_names(list({row.subject_id for row in rows}))
+    for row in rows:
+        try:
+            user = await UserRepository(session).get_by_id(row.teacher_user_id)
+            if user is None:
+                continue
+            profile = await TeacherProfileRepository(session).get_by_user_id(row.teacher_user_id)
+            locale = profile.language_preference if profile is not None else DEFAULT_LOCALE
+            top_percent = max(1, 100 - (row.percentile or 0))
+            await notify_lecture_event(
+                session=session,
+                template_key="lectures.benchmark_updated",
+                recipient_user_id=user.authentik_id,
+                school_id=user.school_id,
+                locale=locale,
+                params={
+                    "percent": str(top_percent),
+                    "subject": subject_names.get(row.subject_id, ""),
+                    "region": row.region,
+                },
+                metadata={"benchmark_id": row.id},
+            )
+        except Exception as exc:  # best-effort — mirrors lecture_notifications.py
+            logger.warning(
+                "benchmark_updated_notify_failed",
+                teacher_user_id=row.teacher_user_id,
+                error=str(exc),
+            )
 
 
 async def get_teacher_benchmarks(

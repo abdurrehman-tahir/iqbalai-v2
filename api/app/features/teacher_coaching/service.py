@@ -42,6 +42,7 @@ from app.features.teacher_coaching.repository import (
     SchoolTeacherAiMemoryRepository,
 )
 from app.features.teacher_coaching.schemas import CoachingSuggestionRead
+from app.features.teacher_onboarding.repository import TeacherProfileRepository
 from app.features.users.models import UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.llm.client import chat
@@ -50,6 +51,8 @@ from app.infrastructure.llm.prompts.teacher_coaching_v1 import (
     TeacherCoachingOutput,
 )
 from app.infrastructure.llm.prompts.teacher_coaching_v1 import render as render_coaching
+from app.infrastructure.notifications.lectures import notify_lecture_event
+from app.infrastructure.notifications.templates.lectures import DEFAULT_LOCALE
 
 logger = structlog.get_logger(__name__)
 
@@ -130,11 +133,13 @@ async def detect_and_track_weakness_school(
     session: AsyncSession, *, teacher_user_id: str, scores: dict[str, object], region: str | None
 ) -> None:
     repo = SchoolTeacherAiMemoryRepository(session)
+    new_suggestion = False
     for dimension in _TRACKABLE_DIMENSION_CAPS:
         if not _is_weak(dimension, scores.get(dimension)):
             continue
         try:
-            await _upsert_weakness_school(repo, teacher_user_id, dimension, region)
+            if await _upsert_weakness_school(repo, teacher_user_id, dimension, region):
+                new_suggestion = True
         except Exception as exc:
             # One dimension's suggestion failing (LLM hiccup) must never
             # block tracking the others.
@@ -145,13 +150,42 @@ async def detect_and_track_weakness_school(
                 error=str(exc),
             )
 
+    if new_suggestion:
+        # T-140: one notification per scoring run, not per dimension — a
+        # teacher with 3 weak dimensions this save gets one "you have a new
+        # tip" nudge, not three.
+        await _notify_coaching_suggestion_school(session, teacher_user_id)
+
+
+async def _notify_coaching_suggestion_school(session: AsyncSession, teacher_user_id: str) -> None:
+    try:
+        user = await UserRepository(session).get_by_id(teacher_user_id)
+        if user is None:
+            return
+        profile = await TeacherProfileRepository(session).get_by_user_id(teacher_user_id)
+        locale = profile.language_preference if profile is not None else DEFAULT_LOCALE
+        await notify_lecture_event(
+            session=session,
+            template_key="lectures.coaching_suggestion",
+            recipient_user_id=user.authentik_id,
+            school_id=user.school_id,
+            locale=locale,
+            metadata={"teacher_user_id": teacher_user_id},
+        )
+    except Exception as exc:  # best-effort — mirrors lecture_notifications.py
+        logger.warning(
+            "coaching_suggestion_notify_failed", teacher_user_id=teacher_user_id, error=str(exc)
+        )
+
 
 async def _upsert_weakness_school(
     repo: SchoolTeacherAiMemoryRepository,
     teacher_user_id: str,
     weakness_type: str,
     region: str | None,
-) -> None:
+) -> bool:
+    """Returns True if a new/refreshed suggestion was presented (vs. just
+    bumping frequency on an already-pending one)."""
     existing = await repo.get_by_weakness(
         teacher_user_id=teacher_user_id, category=_CATEGORY, weakness_type=weakness_type
     )
@@ -159,7 +193,7 @@ async def _upsert_weakness_school(
         # Still pending a response — bump frequency silently, no new suggestion.
         existing.frequency += 1
         await repo.update(existing)
-        return
+        return False
 
     suggestion = await _generate_suggestion(
         weakness_type=weakness_type,
@@ -184,6 +218,7 @@ async def _upsert_weakness_school(
         existing.last_suggestion = suggestion
         existing.teacher_response = TeacherResponseType.NONE
         await repo.update(existing)
+    return True
 
 
 async def detect_and_track_weakness_independent(
@@ -192,11 +227,13 @@ async def detect_and_track_weakness_independent(
     """Mirrors detect_and_track_weakness_school — no region (independent
     teachers have no region field, same N/A as T-134's scoring context)."""
     repo = IndependentTeacherAiMemoryRepository(session)
+    new_suggestion = False
     for dimension in _TRACKABLE_DIMENSION_CAPS:
         if not _is_weak(dimension, scores.get(dimension)):
             continue
         try:
-            await _upsert_weakness_independent(repo, teacher_user_id, dimension)
+            if await _upsert_weakness_independent(repo, teacher_user_id, dimension):
+                new_suggestion = True
         except Exception as exc:
             logger.warning(
                 "teacher_coaching_weakness_track_failed",
@@ -205,17 +242,41 @@ async def detect_and_track_weakness_independent(
                 error=str(exc),
             )
 
+    if new_suggestion:
+        await _notify_coaching_suggestion_independent(session, teacher_user_id)
+
+
+async def _notify_coaching_suggestion_independent(
+    session: AsyncSession, teacher_user_id: str
+) -> None:
+    try:
+        user = await IndependentUserRepository(session).get_by_id(teacher_user_id)
+        if user is None:
+            return
+        await notify_lecture_event(
+            session=session,
+            template_key="lectures.coaching_suggestion",
+            recipient_user_id=user.authentik_id,
+            school_id=None,
+            locale=user.language_preference,
+            metadata={"teacher_user_id": teacher_user_id},
+        )
+    except Exception as exc:  # best-effort — mirrors lecture_notifications.py
+        logger.warning(
+            "coaching_suggestion_notify_failed", teacher_user_id=teacher_user_id, error=str(exc)
+        )
+
 
 async def _upsert_weakness_independent(
     repo: IndependentTeacherAiMemoryRepository, teacher_user_id: str, weakness_type: str
-) -> None:
+) -> bool:
     existing = await repo.get_by_weakness(
         teacher_user_id=teacher_user_id, category=_CATEGORY, weakness_type=weakness_type
     )
     if existing is not None and existing.teacher_response == TeacherResponseType.NONE:
         existing.frequency += 1
         await repo.update(existing)
-        return
+        return False
 
     suggestion = await _generate_suggestion(
         weakness_type=weakness_type,
@@ -240,6 +301,7 @@ async def _upsert_weakness_independent(
         existing.last_suggestion = suggestion
         existing.teacher_response = TeacherResponseType.NONE
         await repo.update(existing)
+    return True
 
 
 async def get_generation_coaching_context_school(

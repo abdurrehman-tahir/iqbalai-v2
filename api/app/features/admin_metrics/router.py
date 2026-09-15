@@ -6,6 +6,7 @@ from __future__ import annotations
 
 import csv
 import io
+from dataclasses import asdict
 from typing import Any
 
 from fastapi import APIRouter, Depends, Query
@@ -17,6 +18,8 @@ from app.core.responses import SuccessEnvelope, success
 from app.features.admin_metrics import service
 from app.features.admin_metrics.schemas import TeacherMetricsRead
 from app.features.admin_metrics.service import MetricsFilters
+from app.features.audit.actions import ADMIN_METRICS_ACCESSED, ADMIN_METRICS_EXPORTED
+from app.infrastructure.audit.log import audit
 
 router = APIRouter(prefix="/admin/teacher-metrics", tags=["admin-metrics"])
 
@@ -62,6 +65,16 @@ async def list_teacher_metrics(
     rows = await service.get_teacher_metrics(
         db, claims=claims, caller_role=caller_role, filters=filters
     )
+    await audit(
+        session=db,
+        action=ADMIN_METRICS_ACCESSED,
+        actor_id=str(claims.get("sub", "")),
+        actor_role=caller_role,
+        target_type="teacher_metrics",
+        school_id=filters.school_id
+        or (str(claims["school_id"]) if claims.get("school_id") else None),
+        metadata={"row_count": len(rows), "filters": asdict(filters)},
+    )
     return success([row.model_dump(mode="json") for row in rows])
 
 
@@ -79,6 +92,16 @@ async def export_teacher_metrics_csv(
     caller_role = str(claims.get("role", ""))
     rows = await service.get_teacher_metrics(
         db, claims=claims, caller_role=caller_role, filters=filters
+    )
+    await audit(
+        session=db,
+        action=ADMIN_METRICS_EXPORTED,
+        actor_id=str(claims.get("sub", "")),
+        actor_role=caller_role,
+        target_type="teacher_metrics",
+        school_id=filters.school_id
+        or (str(claims["school_id"]) if claims.get("school_id") else None),
+        metadata={"row_count": len(rows), "filters": asdict(filters)},
     )
 
     buffer = io.StringIO()
