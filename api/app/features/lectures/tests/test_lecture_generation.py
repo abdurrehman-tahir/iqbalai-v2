@@ -16,7 +16,7 @@ from app.features.lectures.models import (
     SchoolLectureVersion,
 )
 from app.features.lectures.tasks import SOFT_TIME_LIMIT_SECONDS
-from app.infrastructure.llm.prompts.lecture_generate_v1 import (
+from app.infrastructure.llm.prompts.lecture_gen_v1 import (
     PROMPT_VERSION,
     ChunkRef,
     LectureGenerateInput,

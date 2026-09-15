@@ -3,7 +3,7 @@
 Flow 5 §3.15 (#28, #41) / ARCH §8.6. Second, separate LLM call fired after
 lecture generation completes. Deliberately grounded in general teaching
 knowledge only — NOT the curriculum/reference RAG chunks used by
-``lecture_generate_v1`` (the opposite grounding direction, by design).
+``lecture_gen_v1`` (the opposite grounding direction, by design).
 """
 
 from __future__ import annotations

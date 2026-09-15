@@ -10,7 +10,7 @@ import pytest
 from app.features.lectures.exam_overlay import ExamOverlayContext
 from app.features.lectures.generation import run_lecture_generation
 from app.features.lectures.models import LectureStatus, LectureType, SchoolLecture
-from app.infrastructure.llm.prompts.lecture_generate_v1 import LectureGenerateInput
+from app.infrastructure.llm.prompts.lecture_gen_v1 import LectureGenerateInput
 
 
 def _fake_lecture() -> SchoolLecture:

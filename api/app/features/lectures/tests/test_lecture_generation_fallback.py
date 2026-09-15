@@ -15,7 +15,7 @@ from app.features.lectures.models import (
     SchoolLecture,
     SchoolLectureParagraph,
 )
-from app.infrastructure.llm.prompts.lecture_generate_v1 import NO_COVERAGE_NOTICE
+from app.infrastructure.llm.prompts.lecture_gen_v1 import NO_COVERAGE_NOTICE
 from app.infrastructure.rag.web_search import SearchResult
 
 

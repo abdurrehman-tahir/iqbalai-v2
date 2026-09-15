@@ -1,7 +1,7 @@
 """Pattern S dual-RAG lecture generation pipeline — T-116.
 
 Retrieves curriculum + reference chunks, weights curriculum 1.5×, synthesizes via
-``lecture_generate_v1``, persists lecture_versions + lecture_paragraphs, emits NATS.
+``lecture_gen_v1``, persists lecture_versions + lecture_paragraphs, emits NATS.
 
 T-119 (#27) adds the 3-tier out-of-curriculum fallback: when curriculum AND
 reference retrieval both come back empty for the topic, escalate to a SearXNG
@@ -53,7 +53,7 @@ from app.features.offerings.models import GradeSubjectOffering
 from app.features.subjects.models import Subject
 from app.infrastructure.audit.log import audit
 from app.infrastructure.llm.client import chat, stream_chat
-from app.infrastructure.llm.prompts.lecture_generate_v1 import (
+from app.infrastructure.llm.prompts.lecture_gen_v1 import (
     PROMPT_VERSION,
     ChunkRef,
     LectureGenerateInput,
@@ -483,7 +483,7 @@ async def run_lecture_generation(
             {"role": "system", "content": prompt.system},
             {"role": "user", "content": prompt.user},
         ],
-        task="lecture_generate",
+        task="lecture_gen",
         temperature=prompt.temperature,
         max_tokens=prompt.max_tokens,
     ):

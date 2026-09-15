@@ -32,7 +32,7 @@ from app.features.lectures.schemas import ParagraphSourceMetadata, SourceTier
 from app.features.library.independent_personal_models import IndependentPersonalContent
 from app.infrastructure.audit.log import audit
 from app.infrastructure.llm.client import chat
-from app.infrastructure.llm.prompts.lecture_generate_v1 import (
+from app.infrastructure.llm.prompts.lecture_gen_v1 import (
     ChunkRef,
     LectureGenerateInput,
     LectureGenerateOutput,
@@ -139,7 +139,7 @@ async def run_independent_lecture_generation(
             {"role": "system", "content": prompt.system},
             {"role": "user", "content": prompt.user},
         ],
-        task="lecture_generate",
+        task="lecture_gen",
         temperature=prompt.temperature,
         max_tokens=prompt.max_tokens,
     )
