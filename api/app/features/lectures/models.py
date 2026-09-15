@@ -372,6 +372,11 @@ class SchoolLecturePlagiarismFlag(AuditMixin, Base):
         Index("ix_lecture_plagiarism_flags_lecture_version_id", "lecture_version_id"),
         Index("ix_lecture_plagiarism_flags_teacher_user_id", "teacher_user_id"),
         Index("ix_lecture_plagiarism_flags_status", "status"),
+        Index(
+            "ix_lecture_plagiarism_flags_matched_lecture_version_id",
+            "matched_lecture_version_id",
+        ),
+        Index("ix_lecture_plagiarism_flags_reviewed_by_user_id", "reviewed_by_user_id"),
         {"schema": "school"},
     )
 

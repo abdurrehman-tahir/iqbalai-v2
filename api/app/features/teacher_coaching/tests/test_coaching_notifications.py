@@ -162,8 +162,8 @@ async def test_notify_coaching_suggestion_independent_resolves_recipient_and_loc
     monkeypatch.setattr(service, "notify_lecture_event", _fake_notify)
 
     await service._notify_coaching_suggestion_independent(
-        None,
-        "teacher-1",  # type: ignore[arg-type]
+        None,  # type: ignore[arg-type]
+        "teacher-1",
     )
 
     assert fired[0]["template_key"] == "lectures.coaching_suggestion"
