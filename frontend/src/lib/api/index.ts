@@ -145,6 +145,8 @@ export type {
   EligibleTeacherRead,
   LibraryBookRead as LibraryBook,
   TosVersion,
+  TeacherBenchmarkRead,
+  TeacherMetricsRead,
 } from "./types";
 
 export class ApiError extends Error {
