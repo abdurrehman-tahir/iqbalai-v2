@@ -41,8 +41,50 @@ T-139); ur/sd/ps locales are missing ~777 keys present in en (whole
 namespaces like district_admin.* never got translated in an earlier
 milestone) — T-139 only added its own new keys with TODO placeholders.
 
-**Current ticket:** T-140 (final M-10 ticket) — next up.
-**Next:** invoke ticket-loader for T-140.
+T-140 notifications + audit + E2E (final M-10 ticket) — implementation DONE,
+NOT yet committed. Notifications: 3 new `lectures.*` template keys
+(scoring_complete, coaching_suggestion, benchmark_updated; 4 locales, no
+__TODO__) wired from scoring.py (post-commit, both tenants), teacher_coaching
+service.py (once per scoring run, not per dimension), benchmark_service.py
+(per updated teacher, batch wrapped so a notify failure can't fail the beat).
+`system.plagiarism_flagged` was already done in T-135 — confirmed, not
+re-touched. Audit: 4 new M10_AUDIT_ACTIONS (admin_metrics.accessed/exported
+— elevated sensitive-reads; benchmark.opt_out_toggled — routine, not
+elevated; lecture.plagiarism_flagged — elevated, system-raised) wired into
+admin_metrics/router.py, teacher_coaching/router.py, scoring.py's
+_raise_plagiarism_flag. Admin-override audit was already done pre-M10
+(LECTURE_ACCESS_OVERRIDDEN, T-123) — confirmed, nothing new needed there.
+E2E: Playwright spec authored at frontend/e2e/lecture-scoring-benchmark-e2e.spec.ts
+(NOT runnable here, same Alpine/musl gap as always) — plus a genuinely
+runnable backend chain test at
+api/app/features/lectures/tests/test_m10_e2e_flow.py proving
+scoring->benchmark->admin-metrics connect and asserting version immutability
++ the two different privacy tiers (anonymized teacher view vs. named admin
+view). All new/changed backend files pass format/lint/mypy --strict; full
+app/ mypy baseline confirmed clean; full backend test suite (367 tests
+across lectures/teacher_coaching/admin_metrics/audit) passes. Frontend
+typecheck/lint clean. Frontend full suite: 336/342 pass — the same 6
+pre-existing GenerationStreamPanel.test.tsx failures persist (confirmed
+untouched by any M-10 work via git status; now failing consistently, not
+just intermittently — flag clearly in the PR as a pre-existing gap, do not
+attempt to fix under T-140's scope).
+T-140 fully committed: backend 65082d7, frontend/e2e df4effc, docs 75b3931
+(also updated the milestone-level Status: done in the M-10 backlog file's
+own header — ROADMAP.md itself was deliberately left untouched, it's
+script-auto-verified by scripts/check_ticket_status.py on PR, "do not
+hand-edit" per its own header).
+
+**M-10 MILESTONE: all 12 tickets (T-129–T-140) done and committed.**
+**Next:** run `phase-complete-review` skill, then open the PR
+`milestone/M-10-lecture-edit-scoring` -> `staging` per WORKFLOW Step 2,
+flagging in the PR description: (1) M-09 PR #30 still open/unmerged — this
+branch forked from its tip, retarget once #30 merges; (2) Playwright can't
+run in this dev container (Alpine/musl) — E2E specs are authored, not
+executed here; (3) the pre-existing GenerationStreamPanel.test.tsx
+flakiness (untouched by M-10, now failing consistently not intermittently);
+(4) the pre-existing ~777-key ur/sd/ps translation gap from earlier
+milestones (M-10 only kept its own new keys in sync). Then send the user
+the PR link.
 
 **Tooling (all working, don't redo workarounds):**
 - Backend: `uv run ruff format|check|mypy|pytest` all work normally.
