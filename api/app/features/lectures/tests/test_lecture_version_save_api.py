@@ -14,6 +14,7 @@ from __future__ import annotations
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
 from typing import Any
+from unittest.mock import MagicMock
 
 import pytest
 from fastapi import FastAPI
@@ -142,6 +143,11 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr("app.features.lectures.service.LectureRepository", _FakeLectureRepo)
     monkeypatch.setattr("app.features.lectures.service.LectureVersionRepository", _FakeVersionRepo)
     monkeypatch.setattr("app.features.lectures.service.publish_lecture_event", _PublishSpy())
+    # T-134: every save chains a scoring Celery dispatch — never let a unit
+    # test touch a real broker.
+    monkeypatch.setattr(
+        "app.features.lectures.tasks.score_lecture_version.apply_async", MagicMock()
+    )
 
 
 async def _fake_db() -> AsyncGenerator[None, None]:
