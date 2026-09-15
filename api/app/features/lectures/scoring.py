@@ -28,6 +28,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.features.audit.actions import LECTURE_PLAGIARISM_FLAGGED
 from app.features.lectures.independent_lecture_notifications import (
     notify_scoring_complete as notify_independent_scoring_complete,
 )
@@ -60,7 +61,6 @@ from app.features.teacher_coaching.service import (
     detect_and_track_weakness_independent,
     detect_and_track_weakness_school,
 )
-from app.features.audit.actions import LECTURE_PLAGIARISM_FLAGGED
 from app.features.teacher_onboarding.models import TeacherProfile
 from app.infrastructure.audit.log import audit
 from app.infrastructure.llm.client import chat
