@@ -80,6 +80,7 @@ async def list_teacher_metrics(
 
 @router.get(
     "/export",
+    response_model=None,
     operation_id="admin_export_teacher_metrics_csv",
     summary="CSV export of the comparative teacher metrics table (T-139, #38)",
     dependencies=[require_role("school_admin")],
