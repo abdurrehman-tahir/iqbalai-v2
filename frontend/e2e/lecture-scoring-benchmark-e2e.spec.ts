@@ -83,6 +83,25 @@ async function installScoredLectureMocks(page: Page) {
         return;
       }
 
+      if (method === "GET" && path === "/teachers/me/offerings") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope([
+            {
+              id: "off-1",
+              grade_id: "g-1",
+              grade_name: "Grade 9",
+              grade_level_ordinal: 9,
+              subject_id: "s-1",
+              subject_name: "Physics",
+              academic_session: "2025-2026",
+            },
+          ]),
+        });
+        return;
+      }
+
       if (method === "GET" && path === "/teachers/me/onboarding") {
         await route.fulfill({
           status: 200,
@@ -157,6 +176,59 @@ async function installScoredLectureMocks(page: Page) {
               updated_at: "2026-08-05T00:00:00Z",
             },
           ]),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/teachers/me/lectures/lec-1/links") {
+        await route.fulfill({ status: 200, contentType: "application/json", body: envelope([]) });
+        return;
+      }
+
+      if (method === "GET" && path === "/teachers/me/lectures/lec-1/access") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            lecture_id: "lec-1",
+            is_restricted: false,
+            assignments: [],
+          }),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/teachers/me/lectures/lec-1/teacher-tips") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({ lecture_id: "lec-1", status: "pending", tips: null }),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/teachers/me/lectures/lec-1/diagram-suggestions") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({ suggestions: [] }),
+        });
+        return;
+      }
+
+      if (method === "POST" && path === "/teachers/me/edit-sessions") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            id: "effort-session-1",
+            active_ms: 0,
+            edits_count: 0,
+            char_delta: 0,
+            started_at: "2026-08-05T00:00:00Z",
+            ended_at: null,
+            effort_score: 0,
+          }),
         });
         return;
       }

@@ -10,6 +10,23 @@ function envelope<T>(data: T) {
   return JSON.stringify({ data, message: "ok" });
 }
 
+function paginated<T>(items: T[]) {
+  return JSON.stringify({
+    data: { items, total: items.length, page: 1, page_size: 6, pages: 1 },
+    message: "ok",
+  });
+}
+
+const IDLE_EDIT_SESSION = {
+  id: "effort-session-1",
+  active_ms: 0,
+  edits_count: 0,
+  char_delta: 0,
+  started_at: "2026-08-05T00:00:00Z",
+  ended_at: null,
+  effort_score: 0,
+};
+
 async function installWizardMocks(page: Page) {
   await page.route(
     (url) => url.pathname.includes("/api/v1/") || url.pathname.includes("/auth/me"),
@@ -455,6 +472,48 @@ test.describe("Lecture editor @smoke (T-130)", () => {
             status: 200,
             contentType: "application/json",
             body: envelope([]),
+          });
+          return;
+        }
+
+        // T-138 — TeachingInnovationCard calls this and `.map`s the array.
+        // The catch-all `{}` would throw and unmount "Lecture ready".
+        if (method === "GET" && path === "/independent/teachers/me/coaching") {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope([]),
+          });
+          return;
+        }
+
+        if (method === "GET" && path === "/independent/teachers/me/lectures/ind-lec-1/versions") {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: paginated([
+              {
+                id: "v-1",
+                lecture_id: "ind-lec-1",
+                version: savedVersion,
+                content_jsonb: currentContentJsonb,
+                body: "Original AI draft.",
+                scores_jsonb: null,
+                topic_relevance_pct: null,
+                originality_score: null,
+                edit_summary: null,
+                created_at: "2026-08-05T00:00:00Z",
+              },
+            ]),
+          });
+          return;
+        }
+
+        if (method === "POST" && path === "/independent/teachers/me/edit-sessions") {
+          await route.fulfill({
+            status: 200,
+            contentType: "application/json",
+            body: envelope(IDLE_EDIT_SESSION),
           });
           return;
         }
