@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import re
 from datetime import datetime, timezone
-from typing import Any, cast
+from typing import Any, Literal, cast
 
 import structlog
 from sqlalchemy import select
@@ -138,7 +138,7 @@ async def run_quiz_generation_for_student(
         prompt_input = quiz_generate_v1.QuizGenerateInput(
             topic=lecture.topic,
             lecture_excerpt=lecture_excerpt,
-            target_difficulty=calibration.target_difficulty,
+            target_difficulty=cast(Literal["foundational", "conceptual", "applied", "grade_default"], calibration.target_difficulty.value),
             question_count=7,
         )
         raw = await chat(
