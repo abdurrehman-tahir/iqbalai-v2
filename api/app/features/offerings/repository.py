@@ -70,6 +70,20 @@ class OfferingRepository:
         result = await self._session.execute(stmt)
         return int(result.scalar_one())
 
+    async def list_by_teacher(self, teacher_id: str) -> list[GradeSubjectOffering]:
+        """Active Grade-Subject offerings assigned to this teacher (T-114 scope)."""
+        stmt = (
+            select(GradeSubjectOffering)
+            .where(
+                GradeSubjectOffering.assigned_teacher_id == teacher_id,
+                GradeSubjectOffering.status == OfferingStatus.ACTIVE,
+                not_deleted(GradeSubjectOffering),
+            )
+            .order_by(GradeSubjectOffering.created_at.asc())
+        )
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())
+
     async def create(self, offering: GradeSubjectOffering) -> GradeSubjectOffering:
         self._session.add(offering)
         await self._session.commit()

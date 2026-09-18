@@ -30,6 +30,10 @@ dependencies = [
     "pdfplumber>=0.11.0",                # PDF text extraction (lightweight fallback per STACK_LOCK §4.3)
     "langchain-text-splitters>=0.3.0",   # RecursiveCharacterTextSplitter (pre-approved deviation §7.7)
     "fastembed>=0.5.1,<0.6.0",           # local dev embeddings; 0.6+ pulls numpy 2.x (conflicts with pin above)
+    # T-121 — voice conversation (STACK_LOCK §4.4). Chokepoint: app/infrastructure/voice/ only.
+    "faster-whisper>=1.0.0",             # STT, all languages
+    "piper-tts>=1.2.0",                  # TTS — English/Urdu fast path
+    "edge-tts>=6.1.0",                   # TTS — Pashto (MS public endpoint, unsupported)
 ]
 
 [dependency-groups]

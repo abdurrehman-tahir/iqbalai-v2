@@ -20,6 +20,7 @@ from sqlalchemy import (
     CheckConstraint,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Numeric,
     String,
@@ -93,12 +94,21 @@ class ExamFramework(AuditMixin, SoftDeleteMixin, Base):
     """Platform-Admin-owned exam framework definition (thin metadata record)."""
 
     __tablename__ = "exam_frameworks"
-    __table_args__ = ({"schema": "school"},)
+    __table_args__ = (
+        Index("ix_exam_frameworks_subject_slug", "subject_slug"),
+        {"schema": "school"},
+    )
 
     id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
     name: Mapped[str] = mapped_column(String(255), nullable=False)
     # Exam this framework targets, e.g. "Matric Punjab Board — Physics".
     exam_target: Mapped[str] = mapped_column(String(255), nullable=False)
+    # T-120: controlled-vocabulary subject match (e.g. "physics"), Platform-Admin
+    # authored. NOT a FK to `subjects.id` — Subject rows are school-scoped (one
+    # per school), but a framework applies across every school, so no single
+    # Subject row could represent it. Matched against each school's free-text
+    # `Subject.name` via normalization at generation time (app/features/lectures).
+    subject_slug: Mapped[str] = mapped_column(String(50), nullable=False)
     # Region scoping for student filtering (T-096), e.g. "Punjab", "Sindh", "any".
     region: Mapped[str] = mapped_column(String(100), nullable=False)
     # Postgres int[] — the grade band this framework serves, e.g. {9,10}.

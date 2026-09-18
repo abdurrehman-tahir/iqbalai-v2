@@ -153,6 +153,12 @@
         "title": "Region",
         "type": "string"
       },
+      "subject_slug": {
+        "maxLength": 50,
+        "minLength": 1,
+        "title": "Subject Slug",
+        "type": "string"
+      },
       "target_grade_range": {
         "items": {
           "type": "integer"
@@ -162,6 +168,6 @@
         "type": "array"
       }
     },
-    "required": ["name", "exam_target", "region", "target_grade_range"]
+    "required": ["name", "exam_target", "subject_slug", "region", "target_grade_range"]
   }
 }

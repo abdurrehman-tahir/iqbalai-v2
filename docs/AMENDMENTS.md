@@ -75,6 +75,39 @@ Copy this block for every new amendment:
 
 (Append below this line. Newest at the top.)
 
+## A-003 — WebSocket auth via HttpOnly cookie, not Sec-WebSocket-Protocol
+
+- **Date:** 2026-07-31
+- **Author:** @shahabkhalid253-dev
+- **Affects:** `ARCHITECTURE.md` §5.12
+- **Status:** approved (pending Abd. sign-off on the T-117 PR — same review gate as any other architecture change)
+
+### What changed
+
+§5.12 specified WS auth as "JWT in the `Sec-WebSocket-Protocol` header." We now authenticate WebSocket connections the same way as REST: the `iqbalai_access` HttpOnly cookie, read from `websocket.cookies` on the handshake request. `Sec-WebSocket-Protocol` is not used for auth.
+
+### Why
+
+§5.12 was written assuming bearer-token auth reachable from JS (hence "browsers can't set custom headers on WS upgrade... bearer-in-subprotocol"). T-244/T-245 moved all auth to an HttpOnly `iqbalai_access` cookie specifically so the token is **never JS-accessible** (§6.17). That closed off the only way a frontend could populate a `Sec-WebSocket-Protocol` value — there is no readable token left to put there. Implementing T-117 (lecture generation streaming, the first WebSocket feature in the codebase) surfaced this: the locked mechanism cannot be implemented against the current auth model without either reintroducing a JS-readable token (reopening the exact surface T-245 closed) or changing the WS auth mechanism.
+
+### What we considered before deciding
+
+(1) Mint a short-lived, single-use WS token via a new endpoint, handed to JS and passed as the subprotocol — keeps §5.12's literal shape but reintroduces a JS-readable credential and adds an endpoint + token-lifecycle surface for one use case. (2) Cookie-based WS auth — browsers attach same-origin cookies to the WS handshake automatically (it's an HTTP GET under the hood) with zero frontend changes, and it reuses the exact validation path (`decode_jwt`, blacklist check, active-user resolution) already used for REST. Chose (2): no new credential surface, no frontend changes, consistent with how every other authenticated request in this codebase already works.
+
+### Migration
+
+No data migration. Code impact: `infrastructure/realtime/` WS routes read `websocket.cookies.get(ACCESS_COOKIE)` instead of a subprotocol header, then run the same `decode_jwt` / blacklist / active-user resolution `AuthMiddleware.dispatch` uses for REST (refactored into a shared helper so the logic isn't duplicated). No existing REST auth code changes.
+
+### What this DOES NOT change
+
+REST auth (`AuthMiddleware`, cookie names, `_extract_access_token`) is unchanged — this only affects the WS handshake's auth mechanism. The WS message format, event-type taxonomy, heartbeat/timeout values, and Redis pub/sub fan-out in the rest of §5.12/§16.9/§9.12/§9.13 are unaffected.
+
+### Related
+
+- `ARCHITECTURE.md` §5.12, §16.9, §6.17; T-117 (M-09, first WebSocket feature)
+
+---
+
 ## A-002 — TS API types generated from OpenAPI (brought forward from Phase 2)
 
 - **Date:** 2026-05-29

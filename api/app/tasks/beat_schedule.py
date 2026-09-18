@@ -46,4 +46,10 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "framework.refresh_quarterly",
         "schedule": crontab(hour=22, minute=0),  # 03:00 PKT
     },
+    # M-09 voice conversation (#25, flow-5 §6 Limits): raw audio retained 24h.
+    # Hourly (not daily) so the 24h cutoff is tight rather than up to 48h stale.
+    "purge-expired-voice-audio": {
+        "task": "lectures.purge_voice_audio",
+        "schedule": crontab(minute=15),  # hourly, offset from the invite sweep
+    },
 }

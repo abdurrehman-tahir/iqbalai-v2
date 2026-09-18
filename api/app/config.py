@@ -97,6 +97,30 @@ class Settings(BaseSettings):
     # STACK_LOCK §Web-search; ARCH §7.12/§8.21).
     WEBSEARCH_URL: str = "http://localhost:8888"
 
+    # Voice conversation during lecture creation (T-121, STACK_LOCK §4.4).
+    # STT: faster-whisper, lazy-loaded in-process (mirrors EMBEDDING_PROVIDER=local —
+    # embedder.py's _get_local_model pattern). Model auto-downloads from the HF Hub on
+    # first use unless STT_LOCAL_FILES_ONLY + a pre-populated STT_DOWNLOAD_ROOT are set.
+    STT_MODEL_SIZE: str = "medium"
+    STT_DEVICE: str = "cpu"  # cpu | cuda | auto
+    STT_COMPUTE_TYPE: str = "int8"  # int8 for CPU; float16 for GPU
+    STT_DOWNLOAD_ROOT: str = ""  # empty = HF Hub default cache dir
+    STT_LOCAL_FILES_ONLY: bool = False
+    # TTS — Piper (English/Urdu fast path). Voice model files (.onnx + .onnx.json) are
+    # provisioned separately (`python -m piper.download_voices <voice>`) — empty path
+    # means "not provisioned yet", which the voice router treats as VoiceUnavailable
+    # (locked graceful-degradation edge case, flow-5 §5.4).
+    PIPER_VOICE_EN_PATH: str = ""
+    PIPER_VOICE_UR_PATH: str = ""
+    # TTS — Pashto voice for Edge-TTS (Microsoft public endpoint, unsupported).
+    EDGE_TTS_VOICE_PS: str = "ps-AF-LatifaNeural"
+    # TTS — Sindhi via AI4Bharat. No verified self-hostable package/image at launch
+    # (flagged in T-121 PR notes); empty URL means VoiceUnavailable, same fallback path.
+    AI4BHARAT_TTS_URL: str = ""
+    # Voice session limits (flow-5 §6 Limits, #25).
+    VOICE_AUDIO_RETENTION_HOURS: int = 24
+    VOICE_SESSION_MAX_MINUTES: int = 60
+
     # Exam-framework AI research (T-093, ARCH §3.19/§8.21).
     # Hard USD cost ceiling per research run; agent halts + flags a partial result
     # if the estimated LLM spend crosses it.

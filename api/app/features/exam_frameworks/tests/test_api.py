@@ -68,6 +68,7 @@ def _seed(**overrides: Any) -> ExamFramework:
         "id": "fw-1",
         "name": "Matric Punjab — Physics",
         "exam_target": "Matric Punjab Board — Physics",
+        "subject_slug": "physics",
         "region": "Punjab",
         "target_grade_range": [9, 10],
         "language": "en",
@@ -117,6 +118,7 @@ async def test_create_framework_returns_draft() -> None:
             json={
                 "name": "Matric Punjab — Physics",
                 "exam_target": "Matric Punjab Board — Physics",
+                "subject_slug": "physics",
                 "region": "Punjab",
                 "target_grade_range": [9, 10],
             },
@@ -153,6 +155,7 @@ async def test_create_rejects_out_of_range_grade() -> None:
             json={
                 "name": "X",
                 "exam_target": "Y",
+                "subject_slug": "physics",
                 "region": "Punjab",
                 "target_grade_range": [0, 99],
             },

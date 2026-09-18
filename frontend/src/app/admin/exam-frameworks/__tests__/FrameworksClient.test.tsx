@@ -10,6 +10,7 @@ vi.mock("@/hooks/use-client-auth", () => ({
 }));
 
 const mockList = vi.fn();
+const mockCreate = vi.fn();
 const mockTriggerResearch = vi.fn();
 const mockLatestResearch = vi.fn();
 const mockReviewPlan = vi.fn();
@@ -21,7 +22,7 @@ vi.mock("@/lib/api", () => ({
   ApiError: class ApiError extends Error {},
   frameworksApi: {
     list: (...a: unknown[]) => mockList(...a),
-    create: vi.fn(),
+    create: (...a: unknown[]) => mockCreate(...a),
     update: vi.fn(),
     delete: vi.fn(),
     triggerResearch: (...a: unknown[]) => mockTriggerResearch(...a),
@@ -40,6 +41,7 @@ const DRAFT_FRAMEWORK = {
   id: "fw1",
   name: "Matric Punjab — Physics",
   exam_target: "Matric Punjab Board — Physics",
+  subject_slug: "physics",
   region: "Punjab",
   target_grade_range: [9, 10],
   language: "en",
@@ -71,6 +73,58 @@ describe("FrameworksClient — four UI states (T-092)", () => {
     mockList.mockResolvedValue([DRAFT_FRAMEWORK]);
     renderWithQuery(<FrameworksClient />);
     await waitFor(() => expect(screen.getByText("Matric Punjab — Physics")).toBeInTheDocument());
+  });
+});
+
+describe("FrameworksClient — create form (T-120 subject_slug)", () => {
+  it("submits subject_slug alongside the other fields", async () => {
+    mockList.mockResolvedValue([]);
+    mockCreate.mockResolvedValue({ ...DRAFT_FRAMEWORK, id: "fw2" });
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("empty.title")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "add_button" }));
+    await userEvent.type(screen.getByLabelText("modal.name_label", { exact: false }), "O-Level Physics");
+    await userEvent.type(
+      screen.getByLabelText("modal.exam_target_label", { exact: false }),
+      "O-Level Cambridge — Physics",
+    );
+    await userEvent.type(screen.getByLabelText("modal.subject_slug_label", { exact: false }), "physics");
+    await userEvent.type(screen.getByLabelText("modal.region_label", { exact: false }), "any");
+    await userEvent.type(screen.getByLabelText("modal.grades_label", { exact: false }), "9, 10");
+    await userEvent.click(screen.getByRole("button", { name: "modal.create" }));
+
+    await waitFor(() =>
+      expect(mockCreate).toHaveBeenCalledWith(
+        "tok",
+        expect.objectContaining({ subject_slug: "physics" })
+      )
+    );
+  });
+
+  it("rejects a subject_slug that is not lowercase kebab-case", async () => {
+    mockList.mockResolvedValue([]);
+    renderWithQuery(<FrameworksClient />);
+    await waitFor(() => expect(screen.getByText("empty.title")).toBeInTheDocument());
+
+    await userEvent.click(screen.getByRole("button", { name: "add_button" }));
+    await userEvent.type(screen.getByLabelText("modal.name_label", { exact: false }), "O-Level Physics");
+    await userEvent.type(
+      screen.getByLabelText("modal.exam_target_label", { exact: false }),
+      "O-Level Cambridge — Physics",
+    );
+    await userEvent.type(
+      screen.getByLabelText("modal.subject_slug_label", { exact: false }),
+      "General Science"
+    );
+    await userEvent.type(screen.getByLabelText("modal.region_label", { exact: false }), "any");
+    await userEvent.type(screen.getByLabelText("modal.grades_label", { exact: false }), "9, 10");
+    await userEvent.click(screen.getByRole("button", { name: "modal.create" }));
+
+    await waitFor(() =>
+      expect(screen.getByText("modal.subject_slug_error")).toBeInTheDocument()
+    );
+    expect(mockCreate).not.toHaveBeenCalled();
   });
 });
 

@@ -3,14 +3,17 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, LogOut } from "lucide-react";
+import { LayoutDashboard, LogOut, NotebookPen } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { performLogout } from "@/lib/auth";
 import { useCurrentUser } from "@/hooks/use-current-user";
 import { IndependentTeacherOnboardingGate } from "./IndependentTeacherOnboardingGate";
 
-const NAV = [{ key: "dashboard", href: "/independent/teacher", icon: LayoutDashboard }] as const;
+const NAV = [
+  { key: "dashboard", href: "/independent/teacher", icon: LayoutDashboard },
+  { key: "lectures", href: "/independent/teacher/lectures/new", icon: NotebookPen },
+] as const;
 
 export function IndependentTeacherShell({ children }: { children: React.ReactNode }) {
   const t = useTranslations("independent.teacher");

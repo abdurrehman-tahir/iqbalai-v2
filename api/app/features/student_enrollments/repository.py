@@ -44,6 +44,20 @@ class StudentEnrollmentRepository:
         )
         return list(result.scalars().all())
 
+    async def list_active_for_grade(
+        self, grade_id: str, academic_session: str
+    ) -> list[StudentEnrollment]:
+        """A grade's active roster for a session (T-123 lecture-access picker)."""
+        result = await self._session.execute(
+            select(StudentEnrollment).where(
+                StudentEnrollment.grade_id == grade_id,
+                StudentEnrollment.academic_session == academic_session,
+                StudentEnrollment.status == StudentEnrollmentStatus.ACTIVE,
+                not_deleted(StudentEnrollment),
+            )
+        )
+        return list(result.scalars().all())
+
     async def update(self, enrollment: StudentEnrollment) -> StudentEnrollment:
         await self._session.flush()
         return enrollment

@@ -44,4 +44,14 @@ try:
 except ImportError:
     pass
 
+try:
+    import app.features.lectures.tasks  # noqa: F401
+except ImportError:
+    pass
+
+try:
+    import app.features.lectures.independent_tasks  # noqa: F401
+except ImportError:
+    pass
+
 __all__ = ["celery_app"]
