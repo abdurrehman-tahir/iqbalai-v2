@@ -127,13 +127,11 @@ async def test_enqueue_one_task_per_student(monkeypatch: pytest.MonkeyPatch) -> 
             enqueued.append(kwargs)
 
     monkeypatch.setattr(
-        gen_mod.OfferingRepository,
-        "get_by_id",
+        "app.features.quizzes.generation.OfferingRepository.get_by_id",
         AsyncMock(return_value=offering),
     )
     monkeypatch.setattr(
-        gen_mod.StudentEnrollmentRepository,
-        "list_active_for_grade",
+        "app.features.quizzes.generation.StudentEnrollmentRepository.list_active_for_grade",
         AsyncMock(return_value=enrollments),
     )
     monkeypatch.setattr(
@@ -141,8 +139,7 @@ async def test_enqueue_one_task_per_student(monkeypatch: pytest.MonkeyPatch) -> 
         AsyncMock(return_value=[]),
     )
     monkeypatch.setattr(
-        gen_mod.UserRepository,
-        "get_by_id",
+        "app.features.quizzes.generation.UserRepository.get_by_id",
         AsyncMock(side_effect=lambda uid: MagicMock(id=uid)),
     )
     monkeypatch.setattr(gen_mod, "generate_quiz_for_student", _Task, raising=False)

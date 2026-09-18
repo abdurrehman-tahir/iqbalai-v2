@@ -138,7 +138,7 @@ async def run_quiz_generation_for_student(
         prompt_input = quiz_generate_v1.QuizGenerateInput(
             topic=lecture.topic,
             lecture_excerpt=lecture_excerpt,
-            target_difficulty=calibration.target_difficulty.value,  # type: ignore[arg-type]
+            target_difficulty=calibration.target_difficulty,
             question_count=7,
         )
         raw = await chat(

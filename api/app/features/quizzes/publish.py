@@ -36,4 +36,4 @@ async def publish_pending_assignments_for_lecture(session: AsyncSession, *, lect
         .where(SchoolQuizAssignment.deleted_at.is_(None))
         .values(status=QuizAssignmentStatus.PUBLISHED)
     )
-    return int(result.rowcount or 0)
+    return int(getattr(result, "rowcount", 0) or 0)

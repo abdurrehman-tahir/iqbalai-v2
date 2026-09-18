@@ -96,7 +96,7 @@ class QuizService:
                     lecture_topic=lecture.topic,
                     lecture_title=lecture.title,
                     question_count=int(q_count),
-                    status=assignment.status.value,  # type: ignore[arg-type]
+                    status=assignment.status,
                     assigned_at=assignment.assigned_at,
                 )
             )
