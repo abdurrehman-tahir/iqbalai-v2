@@ -84,6 +84,17 @@ async def test_generation_persists_version_and_paragraphs_from_reference(
     monkeypatch.setattr(
         "app.features.lectures.independent_generation.notify_generation_complete", AsyncMock()
     )
+    # T-134: run_independent_lecture_generation chains a Celery scoring task at
+    # the end — never let a unit test touch a real broker.
+    monkeypatch.setattr(
+        "app.features.lectures.independent_tasks.score_independent_lecture_version.apply_async",
+        MagicMock(),
+    )
+    # T-138: coaching-context fetch is a deferred import — patch at its source.
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service.get_generation_coaching_context_independent",
+        AsyncMock(return_value=[]),
+    )
     monkeypatch.setattr("app.features.lectures.generation.web_search", _fake_web_search)
 
     version_id = await run_independent_lecture_generation(
@@ -140,6 +151,17 @@ async def test_generation_falls_back_to_web_when_no_references_selected(
     monkeypatch.setattr("app.features.lectures.independent_generation.chat", _fake_chat)
     monkeypatch.setattr(
         "app.features.lectures.independent_generation.notify_generation_complete", AsyncMock()
+    )
+    # T-134: run_independent_lecture_generation chains a Celery scoring task at
+    # the end — never let a unit test touch a real broker.
+    monkeypatch.setattr(
+        "app.features.lectures.independent_tasks.score_independent_lecture_version.apply_async",
+        MagicMock(),
+    )
+    # T-138: coaching-context fetch is a deferred import — patch at its source.
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service.get_generation_coaching_context_independent",
+        AsyncMock(return_value=[]),
     )
     monkeypatch.setattr("app.features.lectures.generation.web_search", _fake_web_search)
 

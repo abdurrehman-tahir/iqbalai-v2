@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { Mic, Square } from "lucide-react";
-import { independentLectureWizardApi, ApiError } from "@/lib/api";
+import { independentLectureWizardApi, independentTeacherCoachingApi, ApiError } from "@/lib/api";
 import type { TeachingMode } from "@/lib/api/types";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { useIndependentLectureVoiceSession } from "@/lib/ws/independent-lecture-voice-socket";
@@ -13,6 +13,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LectureEditorPanel } from "@/components/lectures/LectureEditorPanel";
+import { ScoreTimelineChart } from "@/components/lectures/ScoreTimelineChart";
+import { TeachingInnovationCard } from "@/components/lectures/TeachingInnovationCard";
 
 /**
  * Independent teacher lecture wizard (T-125) — the stripped variant of the
@@ -66,7 +69,9 @@ export function IndependentLectureWizardClient() {
     setHydrated(true);
   }, [hydrated, draftQuery.data]);
 
-  function persist(overrides: Partial<{ topic: string; referenceIds: Set<string>; mode: TeachingMode }>) {
+  function persist(
+    overrides: Partial<{ topic: string; referenceIds: Set<string>; mode: TeachingMode }>
+  ) {
     const nextTopic = overrides.topic ?? topic;
     const nextRefs = overrides.referenceIds ?? selectedReferenceIds;
     const nextMode = overrides.mode ?? teachingMode;
@@ -301,6 +306,26 @@ function GeneratingOrCompletePanel({
         <h3 className="text-lg font-medium text-gray-900">{t("complete_title")}</h3>
         <p className="text-sm text-gray-700">{t("complete_body")}</p>
       </div>
+      <TeachingInnovationCard
+        token={token}
+        api={independentTeacherCoachingApi}
+        t={t}
+        queryKeyPrefix="independent-teacher"
+      />
+      <LectureEditorPanel
+        token={token}
+        lectureId={lectureId}
+        api={independentLectureWizardApi}
+        t={t}
+        queryKeyPrefix="independent-teacher"
+      />
+      <ScoreTimelineChart
+        token={token}
+        lectureId={lectureId}
+        api={independentLectureWizardApi}
+        t={t}
+        queryKeyPrefix="independent-teacher"
+      />
       <ParagraphsView token={token} lectureId={lectureId} t={t} />
       <VoicePanel lectureId={lectureId} t={t} />
     </section>
@@ -417,9 +442,7 @@ function VoicePanel({
   }
 
   if (voice.status === "error") {
-    return (
-      <ErrorState title={t("voice_error_title")} description={t("voice_error_body")} />
-    );
+    return <ErrorState title={t("voice_error_title")} description={t("voice_error_body")} />;
   }
 
   const isBusy = voice.status === "recording" || voice.status === "processing";

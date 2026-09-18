@@ -10,37 +10,57 @@ already tenant-agnostic shapes with no Grade-Subject coupling.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
+
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError, PermissionDeniedError
+from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
 from app.features.audit.actions import LECTURE_CREATED
+from app.features.files.models import UploadRecord
+from app.features.files.pipeline import run_upload_pipeline
+from app.features.files.profiles import get_profile
 from app.features.independent_users.models import IndependentUser, IndependentUserRole
 from app.features.independent_users.repository import IndependentUserRepository
+from app.features.lectures.edit_summary import derive_edit_summary
+from app.features.lectures.effort import compute_effort_score
+from app.features.lectures.events import LECTURE_VERSION_CREATED, publish_lecture_event
 from app.features.lectures.independent_repository import (
     IndependentLectureDraftRepository,
+    IndependentLectureEditSessionRepository,
     IndependentLectureParagraphRepository,
     IndependentLectureRepository,
+    IndependentLectureVersionRepository,
 )
 from app.features.lectures.models import (
     IndependentLecture,
     IndependentLectureDraft,
+    IndependentLectureEditSession,
+    IndependentLectureVersion,
     LectureStatus,
 )
 from app.features.lectures.schemas import (
+    EditSessionHeartbeatRequest,
+    EditSessionRead,
+    EditSessionStartRequest,
     IndependentLectureGenerateRequest,
     IndependentLectureRead,
     IndependentWizardReferenceRead,
     LectureDraftRead,
     LectureDraftUpsert,
     LectureGenerateRead,
+    LectureImageUploadRead,
     LectureParagraphRead,
+    LectureVersionRead,
+    LectureVersionSaveRequest,
     ParagraphSourceMetadata,
     TeachingMode,
+    VoiceTranscribeRead,
     WizardEstimateRead,
     WizardState,
 )
 from app.features.lectures.service import estimate_generation_seconds
+from app.features.lectures.tiptap import InvalidTipTapDocumentError, extract_plain_text
 from app.features.library.independent_personal_models import (
     PersonalContentStatus,
     PersonalContentType,
@@ -49,6 +69,10 @@ from app.features.library.independent_personal_repository import (
     IndependentPersonalContentRepository,
 )
 from app.infrastructure.audit.log import audit
+from app.infrastructure.storage.client import download_bytes
+from app.infrastructure.voice.router import transcribe as voice_transcribe
+
+_MAX_VOICE_AUDIO_BYTES = 10 * 1024 * 1024
 
 logger = structlog.get_logger(__name__)
 
@@ -60,6 +84,8 @@ class IndependentLectureWizardService:
         self._drafts = IndependentLectureDraftRepository(session)
         self._lectures = IndependentLectureRepository(session)
         self._paragraphs = IndependentLectureParagraphRepository(session)
+        self._versions = IndependentLectureVersionRepository(session)
+        self._edit_sessions = IndependentLectureEditSessionRepository(session)
         self._personal_content = IndependentPersonalContentRepository(session)
 
     async def _require_independent_teacher(self, claims: dict[str, object]) -> IndependentUser:
@@ -235,3 +261,289 @@ class IndependentLectureWizardService:
             )
             for p in paragraphs
         ]
+
+    @staticmethod
+    def _to_version_read(version: IndependentLectureVersion) -> LectureVersionRead:
+        return LectureVersionRead(
+            id=version.id,
+            lecture_id=version.lecture_id,
+            version=version.version,
+            content_jsonb=version.content_jsonb,
+            body=version.body,
+            scores_jsonb=version.scores_jsonb,
+            topic_relevance_pct=(
+                float(version.topic_relevance_pct)
+                if version.topic_relevance_pct is not None
+                else None
+            ),
+            originality_score=(
+                float(version.originality_score) if version.originality_score is not None else None
+            ),
+            edit_summary=version.edit_summary,
+            created_at=version.created_at,
+        )
+
+    async def get_current_lecture_version(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> LectureVersionRead:
+        """Loads the editor's initial content (T-130)."""
+        teacher = await self._require_independent_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.current_version_id is None:
+            raise NotFoundError("Lecture has no version yet")
+        version = await self._versions.get_by_id(lecture.current_version_id)
+        if version is None:
+            raise NotFoundError("Lecture version not found")
+        return self._to_version_read(version)
+
+    async def list_lecture_versions(
+        self, claims: dict[str, object], lecture_id: str, *, page: int, page_size: int
+    ) -> tuple[list[LectureVersionRead], int]:
+        """Mirrors LectureWizardService.list_lecture_versions (T-137, #35)."""
+        teacher = await self._require_independent_teacher(claims)
+        await self._require_owned_lecture(teacher, lecture_id)
+        versions, total = await self._versions.list_paginated(
+            lecture_id, page=page, page_size=page_size
+        )
+        return [self._to_version_read(v) for v in versions], total
+
+    async def save_lecture_version(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        payload: LectureVersionSaveRequest,
+        *,
+        extra_annotations: list[str] | None = None,
+    ) -> LectureVersionRead:
+        """Save an edit as a new immutable version (T-130, #29-#31).
+
+        Mirrors ``LectureWizardService.save_lecture_version`` — no school_id,
+        no Grade-Subject (independent teachers have neither, per §3.16).
+        """
+        teacher = await self._require_independent_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        latest = await self._versions.get_latest_for_lecture(lecture.id)
+        if latest is None:
+            raise NotFoundError("Lecture has no existing version to edit")
+
+        try:
+            body = extract_plain_text(payload.content_jsonb)
+        except InvalidTipTapDocumentError as exc:
+            raise ValidationError(str(exc)) from exc
+        if not body:
+            raise ValidationError("Lecture content cannot be empty")
+
+        merged_annotations = list(extra_annotations or [])
+        if payload.used_voice_edit:
+            merged_annotations.append("Applied voice edit")
+        annotations = derive_edit_summary(
+            previous_body=latest.body,
+            new_body=body,
+            extra_annotations=merged_annotations,
+        )
+
+        version = IndependentLectureVersion(
+            lecture_id=lecture.id,
+            version=latest.version + 1,
+            body=body,
+            content_jsonb=payload.content_jsonb,
+            edit_summary=annotations,
+        )
+        lecture.current_version_id = version.id
+        version = await self._versions.create(version)
+
+        if payload.edit_session_id:
+            await self._link_edit_session(
+                payload.edit_session_id, teacher_user_id=teacher.id, version_id=version.id
+            )
+
+        await publish_lecture_event(
+            event_type=LECTURE_VERSION_CREATED,
+            payload={
+                "lecture_id": lecture.id,
+                "version_id": version.id,
+                "version": version.version,
+                "teacher_user_id": teacher.id,
+                "tenant_type": "independent",
+                "is_autosave": payload.is_autosave,
+            },
+        )
+        logger.info(
+            "lecture_version_saved",
+            lecture_id=lecture.id,
+            version_id=version.id,
+            version=version.version,
+            is_autosave=payload.is_autosave,
+        )
+
+        # T-134 (#32): every save scores the new version asynchronously.
+        from app.features.lectures.independent_tasks import score_independent_lecture_version
+
+        score_independent_lecture_version.apply_async(
+            kwargs={"lecture_id": lecture.id, "version_id": version.id}
+        )
+
+        return self._to_version_read(version)
+
+    async def _link_edit_session(
+        self, edit_session_id: str, *, teacher_user_id: str, version_id: str
+    ) -> None:
+        edit_session = await self._edit_sessions.get_by_id(edit_session_id)
+        if edit_session is None or edit_session.teacher_user_id != teacher_user_id:
+            logger.warning(
+                "lecture_edit_session_link_skipped",
+                edit_session_id=edit_session_id,
+                reason="not_found_or_not_owned",
+            )
+            return
+        edit_session.lecture_version_id = version_id
+        await self._edit_sessions.update(edit_session)
+
+    @staticmethod
+    def _to_edit_session_read(edit_session: IndependentLectureEditSession) -> EditSessionRead:
+        return EditSessionRead(
+            id=edit_session.id,
+            active_ms=edit_session.active_ms,
+            edits_count=edit_session.edits_count,
+            char_delta=edit_session.char_delta,
+            started_at=edit_session.started_at,
+            ended_at=edit_session.ended_at,
+            effort_score=compute_effort_score(
+                active_ms=edit_session.active_ms, char_delta=edit_session.char_delta
+            ),
+        )
+
+    async def start_edit_session(
+        self, claims: dict[str, object], payload: EditSessionStartRequest
+    ) -> EditSessionRead:
+        """T-133, #31 — mirrors the school variant."""
+        teacher = await self._require_independent_teacher(claims)
+        await self._require_owned_lecture(teacher, payload.lecture_id)
+
+        edit_session = IndependentLectureEditSession(teacher_user_id=teacher.id)
+        edit_session = await self._edit_sessions.create(edit_session)
+        return self._to_edit_session_read(edit_session)
+
+    async def _require_owned_edit_session(
+        self, claims: dict[str, object], edit_session_id: str
+    ) -> IndependentLectureEditSession:
+        teacher = await self._require_independent_teacher(claims)
+        edit_session = await self._edit_sessions.get_by_id(edit_session_id)
+        if edit_session is None or edit_session.teacher_user_id != teacher.id:
+            raise NotFoundError("Edit session not found")
+        return edit_session
+
+    async def heartbeat_edit_session(
+        self,
+        claims: dict[str, object],
+        edit_session_id: str,
+        payload: EditSessionHeartbeatRequest,
+    ) -> EditSessionRead:
+        edit_session = await self._require_owned_edit_session(claims, edit_session_id)
+        if edit_session.ended_at is not None:
+            raise ValidationError("Edit session has already ended")
+        edit_session.active_ms = payload.active_ms
+        edit_session.edits_count = payload.edits_count
+        edit_session.char_delta = payload.char_delta
+        edit_session = await self._edit_sessions.update(edit_session)
+        return self._to_edit_session_read(edit_session)
+
+    async def end_edit_session(
+        self,
+        claims: dict[str, object],
+        edit_session_id: str,
+        payload: EditSessionHeartbeatRequest,
+    ) -> EditSessionRead:
+        edit_session = await self._require_owned_edit_session(claims, edit_session_id)
+        if edit_session.ended_at is None:
+            edit_session.active_ms = payload.active_ms
+            edit_session.edits_count = payload.edits_count
+            edit_session.char_delta = payload.char_delta
+            edit_session.ended_at = datetime.now(timezone.utc)
+            edit_session = await self._edit_sessions.update(edit_session)
+        return self._to_edit_session_read(edit_session)
+
+    async def transcribe_voice_edit(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        audio_bytes: bytes,
+        language: str | None,
+    ) -> VoiceTranscribeRead:
+        """Voice dictation STT (T-131, #29). Mirrors the school variant."""
+        teacher = await self._require_independent_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        if not audio_bytes:
+            raise ValidationError("No audio received")
+        if len(audio_bytes) > _MAX_VOICE_AUDIO_BYTES:
+            raise ValidationError(
+                f"Audio exceeds the {_MAX_VOICE_AUDIO_BYTES // (1024 * 1024)} MB limit"
+            )
+
+        transcript = await voice_transcribe(audio_bytes, language=language)
+        logger.info(
+            "lecture_voice_edit_transcribed",
+            lecture_id=lecture.id,
+            language=language,
+            transcript_length=len(transcript),
+        )
+        return VoiceTranscribeRead(transcript=transcript)
+
+    async def upload_lecture_image(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        data: bytes,
+        filename: str,
+    ) -> LectureImageUploadRead:
+        """Drag-drop image upload (T-132, #30). No AI diagram suggestion for
+        independent teachers — their personal-reference-content model has no
+        page-chunked structure to draw suggestions from (school-tenant only).
+        """
+        teacher = await self._require_independent_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        profile = get_profile("lecture_image")
+        try:
+            # UploadRecord lives in the school schema only — independent
+            # uploads reuse it the same way independent_personal_service.py
+            # already does, scoping "school_id" to the independent user's own
+            # id instead (per-user, not per-school dedup/scoping).
+            result = await run_upload_pipeline(
+                data=data,
+                filename=filename,
+                profile=profile,
+                session=self._session,
+                school_id=teacher.id,
+                uploaded_by=teacher.id,
+            )
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        return LectureImageUploadRead(
+            image_id=result.upload_id,
+            image_url=(
+                f"/api/v1/independent/teachers/me/lectures/{lecture.id}/images/{result.upload_id}"
+            ),
+        )
+
+    async def get_lecture_image(
+        self, claims: dict[str, object], lecture_id: str, image_id: str
+    ) -> tuple[bytes, str]:
+        teacher = await self._require_independent_teacher(claims)
+        await self._require_owned_lecture(teacher, lecture_id)
+
+        record = await self._session.get(UploadRecord, image_id)
+        if record is None or record.profile != "lecture_image" or record.school_id != teacher.id:
+            raise NotFoundError("Image not found")
+        data = download_bytes(record.bucket, record.minio_key)
+        return data, record.filename

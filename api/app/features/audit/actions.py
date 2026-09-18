@@ -76,6 +76,25 @@ LECTURE_GENERATION_TIMED_OUT = "lecture.generation_timed_out"
 LECTURE_LINKED = "lecture.linked"
 LECTURE_ACCESS_CHANGED = "lecture.access_changed"
 
+# M-11 — lecture publish (T-142). Override-publish is elevated (§6.19 / §14.10).
+LECTURE_PUBLISHED = "lecture.published"
+LECTURE_OVERRIDE_PUBLISHED = "lecture.override_published"
+
+# M-11 — quiz generation failures (T-143 / T-149)
+QUIZ_GENERATION_FAILED = "quiz.generation_failed"
+QUIZ_RESULTS_ACCESSED = "quiz.results_accessed"
+
+# M-10 — lecture edit + scoring (T-140 audit requirements, Flow 5 §3.6-§3.12).
+# Admin metrics access/export are "sensitive reads" per §14.10 (an admin viewing
+# comparative data about teachers outside their own performance); the plagiarism
+# flag is system-initiated but still a compliance-relevant event admins act on.
+# The benchmark opt-out toggle is a routine self-service privacy setting — logged
+# (§14.10 "configuration changes") but not elevated, same tier as STUDENT_MODE_CHANGED.
+ADMIN_METRICS_ACCESSED = "admin_metrics.accessed"
+ADMIN_METRICS_EXPORTED = "admin_metrics.exported"
+BENCHMARK_OPT_OUT_TOGGLED = "benchmark.opt_out_toggled"
+LECTURE_PLAGIARISM_FLAGGED = "lecture.plagiarism_flagged"
+
 ELEVATED_AUDIT_ACTIONS = frozenset(
     {
         CAPACITY_OVERRIDE,
@@ -92,6 +111,15 @@ ELEVATED_AUDIT_ACTIONS = frozenset(
         FRAMEWORK_APPROVAL_ESCALATED,
         # A Coordinator/Admin overriding a teacher's lecture access restriction.
         LECTURE_ACCESS_OVERRIDDEN,
+        # Admin/coordinator override-publish of a lecture (T-142).
+        LECTURE_OVERRIDE_PUBLISHED,
+        # Teacher/admin viewing quiz results (T-147 / T-149).
+        QUIZ_RESULTS_ACCESSED,
+        # Cross-teacher comparative data is a sensitive read; a plagiarism flag
+        # is compliance-relevant even though it's system-raised, not admin-initiated.
+        ADMIN_METRICS_ACCESSED,
+        ADMIN_METRICS_EXPORTED,
+        LECTURE_PLAGIARISM_FLAGGED,
     }
 )
 
@@ -171,10 +199,30 @@ M09_AUDIT_ACTIONS = frozenset(
     }
 )
 
+M10_AUDIT_ACTIONS = frozenset(
+    {
+        ADMIN_METRICS_ACCESSED,
+        ADMIN_METRICS_EXPORTED,
+        BENCHMARK_OPT_OUT_TOGGLED,
+        LECTURE_PLAGIARISM_FLAGGED,
+    }
+)
+
+M11_AUDIT_ACTIONS = frozenset(
+    {
+        LECTURE_PUBLISHED,
+        LECTURE_OVERRIDE_PUBLISHED,
+        QUIZ_GENERATION_FAILED,
+        QUIZ_RESULTS_ACCESSED,
+    }
+)
+
 REGISTERED_AUDIT_ACTIONS = (
     M04_AUDIT_ACTIONS
     | M06_AUDIT_ACTIONS
     | M07_AUDIT_ACTIONS
     | M08_AUDIT_ACTIONS
     | M09_AUDIT_ACTIONS
+    | M10_AUDIT_ACTIONS
+    | M11_AUDIT_ACTIONS
 )

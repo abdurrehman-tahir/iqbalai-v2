@@ -40,7 +40,7 @@ def test_soft_time_limit_is_five_minutes() -> None:
     assert SOFT_TIME_LIMIT_SECONDS == 300
 
 
-def test_lecture_generate_prompt_marks_structure_vs_depth() -> None:
+def test_lecture_gen_prompt_marks_structure_vs_depth() -> None:
     call = render(
         LectureGenerateInput(
             topic="Forces",
@@ -68,6 +68,26 @@ def test_lecture_generate_prompt_marks_structure_vs_depth() -> None:
     assert "[Curriculum" in call.user
     assert "[Ref:" in call.user
     assert "SEQUENCE" in call.system or "structure" in call.system.lower()
+
+
+def test_lecture_gen_prompt_includes_coaching_context_when_present() -> None:
+    """T-138 (#36): pending coaching tips are additive context, applied
+    quietly — never mentioned explicitly in the generated output."""
+    call = render(
+        LectureGenerateInput(
+            topic="Forces",
+            teaching_mode="auto",
+            target_language="en",
+            teacher_coaching_context=["Ground examples in local, everyday context."],
+        )
+    )
+    assert "Ground examples in local, everyday context." in call.user
+    assert "never mention explicitly" in call.user
+
+
+def test_lecture_gen_prompt_omits_coaching_section_when_absent() -> None:
+    call = render(LectureGenerateInput(topic="Forces", teaching_mode="auto", target_language="en"))
+    assert "Coaching tips" not in call.user
 
 
 @pytest.mark.asyncio
@@ -172,10 +192,21 @@ async def test_run_lecture_generation_persists_version_and_paragraphs(
     # T-126: the AsyncMock session isn't a real UserRepository-queryable session —
     # stub the notify call rather than let it chase mock attributes into a warning.
     monkeypatch.setattr("app.features.lectures.generation.notify_generation_complete", AsyncMock())
+    # T-138: coaching-context fetch is a deferred import (avoids a module-level
+    # cycle) — patch at its source module, not generation.py's namespace.
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service.get_generation_coaching_context_school",
+        AsyncMock(return_value=[]),
+    )
     # T-124: run_lecture_generation chains a Celery task at the end — never let a
     # unit test touch a real broker.
     monkeypatch.setattr(
         "app.features.lectures.tasks.generate_lecture_teacher_tips.apply_async",
+        MagicMock(),
+    )
+    # T-134: same for the scoring task chained right after.
+    monkeypatch.setattr(
+        "app.features.lectures.tasks.score_lecture_version.apply_async",
         MagicMock(),
     )
 

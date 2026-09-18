@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from app.infrastructure.llm.types import PromptCall
 
-PROMPT_VERSION = "lecture_gen.v1"
+PROMPT_VERSION = "lecture_generate.v1"
 
 
 class ChunkRef(BaseModel):
@@ -38,6 +38,14 @@ class LectureGenerateInput(BaseModel):
     exam_framework_name: str | None = None
     exam_strategy_summary: str | None = None
     exam_priority_topics: list[str] = Field(default_factory=list)
+    # T-138 (#36): ADDITIONAL Teaching Innovation Record nudges — pending
+    # coaching tips this teacher hasn't yet responded to, so the very lecture
+    # they're generating can put a prior suggestion into practice. Never a
+    # replacement for curriculum/reference sourcing. Plain strings (not a
+    # nested model), same "no feature-specific dependency in this prompt
+    # module" reasoning as the exam overlay above — app/features/teacher_coaching
+    # /service.py fills this in.
+    teacher_coaching_context: list[str] = Field(default_factory=list)
 
 
 class LectureParagraphOut(BaseModel):
@@ -77,6 +85,10 @@ CRITICAL RULES:
 - If exam framework context is present, weave in exam-readiness language (emphasis,
   worked examples) for its high-priority topics — it is ADDITIONAL, never a
   replacement for curriculum sequence/structure.
+- If coaching tips are present, quietly apply them where natural (e.g. a tip about
+  grounding examples locally means: prefer a locally-relevant example this time) —
+  ADDITIONAL polish, never a replacement for curriculum/reference sourcing, and never
+  mentioned explicitly in the output (no "per your coaching tip..." text).
 - Teaching mode = {teaching_mode}: auto=full lecture; manual=outline bullets only;
   voice_assisted=full lecture ready for spoken edits.
 - Respond in {language}.
@@ -121,6 +133,14 @@ def render(input_data: LectureGenerateInput) -> PromptCall:
             lines.append(f"Exam strategy: {input_data.exam_strategy_summary}")
         if input_data.exam_priority_topics:
             lines.append("High-priority exam topics: " + ", ".join(input_data.exam_priority_topics))
+        lines.append("")
+    if input_data.teacher_coaching_context:
+        lines.append(
+            "Coaching tips for this teacher (ADDITIONAL — apply quietly where natural, "
+            "never mention explicitly):"
+        )
+        for tip in input_data.teacher_coaching_context:
+            lines.append(f"- {tip}")
         lines.append("")
     lines.append("Write the lecture as JSON.")
     return PromptCall(

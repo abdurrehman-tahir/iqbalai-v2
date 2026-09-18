@@ -422,6 +422,19 @@
         "title": "AvailableFrameworkRead",
         "type": "object"
       },
+      "BenchmarkOptOutRequest": {
+        "properties": {
+          "opted_out": {
+            "title": "Opted Out",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "opted_out"
+        ],
+        "title": "BenchmarkOptOutRequest",
+        "type": "object"
+      },
       "Body_create_bulk_import_dry_run": {
         "properties": {
           "file": {
@@ -450,6 +463,34 @@
         "title": "Body_independent_personal_content_upload",
         "type": "object"
       },
+      "Body_independent_teacher_transcribe_voice_edit": {
+        "properties": {
+          "audio": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Audio",
+            "type": "string"
+          }
+        },
+        "required": [
+          "audio"
+        ],
+        "title": "Body_independent_teacher_transcribe_voice_edit",
+        "type": "object"
+      },
+      "Body_independent_teacher_upload_lecture_image": {
+        "properties": {
+          "image": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "title": "Body_independent_teacher_upload_lecture_image",
+        "type": "object"
+      },
       "Body_school_library_upload": {
         "properties": {
           "file": {
@@ -462,6 +503,34 @@
           "file"
         ],
         "title": "Body_school_library_upload",
+        "type": "object"
+      },
+      "Body_teacher_transcribe_voice_edit": {
+        "properties": {
+          "audio": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Audio",
+            "type": "string"
+          }
+        },
+        "required": [
+          "audio"
+        ],
+        "title": "Body_teacher_transcribe_voice_edit",
+        "type": "object"
+      },
+      "Body_teacher_upload_lecture_image": {
+        "properties": {
+          "image": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "title": "Body_teacher_upload_lecture_image",
         "type": "object"
       },
       "Body_upload_file": {
@@ -611,6 +680,58 @@
           "status"
         ],
         "title": "BulkImportRowResult",
+        "type": "object"
+      },
+      "CoachingResponseRequest": {
+        "properties": {
+          "response": {
+            "enum": [
+              "acted",
+              "ignored"
+            ],
+            "title": "Response",
+            "type": "string"
+          }
+        },
+        "required": [
+          "response"
+        ],
+        "title": "CoachingResponseRequest",
+        "type": "object"
+      },
+      "CoachingSuggestionRead": {
+        "description": "One pending (unactioned) coaching tip. Coaching framing only \u2014 no\nscore/grade is ever exposed here (Flow 5 \u00a73.10 locked rule).",
+        "properties": {
+          "frequency": {
+            "title": "Frequency",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "suggestion": {
+            "title": "Suggestion",
+            "type": "string"
+          },
+          "updated_at": {
+            "format": "date-time",
+            "title": "Updated At",
+            "type": "string"
+          },
+          "weakness_type": {
+            "title": "Weakness Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "weakness_type",
+          "suggestion",
+          "frequency",
+          "updated_at"
+        ],
+        "title": "CoachingSuggestionRead",
         "type": "object"
       },
       "DataRightsDeletionCreate": {
@@ -1063,6 +1184,75 @@
         "title": "DiagnosticStartRequest",
         "type": "object"
       },
+      "DiagramSuggestion": {
+        "description": "One AI-flagged reference-book page likely containing a relevant diagram.",
+        "properties": {
+          "book_name": {
+            "title": "Book Name",
+            "type": "string"
+          },
+          "library_item_id": {
+            "title": "Library Item Id",
+            "type": "string"
+          },
+          "page_number": {
+            "minimum": 1.0,
+            "title": "Page Number",
+            "type": "integer"
+          },
+          "reason": {
+            "title": "Reason",
+            "type": "string"
+          }
+        },
+        "required": [
+          "library_item_id",
+          "book_name",
+          "page_number",
+          "reason"
+        ],
+        "title": "DiagramSuggestion",
+        "type": "object"
+      },
+      "DiagramSuggestionAccept": {
+        "additionalProperties": false,
+        "description": "Renders the named reference-book page and uploads it as a lecture image.",
+        "properties": {
+          "library_item_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Library Item Id",
+            "type": "string"
+          },
+          "page_number": {
+            "minimum": 1.0,
+            "title": "Page Number",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "library_item_id",
+          "page_number"
+        ],
+        "title": "DiagramSuggestionAccept",
+        "type": "object"
+      },
+      "DiagramSuggestionsRead": {
+        "properties": {
+          "suggestions": {
+            "items": {
+              "$ref": "#/components/schemas/DiagramSuggestion"
+            },
+            "title": "Suggestions",
+            "type": "array"
+          }
+        },
+        "required": [
+          "suggestions"
+        ],
+        "title": "DiagramSuggestionsRead",
+        "type": "object"
+      },
       "DisclaimerVersionCreate": {
         "description": "Publish a new Disclaimer version (Platform Admin only). 500-char limit.",
         "properties": {
@@ -1202,6 +1392,101 @@
           }
         },
         "title": "DistrictUpdate",
+        "type": "object"
+      },
+      "EditSessionHeartbeatRequest": {
+        "additionalProperties": false,
+        "description": "Cumulative (not delta) totals for the session so far \u2014 a retried\nheartbeat overwrites with the same values instead of double-counting\n(ARCH \u00a75.9 doesn't require Idempotency-Key here since this isn't a\nresource-creating POST, but the values themselves must still be\nidempotent-safe against a client retry).",
+        "properties": {
+          "active_ms": {
+            "minimum": 0.0,
+            "title": "Active Ms",
+            "type": "integer"
+          },
+          "char_delta": {
+            "minimum": 0.0,
+            "title": "Char Delta",
+            "type": "integer"
+          },
+          "edits_count": {
+            "minimum": 0.0,
+            "title": "Edits Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "active_ms",
+          "edits_count",
+          "char_delta"
+        ],
+        "title": "EditSessionHeartbeatRequest",
+        "type": "object"
+      },
+      "EditSessionRead": {
+        "properties": {
+          "active_ms": {
+            "title": "Active Ms",
+            "type": "integer"
+          },
+          "char_delta": {
+            "title": "Char Delta",
+            "type": "integer"
+          },
+          "edits_count": {
+            "title": "Edits Count",
+            "type": "integer"
+          },
+          "effort_score": {
+            "title": "Effort Score",
+            "type": "number"
+          },
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "started_at": {
+            "format": "date-time",
+            "title": "Started At",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "active_ms",
+          "edits_count",
+          "char_delta",
+          "started_at",
+          "effort_score"
+        ],
+        "title": "EditSessionRead",
+        "type": "object"
+      },
+      "EditSessionStartRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "lecture_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Lecture Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id"
+        ],
+        "title": "EditSessionStartRequest",
         "type": "object"
       },
       "EligibleTeacherRead": {
@@ -3042,6 +3327,25 @@
         "title": "LectureGenerateRequest",
         "type": "object"
       },
+      "LectureImageUploadRead": {
+        "description": "Servable URL for a just-uploaded lecture image (T-132).",
+        "properties": {
+          "image_id": {
+            "title": "Image Id",
+            "type": "string"
+          },
+          "image_url": {
+            "title": "Image Url",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image_id",
+          "image_url"
+        ],
+        "title": "LectureImageUploadRead",
+        "type": "object"
+      },
       "LectureLinkCreate": {
         "description": "Self-link a lecture into another Grade-Subject offering the teacher owns (T-122).",
         "properties": {
@@ -3158,6 +3462,51 @@
         "title": "LectureParagraphRead",
         "type": "object"
       },
+      "LecturePublishRead": {
+        "description": "Result of publishing a lecture (T-142).",
+        "properties": {
+          "current_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Version Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "override": {
+            "default": false,
+            "title": "Override",
+            "type": "boolean"
+          },
+          "published_by_user_id": {
+            "title": "Published By User Id",
+            "type": "string"
+          },
+          "quizzes_published": {
+            "default": 0,
+            "title": "Quizzes Published",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "published_by_user_id"
+        ],
+        "title": "LecturePublishRead",
+        "type": "object"
+      },
       "LectureRosterRead": {
         "description": "The lecture's grade roster, for building the access-restriction picker.",
         "properties": {
@@ -3214,6 +3563,139 @@
           "status"
         ],
         "title": "LectureTeacherTipsRead",
+        "type": "object"
+      },
+      "LectureVersionRead": {
+        "description": "A single immutable lecture version, as returned after a save (T-130).",
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "content_jsonb": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Jsonb"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "edit_summary": {
+            "anyOf": [
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edit Summary"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "originality_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Originality Score"
+          },
+          "scores_jsonb": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scores Jsonb"
+          },
+          "topic_relevance_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Topic Relevance Pct"
+          },
+          "version": {
+            "title": "Version",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "version",
+          "body",
+          "created_at"
+        ],
+        "title": "LectureVersionRead",
+        "type": "object"
+      },
+      "LectureVersionSaveRequest": {
+        "additionalProperties": false,
+        "description": "Manual or debounced auto-save from the TipTap editor (T-130, #29-#31).\n\nShared shape for both tenants \u2014 the editor has no tenant-specific fields.",
+        "properties": {
+          "content_jsonb": {
+            "additionalProperties": true,
+            "title": "Content Jsonb",
+            "type": "object"
+          },
+          "edit_session_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Edit Session Id"
+          },
+          "is_autosave": {
+            "default": false,
+            "title": "Is Autosave",
+            "type": "boolean"
+          },
+          "used_voice_edit": {
+            "default": false,
+            "title": "Used Voice Edit",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "content_jsonb"
+        ],
+        "title": "LectureVersionSaveRequest",
         "type": "object"
       },
       "LibraryBookListResponse": {
@@ -3700,6 +4182,42 @@
         "title": "PaginatedEnvelope[AuditLogEntryRead]",
         "type": "object"
       },
+      "PaginatedEnvelope_LectureVersionRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/LectureVersionRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "pages"
+        ],
+        "title": "PaginatedEnvelope[LectureVersionRead]",
+        "type": "object"
+      },
       "ParentChildLinkRead": {
         "properties": {
           "approved_at": {
@@ -4152,6 +4670,210 @@
           "current_tos_version_id"
         ],
         "title": "PostLoginResponse",
+        "type": "object"
+      },
+      "QuizAggregateHotspotRead": {
+        "properties": {
+          "difficulty": {
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "incorrect_rate": {
+            "title": "Incorrect Rate",
+            "type": "number"
+          },
+          "question_ordinal": {
+            "title": "Question Ordinal",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "question_ordinal",
+          "difficulty",
+          "incorrect_rate"
+        ],
+        "title": "QuizAggregateHotspotRead",
+        "type": "object"
+      },
+      "QuizAttemptResultRead": {
+        "properties": {
+          "assignment_id": {
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "max_score": {
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuizQuestionResultRead"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "attempt_id",
+          "score",
+          "max_score",
+          "status",
+          "questions"
+        ],
+        "title": "QuizAttemptResultRead",
+        "type": "object"
+      },
+      "QuizOfferingAggregateRead": {
+        "properties": {
+          "assigned_count": {
+            "title": "Assigned Count",
+            "type": "integer"
+          },
+          "average_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Score"
+          },
+          "completed_count": {
+            "title": "Completed Count",
+            "type": "integer"
+          },
+          "completion_rate": {
+            "title": "Completion Rate",
+            "type": "number"
+          },
+          "hotspots": {
+            "items": {
+              "$ref": "#/components/schemas/QuizAggregateHotspotRead"
+            },
+            "title": "Hotspots",
+            "type": "array"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_topic": {
+            "title": "Lecture Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "lecture_topic",
+          "assigned_count",
+          "completed_count",
+          "completion_rate",
+          "average_score",
+          "hotspots"
+        ],
+        "title": "QuizOfferingAggregateRead",
+        "type": "object"
+      },
+      "QuizOptionRead": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "text"
+        ],
+        "title": "QuizOptionRead",
+        "type": "object"
+      },
+      "QuizQuestionResultRead": {
+        "properties": {
+          "correct_answer": {
+            "title": "Correct Answer",
+            "type": "string"
+          },
+          "is_correct": {
+            "title": "Is Correct",
+            "type": "boolean"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "string"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected"
+          },
+          "source_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Excerpt"
+          },
+          "stem": {
+            "title": "Stem",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_id",
+          "ordinal",
+          "stem",
+          "selected",
+          "correct_answer",
+          "is_correct"
+        ],
+        "title": "QuizQuestionResultRead",
+        "type": "object"
+      },
+      "QuizSubmitRequest": {
+        "properties": {
+          "answers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Answers",
+            "type": "object"
+          }
+        },
+        "title": "QuizSubmitRequest",
         "type": "object"
       },
       "ResearchJobStatus": {
@@ -5051,6 +5773,134 @@
         "title": "StudentProfileRead",
         "type": "object"
       },
+      "StudentQuizCardRead": {
+        "description": "Dashboard card for one of the student's quizzes (T-145).",
+        "properties": {
+          "assigned_at": {
+            "format": "date-time",
+            "title": "Assigned At",
+            "type": "string"
+          },
+          "assignment_id": {
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_title": {
+            "title": "Lecture Title",
+            "type": "string"
+          },
+          "lecture_topic": {
+            "title": "Lecture Topic",
+            "type": "string"
+          },
+          "question_count": {
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "quiz_id": {
+            "title": "Quiz Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "published",
+              "attempted",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "quiz_id",
+          "lecture_id",
+          "lecture_topic",
+          "lecture_title",
+          "question_count",
+          "status",
+          "assigned_at"
+        ],
+        "title": "StudentQuizCardRead",
+        "type": "object"
+      },
+      "StudentQuizDetailRead": {
+        "properties": {
+          "assignment_id": {
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_topic": {
+            "title": "Lecture Topic",
+            "type": "string"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/StudentQuizQuestionRead"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
+          "quiz_id": {
+            "title": "Quiz Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "quiz_id",
+          "lecture_id",
+          "lecture_topic",
+          "status",
+          "questions"
+        ],
+        "title": "StudentQuizDetailRead",
+        "type": "object"
+      },
+      "StudentQuizQuestionRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/QuizOptionRead"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "stem": {
+            "title": "Stem",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ordinal",
+          "stem",
+          "options"
+        ],
+        "title": "StudentQuizQuestionRead",
+        "type": "object"
+      },
       "StudentSelectionRead": {
         "description": "A student's framework selection (T-096).\n\n``latest_version`` + ``update_available`` power the opt-in \"v2 available \u2014 switch?\"\nbanner (T-095): a refreshed, approved version exists beyond the pinned one.",
         "properties": {
@@ -5503,6 +6353,23 @@
         "title": "SuccessEnvelope[BulkImportRead]",
         "type": "object"
       },
+      "SuccessEnvelope_CoachingSuggestionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/CoachingSuggestionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[CoachingSuggestionRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DataRightsRequestRead_": {
         "properties": {
           "data": {
@@ -5588,6 +6455,23 @@
         "title": "SuccessEnvelope[DiagnosticResultRead]",
         "type": "object"
       },
+      "SuccessEnvelope_DiagramSuggestionsRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DiagramSuggestionsRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[DiagramSuggestionsRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DisclaimerVersionRead_": {
         "properties": {
           "data": {
@@ -5603,6 +6487,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[DisclaimerVersionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_EditSessionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/EditSessionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[EditSessionRead]",
         "type": "object"
       },
       "SuccessEnvelope_ExamFrameworkRead_": {
@@ -5894,6 +6795,23 @@
         "title": "SuccessEnvelope[LectureGenerateRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureImageUploadRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureImageUploadRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureImageUploadRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LectureLinkRead_": {
         "properties": {
           "data": {
@@ -5909,6 +6827,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LectureLinkRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LecturePublishRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LecturePublishRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LecturePublishRead]",
         "type": "object"
       },
       "SuccessEnvelope_LectureRosterRead_": {
@@ -5943,6 +6878,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LectureTeacherTipsRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureVersionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureVersionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureVersionRead]",
         "type": "object"
       },
       "SuccessEnvelope_LibraryBookListResponse_": {
@@ -6132,6 +7084,40 @@
         "title": "SuccessEnvelope[PostLoginResponse]",
         "type": "object"
       },
+      "SuccessEnvelope_QuizAttemptResultRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/QuizAttemptResultRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[QuizAttemptResultRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_QuizOfferingAggregateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/QuizOfferingAggregateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[QuizOfferingAggregateRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_SchoolLibraryItemRead_": {
         "properties": {
           "data": {
@@ -6300,6 +7286,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[StudentModeRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentQuizDetailRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentQuizDetailRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentQuizDetailRead]",
         "type": "object"
       },
       "SuccessEnvelope_StudentSelectionRead_": {
@@ -6489,6 +7492,23 @@
         "title": "SuccessEnvelope[UserRead]",
         "type": "object"
       },
+      "SuccessEnvelope_VoiceTranscribeRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/VoiceTranscribeRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[VoiceTranscribeRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_WizardEstimateRead_": {
         "properties": {
           "data": {
@@ -6521,6 +7541,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[WizardTopicsRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_dict_str__int__": {
+        "properties": {
+          "data": {
+            "additionalProperties": {
+              "type": "integer"
+            },
+            "title": "Data",
+            "type": "object"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[dict[str, int]]",
         "type": "object"
       },
       "SuccessEnvelope_list_AcademicSessionRead__": {
@@ -6563,6 +7604,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[AvailableFrameworkRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_CoachingSuggestionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/CoachingSuggestionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[CoachingSuggestionRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_DisclaimerVersionRead__": {
@@ -6859,6 +7921,27 @@
         "title": "SuccessEnvelope[list[SectionRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_StudentQuizCardRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/StudentQuizCardRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[StudentQuizCardRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_StudentSelectionRead__": {
         "properties": {
           "data": {
@@ -6943,6 +8026,48 @@
         "title": "SuccessEnvelope[list[SyllabusTopicRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_TeacherBenchmarkRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherBenchmarkRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[TeacherBenchmarkRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_TeacherMetricsRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherMetricsRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[TeacherMetricsRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_TeacherOfferingRead__": {
         "properties": {
           "data": {
@@ -6962,6 +8087,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[TeacherOfferingRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_TeacherStudentQuizResultRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherStudentQuizResultRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[TeacherStudentQuizResultRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_TosVersionRead__": {
@@ -7115,6 +8261,40 @@
         "title": "SyllabusTopicRead",
         "type": "object"
       },
+      "TeacherBenchmarkRead": {
+        "description": "One positively-framed benchmark row (\"Top 23%\", never \"bottom 30%\" \u2014\nFlow 5 \u00a73.11 locked rule). Opted-out / not-yet-computed rows never\nreach this schema (T-139).",
+        "properties": {
+          "grade_range": {
+            "title": "Grade Range",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "region": {
+            "title": "Region",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "top_percent": {
+            "title": "Top Percent",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "subject_name",
+          "grade_range",
+          "region",
+          "top_percent"
+        ],
+        "title": "TeacherBenchmarkRead",
+        "type": "object"
+      },
       "TeacherCapacityUpdate": {
         "description": "Teacher self-edit capacity payload (flow-3 \u00a73.5 \u2014 range [1, 20]).",
         "properties": {
@@ -7153,6 +8333,114 @@
           "capacity_below_assignments"
         ],
         "title": "TeacherCapacityUpdateRead",
+        "type": "object"
+      },
+      "TeacherMetricsRead": {
+        "description": "One (teacher, subject, grade) aggregate row \u2014 averaged across every\nscored lecture version in scope. Unlike the teacher-facing benchmark\n(#37), this is not anonymized: admins see real names/schools.",
+        "properties": {
+          "avg_ai_learning": {
+            "title": "Avg Ai Learning",
+            "type": "number"
+          },
+          "avg_alignment": {
+            "title": "Avg Alignment",
+            "type": "number"
+          },
+          "avg_cultural_relevance": {
+            "title": "Avg Cultural Relevance",
+            "type": "number"
+          },
+          "avg_depth": {
+            "title": "Avg Depth",
+            "type": "number"
+          },
+          "avg_engagement": {
+            "title": "Avg Engagement",
+            "type": "number"
+          },
+          "avg_originality": {
+            "title": "Avg Originality",
+            "type": "number"
+          },
+          "avg_topic_relevance_pct": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Topic Relevance Pct"
+          },
+          "avg_total": {
+            "title": "Avg Total",
+            "type": "number"
+          },
+          "avg_voice_quality": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Voice Quality"
+          },
+          "grade_range": {
+            "title": "Grade Range",
+            "type": "string"
+          },
+          "lecture_count": {
+            "title": "Lecture Count",
+            "type": "integer"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "school_name": {
+            "title": "School Name",
+            "type": "string"
+          },
+          "subject_id": {
+            "title": "Subject Id",
+            "type": "string"
+          },
+          "subject_name": {
+            "title": "Subject Name",
+            "type": "string"
+          },
+          "teacher_name": {
+            "title": "Teacher Name",
+            "type": "string"
+          },
+          "teacher_user_id": {
+            "title": "Teacher User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "teacher_user_id",
+          "teacher_name",
+          "school_id",
+          "school_name",
+          "subject_id",
+          "subject_name",
+          "grade_range",
+          "lecture_count",
+          "avg_originality",
+          "avg_depth",
+          "avg_cultural_relevance",
+          "avg_engagement",
+          "avg_alignment",
+          "avg_voice_quality",
+          "avg_ai_learning",
+          "avg_total",
+          "avg_topic_relevance_pct"
+        ],
+        "title": "TeacherMetricsRead",
         "type": "object"
       },
       "TeacherOfferingRead": {
@@ -7397,6 +8685,68 @@
           "profile_completed_at"
         ],
         "title": "TeacherProfileRead",
+        "type": "object"
+      },
+      "TeacherStudentQuizResultRead": {
+        "properties": {
+          "assignment_id": {
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "calibration": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calibration"
+          },
+          "max_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Score"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "student_display_name": {
+            "title": "Student Display Name",
+            "type": "string"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "student_user_id",
+          "student_display_name",
+          "assignment_id",
+          "status"
+        ],
+        "title": "TeacherStudentQuizResultRead",
         "type": "object"
       },
       "TeacherTips": {
@@ -7806,6 +9156,20 @@
           "type"
         ],
         "title": "ValidationError",
+        "type": "object"
+      },
+      "VoiceTranscribeRead": {
+        "description": "faster-whisper transcript for a dictated audio clip (T-131).",
+        "properties": {
+          "transcript": {
+            "title": "Transcript",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transcript"
+        ],
+        "title": "VoiceTranscribeRead",
         "type": "object"
       },
       "WizardCurriculumRead": {
@@ -9558,6 +10922,166 @@
         "summary": "Update a subscription tier",
         "tags": [
           "subscriptions"
+        ]
+      }
+    },
+    "/api/v1/admin/teacher-metrics": {
+      "get": {
+        "operationId": "admin_list_teacher_metrics",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_range",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Range"
+            }
+          },
+          {
+            "in": "query",
+            "name": "school_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "School Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TeacherMetricsRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Comparative 7-dim quality metrics across teachers, scoped by admin level (T-139, #38)",
+        "tags": [
+          "admin-metrics"
+        ]
+      }
+    },
+    "/api/v1/admin/teacher-metrics/export": {
+      "get": {
+        "operationId": "admin_export_teacher_metrics_csv",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "subject_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Subject Id"
+            }
+          },
+          {
+            "in": "query",
+            "name": "grade_range",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Grade Range"
+            }
+          },
+          {
+            "in": "query",
+            "name": "school_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "School Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "CSV export of the comparative teacher metrics table (T-139, #38)",
+        "tags": [
+          "admin-metrics"
         ]
       }
     },
@@ -12108,6 +13632,224 @@
         ]
       }
     },
+    "/api/v1/independent/teachers/me/coaching": {
+      "get": {
+        "operationId": "independent_teacher_list_coaching_suggestions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_CoachingSuggestionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Pending (unactioned) coaching tips \u2014 the Teaching Innovation Record (T-138, #36)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/coaching/{memory_id}/respond": {
+      "post": {
+        "operationId": "independent_teacher_respond_to_coaching_suggestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memory_id",
+            "required": true,
+            "schema": {
+              "title": "Memory Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoachingResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_CoachingSuggestionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark a coaching tip acted-on or ignored (T-138, #36)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/edit-sessions": {
+      "post": {
+        "operationId": "independent_teacher_start_edit_session",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open an effort-tracking edit session (T-133, #31)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/edit-sessions/{edit_session_id}/end": {
+      "post": {
+        "operationId": "independent_teacher_end_edit_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edit_session_id",
+            "required": true,
+            "schema": {
+              "title": "Edit Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionHeartbeatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close an effort-tracking edit session (T-133, #31)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/edit-sessions/{edit_session_id}/heartbeat": {
+      "post": {
+        "operationId": "independent_teacher_heartbeat_edit_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edit_session_id",
+            "required": true,
+            "schema": {
+              "title": "Edit Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionHeartbeatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "30s effort-tracking heartbeat \u2014 cumulative totals (T-133, #31)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
     "/api/v1/independent/teachers/me/lecture-draft": {
       "get": {
         "operationId": "independent_teacher_get_lecture_draft",
@@ -12325,6 +14067,107 @@
         ]
       }
     },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/images": {
+      "post": {
+        "operationId": "independent_teacher_upload_lecture_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_independent_teacher_upload_lecture_image"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureImageUploadRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Drag-drop image upload into the lecture editor (T-132, #30)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/images/{image_id}": {
+      "get": {
+        "operationId": "independent_teacher_get_lecture_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Serve a previously-uploaded lecture image (T-132, #30)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
     "/api/v1/independent/teachers/me/lectures/{lecture_id}/paragraphs": {
       "get": {
         "operationId": "independent_teacher_get_lecture_paragraphs",
@@ -12362,6 +14205,232 @@
           }
         },
         "summary": "List a lecture's current-version paragraphs with source attribution",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/versions": {
+      "get": {
+        "operationId": "independent_teacher_list_lecture_versions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 6,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Score timeline data \u2014 versions newest-first, paginated (T-137, #35)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      },
+      "post": {
+        "operationId": "independent_teacher_save_lecture_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureVersionSaveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save a TipTap edit as a new immutable lecture version (T-130, #29-#31)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/versions/current": {
+      "get": {
+        "operationId": "independent_teacher_get_current_lecture_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Load the current version's content into the TipTap editor (T-130)",
+        "tags": [
+          "independent-lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/independent/teachers/me/lectures/{lecture_id}/voice-transcribe": {
+      "post": {
+        "operationId": "independent_teacher_transcribe_voice_edit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(en|ur|sd|ps)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Language"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_independent_teacher_transcribe_voice_edit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_VoiceTranscribeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transcribe a dictated audio clip via faster-whisper (T-131, #29)",
         "tags": [
           "independent-lecture-wizard"
         ]
@@ -14886,6 +16955,121 @@
         ]
       }
     },
+    "/api/v1/students/me/quizzes": {
+      "get": {
+        "operationId": "student_list_my_quizzes",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_StudentQuizCardRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List the authenticated student's published quizzes (T-145)",
+        "tags": [
+          "student-quizzes"
+        ]
+      }
+    },
+    "/api/v1/students/me/quizzes/{assignment_id}": {
+      "get": {
+        "operationId": "student_get_my_quiz",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentQuizDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open one of the student's quizzes (T-145/T-146)",
+        "tags": [
+          "student-quizzes"
+        ]
+      }
+    },
+    "/api/v1/students/me/quizzes/{assignment_id}/submit": {
+      "post": {
+        "operationId": "student_submit_my_quiz",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizSubmitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_QuizAttemptResultRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit quiz answers (idempotent) and get immediate results (T-146)",
+        "tags": [
+          "student-quizzes"
+        ]
+      }
+    },
     "/api/v1/subjects/": {
       "get": {
         "operationId": "subjects_list",
@@ -15104,6 +17288,68 @@
         ]
       }
     },
+    "/api/v1/teachers/me/benchmarks": {
+      "get": {
+        "operationId": "teacher_list_benchmarks",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TeacherBenchmarkRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Positively-framed peer-cohort standing, e.g. \"Top 23%\" (T-139, #37)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/benchmarks/opt-out": {
+      "post": {
+        "operationId": "teacher_set_benchmark_opt_out",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BenchmarkOptOutRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_dict_str__int__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Opt in/out of anonymized peer benchmarking (T-139, #37)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
     "/api/v1/teachers/me/capacity": {
       "patch": {
         "operationId": "teacher_update_capacity",
@@ -15142,6 +17388,224 @@
         "summary": "Update teacher self-edit capacity (1\u201320 grade-subject assignments)",
         "tags": [
           "teacher-onboarding"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/coaching": {
+      "get": {
+        "operationId": "teacher_list_coaching_suggestions",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_CoachingSuggestionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Pending (unactioned) coaching tips \u2014 the Teaching Innovation Record (T-138, #36)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/coaching/{memory_id}/respond": {
+      "post": {
+        "operationId": "teacher_respond_to_coaching_suggestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "memory_id",
+            "required": true,
+            "schema": {
+              "title": "Memory Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CoachingResponseRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_CoachingSuggestionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Mark a coaching tip acted-on or ignored (T-138, #36)",
+        "tags": [
+          "teacher-coaching"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/edit-sessions": {
+      "post": {
+        "operationId": "teacher_start_edit_session",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionStartRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open an effort-tracking edit session (T-133, #31)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/edit-sessions/{edit_session_id}/end": {
+      "post": {
+        "operationId": "teacher_end_edit_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edit_session_id",
+            "required": true,
+            "schema": {
+              "title": "Edit Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionHeartbeatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Close an effort-tracking edit session (T-133, #31)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/edit-sessions/{edit_session_id}/heartbeat": {
+      "post": {
+        "operationId": "teacher_heartbeat_edit_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "edit_session_id",
+            "required": true,
+            "schema": {
+              "title": "Edit Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EditSessionHeartbeatRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_EditSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "30s effort-tracking heartbeat \u2014 cumulative totals (T-133, #31)",
+        "tags": [
+          "lecture-wizard"
         ]
       }
     },
@@ -15544,6 +18008,201 @@
         ]
       }
     },
+    "/api/v1/teachers/me/lectures/{lecture_id}/diagram-suggestions": {
+      "get": {
+        "operationId": "teacher_get_diagram_suggestions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DiagramSuggestionsRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "AI-flagged reference-book diagrams relevant to this lecture (T-132, #30)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/diagram-suggestions/accept": {
+      "post": {
+        "operationId": "teacher_accept_diagram_suggestion",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DiagramSuggestionAccept"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureImageUploadRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Render + insert an accepted reference-book diagram (T-132, #30)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/images": {
+      "post": {
+        "operationId": "teacher_upload_lecture_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_teacher_upload_lecture_image"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureImageUploadRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Drag-drop image upload into the lecture editor (T-132, #30)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/images/{image_id}": {
+      "get": {
+        "operationId": "teacher_get_lecture_image",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "image_id",
+            "required": true,
+            "schema": {
+              "title": "Image Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Serve a previously-uploaded lecture image (T-132, #30)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
     "/api/v1/teachers/me/lectures/{lecture_id}/links": {
       "get": {
         "operationId": "teacher_list_lecture_links",
@@ -15678,6 +18337,132 @@
         ]
       }
     },
+    "/api/v1/teachers/me/lectures/{lecture_id}/publish": {
+      "post": {
+        "operationId": "teacher_publish_lecture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LecturePublishRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish a lecture to enrolled Grade-Subject students (T-142)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/quiz-aggregate": {
+      "get": {
+        "operationId": "teacher_get_lecture_quiz_aggregate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_QuizOfferingAggregateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Class aggregate quiz results for a lecture (T-147)",
+        "tags": [
+          "teacher-quiz-results"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/quiz-results": {
+      "get": {
+        "operationId": "teacher_list_lecture_quiz_results",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TeacherStudentQuizResultRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Per-student quiz results for a lecture (T-147)",
+        "tags": [
+          "teacher-quiz-results"
+        ]
+      }
+    },
     "/api/v1/teachers/me/lectures/{lecture_id}/roster": {
       "get": {
         "operationId": "teacher_get_lecture_roster",
@@ -15757,6 +18542,232 @@
           }
         },
         "summary": "Delivery tips + technique demo + real-world examples (T-124, #28, #41)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/versions": {
+      "get": {
+        "operationId": "teacher_list_lecture_versions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 6,
+              "maximum": 50,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Score timeline data \u2014 versions newest-first, paginated (T-137, #35)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      },
+      "post": {
+        "operationId": "teacher_save_lecture_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureVersionSaveRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save a TipTap edit as a new immutable lecture version (T-130, #29-#31)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/versions/current": {
+      "get": {
+        "operationId": "teacher_get_current_lecture_version",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureVersionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Load the current version's content into the TipTap editor (T-130)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/voice-transcribe": {
+      "post": {
+        "operationId": "teacher_transcribe_voice_edit",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(en|ur|sd|ps)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Language"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_teacher_transcribe_voice_edit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_VoiceTranscribeRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transcribe a dictated audio clip via faster-whisper (T-131, #29)",
         "tags": [
           "lecture-wizard"
         ]

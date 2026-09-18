@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { lectureWizardApi, ApiError } from "@/lib/api";
+import { lectureWizardApi, teacherCoachingApi, teacherQuizResultsApi, ApiError } from "@/lib/api";
 import type {
   LectureDraftUpsert,
   LectureGenerateRequest,
@@ -19,6 +19,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
+import { LectureEditorPanel } from "@/components/lectures/LectureEditorPanel";
+import { ScoreTimelineChart } from "@/components/lectures/ScoreTimelineChart";
+import { TeachingInnovationCard } from "@/components/lectures/TeachingInnovationCard";
+import { BenchmarkCard } from "@/components/lectures/BenchmarkCard";
 
 type WizardData = {
   grade_subject_offering_id?: string;
@@ -62,17 +66,9 @@ export function LectureWizardClient() {
   const topicsQuery = useQuery({
     queryKey: ["teacher", "wizard-topics", data.curriculum_id, data.grade_subject_offering_id],
     queryFn: () =>
-      lectureWizardApi.listTopics(
-        token!,
-        data.curriculum_id!,
-        data.grade_subject_offering_id!
-      ),
+      lectureWizardApi.listTopics(token!, data.curriculum_id!, data.grade_subject_offering_id!),
     enabled:
-      mounted &&
-      !!token &&
-      !!data.curriculum_id &&
-      !!data.grade_subject_offering_id &&
-      step === 1,
+      mounted && !!token && !!data.curriculum_id && !!data.grade_subject_offering_id && step === 1,
   });
 
   useEffect(() => {
@@ -95,8 +91,7 @@ export function LectureWizardClient() {
   }, [step, curriculaQuery.data, data.curriculum_id]);
 
   const saveMutation = useMutation({
-    mutationFn: (payload: LectureDraftUpsert) =>
-      lectureWizardApi.upsertDraft(token ?? "", payload),
+    mutationFn: (payload: LectureDraftUpsert) => lectureWizardApi.upsertDraft(token ?? "", payload),
     onSuccess: async () => {
       setSaveError(null);
       await qc.invalidateQueries({ queryKey: ["teacher", "lecture-draft"] });
@@ -116,10 +111,7 @@ export function LectureWizardClient() {
     [saveMutation, token]
   );
 
-  const offerings = useMemo(
-    () => offeringsQuery.data ?? [],
-    [offeringsQuery.data]
-  );
+  const offerings = useMemo(() => offeringsQuery.data ?? [], [offeringsQuery.data]);
   const selectedOffering: TeacherOfferingRead | undefined = useMemo(
     () => offerings.find((o) => o.id === data.grade_subject_offering_id),
     [offerings, data.grade_subject_offering_id]
@@ -328,9 +320,7 @@ export function LectureWizardClient() {
               })}
             </p>
           ) : null}
-          <p className="text-sm text-gray-700">
-            {t("topic_summary", { topic: data.topic ?? "" })}
-          </p>
+          <p className="text-sm text-gray-700">{t("topic_summary", { topic: data.topic ?? "" })}</p>
 
           {curriculaQuery.isLoading ? <Skeleton className="h-24 w-full" /> : null}
           {curriculaQuery.isError ? (
@@ -350,9 +340,7 @@ export function LectureWizardClient() {
 
           {curriculaQuery.data && curriculaQuery.data.length > 0 ? (
             <fieldset className="space-y-2">
-              <legend className="text-sm font-medium text-gray-900">
-                {t("curriculum_label")}
-              </legend>
+              <legend className="text-sm font-medium text-gray-900">{t("curriculum_label")}</legend>
               <ul className="space-y-2">
                 {curriculaQuery.data.map((c) => (
                   <li key={c.id}>
@@ -362,9 +350,7 @@ export function LectureWizardClient() {
                         name="curriculum"
                         className="mt-1 size-4"
                         checked={data.curriculum_id === c.id}
-                        onChange={() =>
-                          setData((prev) => ({ ...prev, curriculum_id: c.id }))
-                        }
+                        onChange={() => setData((prev) => ({ ...prev, curriculum_id: c.id }))}
                       />
                       <span className="text-sm text-gray-900">
                         {c.title}
@@ -374,9 +360,7 @@ export function LectureWizardClient() {
                           </span>
                         ) : null}
                         {c.parse_degraded ? (
-                          <span className="ms-2 text-xs text-amber-700">
-                            {t("degraded_badge")}
-                          </span>
+                          <span className="ms-2 text-xs text-amber-700">{t("degraded_badge")}</span>
                         ) : null}
                       </span>
                     </label>
@@ -387,18 +371,10 @@ export function LectureWizardClient() {
           ) : null}
 
           <div className="flex justify-between gap-3 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => persist(1, data)}
-            >
+            <Button type="button" variant="outline" onClick={() => persist(1, data)}>
               {t("back")}
             </Button>
-            <Button
-              type="button"
-              disabled={!data.curriculum_id}
-              onClick={() => persist(3, data)}
-            >
+            <Button type="button" disabled={!data.curriculum_id} onClick={() => persist(3, data)}>
               {t("next")}
             </Button>
           </div>
@@ -495,11 +471,7 @@ export function LectureWizardClient() {
             <Button type="button" variant="outline" onClick={() => persist(3, data)}>
               {t("back")}
             </Button>
-            <Button
-              type="button"
-              disabled={!data.teaching_mode}
-              onClick={() => persist(5, data)}
-            >
+            <Button type="button" disabled={!data.teaching_mode} onClick={() => persist(5, data)}>
               {t("next")}
             </Button>
           </div>
@@ -640,8 +612,7 @@ function Step5Confirm({
   });
 
   const generateMutation = useMutation({
-    mutationFn: (payload: LectureGenerateRequest) =>
-      lectureWizardApi.generate(token, payload),
+    mutationFn: (payload: LectureGenerateRequest) => lectureWizardApi.generate(token, payload),
     onSuccess: (result) => {
       onGenerated(result.lecture_id);
     },
@@ -669,9 +640,7 @@ function Step5Confirm({
       ) : null}
       <p className="text-sm text-gray-700">{t("topic_summary", { topic: data.topic ?? "" })}</p>
       <p className="text-sm text-gray-700">{t(`mode_${mode}`)}</p>
-      <p className="text-sm text-gray-700">
-        {t("refs_summary", { count: refs.length })}
-      </p>
+      <p className="text-sm text-gray-700">{t("refs_summary", { count: refs.length })}</p>
       {estimateQuery.isLoading ? <Skeleton className="h-8 w-48" /> : null}
       {estimateQuery.isError ? (
         <ErrorState
@@ -764,9 +733,32 @@ function GenerationStreamPanel({
           <h3 className="text-lg font-medium text-gray-900">{t("generating_complete_title")}</h3>
           <p className="text-sm text-gray-700">{t("generating_complete_body")}</p>
         </div>
+        <TeachingInnovationCard
+          token={token!}
+          api={teacherCoachingApi}
+          t={t}
+          queryKeyPrefix="teacher"
+        />
+        <BenchmarkCard token={token!} t={t} queryKeyPrefix="teacher" />
+        <LectureEditorPanel
+          token={token!}
+          lectureId={lectureId}
+          api={lectureWizardApi}
+          t={t}
+          queryKeyPrefix="teacher"
+        />
+        <ScoreTimelineChart
+          token={token!}
+          lectureId={lectureId}
+          api={lectureWizardApi}
+          t={t}
+          queryKeyPrefix="teacher"
+        />
         <LectureParagraphsView token={token!} lectureId={lectureId} t={t} />
         <LectureLinksPanel token={token!} lectureId={lectureId} t={t} />
         <LectureAccessPanel token={token!} lectureId={lectureId} t={t} />
+        <LecturePublishPanel token={token!} lectureId={lectureId} t={t} />
+        <LectureQuizResultsPanel token={token!} lectureId={lectureId} t={t} />
         <LectureTeacherTipsPanel token={token!} lectureId={lectureId} t={t} />
         <VoiceConversationPanel lectureId={lectureId} t={t} />
       </section>
@@ -1007,6 +999,148 @@ function LectureLinksPanel({
         <p className="text-sm text-red-700" role="alert">
           {linkError}
         </p>
+      ) : null}
+    </section>
+  );
+}
+
+/** Publish lecture to enrolled students (T-142). Bound to quiz publish (T-145). */
+function LecturePublishPanel({
+  token,
+  lectureId,
+  t,
+}: {
+  token: string;
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const publishMutation = useMutation({
+    mutationFn: () => lectureWizardApi.publishLecture(token, lectureId),
+    onSuccess: () => {
+      setError(null);
+      setSuccess(t("publish_success"));
+    },
+    onError: (err: unknown) => {
+      setSuccess(null);
+      setError(err instanceof ApiError ? err.message : t("publish_error"));
+    },
+  });
+
+  return (
+    <section className="space-y-3 rounded-lg border border-gray-200 p-4" aria-labelledby="lecture-publish-heading">
+      <h4 id="lecture-publish-heading" className="text-base font-medium text-gray-900">
+        {t("publish_title")}
+      </h4>
+      <p className="text-sm text-gray-700">{t("publish_body")}</p>
+      {error ? (
+        <p className="text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p className="text-sm text-green-700" role="status">
+          {success}
+        </p>
+      ) : null}
+      <Button
+        type="button"
+        onClick={() => publishMutation.mutate()}
+        disabled={publishMutation.isPending}
+      >
+        {publishMutation.isPending ? t("publish_publishing") : t("publish_button")}
+      </Button>
+    </section>
+  );
+}
+
+/** Per-student + aggregate quiz results for this lecture (T-147). */
+function LectureQuizResultsPanel({
+  token,
+  lectureId,
+  t,
+}: {
+  token: string;
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const resultsQuery = useQuery({
+    queryKey: ["teacher", "quiz-results", lectureId],
+    queryFn: () => teacherQuizResultsApi.listResults(token, lectureId),
+  });
+  const aggregateQuery = useQuery({
+    queryKey: ["teacher", "quiz-aggregate", lectureId],
+    queryFn: () => teacherQuizResultsApi.getAggregate(token, lectureId),
+  });
+
+  return (
+    <section
+      className="space-y-3 rounded-lg border border-gray-200 p-4"
+      aria-labelledby="lecture-quiz-results-heading"
+      data-testid="lecture-quiz-results"
+    >
+      <h4 id="lecture-quiz-results-heading" className="text-base font-medium text-gray-900">
+        {t("quiz_results_title")}
+      </h4>
+      <p className="text-sm text-gray-700">{t("quiz_results_body")}</p>
+
+      {aggregateQuery.data ? (
+        <div className="space-y-1 text-sm text-gray-800">
+          <p>
+            {t("quiz_completion", {
+              completed: aggregateQuery.data.completed_count,
+              assigned: aggregateQuery.data.assigned_count,
+              rate: Math.round(aggregateQuery.data.completion_rate * 100),
+            })}
+          </p>
+          {aggregateQuery.data.average_score != null ? (
+            <p>
+              {t("quiz_average", {
+                average: Math.round(aggregateQuery.data.average_score * 100),
+              })}
+            </p>
+          ) : null}
+          {(Array.isArray(aggregateQuery.data.hotspots) ? aggregateQuery.data.hotspots : [])
+            .length > 0 ? (
+            <ul className="mt-2 space-y-1 text-xs text-gray-600">
+              {(aggregateQuery.data.hotspots ?? []).map((h) => (
+                <li key={h.question_ordinal}>
+                  {t("quiz_hotspot", {
+                    ordinal: h.question_ordinal,
+                    rate: Math.round(h.incorrect_rate * 100),
+                    difficulty: h.difficulty,
+                  })}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
+      {resultsQuery.isError || aggregateQuery.isError ? (
+        <p className="text-sm text-red-700" role="alert">
+          {t("quiz_results_error")}
+        </p>
+      ) : null}
+
+      {Array.isArray(resultsQuery.data) && resultsQuery.data.length > 0 ? (
+        <ul className="space-y-1 text-sm text-gray-800" aria-label={t("quiz_results_title")}>
+          {resultsQuery.data.map((row) => (
+            <li
+              key={row.assignment_id}
+              className="flex justify-between gap-2 border-b border-gray-100 py-1"
+            >
+              <span>{row.student_display_name}</span>
+              <span>
+                {row.score != null && row.max_score != null
+                  ? `${row.score}/${row.max_score}`
+                  : row.status}
+              </span>
+            </li>
+          ))}
+        </ul>
       ) : null}
     </section>
   );
@@ -1355,7 +1489,10 @@ function VoiceConversationPanel({
   const isBusy = voice.status === "recording" || voice.status === "processing";
 
   return (
-    <section className="space-y-3 border-t border-gray-100 pt-4" aria-labelledby="voice-panel-heading">
+    <section
+      className="space-y-3 border-t border-gray-100 pt-4"
+      aria-labelledby="voice-panel-heading"
+    >
       <h3 id="voice-panel-heading" className="text-lg font-medium text-gray-900">
         {t("voice_panel_title")}
       </h3>
@@ -1413,10 +1550,7 @@ function VoiceConversationPanel({
       ) : null}
 
       {voice.turns.length > 0 ? (
-        <ul
-          className="max-h-64 space-y-2 overflow-y-auto"
-          aria-label={t("voice_transcript_label")}
-        >
+        <ul className="max-h-64 space-y-2 overflow-y-auto" aria-label={t("voice_transcript_label")}>
           {voice.turns.map((turn, i) => (
             <li key={i} className="rounded-md border border-gray-200 p-2 text-sm">
               <p dir="auto" className="text-gray-500">

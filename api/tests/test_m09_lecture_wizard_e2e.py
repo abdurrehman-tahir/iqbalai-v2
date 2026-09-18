@@ -591,6 +591,23 @@ def _patch(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(
         independent_tasks_mod.generate_independent_lecture, "apply_async", lambda **_kwargs: None
     )
+    # T-134: generation chains scoring at the end — never let this e2e touch a broker.
+    monkeypatch.setattr(tasks_mod.score_lecture_version, "apply_async", lambda **_kwargs: None)
+    monkeypatch.setattr(
+        independent_tasks_mod.score_independent_lecture_version,
+        "apply_async",
+        lambda **_kwargs: None,
+    )
+    # T-138: coaching-context is a deferred import that queries the session.
+    # `_gen_session`'s bare AsyncMock can't satisfy `result.scalars().all()`.
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service.get_generation_coaching_context_school",
+        AsyncMock(return_value=[]),
+    )
+    monkeypatch.setattr(
+        "app.features.teacher_coaching.service.get_generation_coaching_context_independent",
+        AsyncMock(return_value=[]),
+    )
 
 
 def _claims(sub: str) -> dict[str, object]:

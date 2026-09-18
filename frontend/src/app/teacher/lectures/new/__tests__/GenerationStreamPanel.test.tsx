@@ -55,6 +55,23 @@ const getAccessSettings = vi.fn();
 const setAccessSettings = vi.fn();
 const getRoster = vi.fn();
 const getTeacherTips = vi.fn();
+const getCurrentVersion = vi.fn();
+const listVersions = vi.fn();
+const saveVersion = vi.fn();
+const transcribeVoice = vi.fn();
+const uploadImage = vi.fn();
+const getDiagramSuggestions = vi.fn();
+const acceptDiagramSuggestion = vi.fn();
+const startEditSession = vi.fn();
+const heartbeatEditSession = vi.fn();
+const endEditSession = vi.fn();
+const listCoachingSuggestions = vi.fn();
+const respondToCoachingSuggestion = vi.fn();
+const listBenchmarks = vi.fn();
+const setBenchmarkOptOut = vi.fn();
+const publishLecture = vi.fn();
+const listQuizResults = vi.fn();
+const getQuizAggregate = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   lectureWizardApi: {
@@ -73,6 +90,29 @@ vi.mock("@/lib/api", () => ({
     setAccessSettings: (...args: unknown[]) => setAccessSettings(...args),
     getRoster: (...args: unknown[]) => getRoster(...args),
     getTeacherTips: (...args: unknown[]) => getTeacherTips(...args),
+    getCurrentVersion: (...args: unknown[]) => getCurrentVersion(...args),
+    listVersions: (...args: unknown[]) => listVersions(...args),
+    saveVersion: (...args: unknown[]) => saveVersion(...args),
+    transcribeVoice: (...args: unknown[]) => transcribeVoice(...args),
+    uploadImage: (...args: unknown[]) => uploadImage(...args),
+    getDiagramSuggestions: (...args: unknown[]) => getDiagramSuggestions(...args),
+    acceptDiagramSuggestion: (...args: unknown[]) => acceptDiagramSuggestion(...args),
+    startEditSession: (...args: unknown[]) => startEditSession(...args),
+    heartbeatEditSession: (...args: unknown[]) => heartbeatEditSession(...args),
+    endEditSession: (...args: unknown[]) => endEditSession(...args),
+    publishLecture: (...args: unknown[]) => publishLecture(...args),
+  },
+  teacherCoachingApi: {
+    listSuggestions: (...args: unknown[]) => listCoachingSuggestions(...args),
+    respondToSuggestion: (...args: unknown[]) => respondToCoachingSuggestion(...args),
+  },
+  teacherBenchmarksApi: {
+    list: (...args: unknown[]) => listBenchmarks(...args),
+    setOptOut: (...args: unknown[]) => setBenchmarkOptOut(...args),
+  },
+  teacherQuizResultsApi: {
+    listResults: (...args: unknown[]) => listQuizResults(...args),
+    getAggregate: (...args: unknown[]) => getQuizAggregate(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -130,6 +170,64 @@ function renderAtStep5GeneratingLecture(
     assignments: [],
   });
   getTeacherTips.mockResolvedValue({ lecture_id: "lec-1", status: "pending", tips: null });
+  getCurrentVersion.mockResolvedValue({
+    id: "ver-1",
+    lecture_id: "lec-1",
+    version: 1,
+    content_jsonb: null,
+    body: "Newton's first law states that...",
+    scores_jsonb: null,
+    topic_relevance_pct: null,
+    originality_score: null,
+    edit_summary: null,
+    created_at: "2026-08-05T00:00:00Z",
+  });
+  getDiagramSuggestions.mockResolvedValue({ suggestions: [] });
+  listVersions.mockResolvedValue({ items: [], total: 0, page: 1, page_size: 6, pages: 0 });
+  listCoachingSuggestions.mockResolvedValue([]);
+  listBenchmarks.mockResolvedValue([]);
+  setBenchmarkOptOut.mockResolvedValue({ rows_changed: 0 });
+  publishLecture.mockResolvedValue({
+    id: "lec-1",
+    status: "PUBLISHED",
+    published_at: "2026-08-05T00:00:00Z",
+  });
+  listQuizResults.mockResolvedValue([]);
+  getQuizAggregate.mockResolvedValue({
+    lecture_id: "lec-1",
+    assigned_count: 0,
+    completed_count: 0,
+    completion_rate: 0,
+    average_score: null,
+    hotspots: [],
+  });
+  startEditSession.mockResolvedValue({
+    id: "effort-session-1",
+    active_ms: 0,
+    edits_count: 0,
+    char_delta: 0,
+    started_at: "2026-08-05T00:00:00Z",
+    ended_at: null,
+    effort_score: 0,
+  });
+  heartbeatEditSession.mockResolvedValue({
+    id: "effort-session-1",
+    active_ms: 0,
+    edits_count: 0,
+    char_delta: 0,
+    started_at: "2026-08-05T00:00:00Z",
+    ended_at: null,
+    effort_score: 0,
+  });
+  endEditSession.mockResolvedValue({
+    id: "effort-session-1",
+    active_ms: 0,
+    edits_count: 0,
+    char_delta: 0,
+    started_at: "2026-08-05T00:00:00Z",
+    ended_at: "2026-08-05T00:05:00Z",
+    effort_score: 0,
+  });
 
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } });
   return render(
@@ -172,9 +270,7 @@ describe("GenerationStreamPanel", () => {
     });
     renderAtStep5GeneratingLecture();
 
-    expect(
-      await screen.findByText(/Newton's first law states that/i)
-    ).toBeInTheDocument();
+    expect(await screen.findByText(/Newton's first law states that/i)).toBeInTheDocument();
   });
 
   it("shows a reconnecting notice without losing the transcript so far", async () => {
@@ -327,12 +423,8 @@ describe("VoiceConversationPanel (T-121)", () => {
     });
     renderAtStep5GeneratingLecture();
 
-    expect(
-      await screen.findByText("add an example about Newton's third law")
-    ).toBeInTheDocument();
-    expect(
-      screen.getByText("Adding an example about Newton's third law.")
-    ).toBeInTheDocument();
+    expect(await screen.findByText("add an example about Newton's third law")).toBeInTheDocument();
+    expect(screen.getByText("Adding an example about Newton's third law.")).toBeInTheDocument();
     expect(screen.getByText(/lecture draft updated/i)).toBeInTheDocument();
   });
 

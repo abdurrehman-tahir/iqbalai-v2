@@ -1,10 +1,18 @@
-"""Lecture-generation notification templates (T-126, flow-5 §7).
+"""Lecture-generation + edit/scoring notification templates (T-126, T-140;
+flow-5 §7, §3.6/§3.10/§3.11).
 
-Scoped to the three template keys this ticket's acceptance criteria actually
-require — generation complete / failed / timeout. The spec's full ``lectures``
-namespace table also lists ``generation_started``, ``published``, ``linked``,
-etc.; those belong to other tickets (or are out of this ticket's "What this
-ticket builds" scope) and are not built here.
+Originally scoped to generation complete/failed/timeout (T-126); T-140 adds
+three more keys for the M-10 edit/scoring loop: ``scoring_complete``
+(#32), ``coaching_suggestion`` (Teaching Innovation Record, #36 — no score/
+number in the body, per Flow 5 §3.10's locked coaching-framing rule),
+``benchmark_updated`` (#37, school tenant only — positively framed, per
+§3.11's locked "Top X%, never bottom Y%" rule). All three reuse the
+``lectures`` namespace — Flow 5 has these firmly in the lecture edit
+lifecycle and adding a new namespace requires a Platform Admin product
+decision (ARCH §9.21), not something a ticket does unilaterally. The spec's
+full ``lectures`` namespace table also lists ``generation_started``,
+``published``, ``linked``, etc.; those belong to other tickets (or are out
+of scope here) and are not built here.
 
 All keys carry en/ur/sd/ps (Acceptance #4 — no ``__TODO__``). Bodies use
 ``{param}`` placeholders filled by ``render_lecture_template``. Every template
@@ -80,6 +88,122 @@ LECTURE_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
                 "body": 'ستاسو د "{topic}" لیکچر جوړول ډیر وخت ونیو او ختم شو۔ مهرباني وکړئ بیا هڅه وکړئ۔',
             },
         }
+    },
+    "lectures.scoring_complete": {
+        "default": {
+            "en": {
+                "title": "Lecture scored",
+                "body": 'Your saved version of "{topic}" scored {total}/{max}. View the breakdown in the version timeline.',
+            },
+            "ur": {
+                "title": "لیکچر کا اسکور تیار",
+                "body": '"{topic}" کے محفوظ شدہ ورژن کو {total}/{max} اسکور ملا۔ تفصیل ورژن ٹائم لائن میں دیکھیں۔',
+            },
+            "sd": {
+                "title": "ليڪچر جو اسڪور تيار",
+                "body": '"{topic}" جي محفوظ ٿيل ورزن کي {total}/{max} اسڪور مليو۔ تفصيل ورزن ٽائيم لائن ۾ ڏسو۔',
+            },
+            "ps": {
+                "title": "لیکچر ارزول شو",
+                "body": 'ستاسو د "{topic}" خوندي شوی نسخه {total}/{max} امتیاز ترلاسه کړ۔ تفصیل د نسخې مهال ویش کې وګورئ۔',
+            },
+        }
+    },
+    "lectures.coaching_suggestion": {
+        "default": {
+            "en": {
+                "title": "A tip for you",
+                "body": "Your Teaching Innovation Record has a new coaching suggestion.",
+            },
+            "ur": {
+                "title": "آپ کے لیے ایک تجویز",
+                "body": "آپ کے ٹیچنگ انوویشن ریکارڈ میں ایک نئی کوچنگ تجویز موجود ہے۔",
+            },
+            "sd": {
+                "title": "توهان لاءِ هڪ صلاح",
+                "body": "توهان جي ٽيچنگ انوويشن رڪارڊ ۾ هڪ نئين ڪوچنگ صلاح موجود آهي۔",
+            },
+            "ps": {
+                "title": "تاسو لپاره یوه لار چاره",
+                "body": "ستاسو په ښوونې د نوښت ریکارډ کې یوه نوې روزنیزه وړاندیز شتون لري۔",
+            },
+        }
+    },
+    "lectures.benchmark_updated": {
+        "default": {
+            "en": {
+                "title": "Your standing updated",
+                "body": "Top {percent}% of {subject} teachers in {region} — see your latest standing.",
+            },
+            "ur": {
+                "title": "آپ کی پوزیشن اپ ڈیٹ ہوئی",
+                "body": "{region} میں {subject} اساتذہ کے ٹاپ {percent}% میں — اپنی تازہ ترین پوزیشن دیکھیں۔",
+            },
+            "sd": {
+                "title": "توهان جي پوزيشن اپڊيٽ ٿي",
+                "body": "{region} ۾ {subject} استادن جي ٽاپ {percent}% ۾ — پنهنجي تازي پوزيشن ڏسو۔",
+            },
+            "ps": {
+                "title": "ستاسو دریځ تازه شو",
+                "body": "په {region} کې د {subject} ښوونکو له غوره {percent}٪ څخه — خپل وروستی دریځ وګورئ۔",
+            },
+        }
+    },
+    "lectures.published": {
+        "default": {
+            "en": {
+                "title": "Lecture published",
+                "body": 'Your lecture on "{topic}" is now visible to enrolled students.',
+            },
+            "ur": {
+                "title": "لیکچر شائع ہو گیا",
+                "body": '"{topic}" پر آپ کا لیکچر اب اندراج شدہ طلبہ کے لیے دستیاب ہے۔',
+            },
+            "sd": {
+                "title": "ليڪچر شايع ٿي ويو",
+                "body": '"{topic}" تي توهان جو ليڪچر هاڻي داخل ٿيل شاگردن لاءِ موجود آهي۔',
+            },
+            "ps": {
+                "title": "لیکچر خپور شو",
+                "body": 'ستاسو د "{topic}" لیکچر اوس نوم لیکلي زده کوونکو ته ښکاري۔',
+            },
+        },
+        "student": {
+            "en": {
+                "title": "New lecture available",
+                "body": 'A new lecture on "{topic}" is ready for you.',
+            },
+            "ur": {
+                "title": "نیا لیکچر دستیاب ہے",
+                "body": '"{topic}" پر ایک نیا لیکچر آپ کے لیے تیار ہے۔',
+            },
+            "sd": {
+                "title": "نئون ليڪچر موجود آهي",
+                "body": '"{topic}" تي هڪ نئون ليڪچر توهان لاءِ تيار آهي۔',
+            },
+            "ps": {
+                "title": "نوی لیکچر شتون لري",
+                "body": 'د "{topic}" په اړه یو نوی لیکچر ستاسو لپاره چمتو دی۔',
+            },
+        },
+        "parent": {
+            "en": {
+                "title": "New lecture for your child",
+                "body": 'A lecture on "{topic}" was published for your child\'s class.',
+            },
+            "ur": {
+                "title": "آپ کے بچے کے لیے نیا لیکچر",
+                "body": 'آپ کے بچے کی جماعت کے لیے "{topic}" پر لیکچر شائع ہوا۔',
+            },
+            "sd": {
+                "title": "توهان جي ٻار لاءِ نئون ليڪچر",
+                "body": 'توهان جي ٻار جي ڪلاس لاءِ "{topic}" تي ليڪچر شايع ٿيو۔',
+            },
+            "ps": {
+                "title": "ستاسو د ماشوم لپاره نوی لیکچر",
+                "body": 'ستاسو د ماشوم ټولګي لپاره د "{topic}" لیکچر خپور شو۔',
+            },
+        },
     },
 }
 

@@ -81,6 +81,15 @@ async function installStudentMocks(page: Page, role: "student" | "independent_st
       return;
     }
 
+    if (method === "GET" && path === "/students/me/quizzes") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope([]),
+      });
+      return;
+    }
+
     if (path.includes("link") || path.includes("connections") || path.includes("parent")) {
       await route.fulfill({
         status: 200,

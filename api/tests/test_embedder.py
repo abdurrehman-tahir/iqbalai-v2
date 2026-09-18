@@ -8,6 +8,7 @@ from app.infrastructure.rag.embedder import (
     embed_sync,
     embedding_model_name,
     embedding_vector_dim,
+    lecture_originality_index_collection,
     platform_chunks_collection,
 )
 
@@ -32,6 +33,20 @@ def test_infinity_provider_defaults() -> None:
         assert platform_chunks_collection() == "platform_chunks"
         assert embedding_vector_dim() == 1024
         assert embedding_model_name() == "BAAI/bge-m3"
+
+
+def test_lecture_originality_index_collection_local_vs_infinity() -> None:
+    """T-129/T-135 — the school-tenant global originality index collection name
+    follows the same local/infinity split as every other collection, so CI can
+    use the low-dim fixture embedder without a vector-dimension mismatch.
+    """
+    with patch("app.infrastructure.rag.embedder.get_settings") as mock_settings:
+        mock_settings.return_value.EMBEDDING_PROVIDER = "local"
+        assert lecture_originality_index_collection() == "lecture_originality_index_local"
+
+    with patch("app.infrastructure.rag.embedder.get_settings") as mock_settings:
+        mock_settings.return_value.EMBEDDING_PROVIDER = "infinity"
+        assert lecture_originality_index_collection() == "lecture_originality_index"
 
 
 def test_embed_sync_local_path() -> None:

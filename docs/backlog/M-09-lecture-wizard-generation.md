@@ -236,9 +236,6 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 ### Out of scope
 - Fallback tier logic (T-119)
 
-### Notes / known gotchas
-- BLOCKED-HOOK: Chat sidebar + click-badge-to-highlight-source-paragraph → per flow-5 (target milestone TBD, confirm with Abd.) (built against the wizard's post-generation preview badges for now)
-
 ---
 
 ## T-119 — Out-of-curriculum fallback tiers (#27)
@@ -347,8 +344,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Notes / known gotchas
 - STACK_LOCK: faster-whisper (NOT raw Whisper). Sub-2s STS on CPU is an open feasibility question (Flow 5 §8 Q3) — implement the loop; latency tuning is iterative.
-- **AI4Bharat pivot:** no verified self-hostable AI4Bharat TTS package was found (WebSearch found no canonical, trustworthy image/package). Reassigned: Piper handles en/ur (self-hosted ONNX), Edge-TTS handles ps (has a supported voice for it). sd has no viable TTS provider, so sd sessions run STT-only and `VoiceUnavailableError` degrades gracefully to "voice not yet available in sd; reading aloud disabled" per flow-5 §5.4's existing edge case — the session stays usable, just without spoken confirmations. This is a real STACK_LOCK §4.4 deviation (AI4Bharat is the locked choice) — recorded in `docs/DEVIATIONS.md` (pending @abdurrehman ratification) during M-09 pre-merge review; the PR's original "Deviations: None" line was incorrect.
-- **Migration verification: RESOLVED.** `school_0053` and `independent_0013` were live-verified during M-09 pre-merge review (2026-09-15): fresh DB, `alembic upgrade heads`, individual downgrade → upgrade heads round-trip for each, full backend suite passed. No duplicate-index/duplicate-enum issues. The original note above (Docker Desktop unresponsive) no longer applies.
+- **AI4Bharat pivot:** no verified self-hostable AI4Bharat TTS package was found (WebSearch found no canonical, trustworthy image/package). Reassigned: Piper handles en/ur (self-hosted ONNX), Edge-TTS handles ps (has a supported voice for it). sd has no viable TTS provider, so sd sessions run STT-only and `VoiceUnavailableError` degrades gracefully to "voice not yet available in sd; reading aloud disabled" per flow-5 §5.4's existing edge case — the session stays usable, just without spoken confirmations.
+- **Migration verification gap:** `school_0053`/`independent_0013` were written following the exact proven `school_0051`/`school_0052` idempotent-enum pattern (school_0052 was live-verified for T-120), but could NOT be run through a live upgrade/downgrade/re-upgrade cycle — Docker Desktop stopped responding mid-session. `alembic heads` confirms the revision graph resolves correctly. Recommend a live verification pass before this ships to staging DB.
 - Repo-wide `pnpm lint` also surfaces one pre-existing unused-var error in the already-committed T-117 file `lecture-generation-socket.test.ts:33` (`_code`) — unrelated to this ticket, not fixed here to avoid bundling.
 
 ---
@@ -387,9 +384,8 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Notes / known gotchas
 - **Scope narrowed to self-link, auto-approve** (confirmed with Hamza before implementing): the spec's full LINK_REQUESTED → admin-approval lifecycle for linking into another teacher's offering was not built — only the 5 acceptance items above, which cover self-link. Cross-teacher admin-initiated linking is an unstarted follow-up if the product actually needs it.
-- BLOCKED-HOOK: Cross-teacher linking LINK_REQUESTED → admin approval lifecycle → flow-5 §3.13 (built against self-link auto-approve only for now)
 - No dedicated lecture-detail page exists yet in this milestone, so links render inside the wizard's existing post-generation view (`LectureWizardClient.tsx`), alongside the paragraphs and voice panels — same surface T-118/T-121 used.
-- **Migration verification: RESOLVED.** `school_0054` was live-verified during M-09 pre-merge review (2026-09-15) — see T-121 note for the full run detail. The original note above (Docker Desktop unresponsive) no longer applies.
+- **Migration verification gap:** `school_0054` was written following the proven `school_0051`/`0052`/`0053` pattern (`alembic heads` resolves cleanly) but could not be live-verified via upgrade/downgrade — Docker Desktop is still unresponsive in this environment, same gap flagged for T-121.
 
 ---
 
@@ -427,11 +423,10 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Notes / known gotchas
 - **"Group" targeting omitted:** the spec allows restricting by student, group, or section, but no Group model exists anywhere in this codebase (Flow 11 isn't built) — confirmed with Hamza before implementing. Only student_user_id and section_id restriction are supported.
-- BLOCKED-HOOK: "Group" targeting for per-lecture access → Flow 11 (built against student_user_id + section_id restriction only for now, no Group model exists yet)
 - **No student-facing HTTP endpoint yet:** `student_can_access_lecture()` is the fully-tested enforcement function, but it isn't wired to a student-facing route since M-12 owns the viewer surface (out of scope for this ticket, confirmed with Hamza) — M-12 should call this function directly rather than reimplementing the ACL logic.
 - **Real gap fixed along the way:** acceptance item 5 exposed that `_require_school_teacher` (used by every other lecture endpoint since T-114) hard-requires the literal `teacher` role, so a Coordinator/Admin would 403 at the service layer despite passing the router's `require_role("teacher")` gate. Added a broader `_require_lecture_for_access_management` helper used only by the access-settings endpoints (Coordinator/School Admin: same-school; District/Platform Admin: unconditional, matching an existing stub in `core/dependencies.require_scope`). This gap likely still exists on every *other* lecture endpoint (paragraphs, links, voice) — not fixed here since it's outside T-123's scope, but worth a follow-up ticket.
 - **Roster endpoint added beyond original plan:** `GET .../roster` wasn't in the original scope decision, but was necessary to make the restrict-by-student/section UI usable at all (no existing endpoint lets a teacher list their own class roster — sections/enrollments are coordinator-gated everywhere else in this codebase). Read-only, scoped to the teacher's own offering.
-- **Migration verification: RESOLVED.** `school_0055` was live-verified during M-09 pre-merge review (2026-09-15) — see T-121 note for the full run detail. The original note above (Docker Desktop unresponsive) no longer applies.
+- **Migration verification gap:** `school_0055` was written following the proven `school_0051`-`0054` pattern (`alembic heads` resolves cleanly) but could not be live-verified via upgrade/downgrade — Docker Desktop is still unresponsive in this environment, same gap flagged for T-121/T-122.
 
 ---
 
@@ -469,10 +464,9 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Notes / known gotchas
 - **Scope narrowed to generation + display** (confirmed with Hamza before implementing): the spec's Print view and 30-day expiring PII-stripped Share link were not built — only the 5 acceptance items above. Print/Share are an unstarted follow-up if the product needs them.
-- BLOCKED-HOOK: Print view + 30-day expiring PII-stripped Share link → flow-5 §3.15 (built against teacher-facing in-app display only for now)
 - **"Teacher's language" reuses the lecture's own target_language plumbing** — there is no teacher language-preference concept anywhere in this codebase yet (`generate_from_wizard` hardcodes `"en"`, a pre-existing gap this ticket didn't cause). Tips will correctly follow the lecture's language once that hardcode is eventually fixed elsewhere.
 - **Found and fixed a real bug along the way:** chaining the new Celery task inside `run_lecture_generation` made 7 existing unit tests try to reach a real Celery broker (13+ minutes of retries instead of ~15s) — fixed by mocking `generate_lecture_teacher_tips.apply_async` in the 3 affected test files, matching the existing `generate_lecture` enqueue-test pattern.
-- **Migration verification: RESOLVED.** `school_0056` was live-verified during M-09 pre-merge review (2026-09-15) — see T-121 note for the full run detail. The original note above (Docker Desktop unresponsive) no longer applies.
+- **Migration verification gap:** `school_0056` was written following the proven `school_0051`-`0055` pattern (`alembic heads` resolves cleanly) but could not be live-verified via upgrade/downgrade — Docker Desktop is still unresponsive in this environment, same gap flagged for T-121/T-122/T-123.
 
 ---
 
@@ -541,9 +535,6 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 ### Out of scope
 - Publish/quiz notifications (M-11)
 
-### Notes / known gotchas
-- BLOCKED-HOOK: generation_started notification + access/link/publish notification rows → flow-5 §7 (built against generation complete/failed/timeout notifications only for now)
-
 ---
 
 ## T-127 — E2E smoke test
@@ -580,7 +571,6 @@ A teacher runs the 5-step lecture creation wizard, hits Generate, and watches an
 
 ### Notes / known gotchas
 - Mock LLM + SearXNG in CI (no live network). Use fixture curriculum + reference content.
-- BLOCKED-HOOK: Frontend Playwright E2E for the lecture wizard → next phase (built against backend E2E with mocked LLM/SearXNG only for now)
 
 ---
 
@@ -628,4 +618,3 @@ The single milestone PR per `WORKFLOW.md` Step 2: open the M-09 branch PR, fill 
 - **`lecture_type`/`parent_lecture_id` exist from T-113** so Flow 7 mini-lectures (M-16) slot in without a schema change later.
 - **Custom Persona is NOT injected into lecture generation** (class-wide content) per §3.2 — only per-student surfaces use it.
 - **Source flow:** Flow 5 v1 (generation portions) — finalized, no blockers.
-- BLOCKED-HOOK: RLS ENABLE + FORCE on school lecture tables (school_0051-0057) → dedicated RLS hardening ticket, Abd. to draft with full query-path audit (built against hand-rolled `school_id` repository filters + Qdrant `build_tenant_filter` chokepoint for now). Systemic across most non-library school tables, not introduced by M-09 — flagged by `phase-complete-review`, not patched here to avoid inconsistent partial coverage.

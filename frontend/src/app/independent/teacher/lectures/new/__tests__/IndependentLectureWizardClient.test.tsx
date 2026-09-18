@@ -22,6 +22,16 @@ const upsertDraft = vi.fn();
 const generate = vi.fn();
 const getLecture = vi.fn();
 const getParagraphs = vi.fn();
+const getCurrentVersion = vi.fn();
+const listVersions = vi.fn();
+const saveVersion = vi.fn();
+const transcribeVoice = vi.fn();
+const uploadImage = vi.fn();
+const startEditSession = vi.fn();
+const heartbeatEditSession = vi.fn();
+const endEditSession = vi.fn();
+const listCoachingSuggestions = vi.fn();
+const respondToCoachingSuggestion = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   independentLectureWizardApi: {
@@ -31,6 +41,18 @@ vi.mock("@/lib/api", () => ({
     generate: (...args: unknown[]) => generate(...args),
     getLecture: (...args: unknown[]) => getLecture(...args),
     getParagraphs: (...args: unknown[]) => getParagraphs(...args),
+    getCurrentVersion: (...args: unknown[]) => getCurrentVersion(...args),
+    listVersions: (...args: unknown[]) => listVersions(...args),
+    saveVersion: (...args: unknown[]) => saveVersion(...args),
+    transcribeVoice: (...args: unknown[]) => transcribeVoice(...args),
+    uploadImage: (...args: unknown[]) => uploadImage(...args),
+    startEditSession: (...args: unknown[]) => startEditSession(...args),
+    heartbeatEditSession: (...args: unknown[]) => heartbeatEditSession(...args),
+    endEditSession: (...args: unknown[]) => endEditSession(...args),
+  },
+  independentTeacherCoachingApi: {
+    listSuggestions: (...args: unknown[]) => listCoachingSuggestions(...args),
+    respondToSuggestion: (...args: unknown[]) => respondToCoachingSuggestion(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -80,6 +102,20 @@ describe("IndependentLectureWizardClient", () => {
       updated_at: null,
     });
     listReferences.mockResolvedValue([{ id: "ref-1", title: "My Notes.pdf" }]);
+    const effortSession = {
+      id: "effort-session-1",
+      active_ms: 0,
+      edits_count: 0,
+      char_delta: 0,
+      started_at: "2026-08-05T00:00:00Z",
+      ended_at: null,
+      effort_score: 0,
+    };
+    startEditSession.mockResolvedValue(effortSession);
+    heartbeatEditSession.mockResolvedValue(effortSession);
+    endEditSession.mockResolvedValue({ ...effortSession, ended_at: "2026-08-05T00:05:00Z" });
+    listVersions.mockResolvedValue({ items: [], total: 0, page: 1, page_size: 6, pages: 0 });
+    listCoachingSuggestions.mockResolvedValue([]);
     upsertDraft.mockResolvedValue({
       id: "draft-1",
       teacher_user_id: "t-1",
@@ -112,7 +148,11 @@ describe("IndependentLectureWizardClient", () => {
 
   it("selects a reference, generates a lecture, and polls through to completion", async () => {
     const user = userEvent.setup();
-    generate.mockResolvedValue({ lecture_id: "lec-1", status: "generating", estimated_seconds: 30 });
+    generate.mockResolvedValue({
+      lecture_id: "lec-1",
+      status: "generating",
+      estimated_seconds: 30,
+    });
     getLecture.mockResolvedValue({
       id: "lec-1",
       status: "ready_for_edit",
@@ -120,8 +160,35 @@ describe("IndependentLectureWizardClient", () => {
       current_version_id: "v-1",
     });
     getParagraphs.mockResolvedValue([
-      { ordinal: 1, tier: "reference", book_name: "My Notes.pdf", text: "Force equals mass times acceleration.", source_url: null },
+      {
+        ordinal: 1,
+        tier: "reference",
+        book_name: "My Notes.pdf",
+        text: "Force equals mass times acceleration.",
+        source_url: null,
+      },
     ]);
+    getCurrentVersion.mockResolvedValue({
+      id: "v-1",
+      lecture_id: "lec-1",
+      version: 1,
+      content_jsonb: null,
+      body: "Force equals mass times acceleration.",
+      scores_jsonb: null,
+      topic_relevance_pct: null,
+      originality_score: null,
+      edit_summary: null,
+      created_at: "2026-08-05T00:00:00Z",
+    });
+    startEditSession.mockResolvedValue({
+      id: "effort-session-1",
+      active_ms: 0,
+      edits_count: 0,
+      char_delta: 0,
+      started_at: "2026-08-05T00:00:00Z",
+      ended_at: null,
+      effort_score: 0,
+    });
 
     renderWizard();
 
@@ -131,20 +198,30 @@ describe("IndependentLectureWizardClient", () => {
 
     await user.click(screen.getByRole("button", { name: /Generate lecture/i }));
 
-    await waitFor(() => expect(generate).toHaveBeenCalledWith("tok", {
-      topic: "Newton's Laws",
-      reference_content_ids: ["ref-1"],
-      teaching_mode: "auto",
-    }));
+    await waitFor(() =>
+      expect(generate).toHaveBeenCalledWith("tok", {
+        topic: "Newton's Laws",
+        reference_content_ids: ["ref-1"],
+        teaching_mode: "auto",
+      })
+    );
 
     expect(await screen.findByText(/Lecture ready/i)).toBeInTheDocument();
-    expect(await screen.findByText(/Force equals mass times acceleration/i)).toBeInTheDocument();
+    // Appears twice: the read-only ParagraphsView AND the TipTap editor (T-130),
+    // seeded from the same version's body.
+    expect(
+      (await screen.findAllByText(/Force equals mass times acceleration/i)).length
+    ).toBeGreaterThanOrEqual(1);
     expect(screen.getByText("Ref: My Notes.pdf")).toBeInTheDocument();
   });
 
   it("shows a failure state when generation fails", async () => {
     const user = userEvent.setup();
-    generate.mockResolvedValue({ lecture_id: "lec-2", status: "generating", estimated_seconds: 30 });
+    generate.mockResolvedValue({
+      lecture_id: "lec-2",
+      status: "generating",
+      estimated_seconds: 30,
+    });
     getLecture.mockResolvedValue({
       id: "lec-2",
       status: "failed",

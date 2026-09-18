@@ -267,6 +267,52 @@ async def _run_teacher_tips_generation(
     )
 
 
+@tenant_task(
+    queue="default",
+    name="lectures.score_lecture_version",
+    bind=True,
+    soft_time_limit=60,
+    time_limit=90,
+)
+def score_lecture_version(
+    self: Any, lecture_id: str, school_id: str, version_id: str
+) -> dict[str, object]:
+    """7-dimension quality scoring (T-134, #32) — fired after every save/generation.
+
+    Queue ``default``: per ARCH §10.2's locked decision table this is "call an
+    external API as a follow-up to a user action" (~30s, not a batch/ingestion
+    job) — there is no dedicated ``lecture_score`` queue among the four locked
+    queue names. Best-effort like ``generate_lecture_teacher_tips``: a scoring
+    failure must never affect the already-saved version.
+    """
+    logger.info("lecture_scoring_task_started", lecture_id=lecture_id, version_id=version_id)
+    try:
+        run_db(
+            lambda session: _run_scoring(
+                session, lecture_id=lecture_id, school_id=school_id, version_id=version_id
+            )
+        )
+        return {"lecture_id": lecture_id, "version_id": version_id, "status": "scored"}
+    except Exception as exc:
+        logger.warning(
+            "lecture_scoring_task_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+        )
+        return {"lecture_id": lecture_id, "version_id": version_id, "status": "failed"}
+
+
+async def _run_scoring(
+    session: AsyncSession, *, lecture_id: str, school_id: str, version_id: str
+) -> None:
+    from app.features.lectures.scoring import score_school_lecture_version
+
+    await score_school_lecture_version(
+        session, lecture_id=lecture_id, school_id=school_id, version_id=version_id
+    )
+
+
 @shared_task(  # type: ignore[misc]
     name="lectures.purge_voice_audio",
     queue="default",

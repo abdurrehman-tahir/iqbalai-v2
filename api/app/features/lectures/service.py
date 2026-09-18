@@ -5,9 +5,11 @@ School teachers only; independent stripped variant is T-125.
 
 from __future__ import annotations
 
+from datetime import datetime, timezone
 from typing import Any
 
 import structlog
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
@@ -16,12 +18,27 @@ from app.features.audit.actions import (
     LECTURE_ACCESS_OVERRIDDEN,
     LECTURE_CREATED,
     LECTURE_LINKED,
+    LECTURE_OVERRIDE_PUBLISHED,
+    LECTURE_PUBLISHED,
 )
+from app.features.files.models import UploadRecord
+from app.features.files.pipeline import run_upload_pipeline
+from app.features.files.profiles import get_profile
 from app.features.grades.cross_grade import (
     assert_cross_grade_access_by_ordinal,
     library_item_visible_for_grade_context,
 )
 from app.features.grades.repository import GradeRepository
+from app.features.lectures.edit_summary import derive_edit_summary
+from app.features.lectures.effort import compute_effort_score
+from app.features.lectures.events import LECTURE_PUBLISHED as LECTURE_PUBLISHED_EVENT
+from app.features.lectures.events import LECTURE_VERSION_CREATED, publish_lecture_event
+from app.features.lectures.images import (
+    DiagramRenderError,
+    IndexedChunk,
+    render_pdf_page_to_png,
+    suggest_diagrams_from_chunks,
+)
 from app.features.lectures.models import (
     LectureAssignmentScope as AssignmentScopeModel,
 )
@@ -31,17 +48,26 @@ from app.features.lectures.models import (
     SchoolLecture,
     SchoolLectureAssignment,
     SchoolLectureDraft,
+    SchoolLectureEditSession,
     SchoolLectureLink,
+    SchoolLectureVersion,
 )
 from app.features.lectures.repository import (
     LectureAssignmentRepository,
     LectureDraftRepository,
+    LectureEditSessionRepository,
     LectureLinkRepository,
     LectureParagraphRepository,
     LectureRepository,
     LectureVersionRepository,
 )
 from app.features.lectures.schemas import (
+    DiagramSuggestion,
+    DiagramSuggestionAccept,
+    DiagramSuggestionsRead,
+    EditSessionHeartbeatRequest,
+    EditSessionRead,
+    EditSessionStartRequest,
     LectureAccessSettingsRead,
     LectureAccessSettingsUpdate,
     LectureAssignmentRead,
@@ -49,17 +75,22 @@ from app.features.lectures.schemas import (
     LectureDraftUpsert,
     LectureGenerateRead,
     LectureGenerateRequest,
+    LectureImageUploadRead,
     LectureLinkCreate,
     LectureLinkRead,
     LectureParagraphRead,
+    LecturePublishRead,
     LectureRosterRead,
     LectureTeacherTipsRead,
+    LectureVersionRead,
+    LectureVersionSaveRequest,
     ParagraphSourceMetadata,
     RosterSectionRead,
     RosterStudentRead,
     TeacherOfferingRead,
     TeacherTips,
     TeachingMode,
+    VoiceTranscribeRead,
     WizardCurriculumRead,
     WizardEstimateRead,
     WizardReferenceRead,
@@ -70,11 +101,13 @@ from app.features.lectures.schemas import (
 from app.features.lectures.schemas import (
     LectureAssignmentScope as AssignmentScopeSchema,
 )
+from app.features.lectures.tiptap import InvalidTipTapDocumentError, extract_plain_text
 from app.features.library.school_library_repository import SchoolLibraryRepository
 from app.features.library.school_models import (
     LibraryContentType,
     LibraryIngestionStatus,
     SchoolLibraryItem,
+    SchoolLibraryItemChunk,
 )
 from app.features.offerings.models import GradeSubjectOffering
 from app.features.offerings.repository import OfferingRepository
@@ -85,6 +118,8 @@ from app.features.teacher_onboarding.repository import TeacherProfileRepository
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
+from app.infrastructure.storage.client import download_bytes
+from app.infrastructure.voice.router import transcribe as voice_transcribe
 
 logger = structlog.get_logger(__name__)
 
@@ -93,6 +128,10 @@ _BASE_ESTIMATE_SECONDS = 90
 _PER_REFERENCE_SECONDS = 25
 _MANUAL_MODE_FACTOR = 0.6
 _VOICE_MODE_FACTOR = 1.2
+
+# Matches ws_voice_router.py's _MAX_TURN_AUDIO_BYTES (T-121 precedent) — one
+# dictated utterance, not a whole conversation.
+_MAX_VOICE_AUDIO_BYTES = 10 * 1024 * 1024
 
 
 def estimate_generation_seconds(*, reference_count: int, teaching_mode: TeachingMode) -> int:
@@ -166,6 +205,7 @@ class LectureWizardService:
         self._drafts = LectureDraftRepository(session)
         self._lectures = LectureRepository(session)
         self._versions = LectureVersionRepository(session)
+        self._edit_sessions = LectureEditSessionRepository(session)
         self._paragraphs = LectureParagraphRepository(session)
         self._links = LectureLinkRepository(session)
         self._assignments = LectureAssignmentRepository(session)
@@ -595,6 +635,442 @@ class LectureWizardService:
         tips = TeacherTips.from_jsonb(version.teacher_tips_jsonb)
         return LectureTeacherTipsRead(lecture_id=lecture.id, status="ready", tips=tips)
 
+    @staticmethod
+    def _to_version_read(version: SchoolLectureVersion) -> LectureVersionRead:
+        return LectureVersionRead(
+            id=version.id,
+            lecture_id=version.lecture_id,
+            version=version.version,
+            content_jsonb=version.content_jsonb,
+            body=version.body,
+            scores_jsonb=version.scores_jsonb,
+            topic_relevance_pct=(
+                float(version.topic_relevance_pct)
+                if version.topic_relevance_pct is not None
+                else None
+            ),
+            originality_score=(
+                float(version.originality_score) if version.originality_score is not None else None
+            ),
+            edit_summary=version.edit_summary,
+            created_at=version.created_at,
+        )
+
+    async def get_current_lecture_version(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> LectureVersionRead:
+        """Loads the editor's initial content (T-130)."""
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.current_version_id is None:
+            raise NotFoundError("Lecture has no version yet")
+        version = await self._versions.get_by_id(lecture.current_version_id)
+        if version is None:
+            raise NotFoundError("Lecture version not found")
+        return self._to_version_read(version)
+
+    async def list_lecture_versions(
+        self, claims: dict[str, object], lecture_id: str, *, page: int, page_size: int
+    ) -> tuple[list[LectureVersionRead], int]:
+        """Score timeline data (T-137, #35) — newest-first page; the frontend
+        re-sorts ascending by ``version`` for the chart's x-axis."""
+        teacher = await self._require_school_teacher(claims)
+        await self._require_owned_lecture(teacher, lecture_id)
+        versions, total = await self._versions.list_paginated(
+            lecture_id, page=page, page_size=page_size
+        )
+        return [self._to_version_read(v) for v in versions], total
+
+    async def save_lecture_version(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        payload: LectureVersionSaveRequest,
+        *,
+        extra_annotations: list[str] | None = None,
+    ) -> LectureVersionRead:
+        """Save an edit as a new immutable version (T-130, #29-#31).
+
+        Every save — manual or (frontend-)debounced auto-save — creates a new
+        ``lecture_versions`` row; the prior row is never touched (§4.18). Server
+        re-validates teacher ownership of the lecture's Grade-Subject via
+        ``_require_owned_lecture`` (the same check every other mutation on this
+        lecture uses) — the frontend's READY_FOR_EDIT gate is not trusted alone.
+        ``extra_annotations`` lets T-131 (voice) / T-132 (image) contribute their
+        own edit_summary entries without duplicating this method.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        latest = await self._versions.get_latest_for_lecture(lecture.id)
+        if latest is None:
+            raise NotFoundError("Lecture has no existing version to edit")
+
+        try:
+            body = extract_plain_text(payload.content_jsonb)
+        except InvalidTipTapDocumentError as exc:
+            raise ValidationError(str(exc)) from exc
+        if not body:
+            raise ValidationError("Lecture content cannot be empty")
+
+        merged_annotations = list(extra_annotations or [])
+        if payload.used_voice_edit:
+            merged_annotations.append("Applied voice edit")
+        annotations = derive_edit_summary(
+            previous_body=latest.body,
+            new_body=body,
+            extra_annotations=merged_annotations,
+        )
+
+        version = SchoolLectureVersion(
+            lecture_id=lecture.id,
+            version=latest.version + 1,
+            body=body,
+            content_jsonb=payload.content_jsonb,
+            edit_summary=annotations,
+        )
+        lecture.current_version_id = version.id
+        version = await self._versions.create(version)
+
+        if payload.edit_session_id:
+            await self._link_edit_session(
+                payload.edit_session_id, teacher_user_id=teacher.id, version_id=version.id
+            )
+
+        await publish_lecture_event(
+            event_type=LECTURE_VERSION_CREATED,
+            payload={
+                "lecture_id": lecture.id,
+                "version_id": version.id,
+                "version": version.version,
+                "school_id": teacher.school_id,
+                "teacher_user_id": teacher.id,
+                "tenant_type": "school",
+                "is_autosave": payload.is_autosave,
+            },
+        )
+        logger.info(
+            "lecture_version_saved",
+            lecture_id=lecture.id,
+            version_id=version.id,
+            version=version.version,
+            is_autosave=payload.is_autosave,
+        )
+
+        # T-134 (#32): every save scores the new version asynchronously.
+        from app.features.lectures.tasks import score_lecture_version
+
+        score_lecture_version.apply_async(
+            kwargs={
+                "lecture_id": lecture.id,
+                "school_id": teacher.school_id,
+                "version_id": version.id,
+            }
+        )
+
+        return self._to_version_read(version)
+
+    async def _link_edit_session(
+        self, edit_session_id: str, *, teacher_user_id: str, version_id: str
+    ) -> None:
+        """Best-effort — an invalid/foreign session id must never fail the save
+        itself; effort data is a scoring input (T-134), not save-path-critical.
+        """
+        edit_session = await self._edit_sessions.get_by_id(edit_session_id)
+        if edit_session is None or edit_session.teacher_user_id != teacher_user_id:
+            logger.warning(
+                "lecture_edit_session_link_skipped",
+                edit_session_id=edit_session_id,
+                reason="not_found_or_not_owned",
+            )
+            return
+        edit_session.lecture_version_id = version_id
+        await self._edit_sessions.update(edit_session)
+
+    @staticmethod
+    def _to_edit_session_read(edit_session: SchoolLectureEditSession) -> EditSessionRead:
+        return EditSessionRead(
+            id=edit_session.id,
+            active_ms=edit_session.active_ms,
+            edits_count=edit_session.edits_count,
+            char_delta=edit_session.char_delta,
+            started_at=edit_session.started_at,
+            ended_at=edit_session.ended_at,
+            effort_score=compute_effort_score(
+                active_ms=edit_session.active_ms, char_delta=edit_session.char_delta
+            ),
+        )
+
+    async def start_edit_session(
+        self, claims: dict[str, object], payload: EditSessionStartRequest
+    ) -> EditSessionRead:
+        """Opens a new effort-tracking session (T-133, #31).
+
+        Not tied to a version yet — ``save_lecture_version`` links it once the
+        teacher's first save in this session completes (see ``_link_edit_session``).
+        A teacher may have several concurrent/sequential sessions against the
+        same in-progress draft before saving (model docstring, T-129).
+        """
+        teacher = await self._require_school_teacher(claims)
+        await self._require_owned_lecture(teacher, payload.lecture_id)
+
+        edit_session = SchoolLectureEditSession(teacher_user_id=teacher.id)
+        edit_session = await self._edit_sessions.create(edit_session)
+        return self._to_edit_session_read(edit_session)
+
+    async def _require_owned_edit_session(
+        self, claims: dict[str, object], edit_session_id: str
+    ) -> SchoolLectureEditSession:
+        teacher = await self._require_school_teacher(claims)
+        edit_session = await self._edit_sessions.get_by_id(edit_session_id)
+        if edit_session is None or edit_session.teacher_user_id != teacher.id:
+            raise NotFoundError("Edit session not found")
+        return edit_session
+
+    async def heartbeat_edit_session(
+        self,
+        claims: dict[str, object],
+        edit_session_id: str,
+        payload: EditSessionHeartbeatRequest,
+    ) -> EditSessionRead:
+        """30s heartbeat (T-133, #31) — the client sends cumulative totals, not
+        deltas, so a retried heartbeat (network hiccup) is a safe no-op overwrite
+        rather than double-counting.
+        """
+        edit_session = await self._require_owned_edit_session(claims, edit_session_id)
+        if edit_session.ended_at is not None:
+            raise ValidationError("Edit session has already ended")
+        edit_session.active_ms = payload.active_ms
+        edit_session.edits_count = payload.edits_count
+        edit_session.char_delta = payload.char_delta
+        edit_session = await self._edit_sessions.update(edit_session)
+        return self._to_edit_session_read(edit_session)
+
+    async def end_edit_session(
+        self,
+        claims: dict[str, object],
+        edit_session_id: str,
+        payload: EditSessionHeartbeatRequest,
+    ) -> EditSessionRead:
+        """Final cumulative totals + ``ended_at`` (tab close / editor unmount)."""
+        edit_session = await self._require_owned_edit_session(claims, edit_session_id)
+        if edit_session.ended_at is None:
+            edit_session.active_ms = payload.active_ms
+            edit_session.edits_count = payload.edits_count
+            edit_session.char_delta = payload.char_delta
+            edit_session.ended_at = datetime.now(timezone.utc)
+            edit_session = await self._edit_sessions.update(edit_session)
+        return self._to_edit_session_read(edit_session)
+
+    async def transcribe_voice_edit(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        audio_bytes: bytes,
+        language: str | None,
+    ) -> VoiceTranscribeRead:
+        """Voice dictation STT (T-131, #29). Reuses the M-09 STT primitive only —
+
+        NOT T-121's conversational WS/LLM edit-interpretation pipeline. The
+        teacher dictates the content itself; the frontend inserts the returned
+        transcript at the cursor or over the current selection (TipTap's
+        ``insertContent`` already replaces a selection when one exists — no
+        server-side insert-vs-replace branching needed) and saves normally
+        through ``save_lecture_version`` with ``used_voice_edit=True``.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        if not audio_bytes:
+            raise ValidationError("No audio received")
+        if len(audio_bytes) > _MAX_VOICE_AUDIO_BYTES:
+            raise ValidationError(
+                f"Audio exceeds the {_MAX_VOICE_AUDIO_BYTES // (1024 * 1024)} MB limit"
+            )
+
+        transcript = await voice_transcribe(audio_bytes, language=language)
+        logger.info(
+            "lecture_voice_edit_transcribed",
+            lecture_id=lecture.id,
+            language=language,
+            transcript_length=len(transcript),
+        )
+        return VoiceTranscribeRead(transcript=transcript)
+
+    async def upload_lecture_image(
+        self,
+        claims: dict[str, object],
+        lecture_id: str,
+        data: bytes,
+        filename: str,
+    ) -> LectureImageUploadRead:
+        """Drag-drop image upload into the TipTap editor (T-132, #30).
+
+        Display-only per ARCH §11.19/§11.12 — no ingestion_task_name, no OCR.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.status not in (LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH):
+            raise ValidationError(f"Lecture is not editable in status {lecture.status.value}")
+
+        profile = get_profile("lecture_image")
+        try:
+            result = await run_upload_pipeline(
+                data=data,
+                filename=filename,
+                profile=profile,
+                session=self._session,
+                school_id=teacher.school_id,
+                uploaded_by=teacher.id,
+            )
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        return LectureImageUploadRead(
+            image_id=result.upload_id,
+            image_url=f"/api/v1/teachers/me/lectures/{lecture.id}/images/{result.upload_id}",
+        )
+
+    async def get_lecture_image(
+        self, claims: dict[str, object], lecture_id: str, image_id: str
+    ) -> tuple[bytes, str]:
+        """Streams an uploaded lecture image back (bytes, filename) for `<img src>`."""
+        teacher = await self._require_school_teacher(claims)
+        await self._require_owned_lecture(teacher, lecture_id)
+
+        record = await self._session.get(UploadRecord, image_id)
+        if (
+            record is None
+            or record.profile != "lecture_image"
+            or record.school_id != teacher.school_id
+        ):
+            raise NotFoundError("Image not found")
+        data = download_bytes(record.bucket, record.minio_key)
+        return data, record.filename
+
+    async def suggest_diagrams(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> DiagramSuggestionsRead:
+        """AI-flagged reference-book pages likely containing a relevant diagram
+        (T-132, #30). Reuses only the reference chunks this lecture's v1 draft
+        actually cited — no new ingestion pass over the reference library.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+
+        v1 = await self._versions.get_first_for_lecture(lecture.id)
+        if v1 is None:
+            return DiagramSuggestionsRead(suggestions=[])
+
+        paragraphs = await self._paragraphs.list_by_version(v1.id)
+        book_names: set[str] = set()
+        for p in paragraphs:
+            meta = ParagraphSourceMetadata.from_jsonb(p.source_metadata_jsonb)
+            if meta.tier.value == "reference" and meta.book_name:
+                book_names.add(meta.book_name)
+        if not book_names:
+            return DiagramSuggestionsRead(suggestions=[])
+
+        items_result = await self._session.execute(
+            select(SchoolLibraryItem).where(
+                SchoolLibraryItem.school_id == teacher.school_id,
+                SchoolLibraryItem.title.in_(book_names),
+                SchoolLibraryItem.deleted_at.is_(None),
+            )
+        )
+        items = list(items_result.scalars().all())
+        if not items:
+            return DiagramSuggestionsRead(suggestions=[])
+
+        item_by_id = {item.id: item for item in items}
+        chunks_result = await self._session.execute(
+            select(SchoolLibraryItemChunk)
+            .where(SchoolLibraryItemChunk.library_item_id.in_(item_by_id.keys()))
+            .order_by(SchoolLibraryItemChunk.library_item_id, SchoolLibraryItemChunk.chunk_index)
+            .limit(40)
+        )
+        chunk_rows = list(chunks_result.scalars().all())
+
+        indexed_chunks: list[IndexedChunk] = [
+            {
+                "index": i,
+                "book_name": item_by_id[c.library_item_id].title,
+                "page_number": c.page_number or 1,
+                "text": c.chunk_text,
+                "library_item_id": c.library_item_id,
+            }
+            for i, c in enumerate(chunk_rows)
+        ]
+        flagged = await suggest_diagrams_from_chunks(topic=lecture.topic, chunks=indexed_chunks)
+
+        suggestions: list[DiagramSuggestion] = []
+        by_index: dict[int, IndexedChunk] = {c["index"]: c for c in indexed_chunks}
+        for flag in flagged:
+            idx = flag.get("index")
+            source = by_index.get(idx) if isinstance(idx, int) else None
+            if source is None:
+                continue
+            suggestions.append(
+                DiagramSuggestion(
+                    library_item_id=source["library_item_id"],
+                    book_name=source["book_name"],
+                    page_number=source["page_number"],
+                    reason=str(flag.get("reason", "")),
+                )
+            )
+        return DiagramSuggestionsRead(suggestions=suggestions[:3])
+
+    async def accept_diagram_suggestion(
+        self, claims: dict[str, object], lecture_id: str, payload: DiagramSuggestionAccept
+    ) -> LectureImageUploadRead:
+        """Renders the named reference-book page and stores it as a lecture image
+        (via the same lecture_image pipeline as a direct upload) — the frontend
+        then inserts it identically either way.
+        """
+        teacher = await self._require_school_teacher(claims)
+        lecture = await self._require_owned_lecture(teacher, lecture_id)
+
+        item = await self._library.get_by_id(payload.library_item_id)
+        if item is None or item.school_id != teacher.school_id:
+            raise NotFoundError("Reference book not found")
+
+        source_profile = get_profile("school_library_content")
+        try:
+            pdf_bytes = download_bytes(source_profile.bucket, item.storage_key)
+            png_bytes = render_pdf_page_to_png(pdf_bytes, payload.page_number)
+        except DiagramRenderError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        image_profile = get_profile("lecture_image")
+        try:
+            result = await run_upload_pipeline(
+                data=png_bytes,
+                filename=f"{item.title[:80]}-page-{payload.page_number}.png",
+                profile=image_profile,
+                session=self._session,
+                school_id=teacher.school_id,
+                uploaded_by=teacher.id,
+                skip_magic_check=True,  # server-rendered PNG, not a user-supplied file
+            )
+        except ValueError as exc:
+            raise ValidationError(str(exc)) from exc
+
+        logger.info(
+            "lecture_diagram_accepted",
+            lecture_id=lecture.id,
+            library_item_id=item.id,
+            page_number=payload.page_number,
+        )
+        return LectureImageUploadRead(
+            image_id=result.upload_id,
+            image_url=f"/api/v1/teachers/me/lectures/{lecture.id}/images/{result.upload_id}",
+        )
+
     async def _read_link(self, link: SchoolLectureLink) -> LectureLinkRead | None:
         offering = await self._offerings.get_by_id(link.target_grade_subject_offering_id)
         if offering is None:
@@ -933,3 +1409,82 @@ class LectureWizardService:
             ):
                 return True
         return False
+
+    async def publish_lecture(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> LecturePublishRead:
+        """Publish a lecture to enrolled Grade-Subject students (T-142).
+
+        Allowed from READY_FOR_PUBLISH or READY_FOR_EDIT (publish-as-is).
+        Teacher owns publish for their offering; Coordinator/School Admin (and
+        higher) may override-publish with elevated audit. Flips pending quiz
+        assignments to published (T-145). Emits NATS ``lecture.published``.
+        """
+        actor, lecture, elevated = await self._require_lecture_for_access_management(
+            claims, lecture_id
+        )
+        if lecture.status not in (
+            LectureStatus.READY_FOR_EDIT,
+            LectureStatus.READY_FOR_PUBLISH,
+            LectureStatus.PUBLISHED,
+        ):
+            raise ValidationError(
+                "Lecture must be ready for edit/publish (or already published) "
+                f"(current status={lecture.status.value})"
+            )
+        if lecture.current_version_id is None:
+            raise ValidationError("Lecture has no published version pointer")
+        if lecture.grade_subject_offering_id is None:
+            raise ValidationError("School lectures require a Grade-Subject offering to publish")
+
+        was_already = lecture.status == LectureStatus.PUBLISHED
+        lecture.status = LectureStatus.PUBLISHED
+
+        from app.features.quizzes.publish import publish_pending_assignments_for_lecture
+
+        quizzes_published = await publish_pending_assignments_for_lecture(
+            self._session, lecture_id=lecture.id
+        )
+        await self._session.commit()
+        await self._session.refresh(lecture)
+
+        await audit(
+            session=self._session,
+            action=LECTURE_OVERRIDE_PUBLISHED if elevated else LECTURE_PUBLISHED,
+            actor_id=actor.id,
+            actor_role=actor.role.value,
+            target_type="lecture",
+            target_id=lecture.id,
+            school_id=lecture.school_id,
+            metadata={
+                "override": elevated,
+                "republish": was_already,
+                "current_version_id": lecture.current_version_id,
+                "quizzes_published": quizzes_published,
+            },
+        )
+        await publish_lecture_event(
+            event_type=LECTURE_PUBLISHED_EVENT,
+            payload={
+                "lecture_id": lecture.id,
+                "school_id": lecture.school_id,
+                "teacher_user_id": lecture.teacher_user_id,
+                "tenant_type": "school",
+                "current_version_id": lecture.current_version_id,
+                "published_by_user_id": actor.id,
+                "override": elevated,
+            },
+        )
+
+        from app.features.lectures.lecture_notifications import notify_lecture_published
+
+        await notify_lecture_published(self._session, lecture=lecture)
+
+        return LecturePublishRead(
+            id=lecture.id,
+            status=lecture.status.value,
+            current_version_id=lecture.current_version_id,
+            published_by_user_id=actor.id,
+            override=elevated,
+            quizzes_published=quizzes_published,
+        )

@@ -1,8 +1,8 @@
-# Session state (live)
+# Session state — M-11 Auto-quiz + Publish
 
-**Milestone:** M-09 Lecture Wizard + AI Generation
-**Branch:** milestone/M-09-lecture-wizard-generation
-**Done:** T-113 … T-128 (all)
-**Current ticket:** T-128 complete — PR open for Abd. review
-**Next:** live demo + address review + merge to staging (human)
-**Out of scope reminder:** Edit+versions → M-10; quiz/publish → M-11; viewer → M-12
+- **Branch:** `milestone/M-11-auto-quiz-publish-m10` (based on M-10 tip `48b2a6f`)
+- **Status:** implementation complete; opening milestone PR → staging
+- **Tickets T-141–T-150:** Status:done in backlog (pending commit SHA fill after commit)
+- **Migrations live-verified:** school_0065 + independent_0018 on local Postgres
+- **Tests:** API 45 passed; FE Vitest 6 passed; Playwright blocked on Alpine/ENOENT in this env
+- **Note:** branch diverged from current origin/staging (staging has Next.js CVE hotfix not in M-10 tip)

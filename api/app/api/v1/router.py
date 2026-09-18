@@ -5,6 +5,7 @@ from __future__ import annotations
 from fastapi import APIRouter
 
 from app.features.academic_sessions.router import router as academic_sessions_router
+from app.features.admin_metrics.router import router as admin_metrics_router
 from app.features.audit.router import router as audit_router
 from app.features.audit.school_admin_router import router as school_audit_router
 from app.features.auth.router import router as auth_router
@@ -46,6 +47,8 @@ from app.features.parent_child_links.student_connections_router import (
 from app.features.parent_child_links.student_router import router as student_parent_links_router
 from app.features.parent_signup.router import router as parent_signup_router
 from app.features.personas.router import router as personas_router
+from app.features.quizzes.router import student_router as student_quizzes_router
+from app.features.quizzes.router import teacher_router as teacher_quiz_results_router
 from app.features.schools.router import router as districts_router
 from app.features.schools.school_admin_router import router as school_admin_router
 from app.features.schools.school_router import router as schools_router
@@ -56,6 +59,11 @@ from app.features.student_mode.router import router as student_mode_router
 from app.features.student_onboarding.router import router as student_onboarding_router
 from app.features.subjects.router import router as subjects_router
 from app.features.subscriptions.router import router as subscriptions_router
+from app.features.teacher_coaching.independent_router import (
+    router as independent_teacher_coaching_router,
+)
+from app.features.teacher_coaching.router import benchmarks_router as teacher_benchmarks_router
+from app.features.teacher_coaching.router import router as teacher_coaching_router
 from app.features.teacher_onboarding.router import router as teacher_onboarding_router
 from app.features.tos.router import router as tos_router
 from app.features.users.admin_router import router as admin_users_router
@@ -87,6 +95,7 @@ router.include_router(independent_student_onboarding_router)
 router.include_router(bulk_imports_router)
 router.include_router(personas_router)
 router.include_router(academic_sessions_router)
+router.include_router(admin_metrics_router)
 router.include_router(grades_router)
 router.include_router(sections_router)
 router.include_router(student_enrollments_router)
@@ -103,6 +112,11 @@ router.include_router(subjects_router)
 router.include_router(teacher_onboarding_router)
 router.include_router(lecture_wizard_router)
 router.include_router(independent_lecture_wizard_router)
+router.include_router(student_quizzes_router)
+router.include_router(teacher_quiz_results_router)
+router.include_router(teacher_coaching_router)
+router.include_router(teacher_benchmarks_router)
+router.include_router(independent_teacher_coaching_router)
 router.include_router(subscriptions_router)
 router.include_router(library_router)
 router.include_router(platform_library_router)

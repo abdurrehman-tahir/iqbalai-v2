@@ -361,3 +361,124 @@ class IndependentLectureRead(BaseModel):
     status: str
     title: str
     current_version_id: str | None = None
+
+
+# --- M-10 T-130 — TipTap editor save / immutable versioning ----------------
+
+
+class LectureVersionSaveRequest(BaseModel):
+    """Manual or debounced auto-save from the TipTap editor (T-130, #29-#31).
+
+    Shared shape for both tenants — the editor has no tenant-specific fields.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    content_jsonb: dict[str, Any] = Field(...)
+    is_autosave: bool = False
+    edit_session_id: str | None = Field(default=None, max_length=36)
+    # T-131: set by the frontend when this save's content came from a voice
+    # dictation (insert-at-cursor/replace-selection), so the auto-derived
+    # edit_summary gets an "Applied voice edit" annotation.
+    used_voice_edit: bool = False
+
+
+class LectureVersionRead(BaseModel):
+    """A single immutable lecture version, as returned after a save (T-130)."""
+
+    id: str
+    lecture_id: str
+    version: int
+    content_jsonb: dict[str, Any] | None = None
+    body: str
+    scores_jsonb: dict[str, Any] | None = None
+    topic_relevance_pct: float | None = None
+    originality_score: float | None = None
+    edit_summary: list[str] | None = None
+    created_at: datetime
+
+
+class LecturePublishRead(BaseModel):
+    """Result of publishing a lecture (T-142)."""
+
+    id: str
+    status: str
+    current_version_id: str | None = None
+    published_by_user_id: str
+    override: bool = False
+    quizzes_published: int = 0
+
+
+# --- M-10 T-131 — voice dictation (STT insert/replace) ----------------------
+
+
+class VoiceTranscribeRead(BaseModel):
+    """faster-whisper transcript for a dictated audio clip (T-131)."""
+
+    transcript: str
+
+
+# --- M-10 T-132 — image upload + AI diagram suggestions ---------------------
+
+
+class LectureImageUploadRead(BaseModel):
+    """Servable URL for a just-uploaded lecture image (T-132)."""
+
+    image_id: str
+    image_url: str
+
+
+class DiagramSuggestion(BaseModel):
+    """One AI-flagged reference-book page likely containing a relevant diagram."""
+
+    library_item_id: str
+    book_name: str
+    page_number: int = Field(ge=1)
+    reason: str
+
+
+class DiagramSuggestionsRead(BaseModel):
+    suggestions: list[DiagramSuggestion]
+
+
+class DiagramSuggestionAccept(BaseModel):
+    """Renders the named reference-book page and uploads it as a lecture image."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    library_item_id: str = Field(min_length=1, max_length=36)
+    page_number: int = Field(ge=1)
+
+
+# --- M-10 T-133 — effort tracking ---------------------------------------
+
+
+class EditSessionStartRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    lecture_id: str = Field(min_length=1, max_length=36)
+
+
+class EditSessionHeartbeatRequest(BaseModel):
+    """Cumulative (not delta) totals for the session so far — a retried
+    heartbeat overwrites with the same values instead of double-counting
+    (ARCH §5.9 doesn't require Idempotency-Key here since this isn't a
+    resource-creating POST, but the values themselves must still be
+    idempotent-safe against a client retry).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    active_ms: int = Field(ge=0)
+    edits_count: int = Field(ge=0)
+    char_delta: int = Field(ge=0)
+
+
+class EditSessionRead(BaseModel):
+    id: str
+    active_ms: int
+    edits_count: int
+    char_delta: int
+    started_at: datetime
+    ended_at: datetime | None = None
+    effort_score: float

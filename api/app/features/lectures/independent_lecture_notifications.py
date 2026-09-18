@@ -74,6 +74,30 @@ async def notify_generation_failed(
         )
 
 
+async def notify_scoring_complete(
+    session: AsyncSession, *, lecture: IndependentLecture, total: int, max_score: int
+) -> None:
+    try:
+        user = await _resolve_recipient(session, lecture.teacher_user_id)
+        if user is None:
+            return
+        await notify_lecture_event(
+            session=session,
+            template_key="lectures.scoring_complete",
+            recipient_user_id=user.authentik_id,
+            school_id=None,
+            locale=user.language_preference,
+            params={"topic": lecture.topic, "total": str(total), "max": str(max_score)},
+            metadata={"lecture_id": lecture.id},
+        )
+    except Exception as exc:  # best-effort — mirrors lecture_notifications.py
+        logger.warning(
+            "independent_lecture_scoring_complete_notify_failed",
+            lecture_id=lecture.id,
+            error=str(exc),
+        )
+
+
 async def notify_generation_timeout(session: AsyncSession, *, lecture: IndependentLecture) -> None:
     try:
         user = await _resolve_recipient(session, lecture.teacher_user_id)

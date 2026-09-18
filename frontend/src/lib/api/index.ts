@@ -65,6 +65,26 @@ import type {
   LectureAccessSettingsUpdate,
   LectureRosterRead,
   LectureTeacherTipsRead,
+  LectureVersionSaveRequest,
+  LectureVersionRead,
+  LectureVersionListResponse,
+  LecturePublishRead,
+  VoiceTranscribeRead,
+  StudentQuizCardRead,
+  StudentQuizDetailRead,
+  QuizAttemptResultRead,
+  TeacherStudentQuizResultRead,
+  QuizOfferingAggregateRead,
+  LectureImageUploadRead,
+  DiagramSuggestionsRead,
+  DiagramSuggestionAccept,
+  EditSessionHeartbeatRequest,
+  EditSessionRead,
+  CoachingSuggestionRead,
+  CoachingResponseRequest,
+  TeacherBenchmarkRead,
+  BenchmarkOptOutRequest,
+  TeacherMetricsRead,
   IndependentWizardReferenceRead,
   IndependentLectureGenerateRequest,
   IndependentLectureRead,
@@ -99,6 +119,17 @@ import type {
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
+/**
+ * The backend returns lecture-image URLs already prefixed with "/api/v1/..."
+ * (T-132) — since they're rendered as plain `<img src>` tags, not fetched via
+ * `request()`, they need the API's origin (not API_BASE, which already ends
+ * in "/api/v1" and would duplicate the prefix).
+ */
+function toAbsoluteApiUrl(pathWithApiV1Prefix: string): string {
+  const origin = API_BASE.replace(/\/api\/v1\/?$/, "");
+  return `${origin}${pathWithApiV1Prefix}`;
+}
+
 export type {
   Notification,
   PersonaRead as Persona,
@@ -120,6 +151,8 @@ export type {
   EligibleTeacherRead,
   LibraryBookRead as LibraryBook,
   TosVersion,
+  TeacherBenchmarkRead,
+  TeacherMetricsRead,
 } from "./types";
 
 export class ApiError extends Error {
@@ -386,19 +419,15 @@ export const parentChildLinksApi = {
     request<ParentChildLinkRead>(
       "/parents/me/link-requests",
       { method: "POST", body: JSON.stringify({ student_email }) },
-      token,
+      token
     ),
   revokeLink: (token: string, linkId: string) =>
-    request<ParentChildLinkRead>(
-      `/parents/me/links/${linkId}/revoke`,
-      { method: "POST" },
-      token,
-    ),
+    request<ParentChildLinkRead>(`/parents/me/links/${linkId}/revoke`, { method: "POST" }, token),
   getStudentAccessState: (token: string, studentUserId: string) =>
     request<ParentStudentAccessStateRead>(
       `/parents/me/students/${studentUserId}/access-state`,
       {},
-      token,
+      token
     ),
   listStudentPending: (token: string) =>
     request<StudentLinkRequestList>("/students/me/link-requests", {}, token),
@@ -408,14 +437,10 @@ export const parentChildLinksApi = {
     request<ParentChildLinkRead>(
       `/students/me/link-requests/${linkId}/approve`,
       { method: "POST" },
-      token,
+      token
     ),
   revokeParentLink: (token: string, linkId: string) =>
-    request<ParentChildLinkRead>(
-      `/students/me/links/${linkId}/revoke`,
-      { method: "POST" },
-      token,
-    ),
+    request<ParentChildLinkRead>(`/students/me/links/${linkId}/revoke`, { method: "POST" }, token),
 };
 
 // ── Independent teacher onboarding ────────────────────────────────────────────
@@ -443,11 +468,7 @@ export const independentStudentOnboardingApi = {
   listExamFrameworks: () =>
     request<ExamFrameworkOption[]>("/independent/students/me/exam-frameworks"),
   getOnboarding: (token: string) =>
-    request<IndependentStudentOnboardingRead>(
-      "/independent/students/me/onboarding",
-      {},
-      token,
-    ),
+    request<IndependentStudentOnboardingRead>("/independent/students/me/onboarding", {}, token),
   completeProfile: (token: string, data: IndependentStudentProfileComplete) =>
     request<IndependentStudentOnboardingRead>(
       "/independent/students/me/profile",
@@ -1107,11 +1128,7 @@ export const lectureWizardApi = {
     });
     return request<WizardTopicsRead>(`/teachers/me/lecture-wizard/topics?${qs}`, {}, token);
   },
-  listReferences: (
-    token: string,
-    gradeSubjectOfferingId: string,
-    includeCrossGrade = false
-  ) => {
+  listReferences: (token: string, gradeSubjectOfferingId: string, includeCrossGrade = false) => {
     const qs = new URLSearchParams({
       grade_subject_offering_id: gradeSubjectOfferingId,
       include_cross_grade: String(includeCrossGrade),
@@ -1127,24 +1144,27 @@ export const lectureWizardApi = {
       teaching_mode: teachingMode,
       reference_count: String(referenceCount),
     });
-    return request<WizardEstimateRead>(
-      `/teachers/me/lecture-wizard/estimate?${qs}`,
-      {},
-      token
-    );
+    return request<WizardEstimateRead>(`/teachers/me/lecture-wizard/estimate?${qs}`, {}, token);
   },
   generate: (token: string, data: LectureGenerateRequest) =>
-    request<LectureGenerateRead>("/teachers/me/lecture-wizard/generate", {
-      method: "POST",
-      body: JSON.stringify(data),
-    }, token),
-  getDraft: (token: string) =>
-    request<LectureDraftRead>("/teachers/me/lecture-draft", {}, token),
+    request<LectureGenerateRead>(
+      "/teachers/me/lecture-wizard/generate",
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+      },
+      token
+    ),
+  getDraft: (token: string) => request<LectureDraftRead>("/teachers/me/lecture-draft", {}, token),
   upsertDraft: (token: string, data: LectureDraftUpsert) =>
-    request<LectureDraftRead>("/teachers/me/lecture-draft", {
-      method: "PUT",
-      body: JSON.stringify(data),
-    }, token),
+    request<LectureDraftRead>(
+      "/teachers/me/lecture-draft",
+      {
+        method: "PUT",
+        body: JSON.stringify(data),
+      },
+      token
+    ),
   getParagraphs: (token: string, lectureId: string) =>
     request<LectureParagraphRead[]>(`/teachers/me/lectures/${lectureId}/paragraphs`, {}, token),
   listLinks: (token: string, lectureId: string) =>
@@ -1173,6 +1193,93 @@ export const lectureWizardApi = {
     request<LectureRosterRead>(`/teachers/me/lectures/${lectureId}/roster`, {}, token),
   getTeacherTips: (token: string, lectureId: string) =>
     request<LectureTeacherTipsRead>(`/teachers/me/lectures/${lectureId}/teacher-tips`, {}, token),
+  getCurrentVersion: (token: string, lectureId: string) =>
+    request<LectureVersionRead>(`/teachers/me/lectures/${lectureId}/versions/current`, {}, token),
+  listVersions: (token: string, lectureId: string, page = 1, pageSize = 6) =>
+    request<LectureVersionListResponse>(
+      `/teachers/me/lectures/${lectureId}/versions?page=${page}&page_size=${pageSize}`,
+      {},
+      token
+    ),
+  saveVersion: (token: string, lectureId: string, data: LectureVersionSaveRequest) =>
+    request<LectureVersionRead>(
+      `/teachers/me/lectures/${lectureId}/versions`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        // Idempotency-Key (ARCH §5.9): a retried POST (network retry, double
+        // click) returns the cached version instead of creating a duplicate.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  publishLecture: (token: string, lectureId: string) =>
+    request<LecturePublishRead>(
+      `/teachers/me/lectures/${lectureId}/publish`,
+      { method: "POST" },
+      token
+    ),
+  transcribeVoice: (token: string, lectureId: string, audio: Blob, language?: string) => {
+    const qs = language ? `?${new URLSearchParams({ language }).toString()}` : "";
+    const formData = new FormData();
+    formData.append("audio", audio, "clip.webm");
+    return requestFormData<VoiceTranscribeRead>(
+      `/teachers/me/lectures/${lectureId}/voice-transcribe${qs}`,
+      formData,
+      token
+    );
+  },
+  uploadImage: async (token: string, lectureId: string, image: File | Blob) => {
+    const formData = new FormData();
+    formData.append("image", image, image instanceof File ? image.name : "image.png");
+    const result = await requestFormData<LectureImageUploadRead>(
+      `/teachers/me/lectures/${lectureId}/images`,
+      formData,
+      token
+    );
+    return { ...result, image_url: toAbsoluteApiUrl(result.image_url) };
+  },
+  getDiagramSuggestions: (token: string, lectureId: string) =>
+    request<DiagramSuggestionsRead>(
+      `/teachers/me/lectures/${lectureId}/diagram-suggestions`,
+      {},
+      token
+    ),
+  acceptDiagramSuggestion: async (
+    token: string,
+    lectureId: string,
+    data: DiagramSuggestionAccept
+  ) => {
+    const result = await request<LectureImageUploadRead>(
+      `/teachers/me/lectures/${lectureId}/diagram-suggestions/accept`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    );
+    return { ...result, image_url: toAbsoluteApiUrl(result.image_url) };
+  },
+  startEditSession: (token: string, lectureId: string) =>
+    request<EditSessionRead>(
+      "/teachers/me/edit-sessions",
+      {
+        method: "POST",
+        body: JSON.stringify({ lecture_id: lectureId }),
+        // Idempotency-Key (ARCH §5.9): this POST creates a resource.
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  heartbeatEditSession: (token: string, editSessionId: string, data: EditSessionHeartbeatRequest) =>
+    request<EditSessionRead>(
+      `/teachers/me/edit-sessions/${editSessionId}/heartbeat`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  endEditSession: (token: string, editSessionId: string, data: EditSessionHeartbeatRequest) =>
+    request<EditSessionRead>(
+      `/teachers/me/edit-sessions/${editSessionId}/end`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
 };
 
 // ── Independent teacher lecture wizard (T-125) ──────────────────────────────
@@ -1218,6 +1325,131 @@ export const independentLectureWizardApi = {
       {},
       token
     ),
+  getCurrentVersion: (token: string, lectureId: string) =>
+    request<LectureVersionRead>(
+      `/independent/teachers/me/lectures/${lectureId}/versions/current`,
+      {},
+      token
+    ),
+  listVersions: (token: string, lectureId: string, page = 1, pageSize = 6) =>
+    request<LectureVersionListResponse>(
+      `/independent/teachers/me/lectures/${lectureId}/versions?page=${page}&page_size=${pageSize}`,
+      {},
+      token
+    ),
+  saveVersion: (token: string, lectureId: string, data: LectureVersionSaveRequest) =>
+    request<LectureVersionRead>(
+      `/independent/teachers/me/lectures/${lectureId}/versions`,
+      {
+        method: "POST",
+        body: JSON.stringify(data),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  transcribeVoice: (token: string, lectureId: string, audio: Blob, language?: string) => {
+    const qs = language ? `?${new URLSearchParams({ language }).toString()}` : "";
+    const formData = new FormData();
+    formData.append("audio", audio, "clip.webm");
+    return requestFormData<VoiceTranscribeRead>(
+      `/independent/teachers/me/lectures/${lectureId}/voice-transcribe${qs}`,
+      formData,
+      token
+    );
+  },
+  uploadImage: async (token: string, lectureId: string, image: File | Blob) => {
+    const formData = new FormData();
+    formData.append("image", image, image instanceof File ? image.name : "image.png");
+    const result = await requestFormData<LectureImageUploadRead>(
+      `/independent/teachers/me/lectures/${lectureId}/images`,
+      formData,
+      token
+    );
+    return { ...result, image_url: toAbsoluteApiUrl(result.image_url) };
+  },
+  startEditSession: (token: string, lectureId: string) =>
+    request<EditSessionRead>(
+      "/independent/teachers/me/edit-sessions",
+      {
+        method: "POST",
+        body: JSON.stringify({ lecture_id: lectureId }),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+  heartbeatEditSession: (token: string, editSessionId: string, data: EditSessionHeartbeatRequest) =>
+    request<EditSessionRead>(
+      `/independent/teachers/me/edit-sessions/${editSessionId}/heartbeat`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  endEditSession: (token: string, editSessionId: string, data: EditSessionHeartbeatRequest) =>
+    request<EditSessionRead>(
+      `/independent/teachers/me/edit-sessions/${editSessionId}/end`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+// T-138 (#36) — Teaching Innovation Record. Teacher-scoped, not lecture-scoped
+// (unlike lectureWizardApi above), so its own small api object.
+export const teacherCoachingApi = {
+  listSuggestions: (token: string) =>
+    request<CoachingSuggestionRead[]>("/teachers/me/coaching", {}, token),
+  respondToSuggestion: (token: string, memoryId: string, data: CoachingResponseRequest) =>
+    request<CoachingSuggestionRead>(
+      `/teachers/me/coaching/${memoryId}/respond`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+export const independentTeacherCoachingApi = {
+  listSuggestions: (token: string) =>
+    request<CoachingSuggestionRead[]>("/independent/teachers/me/coaching", {}, token),
+  respondToSuggestion: (token: string, memoryId: string, data: CoachingResponseRequest) =>
+    request<CoachingSuggestionRead>(
+      `/independent/teachers/me/coaching/${memoryId}/respond`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+export const teacherBenchmarksApi = {
+  list: (token: string) =>
+    request<TeacherBenchmarkRead[]>("/teachers/me/benchmarks", {}, token),
+  setOptOut: (token: string, data: BenchmarkOptOutRequest) =>
+    request<{ rows_changed: number }>(
+      "/teachers/me/benchmarks/opt-out",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+export interface AdminTeacherMetricsFilters {
+  subject_id?: string;
+  grade_range?: string;
+  school_id?: string;
+}
+
+function _adminMetricsQuery(filters: AdminTeacherMetricsFilters): string {
+  const qs = new URLSearchParams();
+  if (filters.subject_id) qs.set("subject_id", filters.subject_id);
+  if (filters.grade_range) qs.set("grade_range", filters.grade_range);
+  if (filters.school_id) qs.set("school_id", filters.school_id);
+  const s = qs.toString();
+  return s ? `?${s}` : "";
+}
+
+export const adminMetricsApi = {
+  listTeacherMetrics: (token: string, filters: AdminTeacherMetricsFilters = {}) =>
+    request<TeacherMetricsRead[]>(
+      `/admin/teacher-metrics${_adminMetricsQuery(filters)}`,
+      {},
+      token
+    ),
+  exportTeacherMetricsCsv: (token: string, filters: AdminTeacherMetricsFilters = {}) =>
+    downloadRequest(`/admin/teacher-metrics/export${_adminMetricsQuery(filters)}`, token),
 };
 
 export const studentOnboardingApi = {
@@ -1284,6 +1516,40 @@ export const diagnosticsApi = {
     request<DiagnosticResultRead>(
       `/students/me/diagnostics/${diagnosticId}/finalize-timeout`,
       { method: "POST" },
+      token
+    ),
+};
+
+/** Student quiz dashboard + attempt (T-145 / T-146). */
+export const studentQuizzesApi = {
+  list: (token: string) =>
+    request<StudentQuizCardRead[]>("/students/me/quizzes", {}, token),
+  get: (token: string, assignmentId: string) =>
+    request<StudentQuizDetailRead>(`/students/me/quizzes/${assignmentId}`, {}, token),
+  submit: (token: string, assignmentId: string, answers: Record<string, string>) =>
+    request<QuizAttemptResultRead>(
+      `/students/me/quizzes/${assignmentId}/submit`,
+      {
+        method: "POST",
+        body: JSON.stringify({ answers }),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+};
+
+/** Teacher quiz results + aggregates (T-147). */
+export const teacherQuizResultsApi = {
+  listResults: (token: string, lectureId: string) =>
+    request<TeacherStudentQuizResultRead[]>(
+      `/teachers/me/lectures/${lectureId}/quiz-results`,
+      {},
+      token
+    ),
+  getAggregate: (token: string, lectureId: string) =>
+    request<QuizOfferingAggregateRead>(
+      `/teachers/me/lectures/${lectureId}/quiz-aggregate`,
+      {},
       token
     ),
 };

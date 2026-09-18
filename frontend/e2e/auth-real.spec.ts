@@ -311,35 +311,16 @@ test.describe("Logout kills the session (T-246) @auth @real", () => {
       timeout: 15_000,
     });
 
-    const appOrigin = new URL(page.url()).origin;
-
     // Shell copy is "Sign out" (messages/*/common.json) — not "Log out".
     await page.getByRole("button", { name: /sign out/i }).click();
-    // Authentik 2024.12 EndSessionView does not honor redirect_uri — it
-    // dispatches the provider invalidation flow (`/if/flow/...`). Matching
-    // only /login would hang here; matching end-session is the first hop.
-    await page.waitForURL(/login|end-session|if\/flow/i, { timeout: 15_000 });
+    await page.waitForURL(/login|end-session/i, { timeout: 15_000 });
 
     await page.goto("/teacher");
-    await page.waitForURL(
-      (url) => url.origin === appOrigin && url.pathname === "/login",
-      { timeout: 15_000, waitUntil: "commit" },
-    );
+    await page.waitForURL("**/login**");
 
-    // Back replays history, not the session. 2024.12 leaves the previous
-    // entry on Authentik's invalidation flow (or the public `/` launch URL),
-    // so asserting **/login** false-fails: the URL never contains /login
-    // and the test burns the 120s wall clock. T-246's contract is that the
-    // authenticated shell must not come back. If Back stays on the app,
-    // middleware's cookie check must bounce it to /login (BFCache + no-store).
-    await page.goBack({ waitUntil: "commit" });
-    const afterBack = new URL(page.url());
-    if (afterBack.origin === appOrigin && afterBack.pathname !== "/login") {
-      await page.waitForURL((url) => url.pathname === "/login", {
-        timeout: 15_000,
-        waitUntil: "commit",
-      });
-    }
-    expect(new URL(page.url()).pathname).not.toMatch(/^\/(student|teacher)(\/|$)/);
+    // Back-button replays the browser history entry, not the session — the
+    // middleware's cookie check runs on the resulting request regardless.
+    await page.goBack();
+    await page.waitForURL("**/login**");
   });
 });
