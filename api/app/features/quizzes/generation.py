@@ -141,7 +141,7 @@ async def run_quiz_generation_for_student(
             target_difficulty=cast(
                 Literal["foundational", "conceptual", "applied", "grade_default"],
                 calibration.target_difficulty.value,
-            ),,
+            ),
             question_count=7,
         )
         raw = await chat(
