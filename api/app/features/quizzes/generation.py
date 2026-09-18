@@ -138,7 +138,10 @@ async def run_quiz_generation_for_student(
         prompt_input = quiz_generate_v1.QuizGenerateInput(
             topic=lecture.topic,
             lecture_excerpt=lecture_excerpt,
-            target_difficulty=cast(Literal["foundational", "conceptual", "applied", "grade_default"], calibration.target_difficulty.value),
+            target_difficulty=cast(
+                Literal["foundational", "conceptual", "applied", "grade_default"],
+                calibration.target_difficulty.value,
+            ),,
             question_count=7,
         )
         raw = await chat(
