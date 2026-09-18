@@ -131,9 +131,7 @@ def upgrade() -> None:
     op.create_index(
         "ix_quizzes_lecture_version_id", "quizzes", ["lecture_version_id"], schema=_SCHEMA
     )
-    op.create_index(
-        "ix_quizzes_student_user_id", "quizzes", ["student_user_id"], schema=_SCHEMA
-    )
+    op.create_index("ix_quizzes_student_user_id", "quizzes", ["student_user_id"], schema=_SCHEMA)
     op.create_index("ix_quizzes_deleted_at", "quizzes", ["deleted_at"], schema=_SCHEMA)
 
     op.create_table(
@@ -166,9 +164,7 @@ def upgrade() -> None:
         sa.CheckConstraint("ordinal >= 1", name="quiz_questions_ordinal_positive_check"),
         schema=_SCHEMA,
     )
-    op.create_index(
-        "ix_quiz_questions_quiz_id", "quiz_questions", ["quiz_id"], schema=_SCHEMA
-    )
+    op.create_index("ix_quiz_questions_quiz_id", "quiz_questions", ["quiz_id"], schema=_SCHEMA)
     op.create_index(
         "ix_quiz_questions_deleted_at", "quiz_questions", ["deleted_at"], schema=_SCHEMA
     )
@@ -198,23 +194,17 @@ def upgrade() -> None:
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("updated_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("deleted_at", sa.DateTime(timezone=True), nullable=True),
-        sa.UniqueConstraint(
-            "quiz_id", "student_user_id", name="quiz_assignments_quiz_student_uq"
-        ),
+        sa.UniqueConstraint("quiz_id", "student_user_id", name="quiz_assignments_quiz_student_uq"),
         schema=_SCHEMA,
     )
-    op.create_index(
-        "ix_quiz_assignments_quiz_id", "quiz_assignments", ["quiz_id"], schema=_SCHEMA
-    )
+    op.create_index("ix_quiz_assignments_quiz_id", "quiz_assignments", ["quiz_id"], schema=_SCHEMA)
     op.create_index(
         "ix_quiz_assignments_student_user_id",
         "quiz_assignments",
         ["student_user_id"],
         schema=_SCHEMA,
     )
-    op.create_index(
-        "ix_quiz_assignments_status", "quiz_assignments", ["status"], schema=_SCHEMA
-    )
+    op.create_index("ix_quiz_assignments_status", "quiz_assignments", ["status"], schema=_SCHEMA)
     op.create_index(
         "ix_quiz_assignments_deleted_at",
         "quiz_assignments",
@@ -263,9 +253,7 @@ def downgrade() -> None:
     )
     op.drop_table("quiz_attempts", schema=_SCHEMA)
 
-    op.drop_index(
-        "ix_quiz_assignments_deleted_at", table_name="quiz_assignments", schema=_SCHEMA
-    )
+    op.drop_index("ix_quiz_assignments_deleted_at", table_name="quiz_assignments", schema=_SCHEMA)
     op.drop_index("ix_quiz_assignments_status", table_name="quiz_assignments", schema=_SCHEMA)
     op.drop_index(
         "ix_quiz_assignments_student_user_id",

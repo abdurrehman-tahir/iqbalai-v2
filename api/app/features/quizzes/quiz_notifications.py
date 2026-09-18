@@ -66,25 +66,33 @@ async def notify_publish_fanout(session: AsyncSession, *, lecture: SchoolLecture
 
     # Quiz-available for students whose assignments flipped to published
     quiz_ids = (
-        await session.execute(
-            select(SchoolQuiz.id).where(
-                SchoolQuiz.lecture_id == lecture.id,
-                SchoolQuiz.deleted_at.is_(None),
+        (
+            await session.execute(
+                select(SchoolQuiz.id).where(
+                    SchoolQuiz.lecture_id == lecture.id,
+                    SchoolQuiz.deleted_at.is_(None),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     if not quiz_ids:
         return
 
     assignments = (
-        await session.execute(
-            select(SchoolQuizAssignment).where(
-                SchoolQuizAssignment.quiz_id.in_(list(quiz_ids)),
-                SchoolQuizAssignment.status == QuizAssignmentStatus.PUBLISHED,
-                SchoolQuizAssignment.deleted_at.is_(None),
+        (
+            await session.execute(
+                select(SchoolQuizAssignment).where(
+                    SchoolQuizAssignment.quiz_id.in_(list(quiz_ids)),
+                    SchoolQuizAssignment.status == QuizAssignmentStatus.PUBLISHED,
+                    SchoolQuizAssignment.deleted_at.is_(None),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     for assignment in assignments:
         student = await users.get_by_id(assignment.student_user_id)
@@ -119,14 +127,18 @@ async def _notify_linked_parents(
     locale: str,
 ) -> None:
     links = (
-        await session.execute(
-            select(ParentChildLink).where(
-                ParentChildLink.student_user_id == student.id,
-                ParentChildLink.status == ParentChildLinkStatus.APPROVED,
-                ParentChildLink.deleted_at.is_(None),
+        (
+            await session.execute(
+                select(ParentChildLink).where(
+                    ParentChildLink.student_user_id == student.id,
+                    ParentChildLink.status == ParentChildLinkStatus.APPROVED,
+                    ParentChildLink.deleted_at.is_(None),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     users = UserRepository(session)
     for link in links:
         parent = await users.get_by_id(link.parent_user_id)

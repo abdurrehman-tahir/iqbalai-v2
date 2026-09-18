@@ -200,7 +200,9 @@ async def test_m11_late_enrollment_and_independent_skip(monkeypatch: pytest.Monk
 
         def all(self):
             return [
-                SimpleNamespace(id="lec-1", current_version_id="ver-1", status=LectureStatus.PUBLISHED)
+                SimpleNamespace(
+                    id="lec-1", current_version_id="ver-1", status=LectureStatus.PUBLISHED
+                )
             ]
 
     class _None:

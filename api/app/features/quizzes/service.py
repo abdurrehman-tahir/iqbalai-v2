@@ -112,15 +112,19 @@ class QuizService:
         if lecture.status != LectureStatus.PUBLISHED:
             raise NotFoundError("Quiz not available")
         questions = (
-            await self._session.execute(
-                select(SchoolQuizQuestion)
-                .where(
-                    SchoolQuizQuestion.quiz_id == quiz.id,
-                    not_deleted(SchoolQuizQuestion),
+            (
+                await self._session.execute(
+                    select(SchoolQuizQuestion)
+                    .where(
+                        SchoolQuizQuestion.quiz_id == quiz.id,
+                        not_deleted(SchoolQuizQuestion),
+                    )
+                    .order_by(SchoolQuizQuestion.ordinal)
                 )
-                .order_by(SchoolQuizQuestion.ordinal)
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         return StudentQuizDetailRead(
             assignment_id=assignment.id,
             quiz_id=quiz.id,
@@ -166,15 +170,19 @@ class QuizService:
             return await self._result_from_attempt(assignment, quiz, existing)
 
         questions = (
-            await self._session.execute(
-                select(SchoolQuizQuestion)
-                .where(
-                    SchoolQuizQuestion.quiz_id == quiz.id,
-                    not_deleted(SchoolQuizQuestion),
+            (
+                await self._session.execute(
+                    select(SchoolQuizQuestion)
+                    .where(
+                        SchoolQuizQuestion.quiz_id == quiz.id,
+                        not_deleted(SchoolQuizQuestion),
+                    )
+                    .order_by(SchoolQuizQuestion.ordinal)
                 )
-                .order_by(SchoolQuizQuestion.ordinal)
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         answers = QuizAnswersMap.from_jsonb(payload.answers).answers
         score = 0
         for q in questions:
@@ -235,13 +243,17 @@ class QuizService:
         await self._require_teacher_scope(user, lecture)
 
         quizzes = (
-            await self._session.execute(
-                select(SchoolQuiz).where(
-                    SchoolQuiz.lecture_id == lecture_id,
-                    not_deleted(SchoolQuiz),
+            (
+                await self._session.execute(
+                    select(SchoolQuiz).where(
+                        SchoolQuiz.lecture_id == lecture_id,
+                        not_deleted(SchoolQuiz),
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         results: list[TeacherStudentQuizResultRead] = []
         for quiz in quizzes:
             assignment = (
@@ -297,25 +309,27 @@ class QuizService:
         await self._require_teacher_scope(user, lecture, allow_coordinator_admin=True)
 
         assignments = (
-            await self._session.execute(
-                select(SchoolQuizAssignment)
-                .join(SchoolQuiz, SchoolQuiz.id == SchoolQuizAssignment.quiz_id)
-                .where(
-                    SchoolQuiz.lecture_id == lecture_id,
-                    not_deleted(SchoolQuizAssignment),
-                    not_deleted(SchoolQuiz),
+            (
+                await self._session.execute(
+                    select(SchoolQuizAssignment)
+                    .join(SchoolQuiz, SchoolQuiz.id == SchoolQuizAssignment.quiz_id)
+                    .where(
+                        SchoolQuiz.lecture_id == lecture_id,
+                        not_deleted(SchoolQuizAssignment),
+                        not_deleted(SchoolQuiz),
+                    )
                 )
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         assigned = len(assignments)
         completed = [a for a in assignments if a.status == QuizAssignmentStatus.COMPLETED]
         scores: list[float] = []
         for a in completed:
             attempt = (
                 await self._session.execute(
-                    select(SchoolQuizAttempt).where(
-                        SchoolQuizAttempt.quiz_assignment_id == a.id
-                    )
+                    select(SchoolQuizAttempt).where(SchoolQuizAttempt.quiz_assignment_id == a.id)
                 )
             ).scalar_one_or_none()
             if attempt and attempt.max_score:
@@ -333,12 +347,16 @@ class QuizService:
                 )
             ).scalar_one()
             questions = (
-                await self._session.execute(
-                    select(SchoolQuizQuestion)
-                    .where(SchoolQuizQuestion.quiz_id == first_quiz_id)
-                    .order_by(SchoolQuizQuestion.ordinal)
+                (
+                    await self._session.execute(
+                        select(SchoolQuizQuestion)
+                        .where(SchoolQuizQuestion.quiz_id == first_quiz_id)
+                        .order_by(SchoolQuizQuestion.ordinal)
+                    )
                 )
-            ).scalars().all()
+                .scalars()
+                .all()
+            )
             for q in questions:
                 incorrect = 0
                 total = 0
@@ -444,15 +462,19 @@ class QuizService:
         attempt: SchoolQuizAttempt,
     ) -> QuizAttemptResultRead:
         questions = (
-            await self._session.execute(
-                select(SchoolQuizQuestion)
-                .where(
-                    SchoolQuizQuestion.quiz_id == quiz.id,
-                    not_deleted(SchoolQuizQuestion),
+            (
+                await self._session.execute(
+                    select(SchoolQuizQuestion)
+                    .where(
+                        SchoolQuizQuestion.quiz_id == quiz.id,
+                        not_deleted(SchoolQuizQuestion),
+                    )
+                    .order_by(SchoolQuizQuestion.ordinal)
                 )
-                .order_by(SchoolQuizQuestion.ordinal)
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
         answers = attempt.answers_jsonb or {}
         results: list[QuizQuestionResultRead] = []
         for q in questions:

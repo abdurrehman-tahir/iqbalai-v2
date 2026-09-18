@@ -135,9 +135,7 @@ async def test_admin_override_publish_is_elevated(monkeypatch: pytest.MonkeyPatc
         audits.append(dict(kwargs))
 
     monkeypatch.setattr("app.features.lectures.service.audit", _audit)
-    monkeypatch.setattr(
-        "app.features.lectures.service.publish_lecture_event", AsyncMock()
-    )
+    monkeypatch.setattr("app.features.lectures.service.publish_lecture_event", AsyncMock())
     monkeypatch.setattr(
         "app.features.quizzes.publish.publish_pending_assignments_for_lecture",
         AsyncMock(return_value=0),

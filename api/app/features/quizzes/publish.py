@@ -8,22 +8,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.features.quizzes.models import QuizAssignmentStatus, SchoolQuiz, SchoolQuizAssignment
 
 
-async def publish_pending_assignments_for_lecture(
-    session: AsyncSession, *, lecture_id: str
-) -> int:
+async def publish_pending_assignments_for_lecture(session: AsyncSession, *, lecture_id: str) -> int:
     """Flip ``pending`` → ``published`` for all quiz assignments of a lecture.
 
     Called from lecture publish (T-142). Returns the number of rows updated.
     No-op when no quizzes exist yet (generation may still be in flight).
     """
     quiz_ids = (
-        await session.execute(
-            select(SchoolQuiz.id).where(
-                SchoolQuiz.lecture_id == lecture_id,
-                SchoolQuiz.deleted_at.is_(None),
+        (
+            await session.execute(
+                select(SchoolQuiz.id).where(
+                    SchoolQuiz.lecture_id == lecture_id,
+                    SchoolQuiz.deleted_at.is_(None),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
     if not quiz_ids:
         return 0
 

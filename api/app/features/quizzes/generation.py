@@ -94,12 +94,16 @@ async def run_quiz_generation_for_student(
         return None
 
     paragraphs = (
-        await session.execute(
-            select(SchoolLectureParagraph)
-            .where(SchoolLectureParagraph.lecture_version_id == version_id)
-            .order_by(SchoolLectureParagraph.ordinal)
+        (
+            await session.execute(
+                select(SchoolLectureParagraph)
+                .where(SchoolLectureParagraph.lecture_version_id == version_id)
+                .order_by(SchoolLectureParagraph.ordinal)
+            )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     excerpt_parts: list[str] = []
     if paragraphs:
@@ -229,9 +233,7 @@ async def enqueue_quiz_generation_for_lecture(
     from app.features.lectures.repository import LectureAssignmentRepository
     from app.features.quizzes.tasks import generate_quiz_for_student
 
-    offering = await OfferingRepository(session).get_by_id(
-        lecture.grade_subject_offering_id
-    )
+    offering = await OfferingRepository(session).get_by_id(lecture.grade_subject_offering_id)
     if offering is None:
         return 0
 

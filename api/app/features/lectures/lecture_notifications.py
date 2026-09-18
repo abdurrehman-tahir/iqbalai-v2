@@ -147,6 +147,4 @@ async def notify_lecture_published(session: AsyncSession, *, lecture: SchoolLect
 
         await notify_publish_fanout(session, lecture=lecture)
     except Exception as exc:
-        logger.warning(
-            "lecture_published_fanout_failed", lecture_id=lecture.id, error=str(exc)
-        )
+        logger.warning("lecture_published_fanout_failed", lecture_id=lecture.id, error=str(exc))

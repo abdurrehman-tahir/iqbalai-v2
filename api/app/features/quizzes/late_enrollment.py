@@ -34,15 +34,19 @@ async def run_late_enrollment_quiz_generation(
     from app.features.quizzes.tasks import generate_quiz_for_student
 
     lectures = (
-        await session.execute(
-            select(SchoolLecture).where(
-                SchoolLecture.school_id == school_id,
-                SchoolLecture.grade_subject_offering_id == grade_subject_offering_id,
-                SchoolLecture.status == LectureStatus.PUBLISHED,
-                SchoolLecture.deleted_at.is_(None),
+        (
+            await session.execute(
+                select(SchoolLecture).where(
+                    SchoolLecture.school_id == school_id,
+                    SchoolLecture.grade_subject_offering_id == grade_subject_offering_id,
+                    SchoolLecture.status == LectureStatus.PUBLISHED,
+                    SchoolLecture.deleted_at.is_(None),
+                )
             )
         )
-    ).scalars().all()
+        .scalars()
+        .all()
+    )
 
     enqueued = 0
     for lecture in lectures:
