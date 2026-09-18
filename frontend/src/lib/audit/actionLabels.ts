@@ -40,8 +40,21 @@ const M08_ACTION_KEYS: Record<string, string> = {
   "cognitive_dna.seeded": "cognitive_dna_seeded",
 };
 
+const M11_ACTION_KEYS: Record<string, string> = {
+  "lecture.published": "lecture_published",
+  "lecture.override_published": "lecture_override_published",
+  "quiz.generation_failed": "quiz_generation_failed",
+  "quiz.results_accessed": "quiz_results_accessed",
+};
+
 export function auditActionLabelKey(action: string): string | null {
-  return M04_ACTION_KEYS[action] ?? M06_ACTION_KEYS[action] ?? M08_ACTION_KEYS[action] ?? null;
+  return (
+    M04_ACTION_KEYS[action] ??
+    M06_ACTION_KEYS[action] ??
+    M08_ACTION_KEYS[action] ??
+    M11_ACTION_KEYS[action] ??
+    null
+  );
 }
 
 const ELEVATED_ACTIONS = new Set([
@@ -51,6 +64,8 @@ const ELEVATED_ACTIONS = new Set([
   "data_rights.deletion_cancelled",
   "graduation.migrated",
   "graduation.migration_failed",
+  "lecture.override_published",
+  "quiz.results_accessed",
 ]);
 
 export function isFlaggedAuditEntry(entry: AuditEntry & { metadata_json?: string | null }): boolean {

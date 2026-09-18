@@ -68,7 +68,13 @@ import type {
   LectureVersionSaveRequest,
   LectureVersionRead,
   LectureVersionListResponse,
+  LecturePublishRead,
   VoiceTranscribeRead,
+  StudentQuizCardRead,
+  StudentQuizDetailRead,
+  QuizAttemptResultRead,
+  TeacherStudentQuizResultRead,
+  QuizOfferingAggregateRead,
   LectureImageUploadRead,
   DiagramSuggestionsRead,
   DiagramSuggestionAccept,
@@ -1207,6 +1213,12 @@ export const lectureWizardApi = {
       },
       token
     ),
+  publishLecture: (token: string, lectureId: string) =>
+    request<LecturePublishRead>(
+      `/teachers/me/lectures/${lectureId}/publish`,
+      { method: "POST" },
+      token
+    ),
   transcribeVoice: (token: string, lectureId: string, audio: Blob, language?: string) => {
     const qs = language ? `?${new URLSearchParams({ language }).toString()}` : "";
     const formData = new FormData();
@@ -1504,6 +1516,40 @@ export const diagnosticsApi = {
     request<DiagnosticResultRead>(
       `/students/me/diagnostics/${diagnosticId}/finalize-timeout`,
       { method: "POST" },
+      token
+    ),
+};
+
+/** Student quiz dashboard + attempt (T-145 / T-146). */
+export const studentQuizzesApi = {
+  list: (token: string) =>
+    request<StudentQuizCardRead[]>("/students/me/quizzes", {}, token),
+  get: (token: string, assignmentId: string) =>
+    request<StudentQuizDetailRead>(`/students/me/quizzes/${assignmentId}`, {}, token),
+  submit: (token: string, assignmentId: string, answers: Record<string, string>) =>
+    request<QuizAttemptResultRead>(
+      `/students/me/quizzes/${assignmentId}/submit`,
+      {
+        method: "POST",
+        body: JSON.stringify({ answers }),
+        headers: { "Idempotency-Key": crypto.randomUUID() },
+      },
+      token
+    ),
+};
+
+/** Teacher quiz results + aggregates (T-147). */
+export const teacherQuizResultsApi = {
+  listResults: (token: string, lectureId: string) =>
+    request<TeacherStudentQuizResultRead[]>(
+      `/teachers/me/lectures/${lectureId}/quiz-results`,
+      {},
+      token
+    ),
+  getAggregate: (token: string, lectureId: string) =>
+    request<QuizOfferingAggregateRead>(
+      `/teachers/me/lectures/${lectureId}/quiz-aggregate`,
+      {},
       token
     ),
 };

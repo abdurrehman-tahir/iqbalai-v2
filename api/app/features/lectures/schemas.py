@@ -398,6 +398,17 @@ class LectureVersionRead(BaseModel):
     created_at: datetime
 
 
+class LecturePublishRead(BaseModel):
+    """Result of publishing a lecture (T-142)."""
+
+    id: str
+    status: str
+    current_version_id: str | None = None
+    published_by_user_id: str
+    override: bool = False
+    quizzes_published: int = 0
+
+
 # --- M-10 T-131 — voice dictation (STT insert/replace) ----------------------
 
 

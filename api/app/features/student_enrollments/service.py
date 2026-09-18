@@ -183,6 +183,37 @@ class StudentEnrollmentService:
                 "academic_session": grade.academic_session,
             },
         )
+
+        # T-148: emit student.enrolled + enqueue late quiz generation for published lectures.
+        try:
+            from app.features.quizzes.events import publish_student_enrolled
+            from app.features.quizzes.late_enrollment import (
+                enqueue_late_quizzes_for_grade_enrollment,
+            )
+
+            await publish_student_enrolled(
+                payload={
+                    "enrollment_id": created_enrollment.id,
+                    "school_id": grade.school_id,
+                    "student_user_id": created_student.id,
+                    "grade_id": grade_id,
+                    "section_id": section.id,
+                    "academic_session": grade.academic_session,
+                }
+            )
+            await enqueue_late_quizzes_for_grade_enrollment(
+                self._session,
+                school_id=grade.school_id,
+                student_user_id=created_student.id,
+                grade_id=grade_id,
+            )
+        except Exception as exc:
+            logger.warning(
+                "late_enrollment_quiz_hook_failed",
+                enrollment_id=created_enrollment.id,
+                error=str(exc),
+            )
+
         logger.info(
             "student_enrolled",
             enrollment_id=created_enrollment.id,

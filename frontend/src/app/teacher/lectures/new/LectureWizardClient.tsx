@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
-import { lectureWizardApi, teacherCoachingApi, ApiError } from "@/lib/api";
+import { lectureWizardApi, teacherCoachingApi, teacherQuizResultsApi, ApiError } from "@/lib/api";
 import type {
   LectureDraftUpsert,
   LectureGenerateRequest,
@@ -757,6 +757,8 @@ function GenerationStreamPanel({
         <LectureParagraphsView token={token!} lectureId={lectureId} t={t} />
         <LectureLinksPanel token={token!} lectureId={lectureId} t={t} />
         <LectureAccessPanel token={token!} lectureId={lectureId} t={t} />
+        <LecturePublishPanel token={token!} lectureId={lectureId} t={t} />
+        <LectureQuizResultsPanel token={token!} lectureId={lectureId} t={t} />
         <LectureTeacherTipsPanel token={token!} lectureId={lectureId} t={t} />
         <VoiceConversationPanel lectureId={lectureId} t={t} />
       </section>
@@ -998,6 +1000,142 @@ function LectureLinksPanel({
           {linkError}
         </p>
       ) : null}
+    </section>
+  );
+}
+
+/** Publish lecture to enrolled students (T-142). Bound to quiz publish (T-145). */
+function LecturePublishPanel({
+  token,
+  lectureId,
+  t,
+}: {
+  token: string;
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState<string | null>(null);
+
+  const publishMutation = useMutation({
+    mutationFn: () => lectureWizardApi.publishLecture(token, lectureId),
+    onSuccess: () => {
+      setError(null);
+      setSuccess(t("publish_success"));
+    },
+    onError: (err: unknown) => {
+      setSuccess(null);
+      setError(err instanceof ApiError ? err.message : t("publish_error"));
+    },
+  });
+
+  return (
+    <section className="space-y-3 rounded-lg border border-gray-200 p-4" aria-labelledby="lecture-publish-heading">
+      <h4 id="lecture-publish-heading" className="text-base font-medium text-gray-900">
+        {t("publish_title")}
+      </h4>
+      <p className="text-sm text-gray-700">{t("publish_body")}</p>
+      {error ? (
+        <p className="text-sm text-red-700" role="alert">
+          {error}
+        </p>
+      ) : null}
+      {success ? (
+        <p className="text-sm text-green-700" role="status">
+          {success}
+        </p>
+      ) : null}
+      <Button
+        type="button"
+        onClick={() => publishMutation.mutate()}
+        disabled={publishMutation.isPending}
+      >
+        {publishMutation.isPending ? t("publish_publishing") : t("publish_button")}
+      </Button>
+    </section>
+  );
+}
+
+/** Per-student + aggregate quiz results for this lecture (T-147). */
+function LectureQuizResultsPanel({
+  token,
+  lectureId,
+  t,
+}: {
+  token: string;
+  lectureId: string;
+  t: ReturnType<typeof useTranslations>;
+}) {
+  const resultsQuery = useQuery({
+    queryKey: ["teacher", "quiz-results", lectureId],
+    queryFn: () => teacherQuizResultsApi.listResults(token, lectureId),
+  });
+  const aggregateQuery = useQuery({
+    queryKey: ["teacher", "quiz-aggregate", lectureId],
+    queryFn: () => teacherQuizResultsApi.getAggregate(token, lectureId),
+  });
+
+  return (
+    <section
+      className="space-y-3 rounded-lg border border-gray-200 p-4"
+      aria-labelledby="lecture-quiz-results-heading"
+      data-testid="lecture-quiz-results"
+    >
+      <h4 id="lecture-quiz-results-heading" className="text-base font-medium text-gray-900">
+        {t("quiz_results_title")}
+      </h4>
+      <p className="text-sm text-gray-700">{t("quiz_results_body")}</p>
+
+      {aggregateQuery.data ? (
+        <div className="space-y-1 text-sm text-gray-800">
+          <p>
+            {t("quiz_completion", {
+              completed: aggregateQuery.data.completed_count,
+              assigned: aggregateQuery.data.assigned_count,
+              rate: Math.round(aggregateQuery.data.completion_rate * 100),
+            })}
+          </p>
+          {aggregateQuery.data.average_score != null ? (
+            <p>
+              {t("quiz_average", {
+                average: Math.round(aggregateQuery.data.average_score * 100),
+              })}
+            </p>
+          ) : null}
+          {(aggregateQuery.data.hotspots ?? []).length > 0 ? (
+            <ul className="mt-2 space-y-1 text-xs text-gray-600">
+              {aggregateQuery.data.hotspots.map((h) => (
+                <li key={h.question_ordinal}>
+                  {t("quiz_hotspot", {
+                    ordinal: h.question_ordinal,
+                    rate: Math.round(h.incorrect_rate * 100),
+                    difficulty: h.difficulty,
+                  })}
+                </li>
+              ))}
+            </ul>
+          ) : null}
+        </div>
+      ) : null}
+
+      {resultsQuery.isError || aggregateQuery.isError ? (
+        <p className="text-sm text-red-700" role="alert">
+          {t("quiz_results_error")}
+        </p>
+      ) : null}
+
+      <ul className="space-y-1 text-sm text-gray-800">
+        {(resultsQuery.data ?? []).map((row) => (
+          <li key={row.assignment_id} className="flex justify-between gap-2 border-b border-gray-100 py-1">
+            <span>{row.student_display_name}</span>
+            <span>
+              {row.score != null && row.max_score != null
+                ? `${row.score}/${row.max_score}`
+                : row.status}
+            </span>
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

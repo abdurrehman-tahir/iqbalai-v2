@@ -149,6 +149,62 @@ LECTURE_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "lectures.published": {
+        "default": {
+            "en": {
+                "title": "Lecture published",
+                "body": 'Your lecture on "{topic}" is now visible to enrolled students.',
+            },
+            "ur": {
+                "title": "لیکچر شائع ہو گیا",
+                "body": '"{topic}" پر آپ کا لیکچر اب اندراج شدہ طلبہ کے لیے دستیاب ہے۔',
+            },
+            "sd": {
+                "title": "ليڪچر شايع ٿي ويو",
+                "body": '"{topic}" تي توهان جو ليڪچر هاڻي داخل ٿيل شاگردن لاءِ موجود آهي۔',
+            },
+            "ps": {
+                "title": "لیکچر خپور شو",
+                "body": 'ستاسو د "{topic}" لیکچر اوس نوم لیکلي زده کوونکو ته ښکاري۔',
+            },
+        },
+        "student": {
+            "en": {
+                "title": "New lecture available",
+                "body": 'A new lecture on "{topic}" is ready for you.',
+            },
+            "ur": {
+                "title": "نیا لیکچر دستیاب ہے",
+                "body": '"{topic}" پر ایک نیا لیکچر آپ کے لیے تیار ہے۔',
+            },
+            "sd": {
+                "title": "نئون ليڪچر موجود آهي",
+                "body": '"{topic}" تي هڪ نئون ليڪچر توهان لاءِ تيار آهي۔',
+            },
+            "ps": {
+                "title": "نوی لیکچر شتون لري",
+                "body": 'د "{topic}" په اړه یو نوی لیکچر ستاسو لپاره چمتو دی۔',
+            },
+        },
+        "parent": {
+            "en": {
+                "title": "New lecture for your child",
+                "body": 'A lecture on "{topic}" was published for your child\'s class.',
+            },
+            "ur": {
+                "title": "آپ کے بچے کے لیے نیا لیکچر",
+                "body": 'آپ کے بچے کی جماعت کے لیے "{topic}" پر لیکچر شائع ہوا۔',
+            },
+            "sd": {
+                "title": "توهان جي ٻار لاءِ نئون ليڪچر",
+                "body": 'توهان جي ٻار جي ڪلاس لاءِ "{topic}" تي ليڪچر شايع ٿيو۔',
+            },
+            "ps": {
+                "title": "ستاسو د ماشوم لپاره نوی لیکچر",
+                "body": 'ستاسو د ماشوم ټولګي لپاره د "{topic}" لیکچر خپور شو۔',
+            },
+        },
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {

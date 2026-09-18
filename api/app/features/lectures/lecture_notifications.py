@@ -122,3 +122,31 @@ async def notify_generation_timeout(session: AsyncSession, *, lecture: SchoolLec
         logger.warning(
             "lecture_generation_timeout_notify_failed", lecture_id=lecture.id, error=str(exc)
         )
+
+
+async def notify_lecture_published(session: AsyncSession, *, lecture: SchoolLecture) -> None:
+    """Notify teacher + enrolled students (+ linked parents) on publish (T-142/T-149)."""
+    try:
+        recipient = await _resolve_recipient(session, lecture.teacher_user_id)
+        if recipient is not None:
+            authentik_id, locale = recipient
+            await notify_lecture_event(
+                session=session,
+                template_key="lectures.published",
+                recipient_user_id=authentik_id,
+                school_id=lecture.school_id,
+                locale=locale,
+                params={"topic": lecture.topic},
+                metadata={"lecture_id": lecture.id},
+            )
+    except Exception as exc:
+        logger.warning("lecture_published_notify_failed", lecture_id=lecture.id, error=str(exc))
+
+    try:
+        from app.features.quizzes.quiz_notifications import notify_publish_fanout
+
+        await notify_publish_fanout(session, lecture=lecture)
+    except Exception as exc:
+        logger.warning(
+            "lecture_published_fanout_failed", lecture_id=lecture.id, error=str(exc)
+        )

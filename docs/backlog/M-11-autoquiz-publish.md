@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2 weeks
 **Tickets:** T-141 through T-150
 **Spec source:** `flow-5-teacher-creates-lecture.md` v1 §3.3 (auto-quiz per student #23b), §3.1 + §3.5 (publish lifecycle → PUBLISHED)
@@ -37,7 +37,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 4
 **Milestone:** M-11
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.3 (quiz_assignments per student; status lifecycle)
@@ -72,7 +72,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 4
 **Milestone:** M-11
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5 (PUBLISHED — visible to enrolled students per Grade-Subject), §3.1 (READY_FOR_PUBLISH)
@@ -105,7 +105,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 4
 **Milestone:** M-11
 **Estimate:** 2.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.3 (QUIZ_GEN_REQUESTED → per-student parallel → QUIZ_READY; 5-10 Q; 2-min class SLA)
@@ -139,7 +139,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 4
 **Milestone:** M-11
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.3 (per-student calibration; stronger→harder, weaker→foundational)
@@ -176,7 +176,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 4
 **Milestone:** M-11
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.3 (QUIZ_PUBLISHED — students see quiz on dashboard)
@@ -209,7 +209,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 4
 **Milestone:** M-11
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.3 (results visible to student immediately after attempt)
@@ -242,7 +242,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 4
 **Milestone:** M-11
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.3 (results visibility: student / teacher per-student+aggregate / coordinator aggregate-scope / admin aggregate-school)
@@ -275,7 +275,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 4
 **Milestone:** M-11
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.3 (per enrolled student — including those who enroll after publish), §3.10 + line 121 (independent teachers: NO auto-quiz)
@@ -308,7 +308,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 4 / 6
 **Milestone:** M-11
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.3 (quiz events)
@@ -341,7 +341,7 @@ Completes Flow 5: the teacher publishes the lecture (it becomes visible to the e
 **Layer:** 6
 **Milestone:** M-11
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.3, §3.5
