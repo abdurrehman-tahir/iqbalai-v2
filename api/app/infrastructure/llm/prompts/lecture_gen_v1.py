@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 from app.infrastructure.llm.types import PromptCall
 
-PROMPT_VERSION = "lecture_generate.v1"
+PROMPT_VERSION = "lecture_gen.v1"
 
 
 class ChunkRef(BaseModel):

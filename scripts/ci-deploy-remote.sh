@@ -41,6 +41,14 @@ echo "==> Restarting application services"
 # Do not force infinity — this host uses EMBEDDING_PROVIDER=local.
 $COMPOSE up -d api celery-worker celery-beat frontend nginx
 
+# Recreating api/frontend gives them new container IPs. nginx resolves the
+# `upstream {}` server names only once at startup, so an un-restarted nginx keeps
+# proxying to the dead old IPs -> 502 -> the health check below fails even though
+# the app is healthy. Reload makes nginx re-resolve the upstreams (zero downtime;
+# restart is the fallback if the container wasn't running).
+echo "==> Reloading nginx (re-resolve upstream IPs after recreate)"
+$COMPOSE exec -T nginx nginx -s reload || $COMPOSE restart nginx
+
 echo "==> Health check"
 ok=0
 for _ in $(seq 1 60); do
