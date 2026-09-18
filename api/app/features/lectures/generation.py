@@ -458,6 +458,14 @@ async def run_lecture_generation(
             framework_name=exam_overlay.framework_name,
         )
 
+    # T-138 (#36): additive Teaching Innovation Record nudges — pending
+    # coaching tips this teacher hasn't yet acted on or ignored.
+    from app.features.teacher_coaching.service import get_generation_coaching_context_school
+
+    coaching_context = await get_generation_coaching_context_school(
+        session, teacher_user_id=teacher_user_id
+    )
+
     lang = target_language if target_language in ("en", "ur", "sd", "ps") else "en"
     mode = teaching_mode if teaching_mode in ("auto", "manual", "voice_assisted") else "auto"
     prompt = render(
@@ -472,6 +480,7 @@ async def run_lecture_generation(
             exam_framework_name=exam_overlay.framework_name if exam_overlay else None,
             exam_strategy_summary=exam_overlay.exam_strategy_summary if exam_overlay else None,
             exam_priority_topics=exam_overlay.priority_topics if exam_overlay else [],
+            teacher_coaching_context=coaching_context,
         )
     )
     # T-117: relay raw deltas token-by-token so a connected teacher sees live
@@ -590,6 +599,15 @@ async def run_lecture_generation(
             "topic": topic,
             "target_language": lang,
         }
+    )
+
+    # T-134 (#32): 7-dimension quality scoring, chained the same way — its own
+    # Celery task so a slow/failing scoring call never affects this task's
+    # already-succeeded generation or its soft_time_limit.
+    from app.features.lectures.tasks import score_lecture_version
+
+    score_lecture_version.apply_async(
+        kwargs={"lecture_id": lecture_id, "school_id": school_id, "version_id": version.id}
     )
 
     return version.id

@@ -4,12 +4,20 @@ Four tables in both ``school`` and ``independent`` schemas:
 ``lectures``, ``lecture_versions``, ``lecture_drafts``, ``lecture_paragraphs``.
 
 ``lecture_type`` + ``parent_lecture_id`` are Flow-7-ready (mini-lectures later).
-Scoring columns stay nullable until M-10; quiz tables are M-11.
+
+M-10 (T-129, Flow 5 §3.5–§3.7) adds: ``lecture_edit_sessions`` (effort tracking
+per edit session, T-133), three new nullable ``lecture_versions`` columns
+(``topic_relevance_pct``/``originality_score`` populated async by T-135/T-136;
+``edit_summary`` populated synchronously at save time and never touched again —
+it is NOT in the async-scoring mutable set), and ``lecture_plagiarism_flags``
+(school-only — the Postgres side of the admin-only view onto Qdrant's
+``lecture_originality_index`` collection, per ARCH §7.6/§7.15; T-135 populates).
 """
 
 from __future__ import annotations
 
 from datetime import datetime
+from decimal import Decimal
 from enum import StrEnum
 
 from sqlalchemy import (
@@ -18,6 +26,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     String,
     Text,
     UniqueConstraint,
@@ -122,6 +131,25 @@ def _lecture_assignment_scope_enum(schema: str) -> SAEnum:
     return SAEnum(
         LectureAssignmentScope,
         name="lecture_assignments_scope_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
+class PlagiarismFlagStatus(StrEnum):
+    """Platform-Admin review workflow on a lecture_plagiarism_flags row (T-135, #33)."""
+
+    OPEN = "open"
+    REVIEWED = "reviewed"
+    DISMISSED = "dismissed"
+
+
+def _plagiarism_flag_status_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        PlagiarismFlagStatus,
+        name="lecture_plagiarism_flags_status_enum",
         schema=schema,
         values_callable=lambda items: [item.value for item in items],
         native_enum=True,
@@ -237,6 +265,11 @@ class SchoolLectureVersion(AuditMixin, Base):
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
+    # M-10 T-130: TipTap's native JSON doc (STACK_LOCK §2 rich-text-editor row).
+    # Null for v1 rows predating the editor (LLM-generated plain text only) —
+    # every version created via the save endpoint populates this alongside body
+    # (a derived plain-text extraction kept for scoring/embedding/RAG code paths).
+    content_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     # M-10 fills 7-dimension scores; nullable until then.
     scores_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     # T-124 (#28, #41): teacher-facing delivery tips + technique demo + real-world
@@ -244,10 +277,143 @@ class SchoolLectureVersion(AuditMixin, Base):
     # Nullable: null until that call completes (or if it silently fails — this is
     # supplementary content, its absence must never block the lecture itself).
     teacher_tips_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    # M-10 T-134/T-136: 0-100.00, populated by the async scoring pipeline.
+    topic_relevance_pct: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
+    # M-10 T-134/T-135: 0.000-1.000 (1 - max_similarity), populated async.
+    originality_score: Mapped[Decimal | None] = mapped_column(Numeric(4, 3), nullable=True)
+    # M-10 T-130: list[str] of auto-derived annotations (e.g. "Applied voice edit",
+    # "Image inserted"), set ONCE at save time by the editor save path. Unlike the
+    # three columns above this is NOT part of the async-scoring mutable set —
+    # once written at creation it is as immutable as the rest of the row (§4.18).
+    edit_summary: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:
             kwargs["id"] = _uuid7()
+        super().__init__(**kwargs)
+
+
+class SchoolLectureEditSession(AuditMixin, Base):
+    """Per-edit-session effort tracking (T-133, Flow 5 §3.5 #31).
+
+    Tied to the version being edited toward, not the lecture — a teacher may
+    open several sessions against the same in-progress draft before saving.
+    No soft-delete: a session ends (``ended_at`` set), it is never deleted.
+    """
+
+    __tablename__ = "lecture_edit_sessions"
+    __table_args__ = (
+        CheckConstraint("active_ms >= 0", name="lecture_edit_sessions_active_ms_nonneg_check"),
+        CheckConstraint("edits_count >= 0", name="lecture_edit_sessions_edits_count_nonneg_check"),
+        CheckConstraint("char_delta >= 0", name="lecture_edit_sessions_char_delta_nonneg_check"),
+        CheckConstraint(
+            "ended_at IS NULL OR ended_at >= started_at",
+            name="lecture_edit_sessions_ended_after_started_check",
+        ),
+        Index("ix_lecture_edit_sessions_lecture_version_id", "lecture_version_id"),
+        Index("ix_lecture_edit_sessions_teacher_user_id", "teacher_user_id"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    # SET NULL, not CASCADE: the version this session was working toward may not
+    # exist yet when the session starts (it's created by save) — nullable FK set
+    # once the save completes; a version's own deletion never happens (§4.18).
+    lecture_version_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.lecture_versions.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    teacher_user_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    # active_ms/edits_count accumulate across the session's 30s heartbeats
+    # (Page Visibility API pauses the timer on tab blur — T-133).
+    active_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    edits_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    # Cumulative |inserted| + |deleted| characters for the session (not the net
+    # diff) so the effort signal stays monotonic even for heavy rewrites.
+    char_delta: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("(now() AT TIME ZONE 'UTC')")
+    )
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "active_ms" not in kwargs:
+            kwargs["active_ms"] = 0
+        if "edits_count" not in kwargs:
+            kwargs["edits_count"] = 0
+        if "char_delta" not in kwargs:
+            kwargs["char_delta"] = 0
+        super().__init__(**kwargs)
+
+
+class SchoolLecturePlagiarismFlag(AuditMixin, Base):
+    """Admin-only queue row raised when originality max_similarity > 0.85 (T-135, #33).
+
+    School-tenant only — the global cross-teacher originality index (per Flow 5
+    §3.7 / ARCH §7.15) never includes independent-tenant lectures. The matched
+    version/teacher are stored for Platform Admin triage but MUST NEVER be
+    surfaced to the flagged teacher, the matched teacher, or any non-Platform-Admin
+    role (ARCH §7.15 "single cross-tenant search path" exception + privacy rule).
+    """
+
+    __tablename__ = "lecture_plagiarism_flags"
+    __table_args__ = (
+        CheckConstraint(
+            "similarity_score >= 0 AND similarity_score <= 1",
+            name="lecture_plagiarism_flags_similarity_range_check",
+        ),
+        Index("ix_lecture_plagiarism_flags_lecture_version_id", "lecture_version_id"),
+        Index("ix_lecture_plagiarism_flags_teacher_user_id", "teacher_user_id"),
+        Index("ix_lecture_plagiarism_flags_status", "status"),
+        Index(
+            "ix_lecture_plagiarism_flags_matched_lecture_version_id",
+            "matched_lecture_version_id",
+        ),
+        Index("ix_lecture_plagiarism_flags_reviewed_by_user_id", "reviewed_by_user_id"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_version_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lecture_versions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    teacher_user_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    matched_lecture_version_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.lecture_versions.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    similarity_score: Mapped[Decimal] = mapped_column(Numeric(4, 3), nullable=False)
+    status: Mapped[PlagiarismFlagStatus] = mapped_column(
+        _plagiarism_flag_status_enum("school"),
+        nullable=False,
+        default=PlagiarismFlagStatus.OPEN,
+    )
+    reviewed_by_user_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "status" not in kwargs:
+            kwargs["status"] = PlagiarismFlagStatus.OPEN
         super().__init__(**kwargs)
 
 
@@ -604,11 +770,65 @@ class IndependentLectureVersion(AuditMixin, Base):
     )
     version: Mapped[int] = mapped_column(Integer, nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
+    content_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
     scores_jsonb: Mapped[dict[str, object] | None] = mapped_column(JSONB, nullable=True)
+    topic_relevance_pct: Mapped[Decimal | None] = mapped_column(Numeric(5, 2), nullable=True)
+    # Compared only against this same teacher's own prior versions (tenant-isolated,
+    # never cross-tenant per Flow 5 §3.7) — no plagiarism_flags table in this schema.
+    originality_score: Mapped[Decimal | None] = mapped_column(Numeric(4, 3), nullable=True)
+    edit_summary: Mapped[list[str] | None] = mapped_column(JSONB, nullable=True)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:
             kwargs["id"] = _uuid7()
+        super().__init__(**kwargs)
+
+
+class IndependentLectureEditSession(AuditMixin, Base):
+    """Per-edit-session effort tracking, independent schema (T-133)."""
+
+    __tablename__ = "lecture_edit_sessions"
+    __table_args__ = (
+        CheckConstraint("active_ms >= 0", name="lecture_edit_sessions_active_ms_nonneg_check"),
+        CheckConstraint("edits_count >= 0", name="lecture_edit_sessions_edits_count_nonneg_check"),
+        CheckConstraint("char_delta >= 0", name="lecture_edit_sessions_char_delta_nonneg_check"),
+        CheckConstraint(
+            "ended_at IS NULL OR ended_at >= started_at",
+            name="lecture_edit_sessions_ended_after_started_check",
+        ),
+        Index("ix_lecture_edit_sessions_lecture_version_id", "lecture_version_id"),
+        Index("ix_lecture_edit_sessions_teacher_user_id", "teacher_user_id"),
+        {"schema": "independent"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_version_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("independent.lecture_versions.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    teacher_user_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("independent.users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    active_ms: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    edits_count: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    char_delta: Mapped[int] = mapped_column(Integer, nullable=False, default=0)
+    started_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), nullable=False, server_default=text("(now() AT TIME ZONE 'UTC')")
+    )
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "active_ms" not in kwargs:
+            kwargs["active_ms"] = 0
+        if "edits_count" not in kwargs:
+            kwargs["edits_count"] = 0
+        if "char_delta" not in kwargs:
+            kwargs["char_delta"] = 0
         super().__init__(**kwargs)
 
 

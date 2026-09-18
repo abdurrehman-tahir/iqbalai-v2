@@ -80,6 +80,29 @@ async def notify_generation_failed(
         )
 
 
+async def notify_scoring_complete(
+    session: AsyncSession, *, lecture: SchoolLecture, total: int, max_score: int
+) -> None:
+    try:
+        recipient = await _resolve_recipient(session, lecture.teacher_user_id)
+        if recipient is None:
+            return
+        authentik_id, locale = recipient
+        await notify_lecture_event(
+            session=session,
+            template_key="lectures.scoring_complete",
+            recipient_user_id=authentik_id,
+            school_id=lecture.school_id,
+            locale=locale,
+            params={"topic": lecture.topic, "total": str(total), "max": str(max_score)},
+            metadata={"lecture_id": lecture.id},
+        )
+    except Exception as exc:  # best-effort — see module docstring
+        logger.warning(
+            "lecture_scoring_complete_notify_failed", lecture_id=lecture.id, error=str(exc)
+        )
+
+
 async def notify_generation_timeout(session: AsyncSession, *, lecture: SchoolLecture) -> None:
     try:
         recipient = await _resolve_recipient(session, lecture.teacher_user_id)

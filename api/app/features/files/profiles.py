@@ -65,6 +65,21 @@ INDEPENDENT_PERSONAL_CONTENT = UploadProfile(
     description="Independent user private reference PDF — per-user SHA-256 dedup",
 )
 
+LECTURE_IMAGE = UploadProfile(
+    name="lecture_image",
+    # No "images" entry in ARCH §11.3's older bucket enum (pdfs/audio/va-uploads/
+    # exports/ml-models) — §11.19's newer consolidated table locks lecture_image's
+    # limits but not its bucket name. BULK_IMPORT already precedents a bucket
+    # outside that enum ("imports"), so a dedicated "images" bucket follows the
+    # same content-type-scoping rule (§11.1) without colliding with "pdfs".
+    bucket="images",
+    key_prefix="lecture-image",
+    allowed_mime_types=frozenset({"image/jpeg", "image/png", "image/gif"}),
+    magic_bytes=[b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n", b"GIF87a", b"GIF89a"],
+    max_size_bytes=5 * 1024 * 1024,  # 5 MB per ARCH §11.19
+    description="Teacher-embedded image in the lecture TipTap editor (Flow 5 §3.5, T-132)",
+)
+
 BULK_IMPORT = UploadProfile(
     name="bulk_import",
     bucket="imports",
@@ -87,6 +102,7 @@ _REGISTRY: dict[str, UploadProfile] = {
     PLATFORM_REFERENCE_BOOK.name: PLATFORM_REFERENCE_BOOK,
     SCHOOL_LIBRARY_CONTENT.name: SCHOOL_LIBRARY_CONTENT,
     INDEPENDENT_PERSONAL_CONTENT.name: INDEPENDENT_PERSONAL_CONTENT,
+    LECTURE_IMAGE.name: LECTURE_IMAGE,
     BULK_IMPORT.name: BULK_IMPORT,
 }
 

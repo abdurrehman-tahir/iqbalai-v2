@@ -4,7 +4,7 @@ import { useState } from "react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { School, Menu, X, LogOut, Users } from "lucide-react";
+import { School, Menu, X, LogOut, Users, BarChart3 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { performLogout } from "@/lib/auth";
@@ -14,6 +14,7 @@ import LanguageSwitcher from "@/components/LanguageSwitcher";
 const NAV_ITEMS = [
   { key: "schools", href: "/admin/district/schools", icon: School },
   { key: "users", href: "/admin/district/users", icon: Users },
+  { key: "teacher_metrics", href: "/admin/district/teacher-metrics", icon: BarChart3 },
 ] as const;
 
 export function DistrictAdminShell({ children }: { children: React.ReactNode }) {

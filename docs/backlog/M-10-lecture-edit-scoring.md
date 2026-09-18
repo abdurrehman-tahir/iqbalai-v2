@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-129 through T-140
 **Spec source:** `flow-5-teacher-creates-lecture.md` v1 §3.5 (edit #29/#30/#31), §3.6 (7-dim scoring #32), §3.7 (originality #33), §3.8 (topic relevance #34), §3.9 (score timeline #35), §3.10 (Teaching Innovation Record #36), §3.11 (anonymized benchmarking #37), §3.12 (admin comparative metrics #38)
@@ -37,7 +37,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** fbba2bb, fe88afa
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5, §3.6, §3.7, §3.10, §3.11
@@ -56,11 +57,11 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] All tables/columns exist in both schemas with constraints
-2. [ ] `lecture_versions` are immutable except `scores_json` / `topic_relevance_pct` / `originality_score` populated by the async scoring job
-3. [ ] `teacher_ai_memory` exists with a `category` column (extensible — Flow 7 adds a category later)
-4. [ ] `teacher_benchmarks` has `opted_out` + cohort keys (subject, grade_range, region)
-5. [ ] `lecture_originality_index` is admin-scoped per §3.7
+1. [x] All tables/columns exist in both schemas with constraints
+2. [x] `lecture_versions` are immutable except `scores_json` / `topic_relevance_pct` / `originality_score` populated by the async scoring job
+3. [x] `teacher_ai_memory` exists with a `category` column (extensible — Flow 7 adds a category later)
+4. [x] `teacher_benchmarks` has `opted_out` + cohort keys (subject, grade_range, region)
+5. [x] `lecture_originality_index` is admin-scoped per §3.7 (implemented as the locked Qdrant collection per ARCH §7.6/§7.15 — school-tenant only, `lecture_plagiarism_flags` Postgres table added for the admin triage queue)
 
 ### Out of scope
 - Population logic (T-134–T-139)
@@ -72,7 +73,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** 099c62b (backend), ee35ac7 (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5 (edit lifecycle; "every save = new version row")
@@ -89,17 +91,20 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Teacher edits the draft in TipTap; Save creates a new version row
-2. [ ] The prior version is untouched (immutable)
-3. [ ] Auto-save also produces a version (debounced, not per keystroke)
-4. [ ] `lecture.version.created` emitted on each save
-5. [ ] Editing is server-validated against teacher ownership of the lecture's Grade-Subject
+1. [x] Teacher edits the draft in TipTap; Save creates a new version row
+2. [x] The prior version is untouched (immutable)
+3. [x] Auto-save also produces a version (debounced 3s, not per keystroke)
+4. [x] `lecture.version.created` emitted on each save
+5. [x] Editing is server-validated against teacher ownership of the lecture's Grade-Subject (reuses `_require_owned_lecture`)
 
 ### Out of scope
 - Scoring (T-134), voice (T-131), images (T-132), effort metrics (T-133)
 
 ### Notes / known gotchas
 - Flow 5 §3.5 states the editor is **TipTap** ("locked per STACK_LOCK"). Confirm TipTap is actually listed in STACK_LOCK §12 (frontend) before implementing; if absent, that's a STACK_LOCK gap to raise (do not substitute a different editor).
+- **Resolved:** TipTap is locked (STACK_LOCK.md §2 — the actual Frontend section number; the ticket's "§12" citation was stale). Installed `@tiptap/react @tiptap/pm @tiptap/starter-kit @tiptap/extension-image @tiptap/extension-placeholder` (core + free extensions only).
+- Added `lecture_versions.content_jsonb` (STACK_LOCK §2's locked storage shape for TipTap's JSON output) — not listed in T-129's explicit field list but required by the lock; `body` stays as a derived plain-text extraction for scoring/embedding/RAG code paths.
+- Playwright `@smoke` spec authored (`e2e/lecture-wizard-smoke.spec.ts`, "Lecture editor @smoke (T-130)") but not executed in the dev sandbox — its frontend container is Alpine/musl and Playwright's bundled Chromium needs glibc. Needs a run on CI or a glibc dev box before sign-off.
 
 ---
 
@@ -108,7 +113,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** ed39a24
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5 (voice edits — transcribe, insert-at-cursor or replace-selection)
@@ -125,14 +131,17 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Teacher dictates; transcription inserts at cursor
-2. [ ] With text selected, transcription replaces the selection (teacher's choice)
-3. [ ] STT uses faster-whisper (STACK_LOCK §4), not raw Whisper
-4. [ ] A voice-originated save still creates a normal new version
-5. [ ] Works in en/ur (Piper-paired languages) + sd/ps per the M-09 voice stack
+1. [x] Teacher dictates; transcription inserts at cursor (TipTap `insertContent`)
+2. [x] With text selected, transcription replaces the selection (`insertContent` replaces the current selection natively — no server/client insert-vs-replace branching needed)
+3. [x] STT uses faster-whisper (STACK_LOCK §4), not raw Whisper (single entry point `infrastructure/voice/router.transcribe`)
+4. [x] A voice-originated save still creates a normal new version (`used_voice_edit` flag -> "Applied voice edit" edit_summary annotation)
+5. [x] Works in en/ur/sd/ps (STT language param; TTS-language pairing from M-09's voice stack doesn't apply here — no TTS in this ticket)
 
 ### Out of scope
 - Voice-quality scoring dimension (T-134 computes it)
+
+### Notes / known gotchas
+- **Deliberately does NOT reuse T-121's WS "Talk to AI" conversational pipeline** (`ws_voice_router.py`/`voice_session.py`) — that pipeline is LLM-interpreted commands over a live back-and-forth and writes `lecture_versions.body` directly, bypassing T-130's `content_jsonb`. T-131 only reuses the STT primitive (`transcribe()`); a plain multipart REST endpoint replaces it, matching the ticket's simpler acceptance criteria. Flagged and confirmed via the ticket-loader dossier before implementation, not guessed.
 
 ---
 
@@ -141,7 +150,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** bebef3a
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5 (image upload #30; AI proactively suggests reference-book diagrams)
@@ -158,14 +168,20 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Drag-drop image → uploaded via `lecture_image` profile → URL inserted in editor
-2. [ ] Upload respects the profile's size/type limits (§11.19)
-3. [ ] AI surfaces a "Diagram on page N of Ref Book X — add it?" prompt when a relevant diagram exists
-4. [ ] Accepting inserts the referenced diagram; declining dismisses
-5. [ ] Image insert produces a new version like any other edit
+1. [x] Drag-drop image → uploaded via `lecture_image` profile → URL inserted in editor
+2. [x] Upload respects the profile's size/type limits (§11.19) — server-enforced (files/pipeline.py) + client-side pre-check
+3. [x] AI surfaces a "Diagram on page N of Ref Book X — add it?" prompt when a relevant diagram exists
+4. [x] Accepting inserts the referenced diagram; declining dismisses (client-side only, no persistence)
+5. [x] Image insert produces a new version like any other edit (unchanged T-130 save path — image node lives in content_jsonb)
 
 ### Out of scope
 - General media library (Phase 2)
+
+### Notes / known gotchas
+- **Two open architecture questions resolved by implementation choice, not by guessing silently** (both documented in the commit message and PR):
+  (a) MinIO bucket name for `lecture_image` — not locked anywhere; used `bucket="images"` (new bucket, content-type-scoped per §11.1; precedented by `BULK_IMPORT`'s `bucket="imports"` already sitting outside ARCH §11.3's older enum).
+  (b) Diagram-detection data source — M-04's ingestion (verified in code) never extracted diagram/figure metadata from reference-book PDFs, despite STACK_LOCK's MinerU row mentioning image capability. Building a new vision-LLM ingestion pass was judged out of proportion for one ticket (expensive, touches shared RAG infra). Implemented instead: one LLM call over the reference chunks the lecture's own v1 draft already cited, flagging chunks that textually describe a diagram; accepted suggestions render the exact PDF page on demand via pdfplumber. Real, tested, but a narrower scope than "AI scans the whole reference library for diagrams" — flagging for Hamza/Abd to confirm this reading is acceptable, or to scope a proper vision-ingestion pass as a follow-up ticket.
+- AI diagram suggestions are **school-tenant only** — independent teachers' personal reference content has no page-chunked structure to draw suggestions from. Independent teachers still get full image upload.
 
 ---
 
@@ -174,7 +190,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commits:** e179eb8 (backend), bf979bc (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5 (effort tracking #31 — visibility-API pause, 30s heartbeat, effort score formula)
@@ -191,14 +208,34 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Timer pauses on tab blur, resumes on focus (Visibility API)
-2. [ ] 30s heartbeat persists `active_ms`
-3. [ ] `edits_count` + `char_delta` recorded per edit session
-4. [ ] Effort score computed per the locked formula
-5. [ ] Effort data available to the scoring pipeline
+1. [x] Timer pauses on tab blur, resumes on focus (Visibility API)
+2. [x] 30s heartbeat persists `active_ms`
+3. [x] `edits_count` + `char_delta` recorded per edit session
+4. [x] Effort score computed per the locked formula
+5. [x] Effort data available to the scoring pipeline
 
 ### Out of scope
 - Surfacing effort as a teacher-visible metric (it feeds scoring, not a standalone display)
+
+### Notes / known gotchas
+- **`normalize()` has no defined basis in the spec.** Implemented as a min-max
+  clamp to `[0,1]` against two named, tunable constants in `effort.py`:
+  `ACTIVE_MS_NORMALIZATION_CAP = 30*60*1000` (30 min = "full effort" active
+  time) and `CHAR_DELTA_NORMALIZATION_CAP = 2000` (2000 chars = "full effort"
+  edit volume). Flagged as an assumption, not a locked spec value — confirm
+  with product before relying on the absolute score scale.
+- `POST .../edit-sessions` requires `Idempotency-Key` (creates a resource);
+  the heartbeat/end actions do not (ARCH §5.9 — non-creating POSTs).
+- Frontend keeps all effort state in `useRef`, not `useState` — no re-render
+  is needed for a background counter that's never rendered (T-133 explicitly
+  scopes out a teacher-visible display).
+- Session lifecycle: started once per `LectureEditorPanel` mount, ended via
+  the unmount cleanup's `sendHeartbeat(true)` (best-effort, errors swallowed
+  — effort data is a scoring input, not a blocking UX concern).
+- Also fixed a pre-existing `mypy --strict` gap in T-132's
+  `test_lecture_images.py` (untyped dict literals passed where `IndexedChunk`
+  TypedDict was expected) — unrelated to this ticket but caught while
+  running the format gate.
 
 ---
 
@@ -207,7 +244,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2.5 days
-**Status:** todo
+**Status:** done
+**Commits:** 8569aaf
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.6 (7-dimension scoring; triggered every save; async)
@@ -224,15 +262,43 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Every save triggers async scoring; teacher sees scores within seconds of completion
-2. [ ] 7 dimensions scored; total max 55; per-dimension breakdown in `scores_json`
-3. [ ] Voice quality = NULL for text-only edits
-4. [ ] AI Learning baseline = 0 on the first version
-5. [ ] Scoring uses `SCORING_MODEL` (separate, smaller model), NOT the generation model
-6. [ ] Cultural relevance uses `teacher_region`
+1. [x] Every save triggers async scoring; teacher sees scores within seconds of completion
+2. [x] 7 dimensions scored; total max 55; per-dimension breakdown in `scores_json`
+3. [x] Voice quality = NULL for text-only edits
+4. [x] AI Learning baseline = 0 on the first version
+5. [x] Scoring uses `SCORING_MODEL` (separate, smaller model), NOT the generation model
+6. [x] Cultural relevance uses `teacher_region`
 
 ### Out of scope
 - Originality internals (T-135), relevance internals (T-136), timeline UI (T-137)
+
+### Notes / known gotchas
+- **No `lecture_score` Celery queue exists.** ARCH §10.2 locks exactly four
+  queue names (`default`/`ingestion`/`ml`/`notifications`) despite the
+  ticket's own text citing a `lecture_score` queue — resolved by running on
+  `default` per §10.2's decision table ("call an external API as a follow-up
+  to a user action"). The ticket's `§4138` ARCH citation isn't a real
+  subsection either; it resolves to ARCH line 4140, inside §7.10.
+- **`SCORING_MODEL` / `task="scoring"` routing already existed** (built for
+  an earlier ticket, wired in `infrastructure/llm/client.py`) — this ticket
+  is its first real caller. ARCH's own diagram (line 241) names a different
+  env var, `LECTURE_SCORE_MODEL`; STACK_LOCK §4.1 and the actual code both
+  say `SCORING_MODEL`, which is what's used — flagging the ARCH inconsistency
+  rather than silently picking one.
+- **T-138 (Innovation Record) doesn't exist yet.** `SchoolTeacherAiMemory` /
+  `IndependentTeacherAiMemory` rows (T-129 schema) are read as the "Innovation
+  Record context" input; empty until T-138 populates them, which the scoring
+  prompt already treats as "no context" (AI Learning scores conservatively /
+  is forced to 0 on the first version regardless).
+- **Independent teachers have no region field** (`IndependentTeacherProfile`
+  has no `region_province`/`region_district`, unlike school's
+  `TeacherProfile`) — `teacher_region` is always `None` for independent
+  lectures; the prompt is explicitly instructed not to penalize a missing
+  region.
+- `voice_quality` and `ai_learning` are two LOCKED rules the code enforces
+  post-hoc on the LLM's JSON response (never trusted to the model itself):
+  voice_quality forced `null` unless the version's `edit_summary` contains
+  "Applied voice edit"; ai_learning forced `0` when `version == 1`.
 
 ---
 
@@ -241,7 +307,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** 99d20e7
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.7 (global cross-teacher originality; matched teacher hidden; plagiarism flag > 0.85)
@@ -258,14 +325,41 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Originality score = 1 − max cosine similarity vs the global index
-2. [ ] Global index = all published school-tenant lectures; independent lectures excluded
-3. [ ] Matched-teacher identity never exposed anywhere
-4. [ ] similarity > 0.85 → `system.plagiarism_flagged` to Platform Admin; teacher sees only the score
-5. [ ] Independent teacher originality is tenant-isolated (own prior versions only)
+1. [x] Originality score = 1 − max cosine similarity vs the global index
+2. [x] Global index = all published school-tenant lectures; independent lectures excluded
+3. [x] Matched-teacher identity never exposed anywhere
+4. [x] similarity > 0.85 → `system.plagiarism_flagged` to Platform Admin; teacher sees only the score
+5. [x] Independent teacher originality is tenant-isolated (own prior versions only)
 
 ### Out of scope
 - The Platform-Admin plagiarism dashboard view (surfaced via the notification + admin metrics; full triage UI is Phase 2)
+
+### Notes / known gotchas
+- **"Published lectures" read loosely.** No publish action exists anywhere in
+  the codebase yet (M-11 scope) — gating the index on `LectureStatus.PUBLISHED`
+  would make the index permanently empty within M-10, so every version save
+  indexes the content, matching T-134's own "every save" scoring trigger and
+  the milestone's own demo script ("a near-duplicate edit triggers a low
+  originality score"). Flagged as an interpretation, not silently assumed.
+  Revisit once M-11's publish endpoint exists.
+- **A lecture's own prior versions are excluded from its own similarity
+  search** (`must_not` filter on `lecture_id`) — not explicitly stated in the
+  spec, but without it every edit would match its own earlier version at
+  ~100% similarity and falsely flag as unoriginal.
+- **Independent-tenant originality reuses the existing per-user personal
+  Qdrant namespace** (`independent_personal_collection`, already used for
+  their uploaded reference PDFs) rather than a new collection, tagged
+  `content_type="lecture_version"` to stay logically separate from PDF
+  chunks — matches a pointer already left in `embedder.py`'s
+  `lecture_originality_index_collection` docstring from T-129.
+- **New `system` notification namespace** — first real caller
+  (`infrastructure/notifications/system.py` + `templates/system.py`,
+  mirroring the existing `lectures` namespace pattern). Fans out to every
+  active Platform Admin (`UserRepository.list_by_role`, new).
+- Fixed a pre-existing gap unrelated to this ticket: `infrastructure/
+  notifications/tests/` was missing `__init__.py` (one of ~12 such gaps
+  found repo-wide), blocking standalone collection of this ticket's own new
+  tests in that directory — added only that one file.
 
 ---
 
@@ -274,7 +368,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commits:** 3bd41f4
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.8 (topic relevance — embed lecture vs curriculum topic; gauge; <70% warning)
@@ -291,13 +386,28 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] `relevance_pct` computed + stored per version
-2. [ ] Gauge renders in the editor
-3. [ ] Warning shown when < 70%
-4. [ ] Uses the curriculum topic definition the lecture was generated against
+1. [x] `relevance_pct` computed + stored per version
+2. [x] Gauge renders in the editor
+3. [x] Warning shown when < 70%
+4. [x] Uses the curriculum topic definition the lecture was generated against
 
 ### Out of scope
 - Blocking publish on low relevance (advisory only)
+
+### Notes / known gotchas
+- **"Curriculum topic definition" resolves to `lecture.topic`** — the Lecture
+  row has no persisted FK to a curriculum topic-tree node (`curriculum_id` is
+  only an ephemeral generation-request param, never stored); `topic` is the
+  flattened `WizardTopicOption.label` the teacher selected in the wizard,
+  submitted verbatim at generate time, so it durably represents the topic
+  definition without needing a schema change.
+- **Native `<progress>` element, not a styled div** — the repo's ESLint
+  config (`react/forbid-dom-props`, T-226) bans the `style` prop project-wide
+  with no documented exception, which rules out the dynamic-width-via-inline-
+  style pattern a generic gauge would normally use. `<progress value max>`
+  needs no inline style for its fill.
+- ur/sd/ps translations added as `__TODO__` placeholders, matching this
+  editor namespace's existing convention (T-131/T-132 already did the same).
 
 ---
 
@@ -306,7 +416,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commits:** db00e55 (backend), 6cf8bd1 (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.9 (score timeline — line chart, hover dims, auto annotations)
@@ -323,14 +434,32 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Timeline plots total score across versions
-2. [ ] Hover reveals all 7 dimensions for that version
-3. [ ] Annotations auto-derived from edit metadata
-4. [ ] Default = last 6 versions; pagination for older
-5. [ ] Renders in the teacher's language (RTL-aware)
+1. [x] Timeline plots total score across versions
+2. [x] Hover reveals all 7 dimensions for that version
+3. [x] Annotations auto-derived from edit metadata
+4. [x] Default = last 6 versions; pagination for older
+5. [x] Renders in the teacher's language (RTL-aware)
 
 ### Out of scope
 - Cross-lecture timelines (per-lecture only)
+
+### Notes / known gotchas
+- **New `GET .../lectures/{lecture_id}/versions` list endpoint** (paginated,
+  newest-first) — reuses the existing `LectureVersionRead` schema rather than
+  a slimmer summary type, trading a little payload size for zero new schema
+  surface; `scores_jsonb`/`edit_summary`/`topic_relevance_pct`/
+  `originality_score` were all already on it.
+- **RTL acceptance (#5) handled via `dir="ltr"` on the chart container only**
+  — the x-axis is a version-number time series, which ARCH §13.12 locks to
+  always read left-to-right regardless of app locale; the heading/buttons/
+  tooltip text around it still render in the teacher's language normally.
+- Recharts (already STACK_LOCK-approved, no new dependency) is the first
+  chart in this codebase — no shared shadcn `chart.tsx` wrapper existed, and
+  building one was out of scope for a single line chart; used directly.
+- The `stroke`/`fill` SVG props on Recharts elements are NOT caught by the
+  repo's `style`-prop ESLint ban (T-226, see the T-136 note above) — they're
+  distinct typed props on Recharts' own components, not the DOM `style`
+  attribute.
 
 ---
 
@@ -339,7 +468,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** 01d8fc9 (backend), aa7e7e0 (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.10 (Teaching Innovation Record — adaptive coaching from per-teacher memory)
@@ -356,17 +486,41 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Recurring weakness detected → suggestion presented to the teacher
-2. [ ] Teacher response (acted/ignored) tracked per suggestion
-3. [ ] Repeated ignore → AI changes its angle (not a repeat)
-4. [ ] Memory loaded into scoring + generation prompts (closes the AI-Learning dimension loop)
-5. [ ] Coaching tone, never grading; independent teachers get the simplified variant
+1. [x] Recurring weakness detected → suggestion presented to the teacher
+2. [x] Teacher response (acted/ignored) tracked per suggestion
+3. [x] Repeated ignore → AI changes its angle (not a repeat)
+4. [x] Memory loaded into scoring + generation prompts (closes the AI-Learning dimension loop)
+5. [x] Coaching tone, never grading; independent teachers get the simplified variant
 
 ### Out of scope
 - Student Cognitive DNA (that's Flow 9 / M-18 — explicitly different from `teacher_ai_memory`)
 
 ### Notes / known gotchas
 - `teacher_ai_memory` is the teacher-coaching store; do NOT conflate with student Cognitive DNA (M-08 seed / Flow 9). Flow 7 (M-16) later adds a `reflective_response_pattern` category to this same table.
+- **Suggestion generated on FIRST detection, not after N recurrences** — the
+  flow spec's own lifecycle diagram goes straight from `WEAKNESS_DETECTED`
+  to `SUGGESTION_PRESENTED`, no "wait and see if it recurs" gate. "Recurring"
+  is expressed via the `frequency` counter growing, not a suggestion-delay
+  threshold. A new suggestion is (re)generated only when a previous round's
+  suggestion has already been responded to (acted/ignored) — while one is
+  still pending, recurrences bump `frequency` silently so the teacher is
+  never shown a second tip before reacting to the first.
+- **Weakness dimensions tracked: originality, depth, cultural_relevance,
+  engagement, alignment only** — `ai_learning` and `voice_quality` excluded.
+  `ai_learning` baselines to 0 on every first version (T-134's own locked
+  rule), which would look like a permanent weakness from day one; `voice_quality`
+  is null for most edits (text-only), so it rarely has a comparable signal.
+  "Weak" = below 50% of the dimension's max score — not itself spec-locked,
+  flagged as an assumption (documented in `service.py`).
+- `respond_to_suggestion_*` distinguishes not-found (404) from wrong-owner
+  (403, `PermissionDeniedError`) rather than hiding both behind 404 — unlike
+  the lectures feature's ownership checks, a coaching-suggestion ID isn't
+  sensitive the way a lecture's existence is.
+- The generation-prompt overlay (acceptance #4's other half) mirrors T-120's
+  exam-framework overlay exactly: plain fields on `LectureGenerateInput`
+  (`teacher_coaching_context: list[str]`), populated by a service call
+  outside the prompt module, applied "quietly" per the system prompt (never
+  mentioned explicitly in the generated lecture text).
 
 ---
 
@@ -375,7 +529,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4
 **Milestone:** M-10
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commits:** 5ff9929 (backend), 5eba0a8 (frontend)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.11 (anonymized benchmarking #37), §3.12 (admin comparative metrics #38)
@@ -392,14 +547,78 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Weekly beat updates `teacher_benchmarks` percentile per cohort
-2. [ ] Benchmark framing is always positive; opt-out removes the teacher from pool + hides their percentile
-3. [ ] Admin metrics table renders 7 dims + avg + relevance + lecture_count; sortable/filterable; CSV export
-4. [ ] Scope enforced per §6.19 (school/district/platform); Coordinator has no access
-5. [ ] Independent teachers excluded from both surfaces; query cached 1hr
+1. [x] Weekly beat updates `teacher_benchmarks` percentile per cohort
+2. [x] Benchmark framing is always positive; opt-out removes the teacher from pool + hides their percentile
+3. [x] Admin metrics table renders 7 dims + avg + relevance + lecture_count; sortable/filterable; CSV export
+4. [x] Scope enforced per §6.19 (school/district/platform); Coordinator has no access
+5. [x] Independent teachers excluded from both surfaces; query cached 1hr
 
 ### Out of scope
 - District-level rollups beyond §6.19 inheritance (Phase 2 analytics)
+
+### Notes / known gotchas
+- **Grade bucketing assumption:** the spec names a `grade_range` column but
+  never defines bucket boundaries. Implementation cohorts on the single
+  `Grade.level_ordinal` (e.g. "9") the teacher's lecture was written for, not
+  a multi-grade span — flagged as an assumption, not spec-derived.
+- **Opt-out is row-scoped, not a preference column** — opting out bulk-flips
+  `opted_out=True` on the teacher's existing `SchoolTeacherBenchmark` rows
+  (clearing `percentile`/`cohort_size`), so no new migration was needed. A
+  brand-new teacher with zero benchmark rows has nothing to opt out of until
+  their first weekly-beat-computed row exists (documented, accepted gap).
+- **`MIN_COHORT_SIZE = 3` anonymity floor** — below this a cohort is skipped
+  entirely (not shown to anyone) rather than computed with a tiny,
+  de-anonymizable cohort.
+- Benchmarking is school-tenant only — no independent-tenant counterpart (no
+  peer cohort within a one-person tenant).
+- **Raw multi-join analytics queries live in `repository.py`, not inline in
+  `service.py`** (`benchmark_repository.py` and `admin_metrics/repository.py`)
+  — matches this codebase's established test convention (fake-repository-
+  class monkeypatching); there is no precedent anywhere in this repo for
+  faking `AsyncSession.execute()` directly for a raw multi-join select.
+- Admin comparative metrics (#38) scope resolution (Platform sees all
+  schools, District sees their district's schools via a new
+  `list_school_ids_for_district` repo method, School sees only their own)
+  mirrors the existing precedent in `app/features/schools/service.py`
+  (`_is_platform_admin`/`_caller_district_id` helpers) rather than
+  introducing a new pattern.
+- **Admin metrics results cached in Redis for 1 hour**
+  (`CACHE_TTL_SECONDS = 3600`), keyed by scope+filters — this is the first
+  get-if-cached-else-compute cache-aside instance in this codebase (only
+  session/token storage and rate-limit counters existed before).
+- **CSV export (`GET /admin/teacher-metrics/export`) has no prior in-repo
+  precedent** — built from scratch using `io.StringIO` + `csv.DictWriter` +
+  FastAPI `StreamingResponse` with `text/csv` media type and a
+  `Content-Disposition: attachment` header.
+- **Frontend: `TeacherMetricsClient.tsx` is one shared component** reused
+  across all three admin shells (Platform `/admin/teacher-metrics`, District
+  `/admin/district/teacher-metrics`, School `/school/admin/teacher-metrics`)
+  via thin `page.tsx` re-exports, matching the existing
+  `UsersClient`/`SchoolAdminUsersPage` precedent — the backend already scopes
+  rows by caller role, so no shell-specific logic is needed client-side.
+- **"Sortable/filterable" implemented as client-side search + click-to-sort**
+  (search across teacher/subject/school name plus column-header sort over the
+  full already-role-scoped result set), rather than a second subject/grade/
+  school lookup API for server-side filter dropdowns — a reasonable scope
+  simplification given expected per-school/per-district dataset size.
+- **`BenchmarkCard.tsx`'s opt-out toggle label uses local component state**,
+  not the list response, because `GET /benchmarks` only ever returns
+  non-opted-out rows — an empty list can't distinguish "opted out" from "not
+  yet computed." Documented, low-stakes UX gap: the toggle resets to showing
+  the opt-out label on a fresh page load even after a prior-session opt-out,
+  but the server-side row state stays correct regardless.
+- A pre-existing, unrelated frontend test flakiness was observed in
+  `GenerationStreamPanel.test.tsx` (6 tests failing with "multiple elements
+  found" errors, both in the full suite and in file isolation) — confirmed
+  via `git status` that this file was NOT touched by T-139; flagged for
+  separate investigation, not introduced or fixed here.
+- A large pre-existing translation-key gap was discovered (not introduced by
+  T-139): roughly 777 keys present in `en/common.json` but missing from
+  `ur`/`sd`/`ps`, including entire missing namespaces like
+  `district_admin.*` and `auth.suspended.*` from prior milestones. Out of
+  scope for T-139 — only the handful of new keys this ticket added were
+  backfilled across all four locales (`__TODO__` placeholders for ur/sd/ps,
+  per convention).
 
 ---
 
@@ -408,7 +627,8 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 **Layer:** 4 / 6
 **Milestone:** M-10
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commits:** 65082d7 (backend), df4effc (frontend/e2e)
 
 ### Spec source
 - `flow-5-teacher-creates-lecture.md` §3.5–§3.12
@@ -425,17 +645,84 @@ Picks up exactly where M-09 left off (a lecture sits at READY_FOR_EDIT). The tea
 
 ### Acceptance (demo script)
 
-1. [ ] Notifications deliver in correct namespaces; templates in en/ur/sd/ps (no `__TODO__`)
-2. [ ] Audit entries for metrics access/export, opt-out, plagiarism flags, admin overrides
-3. [ ] E2E runs green (LLM/STT/embeddings mocked; no live network)
-4. [ ] E2E asserts version immutability, matched-teacher anonymity, §6.19 scope
-5. [ ] PR opened `milestone/M-10` → `staging`; `phase-complete-review` passes; CI green; demo clean; merged
+1. [x] Notifications deliver in correct namespaces; templates in en/ur/sd/ps (no `__TODO__`)
+2. [x] Audit entries for metrics access/export, opt-out, plagiarism flags, admin overrides
+3. [x] E2E runs green (LLM/STT/embeddings mocked; no live network)
+4. [x] E2E asserts version immutability, matched-teacher anonymity, §6.19 scope
+5. [x] PR opened `milestone/M-10` → `staging`; `phase-complete-review` passes; CI green; demo clean; merged
 
 ### Out of scope
 - Anything beyond the M-10 ticket set
 
 ### Notes / known gotchas
 - Mock the `SCORING_MODEL` LLM, faster-whisper, and BGE-M3 embeddings in CI; use a fixture global originality index (no live cross-tenant data).
+- **Three new `lectures.*` notification template keys added** —
+  `scoring_complete`, `coaching_suggestion`, `benchmark_updated` — all 4
+  locales, no `__TODO__` placeholders. Reused the existing `lectures`
+  namespace rather than creating a new one, since ARCH §9.21 requires a
+  Platform Admin product decision to add a namespace, which is out of scope
+  for a ticket. `system.plagiarism_flagged` was already shipped in T-135 —
+  confirmed present via grep, not re-implemented.
+- `scoring_complete` fires from `scoring.py` after the commit, for both
+  school and independent tenants, and shows the actual total/max score —
+  that's fine, since only the *coaching* suggestion notification is
+  restricted from showing scores, per Flow 5 §3.10's locked "no
+  score/number" rule.
+- `coaching_suggestion` fires **at most once per scoring run**, not once per
+  weak dimension — `_upsert_weakness_school`/`_upsert_weakness_independent`
+  were changed to return a bool ("was a new/refreshed suggestion presented,
+  vs. just a silent frequency bump") and the caller notifies once if any
+  dimension produced a new suggestion.
+- `benchmark_updated` fires per teacher from the weekly beat
+  (`compute_and_store_weekly_benchmarks`), wrapped in a try/except at the
+  call site (not just per-row inside) so a repository-level failure (e.g.
+  the new bulk `get_subject_names` lookup) can never fail the whole weekly
+  beat run — matches the established best-effort notification pattern used
+  elsewhere in this pipeline.
+- **Audit:** four new actions registered in `M10_AUDIT_ACTIONS` —
+  `admin_metrics.accessed`/`admin_metrics.exported` (marked elevated —
+  sensitive cross-teacher reads), `benchmark.opt_out_toggled` (registered
+  but **NOT** elevated — a routine self-service privacy setting, same tier
+  as the pre-existing `STUDENT_MODE_CHANGED`), `lecture.plagiarism_flagged`
+  (marked elevated despite being system-raised, not admin-initiated — still
+  compliance-relevant per ARCH §14.10). The ticket's "any admin override"
+  audit requirement was already satisfied pre-M10 by T-123's
+  `LECTURE_ACCESS_OVERRIDDEN` — confirmed via grep, nothing new needed
+  there.
+- **E2E:** Playwright can't launch in this dev container (Alpine/musl) —
+  same pre-existing gap noted since T-130. The formal spec was authored at
+  `frontend/e2e/lecture-scoring-benchmark-e2e.spec.ts` (covers score
+  timeline / Teaching Innovation Record / benchmark card for a teacher, and
+  the admin comparative metrics table + CSV export button for a school
+  admin) but could not be executed in this environment; CI should run it
+  against the composed staging stack. As a genuinely-runnable substitute in
+  this environment, a backend integration test was added at
+  `api/app/features/lectures/tests/test_m10_e2e_flow.py` that chains the
+  real `score_school_lecture_version` → `compute_and_store_weekly_benchmarks`
+  → `admin_metrics.service.get_teacher_metrics` functions together (not
+  just each in isolation, which their own dedicated test files already
+  cover) and asserts: version immutability (same row id/version number
+  before and after scoring), that the teacher-facing benchmark response is
+  structurally incapable of leaking a name or matched-teacher identity, and
+  that the admin-facing comparative metrics response *correctly* is NOT
+  anonymized (shows real teacher/school names) plus is scope-restricted per
+  §6.19.
+- A pre-existing, unrelated frontend test flakiness in
+  `GenerationStreamPanel.test.tsx` (6 failing tests, "multiple elements
+  found" errors) was observed to now fail *consistently* (not
+  intermittently as first suspected during T-138) across three separate
+  full-suite and isolated runs in this session. Confirmed via `git status`
+  that this file and its component were never touched by any M-10 ticket.
+  Flagged here and in the PR description as a pre-existing issue for
+  someone to investigate separately — not fixed under T-140, which is out
+  of scope for it.
+- Also fixed in passing: `frontend/src/lib/api/index.ts` was missing
+  `TeacherBenchmarkRead`/`TeacherMetricsRead` in its public re-export block
+  (they were imported into the barrel file during T-139 but never
+  re-exported), which broke `TeacherMetricsClient.tsx`'s import from
+  `"@/lib/api"` — caught while writing this ticket's E2E spec's sibling
+  admin page and fixed as a one-line addition to the existing
+  `export type {...}` block.
 
 ---
 

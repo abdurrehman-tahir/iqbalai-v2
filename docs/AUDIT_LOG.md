@@ -206,3 +206,10 @@ Log a finding **only if all three hold**:
 - **Existing rule when first seen?:** no (phase-complete-review audits ticket acceptance, not spec-section conformance)
 - **Target carrier:** → phase-complete-review checklist line: **for any ticket implementing a numbered ARCH section (esp. §6 security), diff the implementation against the section's normative statements and list each deviation explicitly** — "simplified for now" requires a recorded deferral, never silence.
 - **Status:** promoted (→ phase-complete-review Pass-2 spec-conformance diff, 2026-07-13).
+
+### [pii-logging] raw user/teacher IDs logged instead of `user_id_hash` per §14.4
+- **Class:** docs
+- **Occurrences:** 2026-09-15 (M-10, T-140 phase-complete-review) — `structlog` calls across `lectures/scoring.py`, `teacher_coaching/service.py`, `teacher_coaching/benchmark_service.py` (T-134-140, this milestone) log `teacher_user_id=`/`lecture_id=` raw; grepping the whole `api/app` tree for `user_id_hash` returns **zero** matches anywhere — every prior milestone (M-01 through M-09) has the same pattern, so this isn't a T-140 regression, it's the codebase's actual, unenforced baseline vs. ARCH §14.4's locked rule.
+- **Existing rule when first seen?:** yes (§14.4 has stated this since before M-01; phase-complete-review Checklist K has always listed it) — never implemented, never caught, because no carrier actually checks it.
+- **Target carrier:** → CI lint `pii-log-scrub-check` (grep `logger\.(info|warning|error)\(` calls for kwargs named `*user_id*`/`*email*`/`*phone*`/`*cnic*` not wrapped in a `user_id_hash()`/scrub helper) + a `structlog` processor or `app/infrastructure/logging` helper (`hash_user_id()`) that every feature is expected to call — the rule can't rely on prose alone since 9 milestones of prose already didn't work.
+- **Status:** new

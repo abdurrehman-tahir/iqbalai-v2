@@ -186,3 +186,38 @@ async def _handle_generation_failure(
             "error": error[:500],
         },
     )
+
+
+@celery_app.task(  # type: ignore[misc]
+    name="lectures.score_independent_lecture_version",
+    queue="default",
+    bind=True,
+    soft_time_limit=60,
+    time_limit=90,
+)
+def score_independent_lecture_version(
+    self: Any, lecture_id: str, version_id: str
+) -> dict[str, object]:
+    """T-134 (#32) — mirrors ``tasks.score_lecture_version`` for the independent
+    schema (no school_id). Best-effort: a scoring failure must never affect
+    the already-saved version."""
+    logger.info(
+        "independent_lecture_scoring_task_started", lecture_id=lecture_id, version_id=version_id
+    )
+    try:
+        run_db(lambda session: _run_scoring(session, lecture_id=lecture_id, version_id=version_id))
+        return {"lecture_id": lecture_id, "version_id": version_id, "status": "scored"}
+    except Exception as exc:
+        logger.warning(
+            "independent_lecture_scoring_task_failed",
+            lecture_id=lecture_id,
+            version_id=version_id,
+            error=str(exc),
+        )
+        return {"lecture_id": lecture_id, "version_id": version_id, "status": "failed"}
+
+
+async def _run_scoring(session: AsyncSession, *, lecture_id: str, version_id: str) -> None:
+    from app.features.lectures.scoring import score_independent_lecture_version
+
+    await score_independent_lecture_version(session, lecture_id=lecture_id, version_id=version_id)

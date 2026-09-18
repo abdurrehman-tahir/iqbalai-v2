@@ -199,6 +199,34 @@ async def test_notify_helpers_are_best_effort(monkeypatch: pytest.MonkeyPatch) -
 
 
 @pytest.mark.asyncio
+async def test_notify_scoring_complete_includes_total_and_max(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    _FakeUserRepo.by_id = {"teacher-1": _FakeUser("auth-teacher")}
+    _FakeProfileRepo.by_user_id = {"teacher-1": _FakeProfile("en")}
+    monkeypatch.setattr(notif, "UserRepository", _FakeUserRepo)
+    monkeypatch.setattr(notif, "TeacherProfileRepository", _FakeProfileRepo)
+
+    fired: list[dict[str, Any]] = []
+
+    async def _fake_notify(**kwargs: Any) -> None:
+        fired.append(kwargs)
+
+    monkeypatch.setattr(notif, "notify_lecture_event", _fake_notify)
+
+    await notif.notify_scoring_complete(
+        None,  # type: ignore[arg-type]
+        lecture=_lecture(),
+        total=38,
+        max_score=55,
+    )
+
+    assert fired[0]["template_key"] == "lectures.scoring_complete"
+    assert fired[0]["params"]["total"] == "38"
+    assert fired[0]["params"]["max"] == "55"
+
+
+@pytest.mark.asyncio
 async def test_notify_skips_when_teacher_has_no_id(monkeypatch: pytest.MonkeyPatch) -> None:
     fired: list[dict[str, Any]] = []
 

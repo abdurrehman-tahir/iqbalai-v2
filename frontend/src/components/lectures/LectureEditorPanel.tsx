@@ -1,0 +1,726 @@
+"use client";
+
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import type { useTranslations } from "next-intl";
+import { useEditor, EditorContent, type JSONContent } from "@tiptap/react";
+import StarterKit from "@tiptap/starter-kit";
+import Placeholder from "@tiptap/extension-placeholder";
+import Image from "@tiptap/extension-image";
+import {
+  Bold,
+  Italic,
+  Heading2,
+  List,
+  ListOrdered,
+  Mic,
+  Square,
+  ImagePlus,
+  Check,
+  X,
+} from "lucide-react";
+import { ApiError } from "@/lib/api";
+import type {
+  DiagramSuggestionAccept,
+  DiagramSuggestionsRead,
+  EditSessionHeartbeatRequest,
+  EditSessionRead,
+  LectureImageUploadRead,
+  LectureVersionRead,
+  LectureVersionSaveRequest,
+  VoiceTranscribeRead,
+} from "@/lib/api/types";
+import { Button } from "@/components/ui/button";
+import { ErrorState } from "@/components/error-state";
+import { Skeleton } from "@/components/ui/skeleton";
+
+const AUTOSAVE_DEBOUNCE_MS = 3000;
+const MAX_IMAGE_BYTES = 5 * 1024 * 1024;
+const ALLOWED_IMAGE_TYPES = new Set(["image/jpeg", "image/png", "image/gif"]);
+const EFFORT_HEARTBEAT_INTERVAL_MS = 30_000;
+// T-136 (#34) — locked rule (Flow 5 §3.8): warning shown below 70%. Matches
+// LOW_RELEVANCE_WARNING_THRESHOLD in api/app/features/lectures/topic_relevance.py.
+const LOW_RELEVANCE_WARNING_THRESHOLD = 70;
+
+const VOICE_LANGUAGES = ["auto", "en", "ur", "sd", "ps"] as const;
+type VoiceLanguage = (typeof VOICE_LANGUAGES)[number];
+
+/** Splits a plain-text body (M-09 v1's "\n\n"-joined paragraphs) into a TipTap
+ * doc — used only to seed the editor the first time a lecture is opened for
+ * editing (versions saved via T-130 already carry content_jsonb).
+ */
+function bodyToInitialDoc(body: string): JSONContent {
+  const paragraphs = body
+    .split(/\n{2,}/)
+    .map((p) => p.trim())
+    .filter(Boolean);
+  if (paragraphs.length === 0) {
+    return { type: "doc", content: [{ type: "paragraph" }] };
+  }
+  return {
+    type: "doc",
+    content: paragraphs.map((text) => ({
+      type: "paragraph",
+      content: [{ type: "text", text }],
+    })),
+  };
+}
+
+interface ToolbarButtonProps {
+  label: string;
+  active: boolean;
+  onClick: () => void;
+  children: React.ReactNode;
+}
+
+function ToolbarButton({ label, active, onClick, children }: ToolbarButtonProps) {
+  return (
+    <Button
+      type="button"
+      variant={active ? "secondary" : "ghost"}
+      size="icon"
+      className="size-10"
+      aria-label={label}
+      aria-pressed={active}
+      onClick={onClick}
+    >
+      {children}
+    </Button>
+  );
+}
+
+interface TopicRelevanceGaugeProps {
+  t: ReturnType<typeof useTranslations>;
+  pct: number;
+}
+
+/** Topic-relevance gauge (T-136, #34) — the teacher-visible half of
+ * scoring.py's topic_relevance.py check. Advisory only (never blocks save/
+ * publish per the ticket's "Out of scope"). */
+function TopicRelevanceGauge({ t, pct }: TopicRelevanceGaugeProps) {
+  const clamped = Math.max(0, Math.min(100, pct));
+  const rounded = Math.round(clamped);
+  const isLow = clamped < LOW_RELEVANCE_WARNING_THRESHOLD;
+  const label = t("editor_topic_relevance_label", { pct: rounded });
+
+  return (
+    <div className="max-w-xs space-y-1">
+      <p className="text-xs font-medium text-gray-600">{label}</p>
+      {/* Native <progress> (not a styled div) so the fill width never needs
+          an inline style — T-226 bans the `style` prop repo-wide. */}
+      <progress
+        className={
+          isLow
+            ? "h-2 w-full accent-amber-500 [&::-webkit-progress-value]:bg-amber-500"
+            : "h-2 w-full accent-emerald-500 [&::-webkit-progress-value]:bg-emerald-500"
+        }
+        value={rounded}
+        max={100}
+        aria-label={label}
+      />
+      {isLow ? (
+        <p className="text-xs text-amber-700" role="status">
+          {t("editor_topic_relevance_warning")}
+        </p>
+      ) : null}
+    </div>
+  );
+}
+
+export interface LectureEditorApi {
+  getCurrentVersion: (token: string, lectureId: string) => Promise<LectureVersionRead>;
+  saveVersion: (
+    token: string,
+    lectureId: string,
+    data: LectureVersionSaveRequest
+  ) => Promise<LectureVersionRead>;
+  transcribeVoice: (
+    token: string,
+    lectureId: string,
+    audio: Blob,
+    language?: string
+  ) => Promise<VoiceTranscribeRead>;
+  uploadImage: (
+    token: string,
+    lectureId: string,
+    image: File | Blob
+  ) => Promise<LectureImageUploadRead>;
+  /** Undefined for the independent tenant — no AI diagram suggestion there
+   * (T-132: independent teachers' personal reference content has no
+   * page-chunked structure to draw suggestions from). */
+  getDiagramSuggestions?: (token: string, lectureId: string) => Promise<DiagramSuggestionsRead>;
+  acceptDiagramSuggestion?: (
+    token: string,
+    lectureId: string,
+    data: DiagramSuggestionAccept
+  ) => Promise<LectureImageUploadRead>;
+  startEditSession: (token: string, lectureId: string) => Promise<EditSessionRead>;
+  heartbeatEditSession: (
+    token: string,
+    editSessionId: string,
+    data: EditSessionHeartbeatRequest
+  ) => Promise<EditSessionRead>;
+  endEditSession: (
+    token: string,
+    editSessionId: string,
+    data: EditSessionHeartbeatRequest
+  ) => Promise<EditSessionRead>;
+}
+
+/** TipTap editor + immutable-version save/autosave (T-130). Shared between the
+ * school and independent lecture wizards — only the `api` client and query-key
+ * prefix differ per tenant (§3.16: no cross-tenant coupling in the component
+ * itself, just which endpoint it calls).
+ */
+export function LectureEditorPanel({
+  token,
+  lectureId,
+  api,
+  t,
+  queryKeyPrefix,
+}: {
+  token: string;
+  lectureId: string;
+  api: LectureEditorApi;
+  t: ReturnType<typeof useTranslations>;
+  queryKeyPrefix: "teacher" | "independent-teacher";
+}) {
+  const qc = useQueryClient();
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [justSaved, setJustSaved] = useState(false);
+  const [voiceLanguage, setVoiceLanguage] = useState<VoiceLanguage>("auto");
+  const [isRecording, setIsRecording] = useState(false);
+  const [isTranscribing, setIsTranscribing] = useState(false);
+  const [voiceError, setVoiceError] = useState<string | null>(null);
+  const [imageError, setImageError] = useState<string | null>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [isDraggingOver, setIsDraggingOver] = useState(false);
+  const [dismissedSuggestionKeys, setDismissedSuggestionKeys] = useState<Set<string>>(new Set());
+  const autosaveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const initializedRef = useRef(false);
+  const usedVoiceEditRef = useRef(false);
+  const mediaRecorderRef = useRef<MediaRecorder | null>(null);
+  const audioChunksRef = useRef<Blob[]>([]);
+  const streamRef = useRef<MediaStream | null>(null);
+  const imageInputRef = useRef<HTMLInputElement | null>(null);
+  // Effort tracking (T-133, #31) — never surfaced to the teacher (out of
+  // scope per the ticket), so this all lives in refs, not state: no re-render
+  // needed for a background counter feeding T-134's scoring pipeline.
+  const editSessionIdRef = useRef<string | null>(null);
+  const activeMsRef = useRef(0);
+  const lastActiveAtRef = useRef(Date.now());
+  const isVisibleRef = useRef(typeof document === "undefined" || !document.hidden);
+  const editsCountRef = useRef(0);
+  const charDeltaRef = useRef(0);
+  const prevTextLengthRef = useRef(0);
+  const heartbeatTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const queryKey = [queryKeyPrefix, "lecture-version-current", lectureId];
+
+  const versionQuery = useQuery({
+    queryKey,
+    queryFn: () => api.getCurrentVersion(token, lectureId),
+  });
+
+  const diagramSuggestionsQuery = useQuery({
+    queryKey: [queryKeyPrefix, "diagram-suggestions", lectureId],
+    queryFn: () => api.getDiagramSuggestions!(token, lectureId),
+    enabled: !!api.getDiagramSuggestions,
+  });
+
+  const saveMutation = useMutation({
+    mutationFn: (vars: { contentJsonb: JSONContent; isAutosave: boolean }) =>
+      api.saveVersion(token, lectureId, {
+        content_jsonb: vars.contentJsonb,
+        is_autosave: vars.isAutosave,
+        used_voice_edit: usedVoiceEditRef.current,
+        edit_session_id: editSessionIdRef.current ?? undefined,
+      }),
+    onSuccess: (result) => {
+      setSaveError(null);
+      setJustSaved(true);
+      usedVoiceEditRef.current = false;
+      qc.setQueryData(queryKey, result);
+    },
+    onError: (err: unknown) => {
+      setSaveError(err instanceof ApiError ? err.message : t("editor_save_error"));
+    },
+  });
+
+  const editor = useEditor(
+    {
+      extensions: [
+        StarterKit,
+        Placeholder.configure({ placeholder: t("editor_placeholder") }),
+        Image,
+      ],
+      immediatelyRender: false,
+      editorProps: {
+        attributes: {
+          class: "prose prose-sm max-w-none focus:outline-none min-h-48",
+        },
+      },
+      onUpdate: ({ editor: current }) => {
+        setJustSaved(false);
+        editsCountRef.current += 1;
+        // Cumulative |inserted|+|deleted| char count, not net diff — matches
+        // the backend column's semantics (models.py: monotonic effort signal
+        // even for heavy rewrites, not offset by same-length replacements).
+        const newLength = current.state.doc.textContent.length;
+        charDeltaRef.current += Math.abs(newLength - prevTextLengthRef.current);
+        prevTextLengthRef.current = newLength;
+
+        if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+        // Debounced auto-save — never fires per keystroke (T-130 acceptance #3).
+        autosaveTimer.current = setTimeout(() => {
+          saveMutation.mutate({ contentJsonb: current.getJSON(), isAutosave: true });
+        }, AUTOSAVE_DEBOUNCE_MS);
+      },
+    },
+    []
+  );
+
+  // Seed the editor exactly once, the first time the current version loads —
+  // never again, so an autosave-triggered refetch can't stomp on in-progress
+  // typing.
+  useEffect(() => {
+    if (!editor || initializedRef.current || !versionQuery.data) return;
+    const doc = versionQuery.data.content_jsonb ?? bodyToInitialDoc(versionQuery.data.body);
+    editor.commands.setContent(doc as JSONContent);
+    prevTextLengthRef.current = editor.state.doc.textContent.length;
+    initializedRef.current = true;
+  }, [editor, versionQuery.data]);
+
+  useEffect(() => {
+    return () => {
+      if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    };
+  }, []);
+
+  // Effort-tracking session lifecycle (T-133, #31): start once on mount, a
+  // 30s heartbeat while active, Page Visibility API pause/resume, end on
+  // unmount. Runs once per mounted editor regardless of lectureId/token
+  // identity churn (there is none in practice — a panel instance is scoped
+  // to one lecture for its lifetime).
+  useEffect(() => {
+    let cancelled = false;
+
+    const currentActiveMs = () =>
+      activeMsRef.current + (isVisibleRef.current ? Date.now() - lastActiveAtRef.current : 0);
+
+    const handleVisibilityChange = () => {
+      if (document.hidden) {
+        activeMsRef.current += Date.now() - lastActiveAtRef.current;
+        isVisibleRef.current = false;
+      } else {
+        lastActiveAtRef.current = Date.now();
+        isVisibleRef.current = true;
+      }
+    };
+
+    const sendHeartbeat = (end: boolean) => {
+      const sessionId = editSessionIdRef.current;
+      if (!sessionId) return;
+      const payload: EditSessionHeartbeatRequest = {
+        active_ms: currentActiveMs(),
+        edits_count: editsCountRef.current,
+        char_delta: charDeltaRef.current,
+      };
+      const call = end
+        ? api.endEditSession(token, sessionId, payload)
+        : api.heartbeatEditSession(token, sessionId, payload);
+      call.catch(() => {
+        // Effort data is a scoring input, not a blocking UX concern — a
+        // dropped heartbeat is logged server-side via the next successful
+        // one's absolute totals, never surfaced to the teacher.
+      });
+    };
+
+    document.addEventListener("visibilitychange", handleVisibilityChange);
+
+    api
+      .startEditSession(token, lectureId)
+      .then((session) => {
+        if (cancelled) return;
+        editSessionIdRef.current = session.id;
+        lastActiveAtRef.current = Date.now();
+        heartbeatTimerRef.current = setInterval(
+          () => sendHeartbeat(false),
+          EFFORT_HEARTBEAT_INTERVAL_MS
+        );
+      })
+      .catch(() => {
+        // No session id -> save() just omits edit_session_id; effort data
+        // for this session is lost, but editing/saving itself still works.
+      });
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener("visibilitychange", handleVisibilityChange);
+      if (heartbeatTimerRef.current) clearInterval(heartbeatTimerRef.current);
+      sendHeartbeat(true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- one session per mount, not per token/lectureId re-render
+  }, []);
+
+  const handleManualSave = useCallback(() => {
+    if (!editor) return;
+    if (autosaveTimer.current) clearTimeout(autosaveTimer.current);
+    saveMutation.mutate({ contentJsonb: editor.getJSON(), isAutosave: false });
+  }, [editor, saveMutation]);
+
+  const stopStream = useCallback(() => {
+    streamRef.current?.getTracks().forEach((track) => track.stop());
+    streamRef.current = null;
+  }, []);
+
+  const handleStartRecording = useCallback(async () => {
+    setVoiceError(null);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
+      audioChunksRef.current = [];
+      const recorder = new MediaRecorder(stream);
+      mediaRecorderRef.current = recorder;
+
+      recorder.ondataavailable = (event: BlobEvent) => {
+        if (event.data.size > 0) audioChunksRef.current.push(event.data);
+      };
+
+      recorder.onstop = () => {
+        stopStream();
+        const blob = new Blob(audioChunksRef.current, {
+          type: recorder.mimeType || "audio/webm",
+        });
+        audioChunksRef.current = [];
+        setIsTranscribing(true);
+        api
+          .transcribeVoice(
+            token,
+            lectureId,
+            blob,
+            voiceLanguage === "auto" ? undefined : voiceLanguage
+          )
+          .then((result) => {
+            if (editor && result.transcript) {
+              // TipTap's insertContent replaces the current selection when one
+              // exists, or inserts at the cursor otherwise — acceptance #1/#2
+              // need no separate insert-vs-replace branching.
+              editor.chain().focus().insertContent(result.transcript).run();
+              usedVoiceEditRef.current = true;
+              setJustSaved(false);
+            }
+          })
+          .catch((err: unknown) => {
+            setVoiceError(err instanceof ApiError ? err.message : t("editor_voice_error"));
+          })
+          .finally(() => setIsTranscribing(false));
+      };
+
+      recorder.start();
+      setIsRecording(true);
+    } catch {
+      setVoiceError(t("editor_voice_mic_error"));
+    }
+  }, [api, editor, lectureId, stopStream, t, token, voiceLanguage]);
+
+  const handleStopRecording = useCallback(() => {
+    mediaRecorderRef.current?.stop();
+    setIsRecording(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      mediaRecorderRef.current?.stop();
+      stopStream();
+    };
+  }, [stopStream]);
+
+  const insertImage = useCallback(
+    (src: string) => {
+      editor?.chain().focus().setImage({ src }).run();
+      setJustSaved(false);
+    },
+    [editor]
+  );
+
+  const handleImageFile = useCallback(
+    async (file: File) => {
+      setImageError(null);
+      if (!ALLOWED_IMAGE_TYPES.has(file.type)) {
+        setImageError(t("editor_image_type_error"));
+        return;
+      }
+      if (file.size > MAX_IMAGE_BYTES) {
+        setImageError(t("editor_image_size_error"));
+        return;
+      }
+      setIsUploadingImage(true);
+      try {
+        const result = await api.uploadImage(token, lectureId, file);
+        insertImage(result.image_url);
+      } catch (err) {
+        setImageError(err instanceof ApiError ? err.message : t("editor_image_upload_error"));
+      } finally {
+        setIsUploadingImage(false);
+      }
+    },
+    [api, insertImage, lectureId, t, token]
+  );
+
+  const handleDrop = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      e.preventDefault();
+      setIsDraggingOver(false);
+      const file = e.dataTransfer.files?.[0];
+      if (file) void handleImageFile(file);
+    },
+    [handleImageFile]
+  );
+
+  const acceptSuggestionMutation = useMutation({
+    mutationFn: (payload: DiagramSuggestionAccept) =>
+      api.acceptDiagramSuggestion!(token, lectureId, payload),
+    onSuccess: (result) => {
+      insertImage(result.image_url);
+    },
+    onError: (err: unknown) => {
+      setImageError(err instanceof ApiError ? err.message : t("editor_image_upload_error"));
+    },
+  });
+
+  const suggestionKey = (s: { library_item_id: string; page_number: number }) =>
+    `${s.library_item_id}:${s.page_number}`;
+  const activeSuggestion = diagramSuggestionsQuery.data?.suggestions.find(
+    (s) => !dismissedSuggestionKeys.has(suggestionKey(s))
+  );
+
+  if (versionQuery.isLoading) {
+    return (
+      <section className="space-y-2" aria-busy="true">
+        <Skeleton className="h-8 w-40" />
+        <Skeleton className="h-64 w-full" />
+      </section>
+    );
+  }
+
+  if (versionQuery.isError) {
+    return (
+      <ErrorState
+        title={t("editor_error")}
+        description={t("editor_error")}
+        onRetry={() => void versionQuery.refetch()}
+        retryLabel={t("retry")}
+      />
+    );
+  }
+
+  return (
+    <section className="space-y-3" aria-labelledby="lecture-editor-heading">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <h3 id="lecture-editor-heading" className="text-lg font-medium text-gray-900">
+          {t("editor_title")}
+        </h3>
+        <div className="flex items-center gap-3">
+          <span className="text-sm text-gray-500" role="status" aria-live="polite">
+            {saveMutation.isPending ? t("editor_saving") : justSaved ? t("editor_saved") : null}
+          </span>
+          <Button
+            type="button"
+            onClick={handleManualSave}
+            disabled={!editor || saveMutation.isPending}
+          >
+            {t("editor_save_button")}
+          </Button>
+        </div>
+      </div>
+
+      {saveError ? (
+        <p className="text-sm text-red-600" role="alert">
+          {saveError}
+        </p>
+      ) : null}
+
+      <div className="rounded-md border border-gray-200">
+        <div
+          className="flex items-center gap-1 border-b border-gray-200 p-1"
+          role="toolbar"
+          aria-label={t("editor_toolbar_label")}
+        >
+          <ToolbarButton
+            label={t("editor_toolbar_bold")}
+            active={!!editor?.isActive("bold")}
+            onClick={() => editor?.chain().focus().toggleBold().run()}
+          >
+            <Bold className="size-4" aria-hidden="true" />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t("editor_toolbar_italic")}
+            active={!!editor?.isActive("italic")}
+            onClick={() => editor?.chain().focus().toggleItalic().run()}
+          >
+            <Italic className="size-4" aria-hidden="true" />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t("editor_toolbar_heading")}
+            active={!!editor?.isActive("heading", { level: 2 })}
+            onClick={() => editor?.chain().focus().toggleHeading({ level: 2 }).run()}
+          >
+            <Heading2 className="size-4" aria-hidden="true" />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t("editor_toolbar_bullet_list")}
+            active={!!editor?.isActive("bulletList")}
+            onClick={() => editor?.chain().focus().toggleBulletList().run()}
+          >
+            <List className="size-4" aria-hidden="true" />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t("editor_toolbar_ordered_list")}
+            active={!!editor?.isActive("orderedList")}
+            onClick={() => editor?.chain().focus().toggleOrderedList().run()}
+          >
+            <ListOrdered className="size-4" aria-hidden="true" />
+          </ToolbarButton>
+          <ToolbarButton
+            label={t("editor_image_insert")}
+            active={false}
+            onClick={() => imageInputRef.current?.click()}
+          >
+            <ImagePlus className="size-4" aria-hidden="true" />
+          </ToolbarButton>
+          <input
+            ref={imageInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/gif"
+            className="sr-only"
+            aria-label={t("editor_image_insert")}
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (file) void handleImageFile(file);
+              e.target.value = "";
+            }}
+          />
+
+          <div className="ms-auto flex items-center gap-2">
+            <label className="sr-only" htmlFor="voice-edit-language">
+              {t("editor_voice_language_label")}
+            </label>
+            <select
+              id="voice-edit-language"
+              className="h-10 rounded-md border border-gray-300 bg-white px-2 text-sm"
+              value={voiceLanguage}
+              disabled={isRecording || isTranscribing}
+              onChange={(e) => setVoiceLanguage(e.target.value as VoiceLanguage)}
+            >
+              {VOICE_LANGUAGES.map((lang) => (
+                <option key={lang} value={lang}>
+                  {t(`editor_voice_language_${lang}`)}
+                </option>
+              ))}
+            </select>
+            <Button
+              type="button"
+              variant={isRecording ? "destructive" : "outline"}
+              size="icon"
+              className="size-10"
+              aria-label={isRecording ? t("editor_voice_stop") : t("editor_voice_dictate")}
+              disabled={isTranscribing}
+              onClick={isRecording ? handleStopRecording : handleStartRecording}
+            >
+              {isRecording ? (
+                <Square className="size-4" aria-hidden="true" />
+              ) : (
+                <Mic className="size-4" aria-hidden="true" />
+              )}
+            </Button>
+          </div>
+        </div>
+        <div
+          dir="auto"
+          className={`p-3 ${isDraggingOver ? "bg-blue-50 outline-2 outline-dashed outline-blue-300" : ""}`}
+          onDragOver={(e) => {
+            e.preventDefault();
+            setIsDraggingOver(true);
+          }}
+          onDragLeave={() => setIsDraggingOver(false)}
+          onDrop={handleDrop}
+        >
+          <EditorContent editor={editor} />
+        </div>
+      </div>
+
+      <div className="text-sm text-gray-500" role="status" aria-live="polite">
+        {isRecording
+          ? t("editor_voice_recording")
+          : isTranscribing
+            ? t("editor_voice_transcribing")
+            : isUploadingImage
+              ? t("editor_image_uploading")
+              : null}
+      </div>
+      {voiceError ? (
+        <p className="text-sm text-red-600" role="alert">
+          {voiceError}
+        </p>
+      ) : null}
+      {imageError ? (
+        <p className="text-sm text-red-600" role="alert">
+          {imageError}
+        </p>
+      ) : null}
+
+      {activeSuggestion ? (
+        <div
+          className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-amber-200 bg-amber-50 p-3"
+          role="status"
+        >
+          <p className="text-sm text-amber-900">
+            {t("editor_diagram_suggestion", {
+              page: activeSuggestion.page_number,
+              book: activeSuggestion.book_name,
+            })}
+          </p>
+          <div className="flex items-center gap-2">
+            <Button
+              type="button"
+              size="sm"
+              disabled={acceptSuggestionMutation.isPending}
+              onClick={() =>
+                acceptSuggestionMutation.mutate({
+                  library_item_id: activeSuggestion.library_item_id,
+                  page_number: activeSuggestion.page_number,
+                })
+              }
+            >
+              <Check className="me-1 size-4" aria-hidden="true" />
+              {t("editor_diagram_accept")}
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setDismissedSuggestionKeys((prev) =>
+                  new Set(prev).add(suggestionKey(activeSuggestion))
+                )
+              }
+            >
+              <X className="me-1 size-4" aria-hidden="true" />
+              {t("editor_diagram_decline")}
+            </Button>
+          </div>
+        </div>
+      ) : null}
+
+      {versionQuery.data ? (
+        <p className="text-xs text-gray-500">
+          {t("editor_version_label", { version: versionQuery.data.version })}
+        </p>
+      ) : null}
+
+      {typeof versionQuery.data?.topic_relevance_pct === "number" ? (
+        <TopicRelevanceGauge t={t} pct={versionQuery.data.topic_relevance_pct} />
+      ) : null}
+    </section>
+  );
+}

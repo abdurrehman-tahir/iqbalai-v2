@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import not_deleted
@@ -12,6 +12,7 @@ from app.features.lectures.models import (
     SchoolLecture,
     SchoolLectureAssignment,
     SchoolLectureDraft,
+    SchoolLectureEditSession,
     SchoolLectureLink,
     SchoolLectureParagraph,
     SchoolLectureVersion,
@@ -70,6 +71,91 @@ class LectureVersionRepository:
 
     async def get_by_id(self, version_id: str) -> SchoolLectureVersion | None:
         return await self._session.get(SchoolLectureVersion, version_id)
+
+    async def get_latest_for_lecture(self, lecture_id: str) -> SchoolLectureVersion | None:
+        """Highest ``version`` row for a lecture (T-130 save path)."""
+        result = await self._session.execute(
+            select(SchoolLectureVersion)
+            .where(SchoolLectureVersion.lecture_id == lecture_id)
+            .order_by(SchoolLectureVersion.version.desc())
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
+    async def get_first_for_lecture(self, lecture_id: str) -> SchoolLectureVersion | None:
+        """Version 1 — the only version with tier-tagged paragraphs (T-132's
+        diagram suggestions read the AI-generated draft's source attribution,
+        not whatever a teacher has edited it into since).
+        """
+        result = await self._session.execute(
+            select(SchoolLectureVersion)
+            .where(SchoolLectureVersion.lecture_id == lecture_id, SchoolLectureVersion.version == 1)
+            .limit(1)
+        )
+        return result.scalar_one_or_none()
+
+    async def create(self, version: SchoolLectureVersion) -> SchoolLectureVersion:
+        """Commits the version AND any pending change on its parent ``lecture``
+        (e.g. ``current_version_id``) already attached to this session — one
+        unit of work (T-130 save path).
+        """
+        self._session.add(version)
+        await self._session.commit()
+        await self._session.refresh(version)
+        return version
+
+    async def list_paginated(
+        self, lecture_id: str, *, page: int, page_size: int
+    ) -> tuple[list[SchoolLectureVersion], int]:
+        """Newest-first page of a lecture's versions (T-137 score timeline —
+        "default view = last 6 versions; older via pagination")."""
+        total = await self._session.scalar(
+            select(func.count())
+            .select_from(SchoolLectureVersion)
+            .where(SchoolLectureVersion.lecture_id == lecture_id)
+        )
+        result = await self._session.execute(
+            select(SchoolLectureVersion)
+            .where(SchoolLectureVersion.lecture_id == lecture_id)
+            .order_by(SchoolLectureVersion.version.desc())
+            .offset((page - 1) * page_size)
+            .limit(page_size)
+        )
+        return list(result.scalars().all()), total or 0
+
+
+class LectureEditSessionRepository:
+    """T-133 — effort-tracking session rows. No soft-delete (a session ends,
+    it isn't deleted — see the model docstring)."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_by_id(self, session_id: str) -> SchoolLectureEditSession | None:
+        return await self._session.get(SchoolLectureEditSession, session_id)
+
+    async def list_by_version_id(self, version_id: str) -> list[SchoolLectureEditSession]:
+        """T-134: sessions linked to a version, for the scoring pipeline's effort
+        input. Normally exactly one (the session passed to the save call), but
+        queried as a list since nothing enforces that at the DB level."""
+        result = await self._session.execute(
+            select(SchoolLectureEditSession).where(
+                SchoolLectureEditSession.lecture_version_id == version_id
+            )
+        )
+        return list(result.scalars().all())
+
+    async def create(self, edit_session: SchoolLectureEditSession) -> SchoolLectureEditSession:
+        self._session.add(edit_session)
+        await self._session.commit()
+        await self._session.refresh(edit_session)
+        return edit_session
+
+    async def update(self, edit_session: SchoolLectureEditSession) -> SchoolLectureEditSession:
+        """Commits in-place mutations (heartbeat/end/save-linking)."""
+        await self._session.commit()
+        await self._session.refresh(edit_session)
+        return edit_session
 
 
 class LectureParagraphRepository:

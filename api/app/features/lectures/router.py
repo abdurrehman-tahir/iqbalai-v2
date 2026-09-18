@@ -2,28 +2,39 @@
 
 from __future__ import annotations
 
+import mimetypes
 from typing import Any
 
-from fastapi import APIRouter, Depends, Query
+from fastapi import APIRouter, Depends, Query, UploadFile
+from fastapi.responses import Response
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.idempotency import IdempotencyContext, idempotency_key
-from app.core.responses import SuccessEnvelope, success
+from app.core.responses import PaginatedEnvelope, SuccessEnvelope, paginated, success
 from app.features.lectures.schemas import (
+    DiagramSuggestionAccept,
+    DiagramSuggestionsRead,
+    EditSessionHeartbeatRequest,
+    EditSessionRead,
+    EditSessionStartRequest,
     LectureAccessSettingsRead,
     LectureAccessSettingsUpdate,
     LectureDraftRead,
     LectureDraftUpsert,
     LectureGenerateRead,
     LectureGenerateRequest,
+    LectureImageUploadRead,
     LectureLinkCreate,
     LectureLinkRead,
     LectureParagraphRead,
     LectureRosterRead,
     LectureTeacherTipsRead,
+    LectureVersionRead,
+    LectureVersionSaveRequest,
     TeacherOfferingRead,
     TeachingMode,
+    VoiceTranscribeRead,
     WizardCurriculumRead,
     WizardEstimateRead,
     WizardReferenceRead,
@@ -304,4 +315,232 @@ async def get_lecture_teacher_tips(
 ) -> dict[str, Any]:
     svc = LectureWizardService(db)
     result = await svc.get_lecture_teacher_tips(claims, lecture_id)
+    return success(result.model_dump(mode="json"))
+
+
+@router.get(
+    "/lectures/{lecture_id}/versions/current",
+    response_model=SuccessEnvelope[LectureVersionRead],
+    operation_id="teacher_get_current_lecture_version",
+    summary="Load the current version's content into the TipTap editor (T-130)",
+    dependencies=[require_role("teacher")],
+)
+async def get_current_lecture_version(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.get_current_lecture_version(claims, lecture_id)
+    return success(result.model_dump(mode="json"))
+
+
+@router.get(
+    "/lectures/{lecture_id}/versions",
+    response_model=PaginatedEnvelope[LectureVersionRead],
+    operation_id="teacher_list_lecture_versions",
+    summary="Score timeline data — versions newest-first, paginated (T-137, #35)",
+    dependencies=[require_role("teacher")],
+)
+async def list_lecture_versions(
+    lecture_id: str,
+    page: int = Query(default=1, ge=1),
+    page_size: int = Query(default=6, ge=1, le=50),
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    items, total = await svc.list_lecture_versions(
+        claims, lecture_id, page=page, page_size=page_size
+    )
+    return paginated(
+        items=[item.model_dump(mode="json") for item in items],
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@router.post(
+    "/lectures/{lecture_id}/versions",
+    response_model=SuccessEnvelope[LectureVersionRead],
+    operation_id="teacher_save_lecture_version",
+    summary="Save a TipTap edit as a new immutable lecture version (T-130, #29-#31)",
+    dependencies=[require_role("teacher")],
+)
+async def save_lecture_version(
+    lecture_id: str,
+    payload: LectureVersionSaveRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    idem: IdempotencyContext | None = Depends(idempotency_key),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    if idem is not None:
+        cached = await idem.cached_response()
+        if cached is not None:
+            return cached
+
+    svc = LectureWizardService(db)
+    result = await svc.save_lecture_version(claims, lecture_id, payload)
+    response = success(result.model_dump(mode="json"))
+
+    if idem is not None:
+        await idem.store_response(response)
+    return response
+
+
+@router.post(
+    "/lectures/{lecture_id}/voice-transcribe",
+    response_model=SuccessEnvelope[VoiceTranscribeRead],
+    operation_id="teacher_transcribe_voice_edit",
+    summary="Transcribe a dictated audio clip via faster-whisper (T-131, #29)",
+    dependencies=[require_role("teacher")],
+)
+async def transcribe_voice_edit(
+    lecture_id: str,
+    audio: UploadFile,
+    language: str | None = Query(default=None, pattern="^(en|ur|sd|ps)$"),
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    audio_bytes = await audio.read()
+    svc = LectureWizardService(db)
+    result = await svc.transcribe_voice_edit(claims, lecture_id, audio_bytes, language)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/lectures/{lecture_id}/images",
+    response_model=SuccessEnvelope[LectureImageUploadRead],
+    operation_id="teacher_upload_lecture_image",
+    summary="Drag-drop image upload into the lecture editor (T-132, #30)",
+    dependencies=[require_role("teacher")],
+)
+async def upload_lecture_image(
+    lecture_id: str,
+    image: UploadFile,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    data = await image.read()
+    svc = LectureWizardService(db)
+    result = await svc.upload_lecture_image(claims, lecture_id, data, image.filename or "image")
+    return success(result.model_dump(mode="json"))
+
+
+@router.get(
+    "/lectures/{lecture_id}/images/{image_id}",
+    response_model=None,
+    operation_id="teacher_get_lecture_image",
+    summary="Serve a previously-uploaded lecture image (T-132, #30)",
+    dependencies=[require_role("teacher")],
+)
+async def get_lecture_image(
+    lecture_id: str,
+    image_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> Response:
+    svc = LectureWizardService(db)
+    data, filename = await svc.get_lecture_image(claims, lecture_id, image_id)
+    content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
+    return Response(content=data, media_type=content_type)
+
+
+@router.get(
+    "/lectures/{lecture_id}/diagram-suggestions",
+    response_model=SuccessEnvelope[DiagramSuggestionsRead],
+    operation_id="teacher_get_diagram_suggestions",
+    summary="AI-flagged reference-book diagrams relevant to this lecture (T-132, #30)",
+    dependencies=[require_role("teacher")],
+)
+async def get_diagram_suggestions(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.suggest_diagrams(claims, lecture_id)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/lectures/{lecture_id}/diagram-suggestions/accept",
+    response_model=SuccessEnvelope[LectureImageUploadRead],
+    operation_id="teacher_accept_diagram_suggestion",
+    summary="Render + insert an accepted reference-book diagram (T-132, #30)",
+    dependencies=[require_role("teacher")],
+)
+async def accept_diagram_suggestion(
+    lecture_id: str,
+    payload: DiagramSuggestionAccept,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.accept_diagram_suggestion(claims, lecture_id, payload)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/edit-sessions",
+    response_model=SuccessEnvelope[EditSessionRead],
+    operation_id="teacher_start_edit_session",
+    summary="Open an effort-tracking edit session (T-133, #31)",
+    status_code=201,
+    dependencies=[require_role("teacher")],
+)
+async def start_edit_session(
+    payload: EditSessionStartRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    idem: IdempotencyContext | None = Depends(idempotency_key),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    if idem is not None:
+        cached = await idem.cached_response()
+        if cached is not None:
+            return cached
+
+    svc = LectureWizardService(db)
+    result = await svc.start_edit_session(claims, payload)
+    response = success(result.model_dump(mode="json"))
+
+    if idem is not None:
+        await idem.store_response(response)
+    return response
+
+
+@router.post(
+    "/edit-sessions/{edit_session_id}/heartbeat",
+    response_model=SuccessEnvelope[EditSessionRead],
+    operation_id="teacher_heartbeat_edit_session",
+    summary="30s effort-tracking heartbeat — cumulative totals (T-133, #31)",
+    dependencies=[require_role("teacher")],
+)
+async def heartbeat_edit_session(
+    edit_session_id: str,
+    payload: EditSessionHeartbeatRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.heartbeat_edit_session(claims, edit_session_id, payload)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/edit-sessions/{edit_session_id}/end",
+    response_model=SuccessEnvelope[EditSessionRead],
+    operation_id="teacher_end_edit_session",
+    summary="Close an effort-tracking edit session (T-133, #31)",
+    dependencies=[require_role("teacher")],
+)
+async def end_edit_session(
+    edit_session_id: str,
+    payload: EditSessionHeartbeatRequest,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.end_edit_session(claims, edit_session_id, payload)
     return success(result.model_dump(mode="json"))

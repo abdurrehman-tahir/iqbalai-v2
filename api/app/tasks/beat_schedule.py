@@ -52,4 +52,9 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "lectures.purge_voice_audio",
         "schedule": crontab(minute=15),  # hourly, offset from the invite sweep
     },
+    # M-10 teacher benchmarking (T-139, Flow 5 §3.11 #37). Sunday 01:00 PKT.
+    "benchmark-update-weekly": {
+        "task": "benchmark.update_weekly",
+        "schedule": crontab(day_of_week=0, hour=20, minute=0),
+    },
 }
