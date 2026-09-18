@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Any
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -322,7 +321,8 @@ class QuizService:
             if attempt and attempt.max_score:
                 scores.append(attempt.score / attempt.max_score)
 
-        # Hotspots: across completed attempts, per-ordinal incorrect rate (use first quiz's questions as template)
+        # Hotspots: per-ordinal incorrect rate across completed attempts
+        # (use first quiz's questions as the template).
         hotspots: list[QuizAggregateHotspotRead] = []
         if completed:
             first_quiz_id = (

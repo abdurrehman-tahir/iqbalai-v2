@@ -98,7 +98,10 @@ class DiagnosticSeedCalibrationProvider(CalibrationProvider):
 
         topic_key = _match_topic(lecture_topic, confidence, focus_topics)
         score = confidence.get(topic_key) if topic_key else None
-        in_focus = any(_norm(t) in _norm(lecture_topic) or _norm(lecture_topic) in _norm(t) for t in focus_topics)
+        in_focus = any(
+            _norm(t) in _norm(lecture_topic) or _norm(lecture_topic) in _norm(t)
+            for t in focus_topics
+        )
 
         if in_focus or (score is not None and score <= _LOW_CONFIDENCE):
             difficulty = QuizQuestionDifficulty.FOUNDATIONAL

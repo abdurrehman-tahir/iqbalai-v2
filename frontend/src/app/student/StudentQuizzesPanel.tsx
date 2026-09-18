@@ -15,6 +15,8 @@ export function StudentQuizzesPanel() {
     enabled: mounted && !!token,
   });
 
+  const quizzes = Array.isArray(data) ? data : [];
+
   return (
     <section
       className="rounded-lg border border-gray-200 bg-white p-4 space-y-3"
@@ -32,31 +34,34 @@ export function StudentQuizzesPanel() {
           {t("error")}
         </p>
       ) : null}
-      {!isLoading && !isError && (data?.length ?? 0) === 0 ? (
+      {!isLoading && !isError && quizzes.length === 0 ? (
         <p className="text-sm text-gray-500">{t("empty")}</p>
       ) : null}
 
-      <ul className="space-y-2">
-        {(data ?? []).map((quiz) => (
-          <li
-            key={quiz.assignment_id}
-            className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-gray-100 px-3 py-2"
-          >
-            <div>
-              <p className="text-sm font-medium text-gray-900">{quiz.lecture_topic}</p>
-              <p className="text-xs text-gray-500">
-                {t("question_count", { count: quiz.question_count })} · {t(`status_${quiz.status}`)}
-              </p>
-            </div>
-            <a
-              href={`/student/quizzes/${quiz.assignment_id}`}
-              className="text-sm text-blue-600 hover:underline"
+      {quizzes.length > 0 ? (
+        <ul className="space-y-2" aria-label={t("title")}>
+          {quizzes.map((quiz) => (
+            <li
+              key={quiz.assignment_id}
+              className="flex flex-wrap items-center justify-between gap-2 rounded-md border border-gray-100 px-3 py-2"
             >
-              {quiz.status === "completed" ? t("view_results") : t("take_quiz")}
-            </a>
-          </li>
-        ))}
-      </ul>
+              <div>
+                <p className="text-sm font-medium text-gray-900">{quiz.lecture_topic}</p>
+                <p className="text-xs text-gray-500">
+                  {t("question_count", { count: quiz.question_count })} ·{" "}
+                  {t(`status_${quiz.status}`)}
+                </p>
+              </div>
+              <a
+                href={`/student/quizzes/${quiz.assignment_id}`}
+                className="text-sm text-blue-600 hover:underline"
+              >
+                {quiz.status === "completed" ? t("view_results") : t("take_quiz")}
+              </a>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }
