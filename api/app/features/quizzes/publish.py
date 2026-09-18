@@ -37,5 +37,3 @@ async def publish_pending_assignments_for_lecture(session: AsyncSession, *, lect
         .values(status=QuizAssignmentStatus.PUBLISHED)
     )
     return int(getattr(result, "rowcount", 0) or 0)
-
-# CI retrigger for mypy fix commit
