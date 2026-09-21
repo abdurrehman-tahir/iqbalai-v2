@@ -424,6 +424,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 
 **Backend + frontend:** Enforce the Flow 6 permissions matrix — student owns their session/questions/answers; teacher receives question *signals* via events (no direct UI here); a linked parent has read-only visibility **subject to privacy #72**; Coordinator/Admin per §6.19. Privacy #72 default = share-with-teacher (Open Q12), student can opt out anytime; #72 changes audit-logged (§14.10). Independent students' sessions/events tagged `tenant_type=independent` (Open Q13).
 
+**Storage note (BLOCKED-HOOK ownership):** Flow 8 / M-17 T-220 is the **CANONICAL** owner of #72 long-term (`student_self_study_privacy`). M-12 reuses `school.user_settings.teacher_activity_share` (`share`|`private`, default `share`) as the lecture-Q&A-facing preference. **M-17 must reconcile to this same column** (or migrate into it) — do not invent a second #72 store. Independent schema: #72 hidden (N/A) — no independent migration. Parent lecture UI remains Flow 10 / M-19; M-12 ships a minimal parent read path + shared helper `student_allows_teacher_share(user_id)`.
+
 ### Acceptance (demo script)
 
 1. [ ] Student sees only own sessions/questions

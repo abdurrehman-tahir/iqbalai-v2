@@ -60,6 +60,19 @@ vi.mock("@/lib/api", () => ({
       },
     ]),
   },
+  studentLecturesApi: {
+    list: vi.fn().mockResolvedValue([
+      {
+        lecture_id: "lec-1",
+        title: "Newton",
+        topic: "Forces",
+        current_version_id: "ver-1",
+      },
+    ]),
+    openViewer: vi.fn(),
+    touchSession: vi.fn(),
+    endSession: vi.fn(),
+  },
 }));
 
 function renderHome() {

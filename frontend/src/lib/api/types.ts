@@ -88,7 +88,11 @@ export type LectureVersionSaveRequest = Schemas["LectureVersionSaveRequest"];
 export type LectureVersionRead = Schemas["LectureVersionRead"];
 export type LectureVersionListResponse = Schemas["PaginatedEnvelope_LectureVersionRead_"];
 export type LecturePublishRead = Schemas["LecturePublishRead"];
-export type VoiceTranscribeRead = Schemas["VoiceTranscribeRead"];
+export type VoiceTranscribeRead =
+  Schemas["app__features__student_voice__schemas__VoiceTranscribeRead"];
+/** Teacher lecture-wizard STT (T-131) — same shape, distinct OpenAPI model. */
+export type LectureVoiceTranscribeRead =
+  Schemas["app__features__lectures__schemas__VoiceTranscribeRead"];
 export type StudentQuizCardRead = Schemas["StudentQuizCardRead"];
 export type StudentQuizDetailRead = Schemas["StudentQuizDetailRead"];
 export type QuizAttemptResultRead = Schemas["QuizAttemptResultRead"];
@@ -107,6 +111,25 @@ export type TeacherBenchmarkRead = Schemas["TeacherBenchmarkRead"];
 export type BenchmarkOptOutRequest = Schemas["BenchmarkOptOutRequest"];
 export type TeacherMetricsRead = Schemas["TeacherMetricsRead"];
 export type TeacherTips = Schemas["TeacherTips"];
+
+// ── M-12 student lecture viewer / Q&A / privacy (A-002 generated) ─────────────
+export type StudentLectureCardRead = Schemas["StudentLectureCardRead"];
+export type StudentLectureParagraphRead = Schemas["StudentLectureParagraphRead"];
+export type StudentLectureViewerRead = Schemas["StudentLectureViewerRead"];
+export type StudentLectureSourceTier = StudentLectureParagraphRead["tier"];
+export type LectureSessionRead = Schemas["LectureSessionRead"];
+export type LectureAudioAlignmentSpan = Schemas["LectureAudioAlignmentSpan"];
+export type LectureAudioCacheRead = Schemas["LectureAudioCacheRead"];
+export type LectureAudioRequest = Schemas["LectureAudioRequest"];
+export type StudentQuestionRead = Schemas["StudentQuestionRead"];
+export type StudentQuestionCreateRequest = Schemas["StudentQuestionCreateRequest"];
+export type StudentQuestionFollowUpRequest = Schemas["StudentQuestionFollowUpRequest"];
+export type StudentQuestionAnswerRead = Schemas["StudentQuestionAnswerRead"];
+export type ConversationTurnRead = Schemas["ConversationTurnRead"];
+export type QuestionClassification = Schemas["QuestionClassificationLiteral"];
+export type TeacherActivityShareRead = Schemas["TeacherActivityShareRead"];
+export type TeacherActivityShareUpdate = Schemas["TeacherActivityShareUpdate"];
+export type TeacherActivityShare = TeacherActivityShareRead["teacher_activity_share"];
 export type TeacherTipsRealWorldExample = Schemas["TeacherTipsRealWorldExample"];
 export type TeachingMode = Schemas["TeachingMode"];
 export type IndependentWizardReferenceRead = Schemas["IndependentWizardReferenceRead"];

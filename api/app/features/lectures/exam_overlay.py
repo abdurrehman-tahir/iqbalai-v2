@@ -1,13 +1,14 @@
-"""Exam framework overlay for lecture generation — T-120 (Flow 4 v3 §3.5.4).
+"""Exam framework overlay — T-120 (lecture gen) + T-161 (student Q&A answers).
 
-Additive (never replacement) context: if any actively-enrolled student in the
-lecture's Grade has selected a PUBLISHED Exam Framework relevant to the
-lecture's Subject and covering that Grade, the framework's exam_strategy plus
-its highest-priority topics are surfaced to the LLM as supplementary
-exam-readiness context. Curriculum stays the primary driver of the lecture.
+Additive (never replacement) context. Curriculum stays the primary driver.
 
-Per §3.2's Custom Persona rule: this overlay is class-wide, never per-student —
-it never reads or injects any individual student's persona.
+T-120 (lecture generation): class-wide — if any actively-enrolled student in the
+lecture's Grade has selected a relevant PUBLISHED framework, surface it. Per
+§3.2's Custom Persona rule this path is never per-student persona injection.
+
+T-161 (lecture Q&A answers): per-student — only when *this* student has an
+active framework selection. Overlay affects the AI answer only, never the
+lecture body.
 """
 
 from __future__ import annotations
@@ -23,6 +24,7 @@ from app.features.exam_frameworks.models import (
     FrameworkStatus,
     FrameworkStudyPlan,
     SelectionStatus,
+    SelectionTenantType,
     StudentFrameworkSelection,
     StudyPlanStatus,
 )
@@ -35,7 +37,7 @@ _SLUG_COLLAPSE_RE = re.compile(r"[^a-z0-9]+")
 
 
 class ExamOverlayContext(BaseModel):
-    """Rendered exam-framework context for the lecture prompt (T-120)."""
+    """Rendered exam-framework context for lecture / Q&A prompts (T-120 / T-161)."""
 
     framework_name: str
     exam_strategy_summary: str
@@ -53,40 +55,13 @@ def normalize_subject_slug(subject_name: str) -> str:
     return _SLUG_COLLAPSE_RE.sub("-", subject_name.strip().lower()).strip("-")
 
 
-async def get_exam_framework_overlay(
+async def _overlay_from_framework_ids(
     session: AsyncSession,
     *,
+    framework_ids: list[str],
     grade_id: str,
-    subject_name: str,
+    subject_slug: str,
 ) -> ExamOverlayContext | None:
-    """Additive exam-readiness context, or ``None`` if no relevant framework applies.
-
-    ``None`` whenever: no actively-enrolled students in the grade, none of them
-    have an active framework selection, no selected framework is PUBLISHED +
-    relevant to this subject + covers this grade, or it has no APPROVED study
-    plan yet.
-    """
-    subject_slug = normalize_subject_slug(subject_name)
-
-    enrolled = await session.execute(
-        select(StudentEnrollment.student_user_id).where(
-            StudentEnrollment.grade_id == grade_id,
-            StudentEnrollment.status == StudentEnrollmentStatus.ACTIVE,
-        )
-    )
-    student_ids = [row[0] for row in enrolled.all()]
-    if not student_ids:
-        return None
-
-    selected = await session.execute(
-        select(StudentFrameworkSelection.framework_id)
-        .where(
-            StudentFrameworkSelection.student_user_id.in_(student_ids),
-            StudentFrameworkSelection.status == SelectionStatus.ACTIVE,
-        )
-        .distinct()
-    )
-    framework_ids = [row[0] for row in selected.all()]
     if not framework_ids:
         return None
 
@@ -143,4 +118,78 @@ async def get_exam_framework_overlay(
         framework_name=framework.name,
         exam_strategy_summary=strategy_summary,
         priority_topics=priority_topics,
+    )
+
+
+async def get_exam_framework_overlay(
+    session: AsyncSession,
+    *,
+    grade_id: str,
+    subject_name: str,
+) -> ExamOverlayContext | None:
+    """Class-wide exam-readiness context for lecture generation (T-120).
+
+    ``None`` whenever: no actively-enrolled students in the grade, none of them
+    have an active framework selection, no selected framework is PUBLISHED +
+    relevant to this subject + covers this grade, or it has no APPROVED study
+    plan yet.
+    """
+    subject_slug = normalize_subject_slug(subject_name)
+
+    enrolled = await session.execute(
+        select(StudentEnrollment.student_user_id).where(
+            StudentEnrollment.grade_id == grade_id,
+            StudentEnrollment.status == StudentEnrollmentStatus.ACTIVE,
+        )
+    )
+    student_ids = [row[0] for row in enrolled.all()]
+    if not student_ids:
+        return None
+
+    selected = await session.execute(
+        select(StudentFrameworkSelection.framework_id)
+        .where(
+            StudentFrameworkSelection.student_user_id.in_(student_ids),
+            StudentFrameworkSelection.status == SelectionStatus.ACTIVE,
+        )
+        .distinct()
+    )
+    framework_ids = [row[0] for row in selected.all()]
+    return await _overlay_from_framework_ids(
+        session,
+        framework_ids=framework_ids,
+        grade_id=grade_id,
+        subject_slug=subject_slug,
+    )
+
+
+async def get_student_exam_framework_overlay(
+    session: AsyncSession,
+    *,
+    student_user_id: str,
+    grade_id: str,
+    subject_name: str,
+) -> ExamOverlayContext | None:
+    """Per-student exam overlay for AI answers (T-161).
+
+    Only the calling student's ACTIVE school selections are considered. Returns
+    ``None`` when the student has no relevant published framework + approved plan.
+    """
+    subject_slug = normalize_subject_slug(subject_name)
+    selected = await session.execute(
+        select(StudentFrameworkSelection.framework_id)
+        .where(
+            StudentFrameworkSelection.tenant_type == SelectionTenantType.SCHOOL,
+            StudentFrameworkSelection.student_user_id == student_user_id,
+            StudentFrameworkSelection.status == SelectionStatus.ACTIVE,
+            StudentFrameworkSelection.deleted_at.is_(None),
+        )
+        .distinct()
+    )
+    framework_ids = [row[0] for row in selected.all()]
+    return await _overlay_from_framework_ids(
+        session,
+        framework_ids=framework_ids,
+        grade_id=grade_id,
+        subject_slug=subject_slug,
     )

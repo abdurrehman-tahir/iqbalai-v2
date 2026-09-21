@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { StudentQuizzesPanel } from "./StudentQuizzesPanel";
+import { StudentLecturesPanel } from "./StudentLecturesPanel";
 
 export function StudentHomeClient() {
   const t = useTranslations("student.dashboard");
@@ -102,6 +103,8 @@ export function StudentHomeClient() {
           <p className="text-xs text-gray-500">{t("mode_hint_lecture")}</p>
         </section>
       )}
+
+      <StudentLecturesPanel />
 
       <StudentQuizzesPanel />
 

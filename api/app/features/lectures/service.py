@@ -735,6 +735,13 @@ class LectureWizardService:
         lecture.current_version_id = version.id
         version = await self._versions.create(version)
 
+        # T-153: non-autosave edits invalidate TTS caches. Unit tests often
+        # inject get_db=None; skip when no real session is wired.
+        if not payload.is_autosave and self._session is not None:
+            from app.features.lectures.lecture_tts import invalidate_lecture_audio_caches
+
+            await invalidate_lecture_audio_caches(self._session, lecture.id)
+
         if payload.edit_session_id:
             await self._link_edit_session(
                 payload.edit_session_id, teacher_user_id=teacher.id, version_id=version.id
@@ -1488,3 +1495,8 @@ class LectureWizardService:
             override=elevated,
             quizzes_published=quizzes_published,
         )
+
+
+# M-12 student surfaces (viewer / TTS / Q&A) historically imported LectureService.
+# The wizard class is the canonical school lecture service — keep the alias stable.
+LectureService = LectureWizardService
