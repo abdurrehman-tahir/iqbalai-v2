@@ -69,6 +69,9 @@ const listCoachingSuggestions = vi.fn();
 const respondToCoachingSuggestion = vi.fn();
 const listBenchmarks = vi.fn();
 const setBenchmarkOptOut = vi.fn();
+const publishLecture = vi.fn();
+const listQuizResults = vi.fn();
+const getQuizAggregate = vi.fn();
 
 vi.mock("@/lib/api", () => ({
   lectureWizardApi: {
@@ -97,6 +100,7 @@ vi.mock("@/lib/api", () => ({
     startEditSession: (...args: unknown[]) => startEditSession(...args),
     heartbeatEditSession: (...args: unknown[]) => heartbeatEditSession(...args),
     endEditSession: (...args: unknown[]) => endEditSession(...args),
+    publishLecture: (...args: unknown[]) => publishLecture(...args),
   },
   teacherCoachingApi: {
     listSuggestions: (...args: unknown[]) => listCoachingSuggestions(...args),
@@ -105,6 +109,10 @@ vi.mock("@/lib/api", () => ({
   teacherBenchmarksApi: {
     list: (...args: unknown[]) => listBenchmarks(...args),
     setOptOut: (...args: unknown[]) => setBenchmarkOptOut(...args),
+  },
+  teacherQuizResultsApi: {
+    listResults: (...args: unknown[]) => listQuizResults(...args),
+    getAggregate: (...args: unknown[]) => getQuizAggregate(...args),
   },
   ApiError: class ApiError extends Error {
     constructor(
@@ -179,6 +187,20 @@ function renderAtStep5GeneratingLecture(
   listCoachingSuggestions.mockResolvedValue([]);
   listBenchmarks.mockResolvedValue([]);
   setBenchmarkOptOut.mockResolvedValue({ rows_changed: 0 });
+  publishLecture.mockResolvedValue({
+    id: "lec-1",
+    status: "PUBLISHED",
+    published_at: "2026-08-05T00:00:00Z",
+  });
+  listQuizResults.mockResolvedValue([]);
+  getQuizAggregate.mockResolvedValue({
+    lecture_id: "lec-1",
+    assigned_count: 0,
+    completed_count: 0,
+    completion_rate: 0,
+    average_score: null,
+    hotspots: [],
+  });
   startEditSession.mockResolvedValue({
     id: "effort-session-1",
     active_ms: 0,

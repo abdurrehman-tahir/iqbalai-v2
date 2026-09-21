@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import AsyncMock
 
 import pytest
@@ -16,7 +17,9 @@ from app.features.quizzes.service import QuizService
 from app.features.users.models import UserRole
 
 
-def _user(*, role: UserRole = UserRole.STUDENT, user_id: str = "stu-1", school_id: str = "sch-1"):
+def _user(
+    *, role: UserRole = UserRole.STUDENT, user_id: str = "stu-1", school_id: str = "sch-1"
+) -> Any:
     return SimpleNamespace(
         id=user_id,
         role=role,
@@ -33,7 +36,7 @@ async def test_list_my_quizzes_only_own_published(monkeypatch: pytest.MonkeyPatc
     svc = QuizService(session)
     user = _user()
 
-    async def _require(claims: dict[str, object]):
+    async def _require(claims: dict[str, object]) -> Any:
         return user
 
     monkeypatch.setattr(svc, "_require_user", _require)
@@ -52,10 +55,10 @@ async def test_list_my_quizzes_only_own_published(monkeypatch: pytest.MonkeyPatc
     )
 
     class _Result:
-        def all(self):
+        def all(self) -> list[tuple[Any, Any, Any]]:
             return [(assignment, quiz, lecture)]
 
-        def scalar_one(self):
+        def scalar_one(self) -> int:
             return 5
 
     session.execute = AsyncMock(side_effect=[_Result(), _Result()])
@@ -73,7 +76,7 @@ async def test_submit_is_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
     svc = QuizService(session)
     user = _user()
 
-    async def _require(claims: dict[str, object]):
+    async def _require(claims: dict[str, object]) -> Any:
         return user
 
     monkeypatch.setattr(svc, "_require_user", _require)
@@ -94,18 +97,18 @@ async def test_submit_is_idempotent(monkeypatch: pytest.MonkeyPatch) -> None:
         answers_jsonb={"q1": "A"},
     )
 
-    async def _owned(u, aid):
+    async def _owned(u: Any, aid: str) -> tuple[Any, Any, Any]:
         return assignment, quiz, lecture
 
     monkeypatch.setattr(svc, "_owned_assignment", _owned)
 
     class _AttemptResult:
-        def scalar_one_or_none(self):
+        def scalar_one_or_none(self) -> Any:
             return existing
 
     session.execute = AsyncMock(return_value=_AttemptResult())
 
-    async def _result_from_attempt(a, q, att):
+    async def _result_from_attempt(a: Any, q: Any, att: Any) -> Any:
         from app.features.quizzes.api_schemas import QuizAttemptResultRead
 
         return QuizAttemptResultRead(
@@ -131,7 +134,7 @@ async def test_submit_rejects_pending(monkeypatch: pytest.MonkeyPatch) -> None:
     svc = QuizService(session)
     user = _user()
 
-    async def _require(claims: dict[str, object]):
+    async def _require(claims: dict[str, object]) -> Any:
         return user
 
     monkeypatch.setattr(svc, "_require_user", _require)
@@ -145,7 +148,7 @@ async def test_submit_rejects_pending(monkeypatch: pytest.MonkeyPatch) -> None:
     quiz = SimpleNamespace(id="quiz-1", lecture_id="lec-1", deleted_at=None)
     lecture = SimpleNamespace(id="lec-1")
 
-    async def _owned(u, aid):
+    async def _owned(u: Any, aid: str) -> tuple[Any, Any, Any]:
         return assignment, quiz, lecture
 
     monkeypatch.setattr(svc, "_owned_assignment", _owned)
@@ -160,7 +163,7 @@ async def test_get_my_quiz_hides_unpublished_lecture(monkeypatch: pytest.MonkeyP
     svc = QuizService(session)
     user = _user()
 
-    async def _require(claims: dict[str, object]):
+    async def _require(claims: dict[str, object]) -> Any:
         return user
 
     monkeypatch.setattr(svc, "_require_user", _require)
@@ -174,7 +177,7 @@ async def test_get_my_quiz_hides_unpublished_lecture(monkeypatch: pytest.MonkeyP
     quiz = SimpleNamespace(id="quiz-1", deleted_at=None)
     lecture = SimpleNamespace(id="lec-1", status=LectureStatus.READY_FOR_PUBLISH)
 
-    async def _owned(u, aid):
+    async def _owned(u: Any, aid: str) -> tuple[Any, Any, Any]:
         return assignment, quiz, lecture
 
     monkeypatch.setattr(svc, "_owned_assignment", _owned)

@@ -36,10 +36,15 @@ Return ONLY valid JSON:
   "questions": [
     {{
       "stem": "Question text",
-      "options": [{{"key": "a", "text": "..."}}, {{"key": "b", "text": "..."}}, {{"key": "c", "text": "..."}}, {{"key": "d", "text": "..."}}],
+      "options": [
+        {{"key": "a", "text": "..."}},
+        {{"key": "b", "text": "..."}},
+        {{"key": "c", "text": "..."}},
+        {{"key": "d", "text": "..."}}
+      ],
       "correct_answer": "a",
       "difficulty": "foundational" | "conceptual" | "applied" | "grade_default",
-      "source_excerpt": "Short quote or paraphrase from the lecture this question is based on"
+      "source_excerpt": "Short quote or paraphrase from the lecture"
     }}
   ]
 }}

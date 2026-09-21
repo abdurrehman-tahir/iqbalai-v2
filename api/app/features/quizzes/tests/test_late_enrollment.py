@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from types import SimpleNamespace
+from typing import Any
 from unittest.mock import AsyncMock, MagicMock
 
 import pytest
@@ -25,14 +26,14 @@ async def test_late_enrollment_skips_duplicates(monkeypatch: pytest.MonkeyPatch)
     )
 
     class _Lectures:
-        def scalars(self):
+        def scalars(self) -> _Lectures:
             return self
 
-        def all(self):
+        def all(self) -> list[Any]:
             return [lecture]
 
     class _Existing:
-        def scalar_one_or_none(self):
+        def scalar_one_or_none(self) -> str | None:
             return "quiz-existing"
 
     session.execute = AsyncMock(side_effect=[_Lectures(), _Existing()])
@@ -63,14 +64,14 @@ async def test_late_enrollment_enqueues_for_published(monkeypatch: pytest.Monkey
     )
 
     class _Lectures:
-        def scalars(self):
+        def scalars(self) -> _Lectures:
             return self
 
-        def all(self):
+        def all(self) -> list[Any]:
             return [lecture]
 
     class _Existing:
-        def scalar_one_or_none(self):
+        def scalar_one_or_none(self) -> str | None:
             return None
 
     session.execute = AsyncMock(side_effect=[_Lectures(), _Existing()])
@@ -96,7 +97,7 @@ async def test_grade_fanout_enqueues_per_offering(monkeypatch: pytest.MonkeyPatc
     session = AsyncMock()
 
     class _FakeOfferings:
-        async def list_by_grade(self, grade_id: str):
+        async def list_by_grade(self, grade_id: str) -> list[Any]:
             return [SimpleNamespace(id="off-1"), SimpleNamespace(id="off-2")]
 
     monkeypatch.setattr(

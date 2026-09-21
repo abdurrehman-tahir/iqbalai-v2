@@ -40,11 +40,7 @@ _SCHOOL_MIGRATION = (
     Path(__file__).resolve().parents[4] / "alembic" / "versions" / "school" / "0065_quizzes.py"
 )
 _INDEPENDENT_MIGRATION = (
-    Path(__file__).resolve().parents[4]
-    / "alembic"
-    / "versions"
-    / "independent"
-    / "0018_quizzes.py"
+    Path(__file__).resolve().parents[4] / "alembic" / "versions" / "independent" / "0018_quizzes.py"
 )
 
 _FOUR_TABLES = ("quizzes", "quiz_questions", "quiz_assignments", "quiz_attempts")
@@ -143,7 +139,7 @@ def test_migrations_exist_for_both_schemas() -> None:
     assert _INDEPENDENT_MIGRATION.is_file()
     school_src = _SCHOOL_MIGRATION.read_text(encoding="utf-8")
     assert "school_0065" in school_src
-    assert "down_revision: str = \"school_0064\"" in school_src
+    assert 'down_revision: str = "school_0064"' in school_src
     ind_src = _INDEPENDENT_MIGRATION.read_text(encoding="utf-8")
     assert "independent_0018" in ind_src
 

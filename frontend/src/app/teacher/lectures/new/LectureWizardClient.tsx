@@ -1102,9 +1102,10 @@ function LectureQuizResultsPanel({
               })}
             </p>
           ) : null}
-          {(aggregateQuery.data.hotspots ?? []).length > 0 ? (
+          {(Array.isArray(aggregateQuery.data.hotspots) ? aggregateQuery.data.hotspots : [])
+            .length > 0 ? (
             <ul className="mt-2 space-y-1 text-xs text-gray-600">
-              {aggregateQuery.data.hotspots.map((h) => (
+              {(aggregateQuery.data.hotspots ?? []).map((h) => (
                 <li key={h.question_ordinal}>
                   {t("quiz_hotspot", {
                     ordinal: h.question_ordinal,
@@ -1124,18 +1125,23 @@ function LectureQuizResultsPanel({
         </p>
       ) : null}
 
-      <ul className="space-y-1 text-sm text-gray-800">
-        {(resultsQuery.data ?? []).map((row) => (
-          <li key={row.assignment_id} className="flex justify-between gap-2 border-b border-gray-100 py-1">
-            <span>{row.student_display_name}</span>
-            <span>
-              {row.score != null && row.max_score != null
-                ? `${row.score}/${row.max_score}`
-                : row.status}
-            </span>
-          </li>
-        ))}
-      </ul>
+      {Array.isArray(resultsQuery.data) && resultsQuery.data.length > 0 ? (
+        <ul className="space-y-1 text-sm text-gray-800" aria-label={t("quiz_results_title")}>
+          {resultsQuery.data.map((row) => (
+            <li
+              key={row.assignment_id}
+              className="flex justify-between gap-2 border-b border-gray-100 py-1"
+            >
+              <span>{row.student_display_name}</span>
+              <span>
+                {row.score != null && row.max_score != null
+                  ? `${row.score}/${row.max_score}`
+                  : row.status}
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : null}
     </section>
   );
 }

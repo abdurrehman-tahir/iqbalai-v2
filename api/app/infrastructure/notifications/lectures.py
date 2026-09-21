@@ -38,9 +38,7 @@ async def notify_lecture_event(
     if not active_channels:
         raise ValueError(f"No channel mapping for template '{template_key}'")
 
-    rendered = render_lecture_template(
-        template_key, locale=locale, variant=variant, params=params
-    )
+    rendered = render_lecture_template(template_key, locale=locale, variant=variant, params=params)
 
     meta = {"template_key": template_key, "locale": locale, "variant": variant}
     if metadata:

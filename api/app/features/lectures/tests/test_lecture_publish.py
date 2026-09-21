@@ -79,10 +79,10 @@ def anyio_backend() -> str:
 async def test_teacher_publish_ready_for_edit(monkeypatch: pytest.MonkeyPatch) -> None:
     lecture = _lecture()
     svc = LectureWizardService(MagicMock())
-    svc._users = _FakeUsers(TEACHER)  # type: ignore[method-assign]
-    svc._lectures = _FakeLectures(lecture)  # type: ignore[method-assign]
-    svc._session.commit = AsyncMock()
-    svc._session.refresh = AsyncMock()
+    svc._users = _FakeUsers(TEACHER)  # type: ignore[assignment]
+    svc._lectures = _FakeLectures(lecture)  # type: ignore[assignment]
+    svc._session.commit = AsyncMock()  # type: ignore[method-assign]
+    svc._session.refresh = AsyncMock()  # type: ignore[method-assign]
 
     audits: list[dict[str, Any]] = []
     events: list[dict[str, Any]] = []
@@ -124,10 +124,10 @@ async def test_teacher_publish_ready_for_edit(monkeypatch: pytest.MonkeyPatch) -
 async def test_admin_override_publish_is_elevated(monkeypatch: pytest.MonkeyPatch) -> None:
     lecture = _lecture(teacher_user_id="teacher-1")
     svc = LectureWizardService(MagicMock())
-    svc._users = _FakeUsers(ADMIN)  # type: ignore[method-assign]
-    svc._lectures = _FakeLectures(lecture)  # type: ignore[method-assign]
-    svc._session.commit = AsyncMock()
-    svc._session.refresh = AsyncMock()
+    svc._users = _FakeUsers(ADMIN)  # type: ignore[assignment]
+    svc._lectures = _FakeLectures(lecture)  # type: ignore[assignment]
+    svc._session.commit = AsyncMock()  # type: ignore[method-assign]
+    svc._session.refresh = AsyncMock()  # type: ignore[method-assign]
 
     audits: list[dict[str, Any]] = []
 
@@ -135,9 +135,7 @@ async def test_admin_override_publish_is_elevated(monkeypatch: pytest.MonkeyPatc
         audits.append(dict(kwargs))
 
     monkeypatch.setattr("app.features.lectures.service.audit", _audit)
-    monkeypatch.setattr(
-        "app.features.lectures.service.publish_lecture_event", AsyncMock()
-    )
+    monkeypatch.setattr("app.features.lectures.service.publish_lecture_event", AsyncMock())
     monkeypatch.setattr(
         "app.features.quizzes.publish.publish_pending_assignments_for_lecture",
         AsyncMock(return_value=0),
@@ -156,8 +154,8 @@ async def test_admin_override_publish_is_elevated(monkeypatch: pytest.MonkeyPatc
 async def test_publish_rejects_generating_status() -> None:
     lecture = _lecture(status=LectureStatus.GENERATING, current_version_id=None)
     svc = LectureWizardService(MagicMock())
-    svc._users = _FakeUsers(TEACHER)  # type: ignore[method-assign]
-    svc._lectures = _FakeLectures(lecture)  # type: ignore[method-assign]
+    svc._users = _FakeUsers(TEACHER)  # type: ignore[assignment]
+    svc._lectures = _FakeLectures(lecture)  # type: ignore[assignment]
     with pytest.raises(ValidationError):
         await svc.publish_lecture({"sub": "auth-teacher"}, "lec-1")
 
