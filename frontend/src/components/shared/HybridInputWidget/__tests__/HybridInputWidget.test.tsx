@@ -46,10 +46,12 @@ class FakeMediaRecorder {
   mimeType = "audio/webm";
 
   constructor(_stream: MediaStream) {
+    void _stream;
     FakeMediaRecorder.instances.push(this);
   }
 
   start(_timeslice?: number) {
+    void _timeslice;
     this.state = "recording";
   }
 

@@ -589,9 +589,7 @@ async def stream_answer_for_question(
     if question.highlight_text:
         query = f"{query}\n{question.highlight_text}"
 
-    curr, refs, web, no_coverage = await retrieve_qa_chunks(
-        session, lecture=lecture, query=query
-    )
+    curr, refs, web, no_coverage = await retrieve_qa_chunks(session, lecture=lecture, query=query)
     prompt, primary, spans = await _render_qa_prompt(
         session,
         question=question,
@@ -686,9 +684,7 @@ async def generate_and_store_answer(
     if question.highlight_text:
         query = f"{query}\n{question.highlight_text}"
 
-    curr, refs, web, no_coverage = await retrieve_qa_chunks(
-        session, lecture=lecture, query=query
-    )
+    curr, refs, web, no_coverage = await retrieve_qa_chunks(session, lecture=lecture, query=query)
     prompt, primary, spans = await _render_qa_prompt(
         session,
         question=question,

@@ -53,7 +53,9 @@ def _question(**kwargs: object) -> SchoolStudentQuestion:
     return SchoolStudentQuestion(**defaults)  # type: ignore[arg-type]
 
 
-def _user_turn(content: str = "What is inertia?", turn_index: int = 0) -> SchoolStudentQuestionConversation:
+def _user_turn(
+    content: str = "What is inertia?", turn_index: int = 0
+) -> SchoolStudentQuestionConversation:
     return SchoolStudentQuestionConversation(
         id="turn-u-0",
         root_question_id="q-1",

@@ -88,9 +88,7 @@ async def test_transcribe_returns_transcript(client: AsyncClient) -> None:
 
 @pytest.mark.parametrize("language", ["en", "ur", "sd", "ps"])
 @pytest.mark.asyncio
-async def test_transcribe_accepts_supported_languages(
-    client: AsyncClient, language: str
-) -> None:
+async def test_transcribe_accepts_supported_languages(client: AsyncClient, language: str) -> None:
     res = await client.post(
         "/api/v1/students/me/voice/transcribe",
         params={"language": language},

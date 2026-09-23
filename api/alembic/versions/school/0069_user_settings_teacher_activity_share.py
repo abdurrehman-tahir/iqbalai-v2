@@ -34,9 +34,7 @@ _ENUM_NAME = "user_settings_teacher_activity_share_enum"
 
 
 def upgrade() -> None:
-    op.execute(
-        f"CREATE TYPE {_SCHEMA}.{_ENUM_NAME} AS ENUM ('share', 'private')"
-    )
+    op.execute(f"CREATE TYPE {_SCHEMA}.{_ENUM_NAME} AS ENUM ('share', 'private')")
     share_enum = postgresql.ENUM(
         "share",
         "private",

@@ -98,7 +98,9 @@ async def test_open_viewer_returns_paragraphs_and_session(svc: StudentLectureVie
     svc._sessions.open_session = AsyncMock(return_value=_session_read())
     svc._paragraphs.list_by_version = AsyncMock(return_value=[para])
 
-    result = await svc.open_viewer({"sub": "auth-1"}, "lec-1", mode_payload=LectureSessionOpenRequest())
+    result = await svc.open_viewer(
+        {"sub": "auth-1"}, "lec-1", mode_payload=LectureSessionOpenRequest()
+    )
 
     assert result.lecture_id == "lec-1"
     assert result.current_version_id == "ver-1"

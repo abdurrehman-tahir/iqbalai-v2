@@ -47,17 +47,21 @@ class StudentLectureViewerService:
         """Published lectures the student can access (dashboard entry points)."""
         student = await self._require_student(claims)
         rows = (
-            await self._session.execute(
-                select(SchoolLecture)
-                .where(
-                    not_deleted(SchoolLecture),
-                    SchoolLecture.status == LectureStatus.PUBLISHED,
-                    SchoolLecture.current_version_id.is_not(None),
-                    SchoolLecture.school_id == student.school_id,
+            (
+                await self._session.execute(
+                    select(SchoolLecture)
+                    .where(
+                        not_deleted(SchoolLecture),
+                        SchoolLecture.status == LectureStatus.PUBLISHED,
+                        SchoolLecture.current_version_id.is_not(None),
+                        SchoolLecture.school_id == student.school_id,
+                    )
+                    .order_by(SchoolLecture.updated_at.desc())
                 )
-                .order_by(SchoolLecture.updated_at.desc())
             )
-        ).scalars().all()
+            .scalars()
+            .all()
+        )
 
         cards: list[StudentLectureCardRead] = []
         for lecture in rows:

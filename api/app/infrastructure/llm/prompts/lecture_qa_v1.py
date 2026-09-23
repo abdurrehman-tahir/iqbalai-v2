@@ -126,9 +126,7 @@ def render(inp: LectureQaInput) -> PromptCall:
         if inp.exam_strategy_summary:
             lines.append(f"Exam strategy: {inp.exam_strategy_summary}")
         if inp.exam_priority_topics:
-            lines.append(
-                "High-priority exam topics: " + ", ".join(inp.exam_priority_topics)
-            )
+            lines.append("High-priority exam topics: " + ", ".join(inp.exam_priority_topics))
         lines.append("")
     if inp.conversation_history:
         lines.append("Earlier turns in this conversation:")

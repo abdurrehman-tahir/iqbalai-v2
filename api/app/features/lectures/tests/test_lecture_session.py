@@ -89,12 +89,8 @@ def svc(monkeypatch: pytest.MonkeyPatch) -> LectureSessionService:
     service._questions.count_for_session = AsyncMock(return_value=0)
     service._questions.count_highlights_for_session = AsyncMock(return_value=0)
     monkeypatch.setattr(lecture_session_mod, "_utcnow", _now)
-    monkeypatch.setattr(
-        lecture_session_mod, "publish_session_opened", AsyncMock()
-    )
-    monkeypatch.setattr(
-        lecture_session_mod, "publish_session_closed", AsyncMock()
-    )
+    monkeypatch.setattr(lecture_session_mod, "publish_session_opened", AsyncMock())
+    monkeypatch.setattr(lecture_session_mod, "publish_session_closed", AsyncMock())
     return service
 
 

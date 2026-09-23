@@ -110,9 +110,7 @@ class LectureAudioCacheRepository:
 
     async def list_by_lecture(self, lecture_id: str) -> list[SchoolLectureAudioCache]:
         result = await self._session.execute(
-            select(SchoolLectureAudioCache).where(
-                SchoolLectureAudioCache.lecture_id == lecture_id
-            )
+            select(SchoolLectureAudioCache).where(SchoolLectureAudioCache.lecture_id == lecture_id)
         )
         return list(result.scalars().all())
 
@@ -179,9 +177,7 @@ class LectureTtsService:
             raise PermissionDeniedError("Student role required")
         return user
 
-    async def _require_accessible_published(
-        self, student: User, lecture_id: str
-    ) -> SchoolLecture:
+    async def _require_accessible_published(self, student: User, lecture_id: str) -> SchoolLecture:
         lecture = await self._lectures.get_by_id(lecture_id)
         if lecture is None or lecture.status != LectureStatus.PUBLISHED:
             raise NotFoundError("Lecture not found")
@@ -259,9 +255,7 @@ class LectureTtsService:
             row = await self._caches.save(row)
         return _to_read(row)
 
-    async def download_url(
-        self, claims: dict[str, object], lecture_id: str, language: str
-    ) -> str:
+    async def download_url(self, claims: dict[str, object], lecture_id: str, language: str) -> str:
         """Presigned download URL for ready audio (T-154 download control)."""
         read = await self.get_status(claims, lecture_id, language)
         if read.status != "ready" or not read.audio_url:

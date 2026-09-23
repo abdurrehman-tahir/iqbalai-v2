@@ -109,9 +109,7 @@ class StudentQuestionService:
             raise PermissionDeniedError("Student role required")
         return user
 
-    async def _require_accessible_lecture(
-        self, student: User, lecture_id: str
-    ) -> SchoolLecture:
+    async def _require_accessible_lecture(self, student: User, lecture_id: str) -> SchoolLecture:
         lecture = await self._lectures.get_by_id(lecture_id)
         if lecture is None:
             raise NotFoundError("Lecture not found")

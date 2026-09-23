@@ -120,7 +120,9 @@ def upgrade() -> None:
             server_default="unclassified",
         ),
         sa.Column("answer_text", sa.Text(), nullable=True),
-        sa.Column("answer_source_tags_jsonb", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
+        sa.Column(
+            "answer_source_tags_jsonb", postgresql.JSONB(astext_type=sa.Text()), nullable=True
+        ),
         sa.Column("asked_at", sa.DateTime(timezone=True), nullable=False),
         sa.Column("answered_at", sa.DateTime(timezone=True), nullable=True),
         sa.Column("created_at", sa.DateTime(timezone=True), nullable=False),

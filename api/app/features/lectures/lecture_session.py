@@ -93,9 +93,7 @@ class LectureSessionService:
             raise PermissionDeniedError("Student role required")
         return user
 
-    async def _require_published_accessible(
-        self, student: User, lecture_id: str
-    ) -> SchoolLecture:
+    async def _require_published_accessible(self, student: User, lecture_id: str) -> SchoolLecture:
         lecture = await self._lectures.get_by_id(lecture_id)
         if lecture is None:
             raise NotFoundError("Lecture not found")
@@ -145,9 +143,7 @@ class LectureSessionService:
         end_reason: EndReason,
         school_id: str | None = None,
     ) -> None:
-        summary = await self._build_session_summary(
-            row, end_reason=end_reason, school_id=school_id
-        )
+        summary = await self._build_session_summary(row, end_reason=end_reason, school_id=school_id)
         await publish_session_closed(payload=summary)
 
     def _is_stale(self, row: SchoolLectureSession, *, now: datetime | None = None) -> bool:
@@ -177,9 +173,7 @@ class LectureSessionService:
 
         now = _utcnow()
         # Lazy sweep for stale sessions before opening; emit closed summaries.
-        ended_rows = await self._sessions.end_stale_active(
-            now - INACTIVITY_TIMEOUT, ended_at=now
-        )
+        ended_rows = await self._sessions.end_stale_active(now - INACTIVITY_TIMEOUT, ended_at=now)
         for ended in ended_rows:
             await self._emit_session_closed(ended, end_reason="inactivity")
 
@@ -207,9 +201,7 @@ class LectureSessionService:
         )
         return _to_read(created)
 
-    async def _require_owned_session(
-        self, student: User, session_id: str
-    ) -> SchoolLectureSession:
+    async def _require_owned_session(self, student: User, session_id: str) -> SchoolLectureSession:
         row = await self._sessions.get_by_id(session_id)
         if row is None or row.student_user_id != student.id:
             raise NotFoundError("Lecture session not found")

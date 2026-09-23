@@ -149,7 +149,9 @@ async def test_opt_out_is_audit_logged(
     )
     assert res.status_code == 200
     assert res.json()["data"]["teacher_activity_share"] == "private"
-    assert _FakeSettingsRepo.store[STUDENT.id].teacher_activity_share == TeacherActivityShare.PRIVATE
+    assert (
+        _FakeSettingsRepo.store[STUDENT.id].teacher_activity_share == TeacherActivityShare.PRIVATE
+    )
 
     audit_mock.assert_awaited_once()
     kwargs = audit_mock.await_args.kwargs
