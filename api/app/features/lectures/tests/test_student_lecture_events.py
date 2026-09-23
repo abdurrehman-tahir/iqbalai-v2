@@ -44,6 +44,7 @@ async def test_publish_session_opened_tenant_tagged(publish_spy: AsyncMock) -> N
     await publish_session_opened(payload=payload)
 
     publish_spy.assert_awaited_once()
+    assert publish_spy.await_args is not None
     args, kwargs = publish_spy.await_args
     assert args[0] == STUDENT_LECTURE_SESSION_OPENED
     assert args[1] == STUDENT_LECTURE_SESSION_OPENED
@@ -74,6 +75,7 @@ async def test_publish_session_closed_includes_summary(publish_spy: AsyncMock) -
     await publish_session_closed(payload=summary)
 
     publish_spy.assert_awaited_once()
+    assert publish_spy.await_args is not None
     args, kwargs = publish_spy.await_args
     assert args[0] == STUDENT_LECTURE_SESSION_CLOSED
     assert args[2]["question_count"] == 3
@@ -97,6 +99,7 @@ async def test_publish_question_asked(publish_spy: AsyncMock) -> None:
     await publish_student_question_asked(payload=payload)
 
     publish_spy.assert_awaited_once()
+    assert publish_spy.await_args is not None
     args, kwargs = publish_spy.await_args
     assert args[0] == STUDENT_QUESTION_ASKED
     assert kwargs["tenant_id"] == "school-1"
@@ -117,6 +120,7 @@ async def test_publish_highlight_created(publish_spy: AsyncMock) -> None:
     await publish_student_highlight_created(payload=payload)
 
     publish_spy.assert_awaited_once()
+    assert publish_spy.await_args is not None
     args, kwargs = publish_spy.await_args
     assert args[0] == STUDENT_HIGHLIGHT_CREATED
     assert args[2]["highlight_text"] == "F = ma"

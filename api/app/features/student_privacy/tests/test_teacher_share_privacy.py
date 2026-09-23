@@ -154,6 +154,7 @@ async def test_opt_out_is_audit_logged(
     )
 
     audit_mock.assert_awaited_once()
+    assert audit_mock.await_args is not None
     kwargs = audit_mock.await_args.kwargs
     assert kwargs["action"] == STUDENT_TEACHER_SHARE_TOGGLED
     assert kwargs["target_type"] == "user_settings"

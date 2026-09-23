@@ -10,7 +10,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
 from app.features.lectures.lecture_session import LectureSessionService
-from app.features.lectures.models import LectureSessionStatus, SchoolLecture
+from app.features.lectures.models import (
+    LectureSessionStatus,
+    SchoolLecture,
+    SchoolLectureSession,
+)
 from app.features.lectures.repository import LectureRepository, LectureSessionRepository
 from app.features.lectures.schemas import ParagraphSourceMetadata
 from app.features.lectures.service import LectureService
@@ -74,7 +78,7 @@ def question_to_read(
         student_user_id=row.student_user_id,
         session_id=row.session_id,
         lecture_id=row.lecture_id,
-        tenant_type=row.tenant_type.value,  # type: ignore[arg-type]
+        tenant_type=row.tenant_type.value,
         highlight_text=row.highlight_text,
         question_text=row.question_text,
         question_language=row.question_language,
@@ -119,7 +123,7 @@ class StudentQuestionService:
 
     async def _require_active_owned_session(
         self, student: User, *, lecture_id: str, session_id: str
-    ):
+    ) -> SchoolLectureSession:
         # Lazy inactivity end via the shared session service (re-fetches after).
         await self._session_svc.get_session({"sub": student.authentik_id}, session_id)
         row = await self._sessions.get_by_id(session_id)

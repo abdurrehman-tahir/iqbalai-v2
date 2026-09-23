@@ -53,7 +53,7 @@ def _to_read(row: SchoolLectureSession) -> LectureSessionRead:
         id=row.id,
         lecture_id=row.lecture_id,
         student_user_id=row.student_user_id,
-        tenant_type=row.tenant_type.value,  # type: ignore[arg-type]
+        tenant_type=row.tenant_type.value,
         mode=LectureSessionModeLiteral(row.mode.value),
         status=LectureSessionStatusLiteral(row.status.value),
         opened_at=row.opened_at,

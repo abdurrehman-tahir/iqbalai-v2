@@ -50,7 +50,7 @@ def _question(**kwargs: object) -> SchoolStudentQuestion:
         "asked_at": datetime.now(timezone.utc),
     }
     defaults.update(kwargs)
-    return SchoolStudentQuestion(**defaults)  # type: ignore[arg-type]
+    return SchoolStudentQuestion(**defaults)
 
 
 def _user_turn(

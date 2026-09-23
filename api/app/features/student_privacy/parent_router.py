@@ -18,7 +18,10 @@ from app.core.exceptions import PermissionDeniedError
 from app.core.responses import SuccessEnvelope, success
 from app.features.parent_child_links.service import ParentChildLinkService
 from app.features.student_privacy.service import student_allows_teacher_share
-from app.features.student_questions.models import SchoolStudentQuestion
+from app.features.student_questions.models import (
+    SchoolStudentQuestion,
+    SchoolStudentQuestionConversation,
+)
 from app.features.student_questions.repository import (
     StudentQuestionConversationRepository,
     StudentQuestionRepository,
@@ -73,7 +76,7 @@ async def list_student_lecture_questions(
         questions = list(result.scalars().all())
 
     turns = await conversations_repo.list_for_questions([q.id for q in questions])
-    by_root: dict[str, list] = defaultdict(list)
+    by_root: dict[str, list[SchoolStudentQuestionConversation]] = defaultdict(list)
     for turn in turns:
         by_root[turn.root_question_id].append(turn)
 

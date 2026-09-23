@@ -1,5 +1,7 @@
 """T-151 / T-163 — lecture study session service tests."""
 
+# mypy: disable-error-code="method-assign"
+
 from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
@@ -112,6 +114,7 @@ async def test_open_session_creates_new_active_row(svc: LectureSessionService) -
     assert result.status.value == "active"
     assert result.mode.value == "text"
     svc._sessions.create.assert_awaited_once()
+    assert svc._sessions.create.await_args is not None
     created_arg = svc._sessions.create.await_args.args[0]
     assert isinstance(created_arg, SchoolLectureSession)
     assert created_arg.student_user_id == "stu-1"

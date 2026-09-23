@@ -1,5 +1,7 @@
 """T-163 — question / highlight NATS emission wiring."""
 
+# mypy: disable-error-code="method-assign"
+
 from __future__ import annotations
 
 from datetime import datetime, timezone

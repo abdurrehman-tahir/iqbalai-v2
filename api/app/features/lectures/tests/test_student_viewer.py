@@ -1,5 +1,7 @@
 """T-152 — student lecture viewer service tests."""
 
+# mypy: disable-error-code="method-assign"
+
 from __future__ import annotations
 
 from typing import Any

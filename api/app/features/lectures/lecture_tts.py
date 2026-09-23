@@ -150,7 +150,7 @@ def _to_read(row: SchoolLectureAudioCache) -> LectureAudioCacheRead:
         lecture_id=row.lecture_id,
         lecture_version_id=row.lecture_version_id,
         language=lang,
-        status=row.status.value,  # type: ignore[arg-type]
+        status=row.status.value,
         audio_url=_audio_url_for(row),
         content_type=row.content_type,
         byte_size=row.byte_size,
@@ -224,7 +224,10 @@ class LectureTtsService:
                 )
             )
         else:
-            row.lecture_version_id = lecture.current_version_id
+            version_id = lecture.current_version_id
+            if version_id is None:
+                raise NotFoundError("Lecture has no published version")
+            row.lecture_version_id = version_id
             row.status = LectureAudioCacheStatus.PENDING
             row.error_message = None
             row = await self._caches.save(row)
