@@ -32,8 +32,9 @@ from app.features.independent_teacher_onboarding.router import (
 from app.features.invites.router import router as invites_router
 from app.features.lectures.independent_router import router as independent_lecture_wizard_router
 from app.features.lectures.router import router as lecture_wizard_router
-from app.features.lectures.student_router import student_session_router as student_lecture_sessions_router
-from app.features.student_questions.router import router as student_lecture_questions_router
+from app.features.lectures.student_router import (
+    student_session_router as student_lecture_sessions_router,
+)
 from app.features.library.independent_personal_router import (
     router as independent_personal_router,
 )
@@ -61,6 +62,7 @@ from app.features.student_mode.router import router as student_mode_router
 from app.features.student_onboarding.router import router as student_onboarding_router
 from app.features.student_privacy.parent_router import router as parent_lecture_questions_router
 from app.features.student_privacy.router import router as student_privacy_router
+from app.features.student_questions.router import router as student_lecture_questions_router
 from app.features.student_voice.router import router as student_voice_router
 from app.features.subjects.router import router as subjects_router
 from app.features.subscriptions.router import router as subscriptions_router

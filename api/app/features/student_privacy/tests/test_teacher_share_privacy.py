@@ -11,13 +11,13 @@ import pytest
 from fastapi import FastAPI
 from httpx import ASGITransport, AsyncClient
 
-from app.features.student_privacy.router import router as student_privacy_router
-from app.features.student_privacy.parent_router import router as parent_lecture_questions_router
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import setup_exception_handlers
 from app.features.audit.actions import STUDENT_TEACHER_SHARE_TOGGLED
 from app.features.student_mode.models import StudyMode, TeacherActivityShare, UserSettings
 from app.features.student_onboarding.models import StudentProfile
+from app.features.student_privacy.parent_router import router as parent_lecture_questions_router
+from app.features.student_privacy.router import router as student_privacy_router
 from app.features.student_privacy.service import student_allows_teacher_share
 from app.features.users.models import User, UserAccountStatus, UserRole
 

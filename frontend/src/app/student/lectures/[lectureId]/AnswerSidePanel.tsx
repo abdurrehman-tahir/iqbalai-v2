@@ -98,7 +98,7 @@ export function AnswerSidePanel({
           ) : null}
         </div>
 
-        {question.conversations.map((turn) => (
+        {(question.conversations ?? []).map((turn) => (
           <div
             key={turn.id}
             className={`rounded-md p-3 text-sm ${
@@ -113,7 +113,7 @@ export function AnswerSidePanel({
           </div>
         ))}
 
-        {answerBody && question.conversations.every((c) => c.role !== "assistant") ? (
+        {answerBody && (question.conversations ?? []).every((c) => c.role !== "assistant") ? (
           <div
             className="rounded-md bg-emerald-50 p-3 text-sm text-emerald-950"
             data-testid="answer-body"
