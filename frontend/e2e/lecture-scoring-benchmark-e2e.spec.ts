@@ -207,6 +207,31 @@ async function installScoredLectureMocks(page: Page) {
         return;
       }
 
+      if (method === "GET" && path === "/teachers/me/lectures/lec-1/quiz-results") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope([]),
+        });
+        return;
+      }
+
+      if (method === "GET" && path === "/teachers/me/lectures/lec-1/quiz-aggregate") {
+        await route.fulfill({
+          status: 200,
+          contentType: "application/json",
+          body: envelope({
+            lecture_id: "lec-1",
+            assigned_count: 0,
+            completed_count: 0,
+            completion_rate: 0,
+            average_score: null,
+            hotspots: [],
+          }),
+        });
+        return;
+      }
+
       if (method === "GET" && path === "/teachers/me/lectures/lec-1/diagram-suggestions") {
         await route.fulfill({
           status: 200,

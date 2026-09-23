@@ -46,6 +46,20 @@ vi.mock("@/lib/api", () => ({
     approveLinkRequest: vi.fn().mockResolvedValue({ id: "link-1", status: "approved" }),
     revokeParentLink: vi.fn().mockResolvedValue({ id: "link-2", status: "revoked" }),
   },
+  studentQuizzesApi: {
+    list: vi.fn().mockResolvedValue([
+      {
+        assignment_id: "asg-1",
+        quiz_id: "quiz-1",
+        lecture_id: "lec-1",
+        lecture_topic: "Forces",
+        lecture_title: "Newton",
+        question_count: 5,
+        status: "published",
+        assigned_at: "2026-09-01T00:00:00Z",
+      },
+    ]),
+  },
 }));
 
 function renderHome() {
@@ -109,5 +123,12 @@ describe("StudentHomeClient link requests (T-081)", () => {
     renderHome();
     expect(await screen.findByTestId("exam-date-passed-banner")).toBeInTheDocument();
     expect(screen.getByText(/exam date has passed/i)).toBeInTheDocument();
+  });
+
+  it("shows student quizzes panel (T-145)", async () => {
+    renderHome();
+    expect(await screen.findByTestId("student-quizzes")).toBeInTheDocument();
+    expect(await screen.findByText("Forces")).toBeInTheDocument();
+    expect(screen.getByText(/Take quiz/i)).toBeInTheDocument();
   });
 });

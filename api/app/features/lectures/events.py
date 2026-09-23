@@ -17,6 +17,8 @@ LECTURE_VERSION_CREATED = "lecture.version.created"
 # two cover the failure paths, which previously had no NATS event at all.
 LECTURE_GENERATION_FAILED = "lecture.generation_failed"
 LECTURE_GENERATION_TIMED_OUT = "lecture.generation_timed_out"
+# T-142 — lecture publish lifecycle (Flow 5 §3.5)
+LECTURE_PUBLISHED = "lecture.published"
 
 
 async def publish_lecture_event(*, event_type: str, payload: dict[str, Any]) -> None:

@@ -2520,6 +2520,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/quizzes": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the authenticated student's published quizzes (T-145) */
+        get: operations["student_list_my_quizzes"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/quizzes/{assignment_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Open one of the student's quizzes (T-145/T-146) */
+        get: operations["student_get_my_quiz"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/quizzes/{assignment_id}/submit": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit quiz answers (idempotent) and get immediate results (T-146) */
+        post: operations["student_submit_my_quiz"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/subjects/": {
         parameters: {
             query?: never;
@@ -2925,6 +2976,57 @@ export interface paths {
         };
         /** List a lecture's current-version paragraphs with source attribution */
         get: operations["teacher_get_lecture_paragraphs"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lectures/{lecture_id}/publish": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Publish a lecture to enrolled Grade-Subject students (T-142) */
+        post: operations["teacher_publish_lecture"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lectures/{lecture_id}/quiz-aggregate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Class aggregate quiz results for a lecture (T-147) */
+        get: operations["teacher_get_lecture_quiz_aggregate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/teachers/me/lectures/{lecture_id}/quiz-results": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Per-student quiz results for a lecture (T-147) */
+        get: operations["teacher_list_lecture_quiz_results"];
         put?: never;
         post?: never;
         delete?: never;
@@ -4588,6 +4690,30 @@ export interface components {
             tier: components["schemas"]["SourceTier"];
         };
         /**
+         * LecturePublishRead
+         * @description Result of publishing a lecture (T-142).
+         */
+        LecturePublishRead: {
+            /** Current Version Id */
+            current_version_id?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Override
+             * @default false
+             */
+            override: boolean;
+            /** Published By User Id */
+            published_by_user_id: string;
+            /**
+             * Quizzes Published
+             * @default 0
+             */
+            quizzes_published: number;
+            /** Status */
+            status: string;
+        };
+        /**
          * LectureRosterRead
          * @description The lecture's grade roster, for building the access-restriction picker.
          */
@@ -5060,6 +5186,78 @@ export interface components {
             /** User Id */
             user_id: string;
         };
+        /** QuizAggregateHotspotRead */
+        QuizAggregateHotspotRead: {
+            /** Difficulty */
+            difficulty: string;
+            /** Incorrect Rate */
+            incorrect_rate: number;
+            /** Question Ordinal */
+            question_ordinal: number;
+        };
+        /** QuizAttemptResultRead */
+        QuizAttemptResultRead: {
+            /** Assignment Id */
+            assignment_id: string;
+            /** Attempt Id */
+            attempt_id: string;
+            /** Max Score */
+            max_score: number;
+            /** Questions */
+            questions: components["schemas"]["QuizQuestionResultRead"][];
+            /** Score */
+            score: number;
+            /** Status */
+            status: string;
+        };
+        /** QuizOfferingAggregateRead */
+        QuizOfferingAggregateRead: {
+            /** Assigned Count */
+            assigned_count: number;
+            /** Average Score */
+            average_score: number | null;
+            /** Completed Count */
+            completed_count: number;
+            /** Completion Rate */
+            completion_rate: number;
+            /** Hotspots */
+            hotspots: components["schemas"]["QuizAggregateHotspotRead"][];
+            /** Lecture Id */
+            lecture_id: string;
+            /** Lecture Topic */
+            lecture_topic: string;
+        };
+        /** QuizOptionRead */
+        QuizOptionRead: {
+            /** Key */
+            key: string;
+            /** Text */
+            text: string;
+        };
+        /** QuizQuestionResultRead */
+        QuizQuestionResultRead: {
+            /** Correct Answer */
+            correct_answer: string;
+            /** Is Correct */
+            is_correct: boolean;
+            /** Ordinal */
+            ordinal: number;
+            /** Question Id */
+            question_id: string;
+            /** Selected */
+            selected: string | null;
+            /** Source Excerpt */
+            source_excerpt?: string | null;
+            /** Stem */
+            stem: string;
+        };
+        /** QuizSubmitRequest */
+        QuizSubmitRequest: {
+            /** Answers */
+            answers?: {
+                [key: string]: string;
+            };
+        };
         /**
          * ResearchJobStatus
          * @description Pattern-A research-run lifecycle (Flow 4 §3.5.1, ARCH §8.21, T-093).
@@ -5455,6 +5653,60 @@ export interface components {
             tos_accepted_at: string | null;
             /** User Id */
             user_id: string;
+        };
+        /**
+         * StudentQuizCardRead
+         * @description Dashboard card for one of the student's quizzes (T-145).
+         */
+        StudentQuizCardRead: {
+            /**
+             * Assigned At
+             * Format: date-time
+             */
+            assigned_at: string;
+            /** Assignment Id */
+            assignment_id: string;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Lecture Title */
+            lecture_title: string;
+            /** Lecture Topic */
+            lecture_topic: string;
+            /** Question Count */
+            question_count: number;
+            /** Quiz Id */
+            quiz_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "published" | "attempted" | "completed";
+        };
+        /** StudentQuizDetailRead */
+        StudentQuizDetailRead: {
+            /** Assignment Id */
+            assignment_id: string;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Lecture Topic */
+            lecture_topic: string;
+            /** Questions */
+            questions: components["schemas"]["StudentQuizQuestionRead"][];
+            /** Quiz Id */
+            quiz_id: string;
+            /** Status */
+            status: string;
+        };
+        /** StudentQuizQuestionRead */
+        StudentQuizQuestionRead: {
+            /** Id */
+            id: string;
+            /** Options */
+            options: components["schemas"]["QuizOptionRead"][];
+            /** Ordinal */
+            ordinal: number;
+            /** Stem */
+            stem: string;
         };
         /**
          * StudentSelectionRead
@@ -5915,6 +6167,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LecturePublishRead] */
+        SuccessEnvelope_LecturePublishRead_: {
+            data: components["schemas"]["LecturePublishRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LectureRosterRead] */
         SuccessEnvelope_LectureRosterRead_: {
             data: components["schemas"]["LectureRosterRead"];
@@ -6041,6 +6302,24 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[QuizAttemptResultRead] */
+        SuccessEnvelope_QuizAttemptResultRead_: {
+            data: components["schemas"]["QuizAttemptResultRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[QuizOfferingAggregateRead] */
+        SuccessEnvelope_QuizOfferingAggregateRead_: {
+            data: components["schemas"]["QuizOfferingAggregateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[SchoolLibraryItemRead] */
         SuccessEnvelope_SchoolLibraryItemRead_: {
             data: components["schemas"]["SchoolLibraryItemRead"];
@@ -6125,6 +6404,15 @@ export interface components {
         /** SuccessEnvelope[StudentModeRead] */
         SuccessEnvelope_StudentModeRead_: {
             data: components["schemas"]["StudentModeRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentQuizDetailRead] */
+        SuccessEnvelope_StudentQuizDetailRead_: {
+            data: components["schemas"]["StudentQuizDetailRead"];
             /**
              * Message
              * @default ok
@@ -6439,6 +6727,16 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[list[StudentQuizCardRead]] */
+        SuccessEnvelope_list_StudentQuizCardRead__: {
+            /** Data */
+            data: components["schemas"]["StudentQuizCardRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[StudentSelectionRead]] */
         SuccessEnvelope_list_StudentSelectionRead__: {
             /** Data */
@@ -6503,6 +6801,16 @@ export interface components {
         SuccessEnvelope_list_TeacherOfferingRead__: {
             /** Data */
             data: components["schemas"]["TeacherOfferingRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[TeacherStudentQuizResultRead]] */
+        SuccessEnvelope_list_TeacherStudentQuizResultRead__: {
+            /** Data */
+            data: components["schemas"]["TeacherStudentQuizResultRead"][];
             /**
              * Message
              * @default ok
@@ -6750,6 +7058,25 @@ export interface components {
             subject_ids: string[];
             /** User Id */
             user_id: string;
+        };
+        /** TeacherStudentQuizResultRead */
+        TeacherStudentQuizResultRead: {
+            /** Assignment Id */
+            assignment_id: string;
+            /** Calibration */
+            calibration?: {
+                [key: string]: unknown;
+            } | null;
+            /** Max Score */
+            max_score?: number | null;
+            /** Score */
+            score?: number | null;
+            /** Status */
+            status: string;
+            /** Student Display Name */
+            student_display_name: string;
+            /** Student User Id */
+            student_user_id: string;
         };
         /**
          * TeacherTips
@@ -12346,6 +12673,92 @@ export interface operations {
             };
         };
     };
+    student_list_my_quizzes: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_StudentQuizCardRead__"];
+                };
+            };
+        };
+    };
+    student_get_my_quiz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assignment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentQuizDetailRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_submit_my_quiz: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                assignment_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["QuizSubmitRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_QuizAttemptResultRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     subjects_list: {
         parameters: {
             query?: {
@@ -13248,6 +13661,99 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_list_LectureParagraphRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_publish_lecture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LecturePublishRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_get_lecture_quiz_aggregate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_QuizOfferingAggregateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    teacher_list_lecture_quiz_results: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_TeacherStudentQuizResultRead__"];
                 };
             };
             /** @description Validation Error */

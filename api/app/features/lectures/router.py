@@ -28,6 +28,7 @@ from app.features.lectures.schemas import (
     LectureLinkCreate,
     LectureLinkRead,
     LectureParagraphRead,
+    LecturePublishRead,
     LectureRosterRead,
     LectureTeacherTipsRead,
     LectureVersionRead,
@@ -543,4 +544,21 @@ async def end_edit_session(
 ) -> dict[str, Any]:
     svc = LectureWizardService(db)
     result = await svc.end_edit_session(claims, edit_session_id, payload)
+    return success(result.model_dump(mode="json"))
+
+
+@router.post(
+    "/lectures/{lecture_id}/publish",
+    response_model=SuccessEnvelope[LecturePublishRead],
+    operation_id="teacher_publish_lecture",
+    summary="Publish a lecture to enrolled Grade-Subject students (T-142)",
+    dependencies=[require_role("teacher")],
+)
+async def publish_lecture(
+    lecture_id: str,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    svc = LectureWizardService(db)
+    result = await svc.publish_lecture(claims, lecture_id)
     return success(result.model_dump(mode="json"))

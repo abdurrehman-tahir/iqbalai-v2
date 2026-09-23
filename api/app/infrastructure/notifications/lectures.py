@@ -24,6 +24,7 @@ async def notify_lecture_event(
     recipient_user_id: str,
     school_id: str | None = None,
     locale: str = DEFAULT_LOCALE,
+    variant: str = "default",
     metadata: dict[str, Any] | None = None,
     params: dict[str, str] | None = None,
 ) -> None:
@@ -37,9 +38,9 @@ async def notify_lecture_event(
     if not active_channels:
         raise ValueError(f"No channel mapping for template '{template_key}'")
 
-    rendered = render_lecture_template(template_key, locale=locale, params=params)
+    rendered = render_lecture_template(template_key, locale=locale, variant=variant, params=params)
 
-    meta = {"template_key": template_key, "locale": locale}
+    meta = {"template_key": template_key, "locale": locale, "variant": variant}
     if metadata:
         meta.update(metadata)
 

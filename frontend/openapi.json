@@ -3462,6 +3462,51 @@
         "title": "LectureParagraphRead",
         "type": "object"
       },
+      "LecturePublishRead": {
+        "description": "Result of publishing a lecture (T-142).",
+        "properties": {
+          "current_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Current Version Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "override": {
+            "default": false,
+            "title": "Override",
+            "type": "boolean"
+          },
+          "published_by_user_id": {
+            "title": "Published By User Id",
+            "type": "string"
+          },
+          "quizzes_published": {
+            "default": 0,
+            "title": "Quizzes Published",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "status",
+          "published_by_user_id"
+        ],
+        "title": "LecturePublishRead",
+        "type": "object"
+      },
       "LectureRosterRead": {
         "description": "The lecture's grade roster, for building the access-restriction picker.",
         "properties": {
@@ -4627,6 +4672,210 @@
         "title": "PostLoginResponse",
         "type": "object"
       },
+      "QuizAggregateHotspotRead": {
+        "properties": {
+          "difficulty": {
+            "title": "Difficulty",
+            "type": "string"
+          },
+          "incorrect_rate": {
+            "title": "Incorrect Rate",
+            "type": "number"
+          },
+          "question_ordinal": {
+            "title": "Question Ordinal",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "question_ordinal",
+          "difficulty",
+          "incorrect_rate"
+        ],
+        "title": "QuizAggregateHotspotRead",
+        "type": "object"
+      },
+      "QuizAttemptResultRead": {
+        "properties": {
+          "assignment_id": {
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "attempt_id": {
+            "title": "Attempt Id",
+            "type": "string"
+          },
+          "max_score": {
+            "title": "Max Score",
+            "type": "integer"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/QuizQuestionResultRead"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
+          "score": {
+            "title": "Score",
+            "type": "integer"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "attempt_id",
+          "score",
+          "max_score",
+          "status",
+          "questions"
+        ],
+        "title": "QuizAttemptResultRead",
+        "type": "object"
+      },
+      "QuizOfferingAggregateRead": {
+        "properties": {
+          "assigned_count": {
+            "title": "Assigned Count",
+            "type": "integer"
+          },
+          "average_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Score"
+          },
+          "completed_count": {
+            "title": "Completed Count",
+            "type": "integer"
+          },
+          "completion_rate": {
+            "title": "Completion Rate",
+            "type": "number"
+          },
+          "hotspots": {
+            "items": {
+              "$ref": "#/components/schemas/QuizAggregateHotspotRead"
+            },
+            "title": "Hotspots",
+            "type": "array"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_topic": {
+            "title": "Lecture Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "lecture_topic",
+          "assigned_count",
+          "completed_count",
+          "completion_rate",
+          "average_score",
+          "hotspots"
+        ],
+        "title": "QuizOfferingAggregateRead",
+        "type": "object"
+      },
+      "QuizOptionRead": {
+        "properties": {
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "text"
+        ],
+        "title": "QuizOptionRead",
+        "type": "object"
+      },
+      "QuizQuestionResultRead": {
+        "properties": {
+          "correct_answer": {
+            "title": "Correct Answer",
+            "type": "string"
+          },
+          "is_correct": {
+            "title": "Is Correct",
+            "type": "boolean"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "string"
+          },
+          "selected": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Selected"
+          },
+          "source_excerpt": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Excerpt"
+          },
+          "stem": {
+            "title": "Stem",
+            "type": "string"
+          }
+        },
+        "required": [
+          "question_id",
+          "ordinal",
+          "stem",
+          "selected",
+          "correct_answer",
+          "is_correct"
+        ],
+        "title": "QuizQuestionResultRead",
+        "type": "object"
+      },
+      "QuizSubmitRequest": {
+        "properties": {
+          "answers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Answers",
+            "type": "object"
+          }
+        },
+        "title": "QuizSubmitRequest",
+        "type": "object"
+      },
       "ResearchJobStatus": {
         "description": "Pattern-A research-run lifecycle (Flow 4 \u00a73.5.1, ARCH \u00a78.21, T-093).\n\nrunning -> succeeded (plan produced, pending approval)\n        -> partial   (cost ceiling hit; partial result preserved + flagged)\n        -> research_failed (retries exhausted; framework reverts to draft).\nAdditive-only per ARCH \u00a74.9.",
         "enum": [
@@ -5522,6 +5771,134 @@
           "deferrable_banner_dismissed"
         ],
         "title": "StudentProfileRead",
+        "type": "object"
+      },
+      "StudentQuizCardRead": {
+        "description": "Dashboard card for one of the student's quizzes (T-145).",
+        "properties": {
+          "assigned_at": {
+            "format": "date-time",
+            "title": "Assigned At",
+            "type": "string"
+          },
+          "assignment_id": {
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_title": {
+            "title": "Lecture Title",
+            "type": "string"
+          },
+          "lecture_topic": {
+            "title": "Lecture Topic",
+            "type": "string"
+          },
+          "question_count": {
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "quiz_id": {
+            "title": "Quiz Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "published",
+              "attempted",
+              "completed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "quiz_id",
+          "lecture_id",
+          "lecture_topic",
+          "lecture_title",
+          "question_count",
+          "status",
+          "assigned_at"
+        ],
+        "title": "StudentQuizCardRead",
+        "type": "object"
+      },
+      "StudentQuizDetailRead": {
+        "properties": {
+          "assignment_id": {
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_topic": {
+            "title": "Lecture Topic",
+            "type": "string"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/StudentQuizQuestionRead"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
+          "quiz_id": {
+            "title": "Quiz Id",
+            "type": "string"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "assignment_id",
+          "quiz_id",
+          "lecture_id",
+          "lecture_topic",
+          "status",
+          "questions"
+        ],
+        "title": "StudentQuizDetailRead",
+        "type": "object"
+      },
+      "StudentQuizQuestionRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "options": {
+            "items": {
+              "$ref": "#/components/schemas/QuizOptionRead"
+            },
+            "title": "Options",
+            "type": "array"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "stem": {
+            "title": "Stem",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "ordinal",
+          "stem",
+          "options"
+        ],
+        "title": "StudentQuizQuestionRead",
         "type": "object"
       },
       "StudentSelectionRead": {
@@ -6452,6 +6829,23 @@
         "title": "SuccessEnvelope[LectureLinkRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LecturePublishRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LecturePublishRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LecturePublishRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LectureRosterRead_": {
         "properties": {
           "data": {
@@ -6690,6 +7084,40 @@
         "title": "SuccessEnvelope[PostLoginResponse]",
         "type": "object"
       },
+      "SuccessEnvelope_QuizAttemptResultRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/QuizAttemptResultRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[QuizAttemptResultRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_QuizOfferingAggregateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/QuizOfferingAggregateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[QuizOfferingAggregateRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_SchoolLibraryItemRead_": {
         "properties": {
           "data": {
@@ -6858,6 +7286,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[StudentModeRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentQuizDetailRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentQuizDetailRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentQuizDetailRead]",
         "type": "object"
       },
       "SuccessEnvelope_StudentSelectionRead_": {
@@ -7476,6 +7921,27 @@
         "title": "SuccessEnvelope[list[SectionRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_StudentQuizCardRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/StudentQuizCardRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[StudentQuizCardRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_StudentSelectionRead__": {
         "properties": {
           "data": {
@@ -7621,6 +8087,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[TeacherOfferingRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_TeacherStudentQuizResultRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/TeacherStudentQuizResultRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[TeacherStudentQuizResultRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_TosVersionRead__": {
@@ -8198,6 +8685,68 @@
           "profile_completed_at"
         ],
         "title": "TeacherProfileRead",
+        "type": "object"
+      },
+      "TeacherStudentQuizResultRead": {
+        "properties": {
+          "assignment_id": {
+            "title": "Assignment Id",
+            "type": "string"
+          },
+          "calibration": {
+            "anyOf": [
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calibration"
+          },
+          "max_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Score"
+          },
+          "score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Score"
+          },
+          "status": {
+            "title": "Status",
+            "type": "string"
+          },
+          "student_display_name": {
+            "title": "Student Display Name",
+            "type": "string"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "student_user_id",
+          "student_display_name",
+          "assignment_id",
+          "status"
+        ],
+        "title": "TeacherStudentQuizResultRead",
         "type": "object"
       },
       "TeacherTips": {
@@ -16406,6 +16955,121 @@
         ]
       }
     },
+    "/api/v1/students/me/quizzes": {
+      "get": {
+        "operationId": "student_list_my_quizzes",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_StudentQuizCardRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List the authenticated student's published quizzes (T-145)",
+        "tags": [
+          "student-quizzes"
+        ]
+      }
+    },
+    "/api/v1/students/me/quizzes/{assignment_id}": {
+      "get": {
+        "operationId": "student_get_my_quiz",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentQuizDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open one of the student's quizzes (T-145/T-146)",
+        "tags": [
+          "student-quizzes"
+        ]
+      }
+    },
+    "/api/v1/students/me/quizzes/{assignment_id}/submit": {
+      "post": {
+        "operationId": "student_submit_my_quiz",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "assignment_id",
+            "required": true,
+            "schema": {
+              "title": "Assignment Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/QuizSubmitRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_QuizAttemptResultRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit quiz answers (idempotent) and get immediate results (T-146)",
+        "tags": [
+          "student-quizzes"
+        ]
+      }
+    },
     "/api/v1/subjects/": {
       "get": {
         "operationId": "subjects_list",
@@ -17670,6 +18334,132 @@
         "summary": "List a lecture's current-version paragraphs with source attribution",
         "tags": [
           "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/publish": {
+      "post": {
+        "operationId": "teacher_publish_lecture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LecturePublishRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish a lecture to enrolled Grade-Subject students (T-142)",
+        "tags": [
+          "lecture-wizard"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/quiz-aggregate": {
+      "get": {
+        "operationId": "teacher_get_lecture_quiz_aggregate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_QuizOfferingAggregateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Class aggregate quiz results for a lecture (T-147)",
+        "tags": [
+          "teacher-quiz-results"
+        ]
+      }
+    },
+    "/api/v1/teachers/me/lectures/{lecture_id}/quiz-results": {
+      "get": {
+        "operationId": "teacher_list_lecture_quiz_results",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_TeacherStudentQuizResultRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Per-student quiz results for a lecture (T-147)",
+        "tags": [
+          "teacher-quiz-results"
         ]
       }
     },

@@ -18,6 +18,8 @@ from app.features.audit.actions import (
     LECTURE_ACCESS_OVERRIDDEN,
     LECTURE_CREATED,
     LECTURE_LINKED,
+    LECTURE_OVERRIDE_PUBLISHED,
+    LECTURE_PUBLISHED,
 )
 from app.features.files.models import UploadRecord
 from app.features.files.pipeline import run_upload_pipeline
@@ -29,6 +31,7 @@ from app.features.grades.cross_grade import (
 from app.features.grades.repository import GradeRepository
 from app.features.lectures.edit_summary import derive_edit_summary
 from app.features.lectures.effort import compute_effort_score
+from app.features.lectures.events import LECTURE_PUBLISHED as LECTURE_PUBLISHED_EVENT
 from app.features.lectures.events import LECTURE_VERSION_CREATED, publish_lecture_event
 from app.features.lectures.images import (
     DiagramRenderError,
@@ -76,6 +79,7 @@ from app.features.lectures.schemas import (
     LectureLinkCreate,
     LectureLinkRead,
     LectureParagraphRead,
+    LecturePublishRead,
     LectureRosterRead,
     LectureTeacherTipsRead,
     LectureVersionRead,
@@ -1405,3 +1409,82 @@ class LectureWizardService:
             ):
                 return True
         return False
+
+    async def publish_lecture(
+        self, claims: dict[str, object], lecture_id: str
+    ) -> LecturePublishRead:
+        """Publish a lecture to enrolled Grade-Subject students (T-142).
+
+        Allowed from READY_FOR_PUBLISH or READY_FOR_EDIT (publish-as-is).
+        Teacher owns publish for their offering; Coordinator/School Admin (and
+        higher) may override-publish with elevated audit. Flips pending quiz
+        assignments to published (T-145). Emits NATS ``lecture.published``.
+        """
+        actor, lecture, elevated = await self._require_lecture_for_access_management(
+            claims, lecture_id
+        )
+        if lecture.status not in (
+            LectureStatus.READY_FOR_EDIT,
+            LectureStatus.READY_FOR_PUBLISH,
+            LectureStatus.PUBLISHED,
+        ):
+            raise ValidationError(
+                "Lecture must be ready for edit/publish (or already published) "
+                f"(current status={lecture.status.value})"
+            )
+        if lecture.current_version_id is None:
+            raise ValidationError("Lecture has no published version pointer")
+        if lecture.grade_subject_offering_id is None:
+            raise ValidationError("School lectures require a Grade-Subject offering to publish")
+
+        was_already = lecture.status == LectureStatus.PUBLISHED
+        lecture.status = LectureStatus.PUBLISHED
+
+        from app.features.quizzes.publish import publish_pending_assignments_for_lecture
+
+        quizzes_published = await publish_pending_assignments_for_lecture(
+            self._session, lecture_id=lecture.id
+        )
+        await self._session.commit()
+        await self._session.refresh(lecture)
+
+        await audit(
+            session=self._session,
+            action=LECTURE_OVERRIDE_PUBLISHED if elevated else LECTURE_PUBLISHED,
+            actor_id=actor.id,
+            actor_role=actor.role.value,
+            target_type="lecture",
+            target_id=lecture.id,
+            school_id=lecture.school_id,
+            metadata={
+                "override": elevated,
+                "republish": was_already,
+                "current_version_id": lecture.current_version_id,
+                "quizzes_published": quizzes_published,
+            },
+        )
+        await publish_lecture_event(
+            event_type=LECTURE_PUBLISHED_EVENT,
+            payload={
+                "lecture_id": lecture.id,
+                "school_id": lecture.school_id,
+                "teacher_user_id": lecture.teacher_user_id,
+                "tenant_type": "school",
+                "current_version_id": lecture.current_version_id,
+                "published_by_user_id": actor.id,
+                "override": elevated,
+            },
+        )
+
+        from app.features.lectures.lecture_notifications import notify_lecture_published
+
+        await notify_lecture_published(self._session, lecture=lecture)
+
+        return LecturePublishRead(
+            id=lecture.id,
+            status=lecture.status.value,
+            current_version_id=lecture.current_version_id,
+            published_by_user_id=actor.id,
+            override=elevated,
+            quizzes_published=quizzes_published,
+        )

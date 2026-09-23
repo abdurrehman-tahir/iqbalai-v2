@@ -40,7 +40,7 @@ def test_soft_time_limit_is_five_minutes() -> None:
     assert SOFT_TIME_LIMIT_SECONDS == 300
 
 
-def test_lecture_generate_prompt_marks_structure_vs_depth() -> None:
+def test_lecture_gen_prompt_marks_structure_vs_depth() -> None:
     call = render(
         LectureGenerateInput(
             topic="Forces",
@@ -70,7 +70,7 @@ def test_lecture_generate_prompt_marks_structure_vs_depth() -> None:
     assert "SEQUENCE" in call.system or "structure" in call.system.lower()
 
 
-def test_lecture_generate_prompt_includes_coaching_context_when_present() -> None:
+def test_lecture_gen_prompt_includes_coaching_context_when_present() -> None:
     """T-138 (#36): pending coaching tips are additive context, applied
     quietly — never mentioned explicitly in the generated output."""
     call = render(
@@ -85,7 +85,7 @@ def test_lecture_generate_prompt_includes_coaching_context_when_present() -> Non
     assert "never mention explicitly" in call.user
 
 
-def test_lecture_generate_prompt_omits_coaching_section_when_absent() -> None:
+def test_lecture_gen_prompt_omits_coaching_section_when_absent() -> None:
     call = render(LectureGenerateInput(topic="Forces", teaching_mode="auto", target_language="en"))
     assert "Coaching tips" not in call.user
 

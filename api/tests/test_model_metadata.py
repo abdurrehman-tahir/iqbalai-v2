@@ -40,6 +40,7 @@ from app.features.library import models as library_models  # noqa: F401
 from app.features.library import platform_read_models as platform_read_models  # noqa: F401
 from app.features.notifications import models as notif_models  # noqa: F401
 from app.features.personas import models as persona_models  # noqa: F401
+from app.features.quizzes import models as quiz_models  # noqa: F401
 from app.features.subscriptions import models as sub_models  # noqa: F401
 from app.features.tos import models as tos_models  # noqa: F401
 from app.features.users import models as user_models  # noqa: F401

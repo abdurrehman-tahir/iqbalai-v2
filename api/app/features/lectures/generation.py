@@ -585,6 +585,19 @@ async def run_lecture_generation(
     await notify_generation_complete(session, lecture=lecture)
     await mark_complete(lecture_id, version_id=version.id)
 
+    # T-143: enqueue one parallel quiz_gen Celery task per enrolled student.
+    # Independent lectures never reach this school pipeline.
+    try:
+        from app.features.quizzes.generation import enqueue_quiz_generation_for_lecture
+
+        await enqueue_quiz_generation_for_lecture(session, lecture=lecture)
+    except Exception as exc:
+        logger.warning(
+            "quiz_gen_enqueue_failed",
+            lecture_id=lecture_id,
+            error=str(exc),
+        )
+
     # T-124 (#28, #41): a second, separate LLM call for teacher-facing delivery
     # tips — chained as its own Celery task (not run inline here) so a slow or
     # failing tips call can never affect this lecture's already-succeeded status
