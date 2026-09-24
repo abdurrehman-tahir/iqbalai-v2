@@ -59,6 +59,17 @@ This is the **only** place where exceptions to `STACK_LOCK.md` can be authorized
 - **Scope:** group collaborative notes only (`group_notes.yjs_doc`; frontend group-notes component + its sync provider). **NOT** lecture editing — TipTap stays non-CRDT.
 - **Revocation criteria:** If real-time collaborative group notes are cut from scope, or if a non-CRDT approach (e.g. operational-transform service) is later mandated, revoke and migrate group notes off Yjs. Must never expand to lecture editing without a separate deviation.
 
+### `AI4Bharat Indic-TTS` (Sindhi voice synthesis) — PENDING RATIFICATION
+
+- **Approved by:** *pending — @abdurrehman has not ratified this entry.* Recorded retroactively per M-09 pre-merge review; the PR (#30) originally stated "Deviations from STACK_LOCK.md: None," which was incorrect. Documented here so the gap is on the record before merge, not self-approved.
+- **Date:** 2026-09-15 (retroactive — behavior shipped in T-121, milestone M-09)
+- **Locked choice deviated from:** STACK_LOCK §4.4 — AI4Bharat Indic-TTS as the locked TTS provider for Sindhi (`sd`).
+- **What / Scope:** Sindhi (`sd`) TTS synthesis only. STT for `sd` is unaffected (still faster-whisper, same as all languages). English, Urdu (Piper) and Pashto (Edge-TTS) TTS are unaffected. `app/infrastructure/voice/router.py` still calls `_synthesize_ai4bharat()` when `AI4BHARAT_TTS_URL` is configured — the abstraction and provider call are implemented — but no self-hostable AI4Bharat Indic-TTS package could be verified/provisioned as of M-09, so `AI4BHARAT_TTS_URL` is unset at launch and every `sd` TTS request raises `VoiceUnavailableError`. In practice, `sd` voice sessions run STT-only until a provider URL is provisioned.
+- **Guardrails:** The gap is contained to the single `app/infrastructure/voice/router.py` chokepoint — no other module calls a TTS provider directly. `_synthesize_ai4bharat()` fails closed via `VoiceUnavailableError` (never silently returns empty/wrong-language audio). No other language falls back to this path; `en`/`ur`/`ps` are on separately-configured, working providers.
+- **Parity risk:** A Sindhi-language user in a lecture voice session can speak and be transcribed (STT works), but receives no spoken audio response — text/visual output only — where an English, Urdu, or Pashto user gets full voice output. This is a concrete accessibility/parity gap for `sd` users specifically.
+- **Exit condition:** Close this deviation once a verified self-hostable AI4Bharat Indic-TTS deployment exists and `AI4BHARAT_TTS_URL` is set in the relevant environment(s) — no code change required, only provisioning + config, since the call path already exists.
+- **PR:** #30
+
 ---
 
 ## Revoked deviations
@@ -71,6 +82,7 @@ This is the **only** place where exceptions to `STACK_LOCK.md` can be authorized
 |---|---|---|
 | 2026-05-11 | Initial deviations file. Pre-approved `langchain.text_splitter` for chunker. | @abdurrehman (with Claude) |
 | 2026-05-29 | Added `yjs` (CRDT) deviation for Flow 11 group collaborative notes (group_notes only; lecture editing stays non-CRDT TipTap). | @abdurrehman (with Claude) |
+| 2026-09-15 | Recorded (pending ratification) the AI4Bharat Indic-TTS Sindhi-synthesis gap from M-09/T-121; PR #30's "Deviations: None" line was incorrect. | Claude (M-09 pre-merge review) |
 
 ### `fastembed` (dev-only local embedding provider)
 
