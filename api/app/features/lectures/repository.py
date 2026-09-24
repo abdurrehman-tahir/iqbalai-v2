@@ -9,12 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.base import not_deleted
 from app.features.lectures.models import (
+    LectureSessionStatus,
     SchoolLecture,
     SchoolLectureAssignment,
     SchoolLectureDraft,
     SchoolLectureEditSession,
     SchoolLectureLink,
     SchoolLectureParagraph,
+    SchoolLectureSession,
     SchoolLectureVersion,
     SchoolLectureVoiceSession,
     SchoolLectureVoiceTurn,
@@ -315,3 +317,45 @@ class LectureAssignmentRepository:
         for row in assignments:
             await self._session.refresh(row)
         return assignments
+
+
+class LectureSessionRepository:
+    """Student lecture study sessions (T-151). Concurrent actives allowed."""
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_by_id(self, session_id: str) -> SchoolLectureSession | None:
+        return await self._session.get(SchoolLectureSession, session_id)
+
+    async def create(self, row: SchoolLectureSession) -> SchoolLectureSession:
+        self._session.add(row)
+        await self._session.commit()
+        await self._session.refresh(row)
+        return row
+
+    async def save(self, row: SchoolLectureSession) -> SchoolLectureSession:
+        await self._session.commit()
+        await self._session.refresh(row)
+        return row
+
+    async def list_stale_active(self, cutoff: datetime) -> list[SchoolLectureSession]:
+        result = await self._session.execute(
+            select(SchoolLectureSession).where(
+                SchoolLectureSession.status == LectureSessionStatus.ACTIVE,
+                SchoolLectureSession.last_activity_at < cutoff,
+            )
+        )
+        return list(result.scalars().all())
+
+    async def end_stale_active(
+        self, cutoff: datetime, *, ended_at: datetime
+    ) -> list[SchoolLectureSession]:
+        """End stale active sessions; return the rows that transitioned to ended."""
+        rows = await self.list_stale_active(cutoff)
+        for row in rows:
+            row.status = LectureSessionStatus.ENDED
+            row.ended_at = ended_at
+        if rows:
+            await self._session.commit()
+        return rows

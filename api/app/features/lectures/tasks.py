@@ -361,3 +361,67 @@ async def _purge_expired_voice_audio_async(session: AsyncSession) -> dict[str, o
 
     logger.info("voice_audio_purge_complete", purged_count=purged, cutoff=cutoff.isoformat())
     return {"purged_count": purged}
+
+
+@shared_task(  # type: ignore[misc]
+    name="lectures.end_inactive_sessions",
+    queue="default",
+    soft_time_limit=60,
+    time_limit=90,
+)
+def end_inactive_lecture_sessions_task() -> dict[str, object]:
+    """End school lecture study sessions past 30 min inactivity (T-151).
+
+    System-wide sweep (no single school_id) — plain @shared_task. Independent
+    self-study sessions are Flow 8 and are not touched here.
+    """
+    from app.features.lectures.lecture_session import end_inactive_lecture_sessions
+
+    return run_db(end_inactive_lecture_sessions)
+
+
+@tenant_task(
+    queue="ml",
+    name="tts.generate_audio",
+    bind=True,
+    max_retries=1,
+    default_retry_delay=30,
+    soft_time_limit=300,
+    time_limit=360,
+)
+def generate_lecture_audio(
+    self: Any,
+    lecture_id: str,
+    school_id: str,
+    language: str,
+    cache_id: str,
+) -> dict[str, object]:
+    """Lazy lecture TTS cache build (T-153). Soft limit 5 min for long lectures."""
+    from celery.exceptions import SoftTimeLimitExceeded
+
+    from app.features.lectures.lecture_tts import build_lecture_audio_cache
+    from app.features.lectures.models import LectureAudioCacheStatus, SchoolLectureAudioCache
+
+    lang = language if language in ("en", "ur", "sd", "ps") else "en"
+
+    async def _async(session: AsyncSession) -> dict[str, object]:
+        return await build_lecture_audio_cache(
+            session,
+            lecture_id=lecture_id,
+            school_id=school_id,
+            language=lang,  # type: ignore[arg-type]
+            cache_id=cache_id,
+        )
+
+    async def _mark_failed(session: AsyncSession, message: str) -> dict[str, object]:
+        row = await session.get(SchoolLectureAudioCache, cache_id)
+        if row is not None:
+            row.status = LectureAudioCacheStatus.FAILED
+            row.error_message = message
+            await session.commit()
+        return {"status": "failed", "error": message}
+
+    try:
+        return run_db(_async)
+    except SoftTimeLimitExceeded:
+        return run_db(lambda s: _mark_failed(s, "TTS soft time limit exceeded"))

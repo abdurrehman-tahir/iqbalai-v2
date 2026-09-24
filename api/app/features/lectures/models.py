@@ -120,6 +120,42 @@ def _voice_session_status_enum(schema: str) -> SAEnum:
     )
 
 
+class LectureSessionMode(StrEnum):
+    """Student study surface mode (T-151, Flow 6 §3.1 / #54)."""
+
+    TEXT = "text"
+    VOICE = "voice"
+
+
+def _lecture_session_mode_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        LectureSessionMode,
+        name="lecture_sessions_mode_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
+class LectureSessionStatus(StrEnum):
+    """Student lecture study session lifecycle (T-151, Flow 6 §3.1)."""
+
+    ACTIVE = "active"
+    ENDED = "ended"
+
+
+def _lecture_session_status_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        LectureSessionStatus,
+        name="lecture_sessions_status_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
 class LectureAssignmentScope(StrEnum):
     """What a lecture_assignments row restricts access to (T-123, #21)."""
 
@@ -447,6 +483,140 @@ class SchoolLectureParagraph(AuditMixin, Base):
             kwargs["id"] = _uuid7()
         if "source_metadata_jsonb" not in kwargs:
             kwargs["source_metadata_jsonb"] = {"tier": "ai_knowledge"}
+        super().__init__(**kwargs)
+
+
+class SchoolLectureSession(AuditMixin, Base):
+    """Student study session on a published lecture (T-151, Flow 6 §3.1).
+
+    No soft-delete — sessions end via status/ended_at. Concurrent active
+    sessions for the same student+lecture are allowed (distinct devices).
+    Independent learners use ``self_study_sessions`` (Flow 8), not this table.
+    """
+
+    __tablename__ = "lecture_sessions"
+    __table_args__ = (
+        Index("ix_lecture_sessions_lecture_id", "lecture_id"),
+        Index("ix_lecture_sessions_student_user_id", "student_user_id"),
+        Index(
+            "ix_lecture_sessions_status_last_activity_at",
+            "status",
+            "last_activity_at",
+        ),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lectures.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    student_user_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    tenant_type: Mapped[LectureTenantType] = mapped_column(
+        _tenant_type_enum("school"),
+        nullable=False,
+        default=LectureTenantType.SCHOOL,
+    )
+    mode: Mapped[LectureSessionMode] = mapped_column(
+        _lecture_session_mode_enum("school"),
+        nullable=False,
+        default=LectureSessionMode.TEXT,
+    )
+    status: Mapped[LectureSessionStatus] = mapped_column(
+        _lecture_session_status_enum("school"),
+        nullable=False,
+        default=LectureSessionStatus.ACTIVE,
+    )
+    opened_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    last_activity_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    ended_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "tenant_type" not in kwargs:
+            kwargs["tenant_type"] = LectureTenantType.SCHOOL
+        if "mode" not in kwargs:
+            kwargs["mode"] = LectureSessionMode.TEXT
+        if "status" not in kwargs:
+            kwargs["status"] = LectureSessionStatus.ACTIVE
+        super().__init__(**kwargs)
+
+
+class LectureAudioCacheStatus(StrEnum):
+    """Lifecycle of a cached lecture TTS asset (T-153)."""
+
+    PENDING = "pending"
+    READY = "ready"
+    FAILED = "failed"
+    INVALIDATED = "invalidated"
+
+
+def _lecture_audio_cache_status_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        LectureAudioCacheStatus,
+        name="lecture_audio_caches_status_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
+class SchoolLectureAudioCache(AuditMixin, Base):
+    """MinIO-backed lecture TTS cache + sentence alignment (T-153, #54).
+
+    One row per (lecture_id, language). Re-edit sets status=invalidated; the
+    next voice-mode request regenerates against ``lecture_version_id``.
+    """
+
+    __tablename__ = "lecture_audio_caches"
+    __table_args__ = (
+        UniqueConstraint(
+            "lecture_id",
+            "language",
+            name="lecture_audio_caches_lecture_language_uq",
+        ),
+        Index("ix_lecture_audio_caches_lecture_id", "lecture_id"),
+        Index("ix_lecture_audio_caches_lecture_version_id", "lecture_version_id"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    lecture_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lectures.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    lecture_version_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.lecture_versions.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    language: Mapped[str] = mapped_column(String(8), nullable=False)
+    status: Mapped[LectureAudioCacheStatus] = mapped_column(
+        _lecture_audio_cache_status_enum("school"),
+        nullable=False,
+        default=LectureAudioCacheStatus.PENDING,
+    )
+    audio_storage_key: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    content_type: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    byte_size: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    duration_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    # [{ordinal, paragraph_id, text, start_ms, end_ms}, ...]
+    alignment_jsonb: Mapped[list[dict[str, object]] | None] = mapped_column(JSONB, nullable=True)
+    error_message: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "status" not in kwargs:
+            kwargs["status"] = LectureAudioCacheStatus.PENDING
         super().__init__(**kwargs)
 
 

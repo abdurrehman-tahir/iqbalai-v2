@@ -52,6 +52,12 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "lectures.purge_voice_audio",
         "schedule": crontab(minute=15),  # hourly, offset from the invite sweep
     },
+    # M-12 student lecture sessions (T-151): end after 30 min inactivity.
+    # Every 5 minutes keeps the idle cutoff within ~35 min worst case.
+    "end-inactive-lecture-sessions": {
+        "task": "lectures.end_inactive_sessions",
+        "schedule": crontab(minute="*/5"),
+    },
     # M-10 teacher benchmarking (T-139, Flow 5 §3.11 #37). Sunday 01:00 PKT.
     "benchmark-update-weekly": {
         "task": "benchmark.update_weekly",

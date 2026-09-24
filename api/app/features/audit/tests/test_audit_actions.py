@@ -56,3 +56,11 @@ def test_m11_publish_actions_registered() -> None:
     assert LECTURE_OVERRIDE_PUBLISHED in ELEVATED_AUDIT_ACTIONS
     assert QUIZ_RESULTS_ACCESSED in ELEVATED_AUDIT_ACTIONS
     assert LECTURE_PUBLISHED not in ELEVATED_AUDIT_ACTIONS
+
+
+def test_m12_teacher_share_toggle_registered_not_elevated() -> None:
+    from app.features.audit.actions import M12_AUDIT_ACTIONS, STUDENT_TEACHER_SHARE_TOGGLED
+
+    assert M12_AUDIT_ACTIONS <= REGISTERED_AUDIT_ACTIONS
+    assert STUDENT_TEACHER_SHARE_TOGGLED in M12_AUDIT_ACTIONS
+    assert STUDENT_TEACHER_SHARE_TOGGLED not in ELEVATED_AUDIT_ACTIONS

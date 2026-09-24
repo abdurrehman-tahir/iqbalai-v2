@@ -254,6 +254,71 @@
         "title": "AdminUserInviteCreate",
         "type": "object"
       },
+      "AnswerSourceSpanRead": {
+        "additionalProperties": false,
+        "description": "Provenance span for the answer panel (T-158 / T-159).",
+        "properties": {
+          "badge": {
+            "title": "Badge",
+            "type": "string"
+          },
+          "book_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Name"
+          },
+          "chunk_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Chunk Id"
+          },
+          "excerpt": {
+            "default": "",
+            "title": "Excerpt",
+            "type": "string"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "tier": {
+            "enum": [
+              "curriculum",
+              "reference",
+              "ai_knowledge",
+              "web",
+              "no_source"
+            ],
+            "title": "Tier",
+            "type": "string"
+          }
+        },
+        "required": [
+          "badge",
+          "tier"
+        ],
+        "title": "AnswerSourceSpanRead",
+        "type": "object"
+      },
       "AuditLogEntryRead": {
         "description": "Read schema for a single audit log row.\n\nmetadata_json is returned as a raw string \u2014 callers parse JSON as needed.\nIntentionally no write schema: audit rows are created only via the\ninfrastructure helper (app/infrastructure/audit/log.py), never via the API.",
         "properties": {
@@ -505,6 +570,20 @@
         "title": "Body_school_library_upload",
         "type": "object"
       },
+      "Body_student_transcribe_voice": {
+        "properties": {
+          "audio": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Audio",
+            "type": "string"
+          }
+        },
+        "required": [
+          "audio"
+        ],
+        "title": "Body_student_transcribe_voice",
+        "type": "object"
+      },
       "Body_teacher_transcribe_voice_edit": {
         "properties": {
           "audio": {
@@ -732,6 +811,68 @@
           "updated_at"
         ],
         "title": "CoachingSuggestionRead",
+        "type": "object"
+      },
+      "ConversationRoleLiteral": {
+        "enum": [
+          "user",
+          "assistant"
+        ],
+        "title": "ConversationRoleLiteral",
+        "type": "string"
+      },
+      "ConversationTurnRead": {
+        "properties": {
+          "content": {
+            "title": "Content",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "role": {
+            "$ref": "#/components/schemas/ConversationRoleLiteral"
+          },
+          "root_question_id": {
+            "title": "Root Question Id",
+            "type": "string"
+          },
+          "source_tags_jsonb": {
+            "anyOf": [
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Tags Jsonb"
+          },
+          "turn_index": {
+            "title": "Turn Index",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "root_question_id",
+          "turn_index",
+          "role",
+          "content",
+          "created_at"
+        ],
+        "title": "ConversationTurnRead",
         "type": "object"
       },
       "DataRightsDeletionCreate": {
@@ -3189,6 +3330,164 @@
         "title": "LectureAssignmentScope",
         "type": "string"
       },
+      "LectureAudioAlignmentSpan": {
+        "properties": {
+          "end_ms": {
+            "title": "End Ms",
+            "type": "integer"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "paragraph_id": {
+            "title": "Paragraph Id",
+            "type": "string"
+          },
+          "start_ms": {
+            "title": "Start Ms",
+            "type": "integer"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "ordinal",
+          "paragraph_id",
+          "text",
+          "start_ms",
+          "end_ms"
+        ],
+        "title": "LectureAudioAlignmentSpan",
+        "type": "object"
+      },
+      "LectureAudioCacheRead": {
+        "properties": {
+          "alignment": {
+            "items": {
+              "$ref": "#/components/schemas/LectureAudioAlignmentSpan"
+            },
+            "title": "Alignment",
+            "type": "array"
+          },
+          "audio_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Audio Url"
+          },
+          "byte_size": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Byte Size"
+          },
+          "content_type": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Content Type"
+          },
+          "duration_ms": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Duration Ms"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "language": {
+            "enum": [
+              "en",
+              "ur",
+              "sd",
+              "ps"
+            ],
+            "title": "Language",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_version_id": {
+            "title": "Lecture Version Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "ready",
+              "failed",
+              "invalidated"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "lecture_version_id",
+          "language",
+          "status"
+        ],
+        "title": "LectureAudioCacheRead",
+        "type": "object"
+      },
+      "LectureAudioRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "language": {
+            "default": "en",
+            "enum": [
+              "en",
+              "ur",
+              "sd",
+              "ps"
+            ],
+            "title": "Language",
+            "type": "string"
+          }
+        },
+        "title": "LectureAudioRequest",
+        "type": "object"
+      },
       "LectureDraftRead": {
         "properties": {
           "data": {
@@ -3531,6 +3830,110 @@
         ],
         "title": "LectureRosterRead",
         "type": "object"
+      },
+      "LectureSessionModeLiteral": {
+        "enum": [
+          "text",
+          "voice"
+        ],
+        "title": "LectureSessionModeLiteral",
+        "type": "string"
+      },
+      "LectureSessionModeUpdateRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/LectureSessionModeLiteral"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "title": "LectureSessionModeUpdateRequest",
+        "type": "object"
+      },
+      "LectureSessionOpenRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "mode": {
+            "$ref": "#/components/schemas/LectureSessionModeLiteral",
+            "default": "text"
+          }
+        },
+        "title": "LectureSessionOpenRequest",
+        "type": "object"
+      },
+      "LectureSessionRead": {
+        "properties": {
+          "ended_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ended At"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "last_activity_at": {
+            "format": "date-time",
+            "title": "Last Activity At",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "mode": {
+            "$ref": "#/components/schemas/LectureSessionModeLiteral"
+          },
+          "opened_at": {
+            "format": "date-time",
+            "title": "Opened At",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LectureSessionStatusLiteral"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "student_user_id",
+          "tenant_type",
+          "mode",
+          "status",
+          "opened_at",
+          "last_activity_at"
+        ],
+        "title": "LectureSessionRead",
+        "type": "object"
+      },
+      "LectureSessionStatusLiteral": {
+        "enum": [
+          "active",
+          "ended"
+        ],
+        "title": "LectureSessionStatusLiteral",
+        "type": "string"
       },
       "LectureTeacherTipsRead": {
         "description": "Teacher-facing delivery tips / technique demo / real-world examples (T-124).\n\n``status`` is ``\"pending\"`` until the background generation call completes\n(or fails silently \u2014 tips are supplementary and never block the lecture);\n``tips`` is only populated once ``status`` is ``\"ready\"``.",
@@ -4672,6 +5075,15 @@
         "title": "PostLoginResponse",
         "type": "object"
       },
+      "QuestionClassificationLiteral": {
+        "enum": [
+          "misconception",
+          "knowledge_gap",
+          "unclassified"
+        ],
+        "title": "QuestionClassificationLiteral",
+        "type": "string"
+      },
       "QuizAggregateHotspotRead": {
         "properties": {
           "difficulty": {
@@ -5574,6 +5986,137 @@
         "title": "StudentGraduationStatusRead",
         "type": "object"
       },
+      "StudentLectureCardRead": {
+        "description": "Dashboard card for a published lecture the student can open (T-152).",
+        "properties": {
+          "current_version_id": {
+            "title": "Current Version Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "title",
+          "topic",
+          "current_version_id"
+        ],
+        "title": "StudentLectureCardRead",
+        "type": "object"
+      },
+      "StudentLectureParagraphRead": {
+        "description": "Paragraph with source badge fields for the student viewer (T-152 / #26/#27).",
+        "properties": {
+          "book_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Name"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "ordinal": {
+            "title": "Ordinal",
+            "type": "integer"
+          },
+          "source_url": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Url"
+          },
+          "text": {
+            "title": "Text",
+            "type": "string"
+          },
+          "tier": {
+            "$ref": "#/components/schemas/SourceTier"
+          }
+        },
+        "required": [
+          "id",
+          "ordinal",
+          "text",
+          "tier"
+        ],
+        "title": "StudentLectureParagraphRead",
+        "type": "object"
+      },
+      "StudentLectureViewerRead": {
+        "description": "Published lecture text mode payload; session opened as part of the open path.",
+        "properties": {
+          "current_version_id": {
+            "title": "Current Version Id",
+            "type": "string"
+          },
+          "language": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Language"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "paragraphs": {
+            "items": {
+              "$ref": "#/components/schemas/StudentLectureParagraphRead"
+            },
+            "title": "Paragraphs",
+            "type": "array"
+          },
+          "session": {
+            "$ref": "#/components/schemas/LectureSessionRead"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "title",
+          "topic",
+          "current_version_id",
+          "paragraphs",
+          "session"
+        ],
+        "title": "StudentLectureViewerRead",
+        "type": "object"
+      },
       "StudentLinkRequestList": {
         "properties": {
           "pending": {
@@ -5771,6 +6314,296 @@
           "deferrable_banner_dismissed"
         ],
         "title": "StudentProfileRead",
+        "type": "object"
+      },
+      "StudentQuestionAnswerRead": {
+        "additionalProperties": false,
+        "description": "Non-stream snapshot of a generated answer (T-158).",
+        "properties": {
+          "answer_source_tags_jsonb": {
+            "anyOf": [
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Source Tags Jsonb"
+          },
+          "answer_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Text"
+          },
+          "answered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered At"
+          },
+          "primary_badge": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Primary Badge"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "string"
+          },
+          "source_spans": {
+            "items": {
+              "$ref": "#/components/schemas/AnswerSourceSpanRead"
+            },
+            "title": "Source Spans",
+            "type": "array"
+          }
+        },
+        "required": [
+          "question_id"
+        ],
+        "title": "StudentQuestionAnswerRead",
+        "type": "object"
+      },
+      "StudentQuestionCreateRequest": {
+        "additionalProperties": false,
+        "description": "Submit a highlight-triggered (or free-form) question (T-156).",
+        "properties": {
+          "highlight_text": {
+            "anyOf": [
+              {
+                "maxLength": 4000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highlight Text"
+          },
+          "paragraph_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "minLength": 1,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paragraph Id"
+          },
+          "question_language": {
+            "default": "en",
+            "enum": [
+              "en",
+              "ur",
+              "sd",
+              "ps"
+            ],
+            "title": "Question Language",
+            "type": "string"
+          },
+          "question_text": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Question Text",
+            "type": "string"
+          },
+          "source_chunk_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Chunk Id"
+          }
+        },
+        "required": [
+          "question_text"
+        ],
+        "title": "StudentQuestionCreateRequest",
+        "type": "object"
+      },
+      "StudentQuestionFollowUpRequest": {
+        "additionalProperties": false,
+        "description": "Append a user follow-up turn to an existing conversation (T-160).",
+        "properties": {
+          "content": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Content",
+            "type": "string"
+          }
+        },
+        "required": [
+          "content"
+        ],
+        "title": "StudentQuestionFollowUpRequest",
+        "type": "object"
+      },
+      "StudentQuestionRead": {
+        "properties": {
+          "answer_source_tags_jsonb": {
+            "anyOf": [
+              {
+                "items": {},
+                "type": "array"
+              },
+              {
+                "additionalProperties": true,
+                "type": "object"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Source Tags Jsonb"
+          },
+          "answer_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answer Text"
+          },
+          "answered_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Answered At"
+          },
+          "asked_at": {
+            "format": "date-time",
+            "title": "Asked At",
+            "type": "string"
+          },
+          "classification": {
+            "$ref": "#/components/schemas/QuestionClassificationLiteral"
+          },
+          "conversations": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationTurnRead"
+            },
+            "title": "Conversations",
+            "type": "array"
+          },
+          "highlight_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highlight Text"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "paragraph_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paragraph Id"
+          },
+          "question_language": {
+            "title": "Question Language",
+            "type": "string"
+          },
+          "question_text": {
+            "title": "Question Text",
+            "type": "string"
+          },
+          "session_id": {
+            "title": "Session Id",
+            "type": "string"
+          },
+          "source_chunk_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Chunk Id"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "student_user_id",
+          "session_id",
+          "lecture_id",
+          "tenant_type",
+          "question_text",
+          "question_language",
+          "classification",
+          "asked_at"
+        ],
+        "title": "StudentQuestionRead",
         "type": "object"
       },
       "StudentQuizCardRead": {
@@ -6761,6 +7594,23 @@
         "title": "SuccessEnvelope[LectureAccessSettingsRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureAudioCacheRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureAudioCacheRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureAudioCacheRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LectureDraftRead_": {
         "properties": {
           "data": {
@@ -6861,6 +7711,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LectureRosterRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureSessionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureSessionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureSessionRead]",
         "type": "object"
       },
       "SuccessEnvelope_LectureTeacherTipsRead_": {
@@ -7254,6 +8121,23 @@
         "title": "SuccessEnvelope[StudentGraduationStatusRead]",
         "type": "object"
       },
+      "SuccessEnvelope_StudentLectureViewerRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentLectureViewerRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentLectureViewerRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_StudentLinkRequestList_": {
         "properties": {
           "data": {
@@ -7286,6 +8170,40 @@
           "data"
         ],
         "title": "SuccessEnvelope[StudentModeRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentQuestionAnswerRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentQuestionAnswerRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentQuestionAnswerRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentQuestionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentQuestionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentQuestionRead]",
         "type": "object"
       },
       "SuccessEnvelope_StudentQuizDetailRead_": {
@@ -7390,6 +8308,23 @@
         "title": "SuccessEnvelope[SyllabusTopicRead]",
         "type": "object"
       },
+      "SuccessEnvelope_TeacherActivityShareRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/TeacherActivityShareRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[TeacherActivityShareRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_TeacherCapacityUpdateRead_": {
         "properties": {
           "data": {
@@ -7490,23 +8425,6 @@
           "data"
         ],
         "title": "SuccessEnvelope[UserRead]",
-        "type": "object"
-      },
-      "SuccessEnvelope_VoiceTranscribeRead_": {
-        "properties": {
-          "data": {
-            "$ref": "#/components/schemas/VoiceTranscribeRead"
-          },
-          "message": {
-            "default": "ok",
-            "title": "Message",
-            "type": "string"
-          }
-        },
-        "required": [
-          "data"
-        ],
-        "title": "SuccessEnvelope[VoiceTranscribeRead]",
         "type": "object"
       },
       "SuccessEnvelope_WizardEstimateRead_": {
@@ -7625,6 +8543,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[CoachingSuggestionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_ConversationTurnRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ConversationTurnRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[ConversationTurnRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_DisclaimerVersionRead__": {
@@ -7919,6 +8858,48 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[SectionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_StudentLectureCardRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/StudentLectureCardRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[StudentLectureCardRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_StudentQuestionRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/StudentQuestionRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[StudentQuestionRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_StudentQuizCardRead__": {
@@ -8259,6 +9240,42 @@
           "created_at"
         ],
         "title": "SyllabusTopicRead",
+        "type": "object"
+      },
+      "TeacherActivityShareRead": {
+        "description": "Current #72 preference for the school student.",
+        "properties": {
+          "teacher_activity_share": {
+            "enum": [
+              "share",
+              "private"
+            ],
+            "title": "Teacher Activity Share",
+            "type": "string"
+          }
+        },
+        "required": [
+          "teacher_activity_share"
+        ],
+        "title": "TeacherActivityShareRead",
+        "type": "object"
+      },
+      "TeacherActivityShareUpdate": {
+        "description": "Toggle #72 share-with-teacher preference.",
+        "properties": {
+          "teacher_activity_share": {
+            "enum": [
+              "share",
+              "private"
+            ],
+            "title": "Teacher Activity Share",
+            "type": "string"
+          }
+        },
+        "required": [
+          "teacher_activity_share"
+        ],
+        "title": "TeacherActivityShareUpdate",
         "type": "object"
       },
       "TeacherBenchmarkRead": {
@@ -9158,20 +10175,6 @@
         "title": "ValidationError",
         "type": "object"
       },
-      "VoiceTranscribeRead": {
-        "description": "faster-whisper transcript for a dictated audio clip (T-131).",
-        "properties": {
-          "transcript": {
-            "title": "Transcript",
-            "type": "string"
-          }
-        },
-        "required": [
-          "transcript"
-        ],
-        "title": "VoiceTranscribeRead",
-        "type": "object"
-      },
       "WizardCurriculumRead": {
         "description": "Curriculum candidate for Step 2 (primary flagged).",
         "properties": {
@@ -9356,6 +10359,69 @@
           "topics"
         ],
         "title": "WizardTopicsRead",
+        "type": "object"
+      },
+      "app__core__responses__SuccessEnvelope_VoiceTranscribeRead___1": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/app__features__student_voice__schemas__VoiceTranscribeRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[VoiceTranscribeRead]",
+        "type": "object"
+      },
+      "app__core__responses__SuccessEnvelope_VoiceTranscribeRead___2": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/app__features__lectures__schemas__VoiceTranscribeRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[VoiceTranscribeRead]",
+        "type": "object"
+      },
+      "app__features__lectures__schemas__VoiceTranscribeRead": {
+        "description": "faster-whisper transcript for a dictated audio clip (T-131).",
+        "properties": {
+          "transcript": {
+            "title": "Transcript",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transcript"
+        ],
+        "title": "VoiceTranscribeRead",
+        "type": "object"
+      },
+      "app__features__student_voice__schemas__VoiceTranscribeRead": {
+        "description": "faster-whisper transcript for a student voice clip (T-155).",
+        "properties": {
+          "transcript": {
+            "minLength": 0,
+            "title": "Transcript",
+            "type": "string"
+          }
+        },
+        "required": [
+          "transcript"
+        ],
+        "title": "VoiceTranscribeRead",
         "type": "object"
       }
     }
@@ -14413,7 +15479,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SuccessEnvelope_VoiceTranscribeRead_"
+                  "$ref": "#/components/schemas/app__core__responses__SuccessEnvelope_VoiceTranscribeRead___2"
                 }
               }
             },
@@ -14906,6 +15972,65 @@
         "summary": "Read-only access gate for a linked student (Flow 10)",
         "tags": [
           "parent-links"
+        ]
+      }
+    },
+    "/api/v1/parents/me/students/{student_user_id}/lecture-questions": {
+      "get": {
+        "description": "Return the child's lecture questions only when #72 = share.\n\nWhen the student has opted out (private), returns an empty list so parents\ncannot observe individual Q&A (INVIOLATE). Requires an approved link.",
+        "operationId": "parent_list_student_lecture_questions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_user_id",
+            "required": true,
+            "schema": {
+              "title": "Student User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "lecture_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lecture Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_StudentQuestionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read-only lecture questions for a linked child (respects #72)",
+        "tags": [
+          "parent-lecture-questions"
         ]
       }
     },
@@ -16605,6 +17730,797 @@
         ]
       }
     },
+    "/api/v1/students/me/lectures": {
+      "get": {
+        "operationId": "student_list_my_lectures",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_StudentLectureCardRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List published lectures the student can open (T-152)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/sessions/{session_id}": {
+      "get": {
+        "operationId": "student_get_lecture_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get a lecture study session (lazy inactivity end) (T-151)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/sessions/{session_id}/activity": {
+      "post": {
+        "operationId": "student_touch_lecture_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Bump last_activity_at for an active lecture session (T-151)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/sessions/{session_id}/end": {
+      "post": {
+        "operationId": "student_end_lecture_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "End a lecture study session (T-151)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/sessions/{session_id}/mode": {
+      "patch": {
+        "operationId": "student_set_lecture_session_mode",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureSessionModeUpdateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Switch lecture session mode text|voice (T-151/T-154)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/audio": {
+      "post": {
+        "operationId": "student_request_lecture_audio",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/LectureAudioRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureAudioCacheRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Request or fetch cached lecture TTS audio (T-153)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/audio/{language}": {
+      "get": {
+        "operationId": "student_get_lecture_audio",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "language",
+            "required": true,
+            "schema": {
+              "title": "Language",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureAudioCacheRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get lecture TTS cache status + alignment (T-153)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/audio/{language}/download": {
+      "get": {
+        "operationId": "student_download_lecture_audio",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "language",
+            "required": true,
+            "schema": {
+              "title": "Language",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "302 redirect to 5-min presigned lecture audio URL (T-154)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/open": {
+      "post": {
+        "operationId": "student_open_lecture_viewer",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/LectureSessionOpenRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentLectureViewerRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open published lecture viewer (starts T-151 session) (T-152)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/questions": {
+      "get": {
+        "operationId": "student_list_lecture_questions",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_StudentQuestionRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List the student's questions (+ conversations) for a lecture (T-160)",
+        "tags": [
+          "student-lecture-questions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/questions/{question_id}/answer": {
+      "get": {
+        "operationId": "student_get_lecture_question_answer",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "question_id",
+            "required": true,
+            "schema": {
+              "title": "Question Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentQuestionAnswerRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Get the persisted AI answer + source badges for a question (T-158)",
+        "tags": [
+          "student-lecture-questions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/questions/{question_id}/answer/stream": {
+      "get": {
+        "operationId": "student_stream_lecture_question_answer",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "question_id",
+            "required": true,
+            "schema": {
+              "title": "Question Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Stream the AI answer token-by-token (SSE; T-158)",
+        "tags": [
+          "student-lecture-questions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/questions/{question_id}/conversations": {
+      "get": {
+        "operationId": "student_list_question_conversations",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "question_id",
+            "required": true,
+            "schema": {
+              "title": "Question Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_ConversationTurnRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List conversation turns for one question (T-160)",
+        "tags": [
+          "student-lecture-questions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/questions/{question_id}/turns": {
+      "post": {
+        "operationId": "student_follow_up_lecture_question",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "question_id",
+            "required": true,
+            "schema": {
+              "title": "Question Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentQuestionFollowUpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentQuestionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Append a follow-up turn to a lecture question thread (T-160)",
+        "tags": [
+          "student-lecture-questions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/sessions": {
+      "post": {
+        "operationId": "student_open_lecture_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/LectureSessionOpenRequest"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureSessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Open a new lecture study session (T-151)",
+        "tags": [
+          "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/sessions/{session_id}/questions": {
+      "post": {
+        "operationId": "student_ask_lecture_question",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudentQuestionCreateRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentQuestionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit a lecture question (idempotent; classified) (T-156/T-157)",
+        "tags": [
+          "student-lecture-questions"
+        ]
+      }
+    },
     "/api/v1/students/me/link-requests": {
       "get": {
         "operationId": "student_list_link_requests",
@@ -16955,6 +18871,66 @@
         ]
       }
     },
+    "/api/v1/students/me/privacy/teacher-share": {
+      "get": {
+        "operationId": "student_get_teacher_activity_share",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TeacherActivityShareRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get #72 share-with-teacher preference (default share)",
+        "tags": [
+          "student-privacy"
+        ]
+      },
+      "patch": {
+        "operationId": "student_set_teacher_activity_share",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TeacherActivityShareUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_TeacherActivityShareRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Toggle #72 share-with-teacher preference (audit-logged)",
+        "tags": [
+          "student-privacy"
+        ]
+      }
+    },
     "/api/v1/students/me/quizzes": {
       "get": {
         "operationId": "student_list_my_quizzes",
@@ -17067,6 +19043,66 @@
         "summary": "Submit quiz answers (idempotent) and get immediate results (T-146)",
         "tags": [
           "student-quizzes"
+        ]
+      }
+    },
+    "/api/v1/students/me/voice/transcribe": {
+      "post": {
+        "operationId": "student_transcribe_voice",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "language",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "pattern": "^(en|ur|sd|ps)$",
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Language"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_student_transcribe_voice"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/app__core__responses__SuccessEnvelope_VoiceTranscribeRead___1"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Transcribe a student voice clip via faster-whisper (T-155)",
+        "tags": [
+          "student-voice"
         ]
       }
     },
@@ -18750,7 +20786,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SuccessEnvelope_VoiceTranscribeRead_"
+                  "$ref": "#/components/schemas/app__core__responses__SuccessEnvelope_VoiceTranscribeRead___2"
                 }
               }
             },

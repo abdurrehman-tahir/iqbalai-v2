@@ -482,3 +482,106 @@ class EditSessionRead(BaseModel):
     started_at: datetime
     ended_at: datetime | None = None
     effort_score: float
+
+
+# --- M-12 T-151 — student lecture study sessions -------------------------
+
+
+class LectureSessionModeLiteral(StrEnum):
+    TEXT = "text"
+    VOICE = "voice"
+
+
+class LectureSessionStatusLiteral(StrEnum):
+    ACTIVE = "active"
+    ENDED = "ended"
+
+
+class LectureSessionOpenRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    mode: LectureSessionModeLiteral = LectureSessionModeLiteral.TEXT
+
+
+class LectureSessionModeUpdateRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    mode: LectureSessionModeLiteral
+
+
+class LectureSessionRead(BaseModel):
+    id: str
+    lecture_id: str
+    student_user_id: str
+    tenant_type: Literal["school", "independent"]
+    mode: LectureSessionModeLiteral
+    status: LectureSessionStatusLiteral
+    opened_at: datetime
+    last_activity_at: datetime
+    ended_at: datetime | None = None
+
+
+# --- M-12 T-152 — student lecture viewer (text mode) ---------------------
+
+
+class StudentLectureCardRead(BaseModel):
+    """Dashboard card for a published lecture the student can open (T-152)."""
+
+    lecture_id: str
+    title: str
+    topic: str
+    current_version_id: str
+
+
+class StudentLectureParagraphRead(BaseModel):
+    """Paragraph with source badge fields for the student viewer (T-152 / #26/#27)."""
+
+    id: str
+    ordinal: int
+    text: str
+    tier: SourceTier
+    book_name: str | None = None
+    source_url: str | None = None
+
+
+class StudentLectureViewerRead(BaseModel):
+    """Published lecture text mode payload; session opened as part of the open path."""
+
+    lecture_id: str
+    title: str
+    topic: str
+    current_version_id: str
+    language: str | None = None
+    paragraphs: list[StudentLectureParagraphRead]
+    session: LectureSessionRead
+
+
+# --- M-12 T-153 — lecture TTS audio cache --------------------------------
+
+
+class LectureAudioAlignmentSpan(BaseModel):
+    ordinal: int
+    paragraph_id: str
+    text: str
+    start_ms: int
+    end_ms: int
+
+
+class LectureAudioRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    language: Literal["en", "ur", "sd", "ps"] = "en"
+
+
+class LectureAudioCacheRead(BaseModel):
+    id: str
+    lecture_id: str
+    lecture_version_id: str
+    language: Literal["en", "ur", "sd", "ps"]
+    status: Literal["pending", "ready", "failed", "invalidated"]
+    audio_url: str | None = None
+    content_type: str | None = None
+    byte_size: int | None = None
+    duration_ms: int | None = None
+    alignment: list[LectureAudioAlignmentSpan] = Field(default_factory=list)
+    error_message: str | None = None

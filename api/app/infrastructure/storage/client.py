@@ -65,3 +65,14 @@ def delete_object(bucket: str, key: str) -> None:
     client = get_s3_client()
     client.delete_object(Bucket=bucket, Key=key)
     logger.info("file_deleted", bucket=bucket, key=key)
+
+
+def presigned_get_url(bucket: str, key: str, *, expires_seconds: int = 300) -> str:
+    """Return a short-lived GET URL (ARCH §11.13 / §11.21 — 5 min default)."""
+    client = get_s3_client()
+    url: str = client.generate_presigned_url(
+        "get_object",
+        Params={"Bucket": bucket, "Key": key},
+        ExpiresIn=expires_seconds,
+    )
+    return url

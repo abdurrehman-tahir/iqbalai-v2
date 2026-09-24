@@ -115,6 +115,36 @@ import type {
   IndependentStudentOnboardingRead,
   IndependentStudentProfileComplete,
   ExamFrameworkOption,
+  TeacherActivityShare,
+  TeacherActivityShareRead,
+  StudentLectureCardRead,
+  StudentLectureViewerRead,
+  LectureSessionRead,
+  LectureAudioCacheRead,
+  StudentQuestionRead,
+  StudentQuestionCreateRequest,
+  StudentQuestionAnswerRead,
+} from "./types";
+
+// Re-export M-12 generated types (A-002) for consumers importing from `@/lib/api`.
+export type {
+  TeacherActivityShare,
+  TeacherActivityShareRead,
+  TeacherActivityShareUpdate,
+  StudentLectureCardRead,
+  StudentLectureParagraphRead,
+  StudentLectureViewerRead,
+  StudentLectureSourceTier,
+  LectureSessionRead,
+  LectureAudioAlignmentSpan,
+  LectureAudioCacheRead,
+  LectureAudioRequest,
+  StudentQuestionRead,
+  StudentQuestionCreateRequest,
+  StudentQuestionFollowUpRequest,
+  StudentQuestionAnswerRead,
+  ConversationTurnRead,
+  QuestionClassification,
 } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -1491,6 +1521,35 @@ export const studentModeApi = {
     ),
 };
 
+/** #72 teacher-activity share (T-162) — default share; independent students 404. */
+export const studentPrivacyApi = {
+  getTeacherShare: (token: string) =>
+    request<TeacherActivityShareRead>("/students/me/privacy/teacher-share", {}, token),
+  setTeacherShare: (token: string, teacher_activity_share: TeacherActivityShare) =>
+    request<TeacherActivityShareRead>(
+      "/students/me/privacy/teacher-share",
+      {
+        method: "PATCH",
+        body: JSON.stringify({ teacher_activity_share }),
+      },
+      token
+    ),
+};
+
+/** Student hybrid-widget STT (T-155) — faster-whisper via infrastructure.voice. */
+export const studentVoiceApi = {
+  transcribe: (token: string, audio: Blob, language?: string) => {
+    const qs = language ? `?${new URLSearchParams({ language }).toString()}` : "";
+    const formData = new FormData();
+    formData.append("audio", audio, "clip.webm");
+    return requestFormData<VoiceTranscribeRead>(
+      `/students/me/voice/transcribe${qs}`,
+      formData,
+      token
+    );
+  },
+};
+
 export const diagnosticsApi = {
   start: (token: string, data: DiagnosticStartRequest) =>
     request<DiagnosticRead>(
@@ -1536,6 +1595,113 @@ export const studentQuizzesApi = {
       },
       token
     ),
+};
+
+/** Student lecture viewer + sessions + TTS (T-151–T-154). Types from schema.d.ts (A-002). */
+export const studentLecturesApi = {
+  list: (token: string) =>
+    request<StudentLectureCardRead[]>("/students/me/lectures", {}, token),
+  openViewer: (token: string, lectureId: string, mode: "text" | "voice" = "text") =>
+    request<StudentLectureViewerRead>(
+      `/students/me/lectures/${lectureId}/open`,
+      {
+        method: "POST",
+        body: JSON.stringify({ mode }),
+      },
+      token
+    ),
+  touchSession: (token: string, sessionId: string) =>
+    request<LectureSessionRead>(
+      `/students/me/lectures/sessions/${sessionId}/activity`,
+      { method: "POST" },
+      token
+    ),
+  setMode: (token: string, sessionId: string, mode: "text" | "voice") =>
+    request<LectureSessionRead>(
+      `/students/me/lectures/sessions/${sessionId}/mode`,
+      {
+        method: "PATCH",
+        body: JSON.stringify({ mode }),
+      },
+      token
+    ),
+  endSession: (token: string, sessionId: string) =>
+    request<LectureSessionRead>(
+      `/students/me/lectures/sessions/${sessionId}/end`,
+      { method: "POST" },
+      token
+    ),
+  requestAudio: (
+    token: string,
+    lectureId: string,
+    language: "en" | "ur" | "sd" | "ps" = "en"
+  ) =>
+    request<LectureAudioCacheRead>(
+      `/students/me/lectures/${lectureId}/audio`,
+      {
+        method: "POST",
+        body: JSON.stringify({ language }),
+      },
+      token
+    ),
+  getAudio: (
+    token: string,
+    lectureId: string,
+    language: "en" | "ur" | "sd" | "ps" = "en"
+  ) =>
+    request<LectureAudioCacheRead>(
+      `/students/me/lectures/${lectureId}/audio/${language}`,
+      {},
+      token
+    ),
+  downloadAudioPath: (lectureId: string, language: "en" | "ur" | "sd" | "ps" = "en") =>
+    `/api/v1/students/me/lectures/${lectureId}/audio/${language}/download`,
+};
+
+/** Student lecture Q&A (T-156 / T-158 / T-160). Types from schema.d.ts (A-002). */
+export const studentQuestionsApi = {
+  ask: (
+    token: string,
+    lectureId: string,
+    sessionId: string,
+    body: StudentQuestionCreateRequest,
+    idempotencyKey?: string
+  ) =>
+    request<StudentQuestionRead>(
+      `/students/me/lectures/${lectureId}/sessions/${sessionId}/questions`,
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
+      },
+      token
+    ),
+  list: (token: string, lectureId: string) =>
+    request<StudentQuestionRead[]>(`/students/me/lectures/${lectureId}/questions`, {}, token),
+  followUp: (
+    token: string,
+    lectureId: string,
+    questionId: string,
+    content: string,
+    idempotencyKey?: string
+  ) =>
+    request<StudentQuestionRead>(
+      `/students/me/lectures/${lectureId}/questions/${questionId}/turns`,
+      {
+        method: "POST",
+        body: JSON.stringify({ content }),
+        headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
+      },
+      token
+    ),
+  getAnswer: (token: string, lectureId: string, questionId: string) =>
+    request<StudentQuestionAnswerRead>(
+      `/students/me/lectures/${lectureId}/questions/${questionId}/answer`,
+      {},
+      token
+    ),
+  streamAnswerUrl: (lectureId: string, questionId: string) =>
+    `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/students/me/lectures/${lectureId}/questions/${questionId}/answer/stream`,
 };
 
 /** Teacher quiz results + aggregates (T-147). */

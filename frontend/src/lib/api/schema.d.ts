@@ -1749,6 +1749,29 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/parents/me/students/{student_user_id}/lecture-questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /**
+         * Read-only lecture questions for a linked child (respects #72)
+         * @description Return the child's lecture questions only when #72 = share.
+         *
+         *     When the student has opted out (private), returns an empty list so parents
+         *     cannot observe individual Q&A (INVIOLATE). Requires an approved link.
+         */
+        get: operations["parent_list_student_lecture_questions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/parents/signup": {
         parameters: {
             query?: never;
@@ -2366,6 +2389,278 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/lectures": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List published lectures the student can open (T-152) */
+        get: operations["student_list_my_lectures"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/sessions/{session_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get a lecture study session (lazy inactivity end) (T-151) */
+        get: operations["student_get_lecture_session"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/sessions/{session_id}/activity": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Bump last_activity_at for an active lecture session (T-151) */
+        post: operations["student_touch_lecture_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/sessions/{session_id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End a lecture study session (T-151) */
+        post: operations["student_end_lecture_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/sessions/{session_id}/mode": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Switch lecture session mode text|voice (T-151/T-154) */
+        patch: operations["student_set_lecture_session_mode"];
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/audio": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Request or fetch cached lecture TTS audio (T-153) */
+        post: operations["student_request_lecture_audio"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/audio/{language}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get lecture TTS cache status + alignment (T-153) */
+        get: operations["student_get_lecture_audio"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/audio/{language}/download": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** 302 redirect to 5-min presigned lecture audio URL (T-154) */
+        get: operations["student_download_lecture_audio"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/open": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open published lecture viewer (starts T-151 session) (T-152) */
+        post: operations["student_open_lecture_viewer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List the student's questions (+ conversations) for a lecture (T-160) */
+        get: operations["student_list_lecture_questions"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/questions/{question_id}/answer": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the persisted AI answer + source badges for a question (T-158) */
+        get: operations["student_get_lecture_question_answer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/questions/{question_id}/answer/stream": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Stream the AI answer token-by-token (SSE; T-158) */
+        get: operations["student_stream_lecture_question_answer"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/questions/{question_id}/conversations": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List conversation turns for one question (T-160) */
+        get: operations["student_list_question_conversations"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/questions/{question_id}/turns": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Append a follow-up turn to a lecture question thread (T-160) */
+        post: operations["student_follow_up_lecture_question"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Open a new lecture study session (T-151) */
+        post: operations["student_open_lecture_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/sessions/{session_id}/questions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Submit a lecture question (idempotent; classified) (T-156/T-157) */
+        post: operations["student_ask_lecture_question"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/link-requests": {
         parameters: {
             query?: never;
@@ -2520,6 +2815,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/privacy/teacher-share": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get #72 share-with-teacher preference (default share) */
+        get: operations["student_get_teacher_activity_share"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Toggle #72 share-with-teacher preference (audit-logged) */
+        patch: operations["student_set_teacher_activity_share"];
+        trace?: never;
+    };
     "/api/v1/students/me/quizzes": {
         parameters: {
             query?: never;
@@ -2565,6 +2878,23 @@ export interface paths {
         put?: never;
         /** Submit quiz answers (idempotent) and get immediate results (T-146) */
         post: operations["student_submit_my_quiz"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/voice/transcribe": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Transcribe a student voice clip via faster-whisper (T-155) */
+        post: operations["student_transcribe_voice"];
         delete?: never;
         options?: never;
         head?: never;
@@ -3423,6 +3753,30 @@ export interface components {
             school_id?: string | null;
         };
         /**
+         * AnswerSourceSpanRead
+         * @description Provenance span for the answer panel (T-158 / T-159).
+         */
+        AnswerSourceSpanRead: {
+            /** Badge */
+            badge: string;
+            /** Book Name */
+            book_name?: string | null;
+            /** Chunk Id */
+            chunk_id?: string | null;
+            /**
+             * Excerpt
+             * @default
+             */
+            excerpt: string;
+            /** Source Url */
+            source_url?: string | null;
+            /**
+             * Tier
+             * @enum {string}
+             */
+            tier: "curriculum" | "reference" | "ai_knowledge" | "web" | "no_source";
+        };
+        /**
          * AuditLogEntryRead
          * @description Read schema for a single audit log row.
          *
@@ -3506,6 +3860,11 @@ export interface components {
         Body_school_library_upload: {
             /** File */
             file: string;
+        };
+        /** Body_student_transcribe_voice */
+        Body_student_transcribe_voice: {
+            /** Audio */
+            audio: string;
         };
         /** Body_teacher_transcribe_voice_edit */
         Body_teacher_transcribe_voice_edit: {
@@ -3604,6 +3963,32 @@ export interface components {
             updated_at: string;
             /** Weakness Type */
             weakness_type: string;
+        };
+        /**
+         * ConversationRoleLiteral
+         * @enum {string}
+         */
+        ConversationRoleLiteral: "user" | "assistant";
+        /** ConversationTurnRead */
+        ConversationTurnRead: {
+            /** Content */
+            content: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            role: components["schemas"]["ConversationRoleLiteral"];
+            /** Root Question Id */
+            root_question_id: string;
+            /** Source Tags Jsonb */
+            source_tags_jsonb?: unknown[] | {
+                [key: string]: unknown;
+            } | null;
+            /** Turn Index */
+            turn_index: number;
         };
         /** DataRightsDeletionCreate */
         DataRightsDeletionCreate: {
@@ -4573,6 +4958,59 @@ export interface components {
          * @enum {string}
          */
         LectureAssignmentScope: "student" | "section";
+        /** LectureAudioAlignmentSpan */
+        LectureAudioAlignmentSpan: {
+            /** End Ms */
+            end_ms: number;
+            /** Ordinal */
+            ordinal: number;
+            /** Paragraph Id */
+            paragraph_id: string;
+            /** Start Ms */
+            start_ms: number;
+            /** Text */
+            text: string;
+        };
+        /** LectureAudioCacheRead */
+        LectureAudioCacheRead: {
+            /** Alignment */
+            alignment?: components["schemas"]["LectureAudioAlignmentSpan"][];
+            /** Audio Url */
+            audio_url?: string | null;
+            /** Byte Size */
+            byte_size?: number | null;
+            /** Content Type */
+            content_type?: string | null;
+            /** Duration Ms */
+            duration_ms?: number | null;
+            /** Error Message */
+            error_message?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Language
+             * @enum {string}
+             */
+            language: "en" | "ur" | "sd" | "ps";
+            /** Lecture Id */
+            lecture_id: string;
+            /** Lecture Version Id */
+            lecture_version_id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "ready" | "failed" | "invalidated";
+        };
+        /** LectureAudioRequest */
+        LectureAudioRequest: {
+            /**
+             * Language
+             * @default en
+             * @enum {string}
+             */
+            language: "en" | "ur" | "sd" | "ps";
+        };
         /** LectureDraftRead */
         LectureDraftRead: {
             /** Data */
@@ -4723,6 +5161,53 @@ export interface components {
             /** Students */
             students: components["schemas"]["RosterStudentRead"][];
         };
+        /**
+         * LectureSessionModeLiteral
+         * @enum {string}
+         */
+        LectureSessionModeLiteral: "text" | "voice";
+        /** LectureSessionModeUpdateRequest */
+        LectureSessionModeUpdateRequest: {
+            mode: components["schemas"]["LectureSessionModeLiteral"];
+        };
+        /** LectureSessionOpenRequest */
+        LectureSessionOpenRequest: {
+            /** @default text */
+            mode: components["schemas"]["LectureSessionModeLiteral"];
+        };
+        /** LectureSessionRead */
+        LectureSessionRead: {
+            /** Ended At */
+            ended_at?: string | null;
+            /** Id */
+            id: string;
+            /**
+             * Last Activity At
+             * Format: date-time
+             */
+            last_activity_at: string;
+            /** Lecture Id */
+            lecture_id: string;
+            mode: components["schemas"]["LectureSessionModeLiteral"];
+            /**
+             * Opened At
+             * Format: date-time
+             */
+            opened_at: string;
+            status: components["schemas"]["LectureSessionStatusLiteral"];
+            /** Student User Id */
+            student_user_id: string;
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
+        };
+        /**
+         * LectureSessionStatusLiteral
+         * @enum {string}
+         */
+        LectureSessionStatusLiteral: "active" | "ended";
         /**
          * LectureTeacherTipsRead
          * @description Teacher-facing delivery tips / technique demo / real-world examples (T-124).
@@ -5186,6 +5671,11 @@ export interface components {
             /** User Id */
             user_id: string;
         };
+        /**
+         * QuestionClassificationLiteral
+         * @enum {string}
+         */
+        QuestionClassificationLiteral: "misconception" | "knowledge_gap" | "unclassified";
         /** QuizAggregateHotspotRead */
         QuizAggregateHotspotRead: {
             /** Difficulty */
@@ -5575,6 +6065,56 @@ export interface components {
              */
             self_study_enabled: boolean;
         };
+        /**
+         * StudentLectureCardRead
+         * @description Dashboard card for a published lecture the student can open (T-152).
+         */
+        StudentLectureCardRead: {
+            /** Current Version Id */
+            current_version_id: string;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Title */
+            title: string;
+            /** Topic */
+            topic: string;
+        };
+        /**
+         * StudentLectureParagraphRead
+         * @description Paragraph with source badge fields for the student viewer (T-152 / #26/#27).
+         */
+        StudentLectureParagraphRead: {
+            /** Book Name */
+            book_name?: string | null;
+            /** Id */
+            id: string;
+            /** Ordinal */
+            ordinal: number;
+            /** Source Url */
+            source_url?: string | null;
+            /** Text */
+            text: string;
+            tier: components["schemas"]["SourceTier"];
+        };
+        /**
+         * StudentLectureViewerRead
+         * @description Published lecture text mode payload; session opened as part of the open path.
+         */
+        StudentLectureViewerRead: {
+            /** Current Version Id */
+            current_version_id: string;
+            /** Language */
+            language?: string | null;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Paragraphs */
+            paragraphs: components["schemas"]["StudentLectureParagraphRead"][];
+            session: components["schemas"]["LectureSessionRead"];
+            /** Title */
+            title: string;
+            /** Topic */
+            topic: string;
+        };
         /** StudentLinkRequestList */
         StudentLinkRequestList: {
             /** Pending */
@@ -5653,6 +6193,96 @@ export interface components {
             tos_accepted_at: string | null;
             /** User Id */
             user_id: string;
+        };
+        /**
+         * StudentQuestionAnswerRead
+         * @description Non-stream snapshot of a generated answer (T-158).
+         */
+        StudentQuestionAnswerRead: {
+            /** Answer Source Tags Jsonb */
+            answer_source_tags_jsonb?: unknown[] | {
+                [key: string]: unknown;
+            } | null;
+            /** Answer Text */
+            answer_text?: string | null;
+            /** Answered At */
+            answered_at?: string | null;
+            /** Primary Badge */
+            primary_badge?: string | null;
+            /** Question Id */
+            question_id: string;
+            /** Source Spans */
+            source_spans?: components["schemas"]["AnswerSourceSpanRead"][];
+        };
+        /**
+         * StudentQuestionCreateRequest
+         * @description Submit a highlight-triggered (or free-form) question (T-156).
+         */
+        StudentQuestionCreateRequest: {
+            /** Highlight Text */
+            highlight_text?: string | null;
+            /** Paragraph Id */
+            paragraph_id?: string | null;
+            /**
+             * Question Language
+             * @default en
+             * @enum {string}
+             */
+            question_language: "en" | "ur" | "sd" | "ps";
+            /** Question Text */
+            question_text: string;
+            /** Source Chunk Id */
+            source_chunk_id?: string | null;
+        };
+        /**
+         * StudentQuestionFollowUpRequest
+         * @description Append a user follow-up turn to an existing conversation (T-160).
+         */
+        StudentQuestionFollowUpRequest: {
+            /** Content */
+            content: string;
+        };
+        /** StudentQuestionRead */
+        StudentQuestionRead: {
+            /** Answer Source Tags Jsonb */
+            answer_source_tags_jsonb?: unknown[] | {
+                [key: string]: unknown;
+            } | null;
+            /** Answer Text */
+            answer_text?: string | null;
+            /** Answered At */
+            answered_at?: string | null;
+            /**
+             * Asked At
+             * Format: date-time
+             */
+            asked_at: string;
+            classification: components["schemas"]["QuestionClassificationLiteral"];
+            /** Conversations */
+            conversations?: components["schemas"]["ConversationTurnRead"][];
+            /** Highlight Text */
+            highlight_text?: string | null;
+            /** Id */
+            id: string;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Paragraph Id */
+            paragraph_id?: string | null;
+            /** Question Language */
+            question_language: string;
+            /** Question Text */
+            question_text: string;
+            /** Session Id */
+            session_id: string;
+            /** Source Chunk Id */
+            source_chunk_id?: string | null;
+            /** Student User Id */
+            student_user_id: string;
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
         };
         /**
          * StudentQuizCardRead
@@ -6131,6 +6761,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LectureAudioCacheRead] */
+        SuccessEnvelope_LectureAudioCacheRead_: {
+            data: components["schemas"]["LectureAudioCacheRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LectureDraftRead] */
         SuccessEnvelope_LectureDraftRead_: {
             data: components["schemas"]["LectureDraftRead"];
@@ -6179,6 +6818,15 @@ export interface components {
         /** SuccessEnvelope[LectureRosterRead] */
         SuccessEnvelope_LectureRosterRead_: {
             data: components["schemas"]["LectureRosterRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[LectureSessionRead] */
+        SuccessEnvelope_LectureSessionRead_: {
+            data: components["schemas"]["LectureSessionRead"];
             /**
              * Message
              * @default ok
@@ -6392,6 +7040,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[StudentLectureViewerRead] */
+        SuccessEnvelope_StudentLectureViewerRead_: {
+            data: components["schemas"]["StudentLectureViewerRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[StudentLinkRequestList] */
         SuccessEnvelope_StudentLinkRequestList_: {
             data: components["schemas"]["StudentLinkRequestList"];
@@ -6404,6 +7061,24 @@ export interface components {
         /** SuccessEnvelope[StudentModeRead] */
         SuccessEnvelope_StudentModeRead_: {
             data: components["schemas"]["StudentModeRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentQuestionAnswerRead] */
+        SuccessEnvelope_StudentQuestionAnswerRead_: {
+            data: components["schemas"]["StudentQuestionAnswerRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentQuestionRead] */
+        SuccessEnvelope_StudentQuestionRead_: {
+            data: components["schemas"]["StudentQuestionRead"];
             /**
              * Message
              * @default ok
@@ -6464,6 +7139,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[TeacherActivityShareRead] */
+        SuccessEnvelope_TeacherActivityShareRead_: {
+            data: components["schemas"]["TeacherActivityShareRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[TeacherCapacityUpdateRead] */
         SuccessEnvelope_TeacherCapacityUpdateRead_: {
             data: components["schemas"]["TeacherCapacityUpdateRead"];
@@ -6512,15 +7196,6 @@ export interface components {
         /** SuccessEnvelope[UserRead] */
         SuccessEnvelope_UserRead_: {
             data: components["schemas"]["UserRead"];
-            /**
-             * Message
-             * @default ok
-             */
-            message: string;
-        };
-        /** SuccessEnvelope[VoiceTranscribeRead] */
-        SuccessEnvelope_VoiceTranscribeRead_: {
-            data: components["schemas"]["VoiceTranscribeRead"];
             /**
              * Message
              * @default ok
@@ -6581,6 +7256,16 @@ export interface components {
         SuccessEnvelope_list_CoachingSuggestionRead__: {
             /** Data */
             data: components["schemas"]["CoachingSuggestionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[ConversationTurnRead]] */
+        SuccessEnvelope_list_ConversationTurnRead__: {
+            /** Data */
+            data: components["schemas"]["ConversationTurnRead"][];
             /**
              * Message
              * @default ok
@@ -6721,6 +7406,26 @@ export interface components {
         SuccessEnvelope_list_SectionRead__: {
             /** Data */
             data: components["schemas"]["SectionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[StudentLectureCardRead]] */
+        SuccessEnvelope_list_StudentLectureCardRead__: {
+            /** Data */
+            data: components["schemas"]["StudentLectureCardRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[StudentQuestionRead]] */
+        SuccessEnvelope_list_StudentQuestionRead__: {
+            /** Data */
+            data: components["schemas"]["StudentQuestionRead"][];
             /**
              * Message
              * @default ok
@@ -6886,6 +7591,28 @@ export interface components {
             syllabus_id: string;
             /** Title */
             title: string;
+        };
+        /**
+         * TeacherActivityShareRead
+         * @description Current #72 preference for the school student.
+         */
+        TeacherActivityShareRead: {
+            /**
+             * Teacher Activity Share
+             * @enum {string}
+             */
+            teacher_activity_share: "share" | "private";
+        };
+        /**
+         * TeacherActivityShareUpdate
+         * @description Toggle #72 share-with-teacher preference.
+         */
+        TeacherActivityShareUpdate: {
+            /**
+             * Teacher Activity Share
+             * @enum {string}
+             */
+            teacher_activity_share: "share" | "private";
         };
         /**
          * TeacherBenchmarkRead
@@ -7279,14 +8006,6 @@ export interface components {
             type: string;
         };
         /**
-         * VoiceTranscribeRead
-         * @description faster-whisper transcript for a dictated audio clip (T-131).
-         */
-        VoiceTranscribeRead: {
-            /** Transcript */
-            transcript: string;
-        };
-        /**
          * WizardCurriculumRead
          * @description Curriculum candidate for Step 2 (primary flagged).
          */
@@ -7355,6 +8074,40 @@ export interface components {
             parse_degraded: boolean;
             /** Topics */
             topics: components["schemas"]["WizardTopicOption"][];
+        };
+        /** SuccessEnvelope[VoiceTranscribeRead] */
+        app__core__responses__SuccessEnvelope_VoiceTranscribeRead___1: {
+            data: components["schemas"]["app__features__student_voice__schemas__VoiceTranscribeRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[VoiceTranscribeRead] */
+        app__core__responses__SuccessEnvelope_VoiceTranscribeRead___2: {
+            data: components["schemas"]["app__features__lectures__schemas__VoiceTranscribeRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /**
+         * VoiceTranscribeRead
+         * @description faster-whisper transcript for a dictated audio clip (T-131).
+         */
+        app__features__lectures__schemas__VoiceTranscribeRead: {
+            /** Transcript */
+            transcript: string;
+        };
+        /**
+         * VoiceTranscribeRead
+         * @description faster-whisper transcript for a student voice clip (T-155).
+         */
+        app__features__student_voice__schemas__VoiceTranscribeRead: {
+            /** Transcript */
+            transcript: string;
         };
     };
     responses: never;
@@ -10905,7 +11658,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope_VoiceTranscribeRead_"];
+                    "application/json": components["schemas"]["app__core__responses__SuccessEnvelope_VoiceTranscribeRead___2"];
                 };
             };
             /** @description Validation Error */
@@ -11272,6 +12025,39 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_ParentStudentAccessStateRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    parent_list_student_lecture_questions: {
+        parameters: {
+            query?: {
+                lecture_id?: string | null;
+            };
+            header?: never;
+            path: {
+                student_user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_StudentQuestionRead__"];
                 };
             };
             /** @description Validation Error */
@@ -12386,6 +13172,522 @@ export interface operations {
             };
         };
     };
+    student_list_my_lectures: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_StudentLectureCardRead__"];
+                };
+            };
+        };
+    };
+    student_get_lecture_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_touch_lecture_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_end_lecture_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_set_lecture_session_mode: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureSessionModeUpdateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_request_lecture_audio: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LectureAudioRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureAudioCacheRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_lecture_audio: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+                language: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureAudioCacheRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_download_lecture_audio: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+                language: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_open_lecture_viewer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LectureSessionOpenRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentLectureViewerRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_list_lecture_questions: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_StudentQuestionRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_lecture_question_answer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentQuestionAnswerRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_stream_lecture_question_answer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_list_question_conversations: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_ConversationTurnRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_follow_up_lecture_question: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+                question_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentQuestionFollowUpRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentQuestionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_open_lecture_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: {
+            content: {
+                "application/json": components["schemas"]["LectureSessionOpenRequest"] | null;
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_ask_lecture_question: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudentQuestionCreateRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentQuestionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     student_list_link_requests: {
         parameters: {
             query?: never;
@@ -12673,6 +13975,59 @@ export interface operations {
             };
         };
     };
+    student_get_teacher_activity_share: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_TeacherActivityShareRead_"];
+                };
+            };
+        };
+    };
+    student_set_teacher_activity_share: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["TeacherActivityShareUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_TeacherActivityShareRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     student_list_my_quizzes: {
         parameters: {
             query?: never;
@@ -12746,6 +14101,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_QuizAttemptResultRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_transcribe_voice: {
+        parameters: {
+            query?: {
+                language?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_student_transcribe_voice"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["app__core__responses__SuccessEnvelope_VoiceTranscribeRead___1"];
                 };
             };
             /** @description Validation Error */
@@ -13952,7 +15342,7 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    "application/json": components["schemas"]["SuccessEnvelope_VoiceTranscribeRead_"];
+                    "application/json": components["schemas"]["app__core__responses__SuccessEnvelope_VoiceTranscribeRead___2"];
                 };
             };
             /** @description Validation Error */

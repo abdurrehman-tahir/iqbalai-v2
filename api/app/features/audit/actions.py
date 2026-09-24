@@ -61,6 +61,11 @@ DIAGNOSTIC_COMPLETED = "diagnostic.completed"
 DIAGNOSTIC_RETAKEN = "diagnostic.retaken"
 COGNITIVE_DNA_SEEDED = "cognitive_dna.seeded"
 
+# M-12 — #72 teacher-activity share toggle (T-162). Routine self-service privacy
+# setting (§14.10 configuration changes), same tier as STUDENT_MODE_CHANGED /
+# BENCHMARK_OPT_OUT_TOGGLED — not elevated. INVIOLATE: no role may override.
+STUDENT_TEACHER_SHARE_TOGGLED = "student.teacher_share_toggled"
+
 # M-09 — lecture wizard (T-123 per-lecture access control, elevated)
 LECTURE_ACCESS_OVERRIDDEN = "lecture_access.overridden"
 
@@ -217,6 +222,13 @@ M11_AUDIT_ACTIONS = frozenset(
     }
 )
 
+# M-12 privacy toggle (T-162); further M-12 audit actions land in T-164.
+M12_AUDIT_ACTIONS = frozenset(
+    {
+        STUDENT_TEACHER_SHARE_TOGGLED,
+    }
+)
+
 REGISTERED_AUDIT_ACTIONS = (
     M04_AUDIT_ACTIONS
     | M06_AUDIT_ACTIONS
@@ -225,4 +237,5 @@ REGISTERED_AUDIT_ACTIONS = (
     | M09_AUDIT_ACTIONS
     | M10_AUDIT_ACTIONS
     | M11_AUDIT_ACTIONS
+    | M12_AUDIT_ACTIONS
 )
