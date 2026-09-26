@@ -189,7 +189,11 @@ async def test_stream_answer_persists_assistant_turn(
     session.add = MagicMock(side_effect=lambda obj: added.append(obj))
 
     async def _retrieve(
-        _session: Any, *, lecture: SchoolLecture, query: str
+        _session: Any,
+        *,
+        lecture: SchoolLecture,
+        query: str,
+        skip_web_fallback: bool = False,
     ) -> tuple[list[QaChunkRef], list[QaChunkRef], list[QaChunkRef], bool]:
         return (
             [
@@ -279,6 +283,169 @@ async def test_stream_answer_replays_stored_when_already_answered(
     assert tokens == ["Already answered. [Curriculum]"]
     assert called["stream"] is False
     session.commit.assert_not_called()
+
+
+def test_collect_attached_images_merges_question_and_latest_user_turn() -> None:
+    question = _question(
+        attached_images_jsonb=[
+            {
+                "storage_key": "student-question-image/s/2026/01/01/u1/a.jpg",
+                "mime_type": "image/jpeg",
+                "size_bytes": 10,
+            }
+        ]
+    )
+    turns = [
+        _user_turn(),
+        SchoolStudentQuestionConversation(
+            id="turn-a-1",
+            root_question_id="q-1",
+            turn_index=1,
+            role=ConversationRole.ASSISTANT,
+            content="answer",
+        ),
+        SchoolStudentQuestionConversation(
+            id="turn-u-2",
+            root_question_id="q-1",
+            turn_index=2,
+            role=ConversationRole.USER,
+            content="follow up",
+            attached_images_jsonb=[
+                {
+                    "storage_key": "student-question-image/s/2026/01/02/u2/b.jpg",
+                    "mime_type": "image/jpeg",
+                    "size_bytes": 20,
+                }
+            ],
+        ),
+    ]
+    keys = pipeline.collect_attached_images(question, turns)
+    assert keys == [
+        "student-question-image/s/2026/01/01/u1/a.jpg",
+        "student-question-image/s/2026/01/02/u2/b.jpg",
+    ]
+
+
+def test_collect_attached_images_caps_at_three() -> None:
+    question = _question(
+        attached_images_jsonb=[
+            {"storage_key": f"k{i}", "mime_type": "image/jpeg", "size_bytes": 1} for i in range(3)
+        ]
+    )
+    turns = [
+        SchoolStudentQuestionConversation(
+            id="turn-u-0",
+            root_question_id="q-1",
+            turn_index=0,
+            role=ConversationRole.USER,
+            content="q",
+            attached_images_jsonb=[
+                {"storage_key": "k-extra", "mime_type": "image/jpeg", "size_bytes": 1}
+            ],
+        )
+    ]
+    keys = pipeline.collect_attached_images(question, turns)
+    assert len(keys) == 3
+    assert keys == ["k0", "k1", "k2"]
+
+
+def test_collect_attached_images_none_when_no_images() -> None:
+    question = _question()
+    assert pipeline.collect_attached_images(question, [_user_turn()]) == []
+
+
+@pytest.mark.asyncio
+async def test_retrieve_qa_chunks_skips_web_fallback_when_images_attached(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """T-169: pure-vision reasoning (no RAG, images present) → no web fallback,
+    so build_source_tags lands on [AI Knowledge] rather than [Web]/[No Source]."""
+    lecture = _lecture()
+    session = AsyncMock()
+
+    async def _resolve(_session: Any, _lec: SchoolLecture) -> tuple[list[Any], list[Any]]:
+        return [], []
+
+    async def _retrieve(**_kwargs: Any) -> list[dict[str, Any]]:
+        return []
+
+    web_called = {"called": False}
+
+    async def _web(_topic: str) -> list[Any]:
+        web_called["called"] = True
+        return []
+
+    monkeypatch.setattr(pipeline, "resolve_lecture_corpus", _resolve)
+    monkeypatch.setattr(pipeline, "_retrieve_for_items", _retrieve)
+    monkeypatch.setattr(pipeline, "_fetch_web_fallback_chunks", _web)
+
+    curr, ref, web, no_coverage = await pipeline.retrieve_qa_chunks(
+        session, lecture=lecture, query="what is this?", skip_web_fallback=True
+    )
+    assert curr == []
+    assert ref == []
+    assert web == []
+    assert no_coverage is False
+    assert web_called["called"] is False
+
+    primary, _tags = pipeline.build_source_tags(
+        curriculum=curr, reference=ref, web=web, no_coverage=no_coverage
+    )
+    assert primary == "[AI Knowledge]"
+
+
+@pytest.mark.asyncio
+async def test_stream_answer_passes_attached_images_to_stream_chat(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lecture = _lecture()
+    question = _question(
+        attached_images_jsonb=[
+            {
+                "storage_key": "student-question-image/s/2026/01/01/u1/a.jpg",
+                "mime_type": "image/jpeg",
+                "size_bytes": 10,
+            }
+        ]
+    )
+    turns = [_user_turn()]
+    session = AsyncMock()
+    session.add = MagicMock()
+    session.flush = AsyncMock()
+    session.commit = AsyncMock()
+
+    async def _retrieve(
+        _session: Any, *, lecture: SchoolLecture, query: str, skip_web_fallback: bool = False
+    ) -> tuple[list[Any], list[Any], list[Any], bool]:
+        assert skip_web_fallback is True
+        return [], [], [], False
+
+    captured: dict[str, Any] = {}
+
+    async def _fake_stream(*_a: Any, **kwargs: Any) -> Any:
+        captured["attached_images"] = kwargs.get("attached_images")
+        yield "It shows a force diagram. [AI Knowledge]"
+
+    async def _persona(*_a: Any, **_k: Any) -> str:
+        return "You are a warm tutor."
+
+    monkeypatch.setattr(pipeline, "retrieve_qa_chunks", _retrieve)
+    monkeypatch.setattr(pipeline, "resolve_base_persona", _persona)
+    monkeypatch.setattr(pipeline, "stream_chat", _fake_stream)
+    monkeypatch.setattr(
+        pipeline, "get_student_exam_framework_overlay", AsyncMock(return_value=None)
+    )
+    session.get = AsyncMock(return_value=None)
+
+    tokens: list[str] = []
+    async for tok in pipeline.stream_answer_for_question(
+        session, question=question, lecture=lecture, turns=turns
+    ):
+        tokens.append(tok)
+
+    assert captured["attached_images"] == [
+        "student-question-image/s/2026/01/01/u1/a.jpg"
+    ]
 
 
 @pytest.mark.asyncio

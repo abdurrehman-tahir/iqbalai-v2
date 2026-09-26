@@ -5,6 +5,8 @@ from __future__ import annotations
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.db.base import not_deleted
+from app.features.files.models import UploadRecord
 from app.features.lectures.models import SchoolLectureParagraph
 from app.features.student_questions.models import (
     SchoolStudentQuestion,
@@ -116,3 +118,33 @@ class LectureParagraphLookup:
 
     async def get_by_id(self, paragraph_id: str) -> SchoolLectureParagraph | None:
         return await self._session.get(SchoolLectureParagraph, paragraph_id)
+
+
+class StudentQuestionImageLookup:
+    """Read-only ``UploadRecord`` lookup for ``attached_images`` (T-169 / T-170).
+
+    Mirrors ``LectureParagraphLookup`` — a narrow, read-only cross-feature
+    lookup used to validate ownership + tenant scope of an image reference
+    before it is stored on a question/turn. Scoped by profile, tenant
+    (``school_id`` — which holds the per-tenant MinIO scope value from
+    ``image_upload._tenant_scope_id``, school_id or the independent
+    student's own id) AND ``uploaded_by``, so a student can never attach
+    another student's image even within the same school (tenant isolation).
+    """
+
+    def __init__(self, session: AsyncSession) -> None:
+        self._session = session
+
+    async def get_owned(
+        self, storage_key: str, *, tenant_scope_id: str, uploaded_by: str
+    ) -> UploadRecord | None:
+        result = await self._session.execute(
+            select(UploadRecord).where(
+                UploadRecord.minio_key == storage_key,
+                UploadRecord.profile == "student_question_image",
+                UploadRecord.school_id == tenant_scope_id,
+                UploadRecord.uploaded_by == uploaded_by,
+                not_deleted(UploadRecord),
+            )
+        )
+        return result.scalar_one_or_none()

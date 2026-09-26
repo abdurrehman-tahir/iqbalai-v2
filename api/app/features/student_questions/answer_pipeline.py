@@ -69,6 +69,42 @@ def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
 
 
+# ---------------------------------------------------------------------------
+# T-169 — attached_images collection
+# ---------------------------------------------------------------------------
+
+
+def collect_attached_images(
+    question: SchoolStudentQuestion,
+    turns: Sequence[SchoolStudentQuestionConversation],
+) -> list[str]:
+    """Storage keys from the root question + the latest user turn (T-169).
+
+    Both the initial ask and any follow-up may carry images; this is a pure,
+    no-I/O merge (deduped, order-preserving, capped at 3) so both the cost
+    guard and the vision-routed LLM call see the same set.
+    """
+    keys: list[str] = []
+    seen: set[str] = set()
+
+    def _add(raw: object) -> None:
+        if not isinstance(raw, list):
+            return
+        for item in raw:
+            if isinstance(item, dict):
+                key = item.get("storage_key")
+                if isinstance(key, str) and key and key not in seen:
+                    seen.add(key)
+                    keys.append(key)
+
+    _add(question.attached_images_jsonb)
+    for turn in reversed(list(turns)):
+        if turn.role == ConversationRole.USER:
+            _add(turn.attached_images_jsonb)
+            break
+    return keys[:3]
+
+
 def _badge_for_tier(tier: SourceTierName, book_name: str | None = None) -> str:
     if tier == "curriculum":
         return "[Curriculum]"
@@ -342,8 +378,16 @@ async def retrieve_qa_chunks(
     *,
     lecture: SchoolLecture,
     query: str,
+    skip_web_fallback: bool = False,
 ) -> tuple[list[QaChunkRef], list[QaChunkRef], list[QaChunkRef], bool]:
-    """Pattern S dual-RAG + web fallback. Returns ``(..., no_coverage)``."""
+    """Pattern S dual-RAG + web fallback. Returns ``(..., no_coverage)``.
+
+    ``skip_web_fallback`` (T-169): when the question carries attached images
+    and curriculum/reference retrieval found nothing, skip the Pattern A web
+    fallback — an image-bearing question with no text-answerable coverage
+    should reason from the image ([AI Knowledge]), not from an unrelated web
+    search grounded only in the question text.
+    """
     school_id = lecture.school_id or ""
     curriculum_items, ref_items = await resolve_lecture_corpus(session, lecture)
 
@@ -430,12 +474,17 @@ async def retrieve_qa_chunks(
     web_refs: list[QaChunkRef] = []
     no_coverage = False
     if not curr_refs and not ref_refs:
-        web_refs = await _fetch_web_fallback_chunks(query)
-        if web_refs:
-            logger.info("lecture_qa_web_fallback", lecture_id=lecture.id, web_hits=len(web_refs))
+        if skip_web_fallback:
+            logger.info("lecture_qa_vision_only_no_rag_coverage", lecture_id=lecture.id)
         else:
-            no_coverage = True
-            logger.info("lecture_qa_no_coverage", lecture_id=lecture.id)
+            web_refs = await _fetch_web_fallback_chunks(query)
+            if web_refs:
+                logger.info(
+                    "lecture_qa_web_fallback", lecture_id=lecture.id, web_hits=len(web_refs)
+                )
+            else:
+                no_coverage = True
+                logger.info("lecture_qa_no_coverage", lecture_id=lecture.id)
 
     return curr_refs, ref_refs, web_refs, no_coverage
 
@@ -589,7 +638,10 @@ async def stream_answer_for_question(
     if question.highlight_text:
         query = f"{query}\n{question.highlight_text}"
 
-    curr, refs, web, no_coverage = await retrieve_qa_chunks(session, lecture=lecture, query=query)
+    attached_images = collect_attached_images(question, turns)
+    curr, refs, web, no_coverage = await retrieve_qa_chunks(
+        session, lecture=lecture, query=query, skip_web_fallback=bool(attached_images)
+    )
     prompt, primary, spans = await _render_qa_prompt(
         session,
         question=question,
@@ -612,6 +664,7 @@ async def stream_answer_for_question(
             task="student_qa",
             temperature=prompt.temperature,
             max_tokens=prompt.max_tokens,
+            attached_images=attached_images or None,
         ):
             parts.append(token)
             yield token
@@ -684,7 +737,10 @@ async def generate_and_store_answer(
     if question.highlight_text:
         query = f"{query}\n{question.highlight_text}"
 
-    curr, refs, web, no_coverage = await retrieve_qa_chunks(session, lecture=lecture, query=query)
+    attached_images = collect_attached_images(question, turns)
+    curr, refs, web, no_coverage = await retrieve_qa_chunks(
+        session, lecture=lecture, query=query, skip_web_fallback=bool(attached_images)
+    )
     prompt, primary, spans = await _render_qa_prompt(
         session,
         question=question,
@@ -705,6 +761,7 @@ async def generate_and_store_answer(
             task="student_qa",
             temperature=prompt.temperature,
             max_tokens=prompt.max_tokens,
+            attached_images=attached_images or None,
         )
     except Exception as exc:
         logger.error("lecture_qa_llm_failed", question_id=qid, error=str(exc))

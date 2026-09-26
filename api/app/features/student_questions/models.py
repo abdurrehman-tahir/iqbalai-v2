@@ -132,6 +132,9 @@ class SchoolStudentQuestion(AuditMixin, Base):
     answer_source_tags_jsonb: Mapped[list[object] | dict[str, object] | None] = mapped_column(
         JSONB, nullable=True
     )
+    # T-169: image refs attached at ask-time (list[AttachedImageRef] dicts,
+    # max 3, MinIO keys under the student_question_image profile / T-166).
+    attached_images_jsonb: Mapped[list[object] | None] = mapped_column(JSONB, nullable=True)
     asked_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
     answered_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
@@ -176,6 +179,9 @@ class SchoolStudentQuestionConversation(AuditMixin, Base):
     source_tags_jsonb: Mapped[list[object] | dict[str, object] | None] = mapped_column(
         JSONB, nullable=True
     )
+    # T-169: image refs attached to this turn (user follow-up turns only;
+    # empty/None on assistant turns).
+    attached_images_jsonb: Mapped[list[object] | None] = mapped_column(JSONB, nullable=True)
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:
