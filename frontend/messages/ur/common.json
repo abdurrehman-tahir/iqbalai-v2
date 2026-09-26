@@ -999,6 +999,7 @@
       "image_format_unsupported": "فارمیٹ سپورٹ نہیں — JPEG، PNG یا WEBP استعمال کریں",
       "image_max_reached": "فی سوال زیادہ سے زیادہ {count} تصاویر",
       "image_not_ready": "تصویر منسلک کرنا ابھی دستیاب نہیں",
+      "image_upload_failed": "تصویر اپلوڈ نہیں ہو سکی۔ دوبارہ کوشش کریں۔",
       "mic_permission_denied": "ریکارڈنگ کی اجازت درکار ہے",
       "send": "بھیجیں",
       "send_error": "نہیں بھیجا جا سکا۔ دوبارہ کوشش کریں۔",

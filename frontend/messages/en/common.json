@@ -1970,6 +1970,7 @@
       "image_format_unsupported": "Format not supported — use JPEG, PNG, or WEBP",
       "image_max_reached": "Max {count} images per question",
       "image_not_ready": "Image attach is not available yet",
+      "image_upload_failed": "Could not upload image. Please try again.",
       "mic_permission_denied": "Permission needed to record",
       "send": "Send",
       "send_error": "Could not send. Please try again.",

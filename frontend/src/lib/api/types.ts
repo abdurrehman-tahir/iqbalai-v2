@@ -126,6 +126,21 @@ export type StudentQuestionCreateRequest = Schemas["StudentQuestionCreateRequest
 export type StudentQuestionFollowUpRequest = Schemas["StudentQuestionFollowUpRequest"];
 export type StudentQuestionAnswerRead = Schemas["StudentQuestionAnswerRead"];
 export type ConversationTurnRead = Schemas["ConversationTurnRead"];
+// ── M-13 hybrid widget image attach (T-167) ───────────────────────────────────
+// `schema.d.ts` has NOT been regenerated for this type — no Node.js/npm
+// toolchain was available in the environment that implemented T-166/T-167
+// (A-002 fallback: "add typed interfaces carefully in api/index.ts matching
+// OpenAPI shapes"). Mirrors `StudentQuestionImageUploadRead` in
+// `api/app/features/student_questions/schemas.py`.
+// TODO(M-13 follow-up): run `pnpm gen:api` once Node.js is available and
+// delete this hand-written interface.
+export interface StudentQuestionImageUploadRead {
+  upload_id: string;
+  storage_key: string;
+  mime_type: "image/jpeg" | "image/png" | "image/webp";
+  size_bytes: number;
+  retention_days: number;
+}
 export type QuestionClassification = Schemas["QuestionClassificationLiteral"];
 export type TeacherActivityShareRead = Schemas["TeacherActivityShareRead"];
 export type TeacherActivityShareUpdate = Schemas["TeacherActivityShareUpdate"];
