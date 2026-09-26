@@ -64,3 +64,17 @@ def test_m12_teacher_share_toggle_registered_not_elevated() -> None:
     assert M12_AUDIT_ACTIONS <= REGISTERED_AUDIT_ACTIONS
     assert STUDENT_TEACHER_SHARE_TOGGLED in M12_AUDIT_ACTIONS
     assert STUDENT_TEACHER_SHARE_TOGGLED not in ELEVATED_AUDIT_ACTIONS
+
+
+def test_m13_vision_and_image_upload_registered_not_elevated() -> None:
+    from app.features.audit.actions import (
+        LLM_VISION_ROUTED,
+        M13_AUDIT_ACTIONS,
+        STUDENT_QUESTION_IMAGE_UPLOADED,
+    )
+
+    assert M13_AUDIT_ACTIONS <= REGISTERED_AUDIT_ACTIONS
+    assert STUDENT_QUESTION_IMAGE_UPLOADED in M13_AUDIT_ACTIONS
+    assert LLM_VISION_ROUTED in M13_AUDIT_ACTIONS
+    assert STUDENT_QUESTION_IMAGE_UPLOADED not in ELEVATED_AUDIT_ACTIONS
+    assert LLM_VISION_ROUTED not in ELEVATED_AUDIT_ACTIONS

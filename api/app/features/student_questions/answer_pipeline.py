@@ -25,6 +25,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import ValidationError
+from app.features.audit.actions import LLM_VISION_ROUTED
 from app.features.lectures.exam_overlay import (
     ExamOverlayContext,
     get_student_exam_framework_overlay,
@@ -43,6 +44,7 @@ from app.features.student_questions.models import (
     SchoolStudentQuestionConversation,
 )
 from app.features.subjects.models import Subject
+from app.infrastructure.audit.log import audit
 from app.infrastructure.llm.client import chat, stream_chat
 from app.infrastructure.llm.persona import prepend_persona
 from app.infrastructure.llm.persona import resolve_base_persona as resolve_base_persona
@@ -71,7 +73,7 @@ def _utcnow() -> datetime:
 
 
 # ---------------------------------------------------------------------------
-# T-169 / T-170 — attached_images collection + vision cost guard
+# T-169 / T-170 / T-171 — attached_images collection, vision cost guard, audit
 # ---------------------------------------------------------------------------
 
 
@@ -140,6 +142,29 @@ async def enforce_vision_cost_guard(student_user_id: str) -> None:
             f"Daily image-question limit reached ({settings.VISION_QA_DAILY_SOFT_CEILING})."
             " Try again tomorrow, or ask without an attached image."
         )
+
+
+async def _audit_vision_routed(
+    session: AsyncSession,
+    *,
+    question: SchoolStudentQuestion,
+    lecture: SchoolLecture,
+    image_count: int,
+) -> None:
+    """Audit the vision-routing decision (T-171). Best-effort — never blocks Q&A."""
+    try:
+        await audit(
+            session=session,
+            action=LLM_VISION_ROUTED,
+            actor_id=question.student_user_id,
+            actor_role="student",
+            target_type="student_question",
+            target_id=question.id,
+            school_id=lecture.school_id,
+            metadata={"image_count": image_count},
+        )
+    except Exception as exc:
+        logger.warning("llm_vision_routed_audit_failed", question_id=question.id, error=str(exc))
 
 
 def _badge_for_tier(tier: SourceTierName, book_name: str | None = None) -> str:
@@ -676,6 +701,10 @@ async def stream_answer_for_question(
         query = f"{query}\n{question.highlight_text}"
 
     attached_images = collect_attached_images(question, turns)
+    if attached_images:
+        await _audit_vision_routed(
+            session, question=question, lecture=lecture, image_count=len(attached_images)
+        )
     curr, refs, web, no_coverage = await retrieve_qa_chunks(
         session, lecture=lecture, query=query, skip_web_fallback=bool(attached_images)
     )
@@ -777,6 +806,9 @@ async def generate_and_store_answer(
     attached_images = collect_attached_images(question, turns)
     if attached_images:
         await enforce_vision_cost_guard(question.student_user_id)
+        await _audit_vision_routed(
+            session, question=question, lecture=lecture, image_count=len(attached_images)
+        )
     curr, refs, web, no_coverage = await retrieve_qa_chunks(
         session, lecture=lecture, query=query, skip_web_fallback=bool(attached_images)
     )

@@ -71,12 +71,16 @@ class _FakeUserRepo:
 
 class _FakeSession:
     records: dict[str, Any] = {}
+    audit_entries: list[Any] = []
 
     async def get(self, model: type, pk: str) -> Any:
         return self.records.get(pk)
 
     async def commit(self) -> None:
         return None
+
+    def add(self, obj: Any) -> None:
+        self.audit_entries.append(obj)
 
 
 _pipeline_calls: list[dict[str, Any]] = []
@@ -110,6 +114,7 @@ async def _fake_run_upload_pipeline(**kwargs: Any) -> UploadInitiated:
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeUserRepo.store = {STUDENT.id: STUDENT}
     _FakeSession.records = {}
+    _FakeSession.audit_entries = []
     _pipeline_calls.clear()
     monkeypatch.setattr(
         "app.features.student_questions.image_upload.UserRepository", _FakeUserRepo
@@ -188,6 +193,24 @@ async def test_upload_question_image_returns_minio_key(client: AsyncClient) -> N
     assert len(_pipeline_calls) == 1
     assert _pipeline_calls[0]["school_id"] == "school-1"
     assert _pipeline_calls[0]["profile"].name == "student_question_image"
+
+
+@pytest.mark.asyncio
+async def test_upload_question_image_writes_audit_entry(client: AsyncClient) -> None:
+    """T-171 — every image upload is audit-logged (STUDENT_QUESTION_IMAGE_UPLOADED)."""
+    from app.features.audit.actions import STUDENT_QUESTION_IMAGE_UPLOADED
+
+    jpeg = _make_jpeg_with_exif()
+    res = await client.post(
+        "/api/v1/students/me/question-images",
+        files={"image": ("diagram.jpg", jpeg, "image/jpeg")},
+    )
+    assert res.status_code == 201
+    assert len(_FakeSession.audit_entries) == 1
+    entry = _FakeSession.audit_entries[0]
+    assert entry.action == STUDENT_QUESTION_IMAGE_UPLOADED
+    assert entry.actor_id == "student-1"
+    assert entry.school_id == "school-1"
 
 
 @pytest.mark.asyncio

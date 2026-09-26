@@ -396,6 +396,43 @@ async def test_enforce_vision_cost_guard_fails_open_when_redis_unavailable(
 
 
 @pytest.mark.asyncio
+async def test_audit_vision_routed_writes_audit_entry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lecture = _lecture()
+    question = _question()
+    session = AsyncMock()
+    added: list[Any] = []
+    session.add = MagicMock(side_effect=lambda obj: added.append(obj))
+    session.commit = AsyncMock()
+
+    await pipeline._audit_vision_routed(
+        session, question=question, lecture=lecture, image_count=2
+    )
+
+    assert len(added) == 1
+    entry = added[0]
+    assert entry.action == "llm.vision_routed"
+    assert entry.actor_id == question.student_user_id
+    assert entry.metadata_json == '{"image_count": 2}'
+
+
+@pytest.mark.asyncio
+async def test_audit_vision_routed_never_raises_on_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lecture = _lecture()
+    question = _question()
+    session = AsyncMock()
+    session.add = MagicMock(side_effect=RuntimeError("db down"))
+
+    # Must not raise — audit failures must never block Q&A.
+    await pipeline._audit_vision_routed(
+        session, question=question, lecture=lecture, image_count=1
+    )
+
+
+@pytest.mark.asyncio
 async def test_retrieve_qa_chunks_skips_web_fallback_when_images_attached(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
@@ -473,6 +510,7 @@ async def test_stream_answer_passes_attached_images_to_stream_chat(
     monkeypatch.setattr(pipeline, "retrieve_qa_chunks", _retrieve)
     monkeypatch.setattr(pipeline, "resolve_base_persona", _persona)
     monkeypatch.setattr(pipeline, "stream_chat", _fake_stream)
+    monkeypatch.setattr(pipeline, "_audit_vision_routed", AsyncMock())
     monkeypatch.setattr(
         pipeline, "get_student_exam_framework_overlay", AsyncMock(return_value=None)
     )

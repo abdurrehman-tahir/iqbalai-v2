@@ -11,6 +11,7 @@ from typing import Literal
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
+from app.features.audit.actions import STUDENT_QUESTION_IMAGE_UPLOADED
 from app.features.files.pipeline import run_upload_pipeline
 from app.features.files.profiles import (
     STUDENT_QUESTION_IMAGE_MAX_PER_QUESTION,
@@ -19,6 +20,7 @@ from app.features.files.profiles import (
 from app.features.student_questions.schemas import StudentQuestionImageUploadRead
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
+from app.infrastructure.audit.log import audit
 
 _MIME_BY_EXT: dict[str, Literal["image/jpeg", "image/png", "image/webp"]] = {
     ".jpg": "image/jpeg",
@@ -106,6 +108,17 @@ class StudentQuestionImageService:
         record = await self._session.get(UploadRecord, result.upload_id)
         if record is None:
             raise ValidationError("Upload failed")
+
+        await audit(
+            session=self._session,
+            action=STUDENT_QUESTION_IMAGE_UPLOADED,
+            actor_id=student.id,
+            actor_role="student",
+            target_type="upload_record",
+            target_id=record.id,
+            school_id=_tenant_scope_id(student),
+            metadata={"size_bytes": record.size_bytes, "mime_type": mime},
+        )
 
         return StudentQuestionImageUploadRead(
             upload_id=result.upload_id,
