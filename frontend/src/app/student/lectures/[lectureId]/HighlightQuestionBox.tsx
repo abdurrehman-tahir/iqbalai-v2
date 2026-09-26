@@ -27,6 +27,8 @@ type Props = {
     paragraph_id: string | null;
     source_chunk_id: string | null;
     question_language: "en" | "ur" | "sd" | "ps";
+    /** MinIO storage keys from HybridInputWidget's image attach (T-167). */
+    attached_images: string[];
   }) => Promise<void>;
 };
 
@@ -56,6 +58,7 @@ export function HighlightQuestionBox({ selection, onCancel, onSubmit }: Props) {
           paragraph_id: selection.paragraphId,
           source_chunk_id: selection.sourceChunkId,
           question_language: language,
+          attached_images: payload.attached_images.map((img) => img.storage_key),
         });
       } finally {
         setBusy(false);
@@ -90,7 +93,7 @@ export function HighlightQuestionBox({ selection, onCancel, onSubmit }: Props) {
         onSubmit={handleSubmit}
         disabled={busy}
         allowVoice
-        allowImages={false}
+        allowImages
         voiceLanguage={language}
         placeholder={t("question_placeholder")}
       />

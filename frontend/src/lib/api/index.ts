@@ -123,6 +123,7 @@ import type {
   LectureAudioCacheRead,
   StudentQuestionRead,
   StudentQuestionCreateRequest,
+  StudentQuestionFollowUpRequest,
   StudentQuestionAnswerRead,
   StudentQuestionImageUploadRead,
 } from "./types";
@@ -148,6 +149,7 @@ export type {
   ConversationTurnRead,
   QuestionClassification,
 } from "./types";
+export type { AttachedImageRef } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -1685,17 +1687,26 @@ export const studentQuestionsApi = {
     lectureId: string,
     questionId: string,
     content: string,
-    idempotencyKey?: string
-  ) =>
-    request<StudentQuestionRead>(
+    idempotencyKey?: string,
+    /** MinIO storage keys from studentQuestionImagesApi.upload (T-169). Max 3. */
+    attachedImages?: string[]
+  ) => {
+    const body: StudentQuestionFollowUpRequest = {
+      content,
+      ...(attachedImages && attachedImages.length > 0
+        ? { attached_images: attachedImages }
+        : {}),
+    };
+    return request<StudentQuestionRead>(
       `/students/me/lectures/${lectureId}/questions/${questionId}/turns`,
       {
         method: "POST",
-        body: JSON.stringify({ content }),
+        body: JSON.stringify(body),
         headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
       },
       token
-    ),
+    );
+  },
   getAnswer: (token: string, lectureId: string, questionId: string) =>
     request<StudentQuestionAnswerRead>(
       `/students/me/lectures/${lectureId}/questions/${questionId}/answer`,
