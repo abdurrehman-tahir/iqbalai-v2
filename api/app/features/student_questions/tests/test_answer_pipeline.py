@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from app.core.exceptions import ValidationError
 from app.features.lectures.models import LectureStatus, LectureType, SchoolLecture
 from app.features.library.school_models import LibraryContentType
 from app.features.student_questions import answer_pipeline as pipeline
@@ -352,6 +353,46 @@ def test_collect_attached_images_caps_at_three() -> None:
 def test_collect_attached_images_none_when_no_images() -> None:
     question = _question()
     assert pipeline.collect_attached_images(question, [_user_turn()]) == []
+
+
+@pytest.mark.asyncio
+async def test_enforce_vision_cost_guard_allows_under_ceiling(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_redis = AsyncMock()
+    fake_redis.incr = AsyncMock(return_value=1)
+    fake_redis.expire = AsyncMock(return_value=True)
+    monkeypatch.setattr(
+        "app.infrastructure.cache.client.get_redis", lambda: fake_redis
+    )
+    await pipeline.enforce_vision_cost_guard("stu-1")
+    fake_redis.incr.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_enforce_vision_cost_guard_blocks_over_ceiling(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_redis = AsyncMock()
+    fake_redis.incr = AsyncMock(return_value=21)  # > default ceiling of 20
+    monkeypatch.setattr(
+        "app.infrastructure.cache.client.get_redis", lambda: fake_redis
+    )
+    with pytest.raises(ValidationError) as exc_info:
+        await pipeline.enforce_vision_cost_guard("stu-1")
+    assert "limit" in str(exc_info.value).lower()
+
+
+@pytest.mark.asyncio
+async def test_enforce_vision_cost_guard_fails_open_when_redis_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise() -> Any:
+        raise ConnectionError("redis down")
+
+    monkeypatch.setattr("app.infrastructure.cache.client.get_redis", _raise)
+    # Must not raise — a cache outage should never block Q&A.
+    await pipeline.enforce_vision_cost_guard("stu-1")
 
 
 @pytest.mark.asyncio

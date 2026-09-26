@@ -2,9 +2,17 @@
 
 from __future__ import annotations
 
+from datetime import datetime, timedelta, timezone
+from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
-from app.features.files.pipeline import _build_minio_key, _validate_magic_bytes
+from app.features.files.pipeline import (
+    _build_minio_key,
+    _validate_magic_bytes,
+    list_expired_uploads,
+    purge_expired_upload,
+)
 from app.features.files.profiles import RECOVERY_BUNDLE, get_profile, list_profiles
 
 
@@ -66,3 +74,47 @@ def test_minio_key_format() -> None:
 def test_minio_key_global_scope() -> None:
     key = _build_minio_key(RECOVERY_BUNDLE, "test.pdf", "upload-123", None)
     assert "global" in key
+
+
+# ---------------------------------------------------------------------------
+# T-170 — retention purge helpers (student_question_image 1-year window)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_list_expired_uploads_queries_by_profile_and_cutoff() -> None:
+    session = AsyncMock()
+    fake_row = MagicMock()
+    execute_result = MagicMock()
+    execute_result.scalars.return_value.all.return_value = [fake_row]
+    session.execute = AsyncMock(return_value=execute_result)
+
+    cutoff = datetime.now(timezone.utc) - timedelta(days=365)
+    rows = await list_expired_uploads(
+        session, profile_name="student_question_image", cutoff=cutoff
+    )
+
+    assert rows == [fake_row]
+    session.execute.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_purge_expired_upload_deletes_object_and_soft_deletes_row(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    mock_delete = MagicMock()
+    monkeypatch.setattr("app.infrastructure.storage.client.delete_object", mock_delete)
+
+    record = MagicMock()
+    record.bucket = "images"
+    record.minio_key = "student-question-image/school-1/2025/01/01/u1/a.jpg"
+    record.deleted_at = None
+    session = AsyncMock()
+
+    await purge_expired_upload(session, record)
+
+    mock_delete.assert_called_once_with(
+        "images", "student-question-image/school-1/2025/01/01/u1/a.jpg"
+    )
+    assert record.deleted_at is not None
+    session.commit.assert_awaited_once()

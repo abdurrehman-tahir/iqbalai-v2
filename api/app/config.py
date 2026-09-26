@@ -94,6 +94,12 @@ class Settings(BaseSettings):
     # ops tooling names Groq-hosted models.
     LLM_VISION_MODEL: str = "llama-3.2-90b-vision-preview"
 
+    # Vision Q&A cost guard (T-170). Soft daily ceiling per student — crossing
+    # it raises a ValidationError before the LLM call (no charge incurred).
+    # USD-per-call is an optional observability estimate, not billing-grade.
+    VISION_QA_DAILY_SOFT_CEILING: int = 20
+    VISION_QA_USD_PER_CALL: float = 0.01
+
     # Embeddings — infinity (prod) or local sentence-transformers (dev, low RAM)
     EMBEDDING_PROVIDER: str = "infinity"  # infinity | local
     EMBEDDING_MODEL: str = ""  # empty = provider default (BGE-M3 or MiniLM)

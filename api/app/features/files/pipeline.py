@@ -95,6 +95,34 @@ def strip_exif_metadata(data: bytes) -> bytes:
         return out.getvalue()
 
 
+async def list_expired_uploads(
+    session: AsyncSession, *, profile_name: str, cutoff: datetime
+) -> list[UploadRecord]:
+    """Uploads under ``profile_name`` created before ``cutoff`` (retention sweep).
+
+    T-170: used by ``student_questions.tasks.purge_expired_question_images``
+    (and any future profile with a retention purge) to find rows past their
+    ``UploadProfile.retention_days`` window that haven't been purged yet.
+    """
+    result = await session.execute(
+        select(UploadRecord).where(
+            UploadRecord.profile == profile_name,
+            UploadRecord.created_at < cutoff,
+            not_deleted(UploadRecord),
+        )
+    )
+    return list(result.scalars().all())
+
+
+async def purge_expired_upload(session: AsyncSession, record: UploadRecord) -> None:
+    """Delete the MinIO object and soft-delete the ``upload_records`` row (T-170)."""
+    from app.infrastructure.storage.client import delete_object
+
+    delete_object(record.bucket, record.minio_key)
+    record.deleted_at = datetime.now(timezone.utc)
+    await session.commit()
+
+
 async def run_upload_pipeline(
     data: bytes,
     filename: str,

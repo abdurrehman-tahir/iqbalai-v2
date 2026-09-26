@@ -24,6 +24,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ValidationError
 from app.features.lectures.exam_overlay import (
     ExamOverlayContext,
     get_student_exam_framework_overlay,
@@ -70,7 +71,7 @@ def _utcnow() -> datetime:
 
 
 # ---------------------------------------------------------------------------
-# T-169 — attached_images collection
+# T-169 / T-170 — attached_images collection + vision cost guard
 # ---------------------------------------------------------------------------
 
 
@@ -103,6 +104,42 @@ def collect_attached_images(
             _add(turn.attached_images_jsonb)
             break
     return keys[:3]
+
+
+async def enforce_vision_cost_guard(student_user_id: str) -> None:
+    """Per-student/day soft ceiling on vision Q&A calls (T-170).
+
+    Redis counter ``vision_qa:{student_id}:{YYYY-MM-DD}`` — raises
+    ``ValidationError`` *before* any LLM call once the configured daily
+    ceiling is crossed. Fails open (never blocks Q&A) if Redis itself is
+    unavailable — a cost guard must not become an availability outage.
+    """
+    from app.config import get_settings
+    from app.infrastructure.cache.client import get_redis
+
+    settings = get_settings()
+    today = _utcnow().strftime("%Y-%m-%d")
+    key = f"vision_qa:{student_user_id}:{today}"
+    try:
+        redis = get_redis()
+        count = await redis.incr(key)
+        if count == 1:
+            await redis.expire(key, 60 * 60 * 26)  # ~26h, safely past UTC midnight
+    except Exception as exc:
+        logger.warning("vision_qa_cost_guard_unavailable", error=str(exc))
+        return
+
+    if count > settings.VISION_QA_DAILY_SOFT_CEILING:
+        logger.warning(
+            "vision_qa_cost_guard_blocked",
+            student_user_id=student_user_id,
+            count=count,
+            ceiling=settings.VISION_QA_DAILY_SOFT_CEILING,
+        )
+        raise ValidationError(
+            f"Daily image-question limit reached ({settings.VISION_QA_DAILY_SOFT_CEILING})."
+            " Try again tomorrow, or ask without an attached image."
+        )
 
 
 def _badge_for_tier(tier: SourceTierName, book_name: str | None = None) -> str:
@@ -738,6 +775,8 @@ async def generate_and_store_answer(
         query = f"{query}\n{question.highlight_text}"
 
     attached_images = collect_attached_images(question, turns)
+    if attached_images:
+        await enforce_vision_cost_guard(question.student_user_id)
     curr, refs, web, no_coverage = await retrieve_qa_chunks(
         session, lecture=lecture, query=query, skip_web_fallback=bool(attached_images)
     )

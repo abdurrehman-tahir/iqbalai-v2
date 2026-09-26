@@ -63,4 +63,10 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "benchmark.update_weekly",
         "schedule": crontab(day_of_week=0, hour=20, minute=0),
     },
+    # M-13 student_question_image 1-year retention purge (T-166 / T-170).
+    # Daily is plenty for a year-long window; offset from the other daily sweeps.
+    "purge-expired-student-question-images": {
+        "task": "student_questions.purge_expired_question_images",
+        "schedule": crontab(hour=3, minute=30),
+    },
 }

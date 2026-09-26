@@ -23,6 +23,8 @@ from app.features.lectures.schemas import ParagraphSourceMetadata
 from app.features.lectures.service import LectureService
 from app.features.student_privacy.service import student_allows_teacher_share
 from app.features.student_questions.answer_pipeline import (
+    collect_attached_images,
+    enforce_vision_cost_guard,
     enqueue_answer_generation,
     stream_answer_for_question,
 )
@@ -484,7 +486,10 @@ class StudentQuestionService:
         """SSE token stream for Pattern S + ``lecture_qa_v1`` (T-158).
 
         Access checks run before the generator is returned so FastAPI can still
-        emit 403/404 instead of a half-open SSE body.
+        emit 403/404 instead of a half-open SSE body. The T-170 vision cost
+        guard runs here too (before any LLM call, and before the SSE body
+        starts) for the same reason — a 429/422 must land as a normal JSON
+        error response, not a half-open stream.
         """
         student = await self._require_student(claims)
         lecture = await self._require_accessible_lecture(student, lecture_id)
@@ -492,6 +497,11 @@ class StudentQuestionService:
             student, lecture_id=lecture_id, question_id=question_id
         )
         turns = await self._conversations.list_for_question(question_id)
+
+        if not question.answer_text:
+            attached_images = collect_attached_images(question, turns)
+            if attached_images:
+                await enforce_vision_cost_guard(question.student_user_id)
 
         # Keep the study session warm while the answer streams.
         study_session = await self._sessions.get_by_id(question.session_id)
