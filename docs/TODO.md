@@ -71,6 +71,13 @@ Each entry:
 - **Trigger to revisit:** When the design system PR is merged (target: before first government school onboarding).
 - **Status:** Not started
 
+### Flow 5 creation-chat migration onto `HybridInputWidget`
+- **Deferred from:** M-13 T-171 (`docs/backlog/M-13-hybrid-widget-vision.md`) — the hybrid text/voice/image widget's reuse contract.
+- **Why:** Flow 5's lecture-creation chat has its own, older input implementation that predates the T-155/M-12 canonical `HybridInputWidget` (`frontend/src/components/shared/HybridInputWidget/`). Migrating it now risks destabilizing working M-09 code for no functional gain this milestone.
+- **What it covers when revisited:** Replace Flow 5's bespoke chat input with `HybridInputWidget` (`allowImages` as appropriate), so there is truly one text/voice/image input implementation repo-wide per the §3.5 "ONE reusable widget" constraint. See `frontend/src/components/shared/HybridInputWidget/README.md` for the reuse contract and current consumers.
+- **Trigger to revisit:** Next time Flow 5's creation chat needs non-trivial input-layer changes, or a dedicated cleanup pass after M-13 ships.
+- **Status:** Not started
+
 ---
 
 ## Product / Features
@@ -181,3 +188,4 @@ The following items are deferred from launch per Flows 1-6 + Flow 13 spec set. G
 |---|---|---|
 | 2026-05-11 | Initial file. Sentry + backup strategy + Postgres replication + multi-region + auto-gen TS types + trained ML logged. | @abdurrehman (with Claude) |
 | 2026-05-14 | T0 batch: added 55+ spec-set deferrals (Flow 13 subscriptions full implementation, Custom Persona Phase 2+, Exam Framework expansion, Content Library Phase 2 features, Promotion workflow extensions, Independent user Phase 2, Lecture creation deferrals, Lecture consumption deferrals, i18n Phase 2, archival Phase 2, pre-launch legal review). | @abdurrehman (with Claude) |
+| 2026-09-26 | M-13 T-171: added Flow 5 creation-chat → `HybridInputWidget` migration as a tracked follow-up (not forced in M-13 per the reuse-contract ticket). | Claude |
