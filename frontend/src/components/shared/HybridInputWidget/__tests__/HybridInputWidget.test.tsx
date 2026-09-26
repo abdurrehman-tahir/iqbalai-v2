@@ -33,7 +33,11 @@ vi.mock("@/hooks/use-client-auth", () => ({
   useClientAuth: () => ({ mounted: true, token: "tok" }),
 }));
 
-const uploadImageMock = vi.fn();
+// vi.mock factories are hoisted — keep the mock fn in vi.hoisted so the factory
+// does not close over a temporal-dead-zone binding (Vitest requirement).
+const { uploadImageMock } = vi.hoisted(() => ({
+  uploadImageMock: vi.fn(),
+}));
 
 vi.mock("@/lib/api", () => ({
   studentVoiceApi: {
@@ -43,7 +47,6 @@ vi.mock("@/lib/api", () => ({
     upload: uploadImageMock,
   },
 }));
-
 function makeImageFile(name = "diagram.png", type = "image/png"): File {
   return new File(["fake-image-bytes"], name, { type });
 }

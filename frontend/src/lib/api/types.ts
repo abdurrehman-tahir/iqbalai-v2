@@ -121,43 +121,13 @@ export type LectureSessionRead = Schemas["LectureSessionRead"];
 export type LectureAudioAlignmentSpan = Schemas["LectureAudioAlignmentSpan"];
 export type LectureAudioCacheRead = Schemas["LectureAudioCacheRead"];
 export type LectureAudioRequest = Schemas["LectureAudioRequest"];
-// ── M-13 hybrid widget image + vision LLM (T-166/T-167/T-169) ────────────────
-// `schema.d.ts` has NOT been regenerated for these fields/types — no Node.js/
-// npm toolchain was available in the environment that implemented the T-166–
-// T-172 backend (A-002 fallback: "add typed interfaces carefully in
-// api/index.ts matching OpenAPI shapes"). These hand-written shapes mirror
-// `api/app/features/student_questions/schemas.py` exactly as of T-169.
-// TODO(M-13 follow-up): run `pnpm gen:api` once Node.js is available, delete
-// this block, and let `StudentQuestionCreateRequest` etc. come straight from
-// `Schemas` again.
-export interface AttachedImageRef {
-  storage_key: string;
-  mime_type: "image/jpeg" | "image/png" | "image/webp";
-  size_bytes: number;
-  upload_id?: string | null;
-}
-
-export interface StudentQuestionImageUploadRead {
-  upload_id: string;
-  storage_key: string;
-  mime_type: "image/jpeg" | "image/png" | "image/webp";
-  size_bytes: number;
-  retention_days: number;
-}
-
-export type StudentQuestionCreateRequest = Schemas["StudentQuestionCreateRequest"] & {
-  attached_images?: string[];
-};
-export type StudentQuestionFollowUpRequest = Schemas["StudentQuestionFollowUpRequest"] & {
-  attached_images?: string[];
-};
-export type ConversationTurnRead = Schemas["ConversationTurnRead"] & {
-  attached_images?: AttachedImageRef[];
-};
-export type StudentQuestionRead = Schemas["StudentQuestionRead"] & {
-  attached_images?: AttachedImageRef[];
-  conversations?: ConversationTurnRead[];
-};
+// ── M-13 hybrid widget image + vision LLM (A-002 generated via pnpm gen:api) ─
+export type AttachedImageRef = Schemas["AttachedImageRef"];
+export type StudentQuestionImageUploadRead = Schemas["StudentQuestionImageUploadRead"];
+export type StudentQuestionCreateRequest = Schemas["StudentQuestionCreateRequest"];
+export type StudentQuestionFollowUpRequest = Schemas["StudentQuestionFollowUpRequest"];
+export type ConversationTurnRead = Schemas["ConversationTurnRead"];
+export type StudentQuestionRead = Schemas["StudentQuestionRead"];
 export type StudentQuestionAnswerRead = Schemas["StudentQuestionAnswerRead"];
 export type QuestionClassification = Schemas["QuestionClassificationLiteral"];
 export type TeacherActivityShareRead = Schemas["TeacherActivityShareRead"];
