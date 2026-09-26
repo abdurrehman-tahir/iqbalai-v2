@@ -87,6 +87,13 @@ class Settings(BaseSettings):
     VA_MODEL: str = ""
     SCORING_MODEL: str = ""
 
+    # Vision-LLM routing (T-168, ARCH §8.22 / STACK_LOCK §4). Used whenever a
+    # chat call carries ``attached_images`` — a ~2-3x cost multiplier vs. the
+    # text model is accepted per Flow 6 §3.5. May be configured with a
+    # ``groq:`` provider prefix (stripped at resolve time) to mirror how some
+    # ops tooling names Groq-hosted models.
+    LLM_VISION_MODEL: str = "llama-3.2-90b-vision-preview"
+
     # Embeddings — infinity (prod) or local sentence-transformers (dev, low RAM)
     EMBEDDING_PROVIDER: str = "infinity"  # infinity | local
     EMBEDDING_MODEL: str = ""  # empty = provider default (BGE-M3 or MiniLM)
