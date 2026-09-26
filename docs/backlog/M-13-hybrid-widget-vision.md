@@ -8,19 +8,18 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** in progress — T-166–T-171 implemented + committed; T-172 (E2E spec) written but unexecuted (see note below); milestone PR not yet opened
+**Status:** in progress — T-166–T-171 done; T-172 E2E green (8/8 Playwright); milestone PR not yet opened
 **Estimated duration:** 2 weeks
 **Tickets:** T-166 through T-172
 
-> **Implementation note (2026-09-26).** T-166 through T-171 are implemented,
-> tested where the toolchain allowed, and committed as one git commit per
-> ticket (see PR description / commit log for SHAs). T-172's E2E spec
-> (`frontend/e2e/lecture-hybrid-vision-smoke.spec.ts`) is written to the
-> acceptance list below but **could not be executed** in the implementing
-> environment — no Node.js/npm/pnpm toolchain was available (backend pytest
-> ran successfully via a WSL Python/uv fallback; no equivalent existed for
-> the frontend Vitest/Playwright suites). Both need a real run in an
-> environment with Node.js before this milestone is demo-ready or PR'd.
+> **Implementation note (2026-09-26).** T-166 through T-171 are implemented and
+> committed (one git commit per ticket). Frontend verification completed after
+> Node.js/pnpm + Playwright Chromium were provisioned in WSL: Vitest/RTL full
+> suite green (362 passed), `pnpm typecheck` / `pnpm lint` / production build
+> green, OpenAPI/`schema.d.ts` regenerated, and T-172 Playwright smoke
+> (`frontend/e2e/lecture-hybrid-vision-smoke.spec.ts`) **8 passed**. Backend
+> pytest: 1345 passed / 3 skipped. Remaining T-172 step: open the milestone PR
+> `milestone/M-13-hybrid-widget-vision` → `staging` (not done yet).
 **Spec source:** `flow-6-student-studies-lecture.md` v1 §3.5 (hybrid text/voice/image input widget #57 — the image + vision portion)
 
 ## Goal
@@ -85,7 +84,7 @@ The second of four Flow 6 milestones. M-13 completes the hybrid input widget (#5
 **Layer:** 5
 **Milestone:** M-13
 **Estimate:** 2 days
-**Status:** done (implemented + Vitest/RTL tests added; not executed — no Node.js toolchain in the implementing environment)
+**Status:** done (implemented + Vitest/RTL executed green)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.5 (image-attach icon; drag-drop / paste / click; thumbnail chips; X to remove; 0-3 stack; combinable with text+voice)
@@ -154,7 +153,7 @@ The second of four Flow 6 milestones. M-13 completes the hybrid input widget (#5
 **Layer:** 5
 **Milestone:** M-13
 **Estimate:** 2 days
-**Status:** done (backend verified via pytest; frontend threading implemented, not executed — no Node.js toolchain in the implementing environment)
+**Status:** done (backend verified via pytest; frontend threading implemented + Vitest/Playwright green)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.4 + §3.5 (image-bearing questions flow through the #56 answer panel; multi-turn)
@@ -253,7 +252,7 @@ The second of four Flow 6 milestones. M-13 completes the hybrid input widget (#5
 **Layer:** 6
 **Milestone:** M-13
 **Estimate:** 1.5 days
-**Status:** partial — E2E spec written (`frontend/e2e/lecture-hybrid-vision-smoke.spec.ts`), covers the full acceptance list below, but **could not be run** in the implementing environment (no Node.js/Playwright runtime available). Milestone PR not opened (out of scope for this pass per task constraints). Needs a real Playwright run + the PR step before this ticket can close.
+**Status:** partial — E2E green (`frontend/e2e/lecture-hybrid-vision-smoke.spec.ts`, **8 passed**); milestone PR not opened yet (push + PR remain).
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.5
@@ -270,7 +269,7 @@ The second of four Flow 6 milestones. M-13 completes the hybrid input widget (#5
 
 ### Acceptance (demo script)
 
-1. [ ] E2E green (vision/STT/upload mocked; no live network) — **spec written, unrun** (no Node.js/Playwright in the implementing environment)
+1. [x] E2E green (vision/STT/upload mocked; no live network) — **8 passed** (`lecture-hybrid-vision-smoke.spec.ts`)
 2. [x] Asserts format/size/count rejection (EXIF strip + per-tenant scope are backend-only concerns already covered by T-166/T-170 pytest, not re-asserted client-side in this spec)
 3. [x] Asserts vision-vs-text routing signal (`attached_images` threaded vs. omitted) + combined text/voice/image submit
 4. [ ] Asserts #72 + cost guard — out of scope for this browser-level spec (already covered by T-170 backend pytest: `test_answer_pipeline.py` cost-guard tests, `test_service.py` #72 tests, `test_image_retention_purge.py`); not re-asserted at the E2E layer

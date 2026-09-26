@@ -27,7 +27,7 @@
 | M-10 | Lecture Edit + Versions + 7-Dim Scoring | 4 | T-129 to T-140 | ~3-4 days | done | Teacher edits lecture; sees score timeline + Innovation Record suggestions |
 | M-11 | Auto-quiz Per Student + Publish Lecture | 4 | T-141 to T-150 | ~2-3 days | done | Lecture publishes; auto-quizzes generate per student; students see quizzes |
 | M-12 | Lecture Mode Viewer + Highlight + Q&A + Voice | 5 | T-151 to T-165 | ~1.5 weeks | drafted | Student opens lecture; voice-reads; highlights; asks questions w/ AI answers |
-| M-13 | Hybrid Widget + Multimodal Image + Vision LLM | 5 | T-166 to T-172 | ~2-3 days | drafted | Student attaches image to question; gets vision-LLM answer |
+| M-13 | Hybrid Widget + Multimodal Image + Vision LLM | 5 | T-166 to T-172 | ~2-3 days | in-progress | Student attaches image to question; gets vision-LLM answer |
 | M-14 | Live Feedback Panel + NATS Event Pipeline + Adaptation | 5 | T-173 to T-184 | ~1 week | drafted | Live feedback updates; stuck nudge fires; AI adapts angle on repeat |
 | M-15 | Flashcards + Concept Enrichment + Lecture Rating | 5 | T-185 to T-194 | ~2-3 days | drafted | Highlights become flashcards; concepts have career links; ratings flow to teacher |
 | M-16 | Next-Day Review (Flow 7) | 6 | T-195 to T-208 | ~3-4 days | drafted | Teacher gets next-day review; publishes targeted mini-lecture |
