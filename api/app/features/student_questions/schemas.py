@@ -21,7 +21,7 @@ class ConversationRoleLiteral(StrEnum):
 
 
 class StudentQuestionCreateRequest(BaseModel):
-    """Submit a highlight-triggered (or free-form) question (T-156)."""
+    """Submit a highlight-triggered (or free-form) question (T-156 / T-169)."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -30,14 +30,40 @@ class StudentQuestionCreateRequest(BaseModel):
     paragraph_id: str | None = Field(default=None, min_length=1, max_length=36)
     source_chunk_id: str | None = Field(default=None, max_length=128)
     question_language: Literal["en", "ur", "sd", "ps"] = "en"
+    # MinIO keys from student_question_image uploads (T-166 / T-169). Max 3.
+    attached_images: list[str] = Field(default_factory=list, max_length=3)
 
 
 class StudentQuestionFollowUpRequest(BaseModel):
-    """Append a user follow-up turn to an existing conversation (T-160)."""
+    """Append a user follow-up turn to an existing conversation (T-160 / T-169)."""
 
     model_config = ConfigDict(extra="forbid")
 
     content: str = Field(min_length=1, max_length=4000)
+    attached_images: list[str] = Field(default_factory=list, max_length=3)
+
+
+class AttachedImageRef(BaseModel):
+    """One image reference stored on a question / conversation turn (T-166)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    storage_key: str = Field(min_length=1, max_length=1000)
+    mime_type: Literal["image/jpeg", "image/png", "image/webp"]
+    size_bytes: int = Field(ge=1)
+    upload_id: str | None = Field(default=None, max_length=36)
+
+
+class StudentQuestionImageUploadRead(BaseModel):
+    """Response after a successful student_question_image ingest (T-166)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    upload_id: str
+    storage_key: str
+    mime_type: Literal["image/jpeg", "image/png", "image/webp"]
+    size_bytes: int
+    retention_days: int = 365
 
 
 class ConversationTurnRead(BaseModel):
@@ -47,6 +73,7 @@ class ConversationTurnRead(BaseModel):
     role: ConversationRoleLiteral
     content: str
     source_tags_jsonb: list[object] | dict[str, object] | None = None
+    attached_images: list[AttachedImageRef] = Field(default_factory=list)
     created_at: datetime
 
 
@@ -64,6 +91,7 @@ class StudentQuestionRead(BaseModel):
     classification: QuestionClassificationLiteral
     answer_text: str | None = None
     answer_source_tags_jsonb: list[object] | dict[str, object] | None = None
+    attached_images: list[AttachedImageRef] = Field(default_factory=list)
     asked_at: datetime
     answered_at: datetime | None = None
     conversations: list[ConversationTurnRead] = Field(default_factory=list)

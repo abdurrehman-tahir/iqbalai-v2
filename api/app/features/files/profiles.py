@@ -20,6 +20,10 @@ class UploadProfile:
     magic_bytes: list[bytes]  # first N bytes that must match for validation
     max_size_bytes: int
     description: str = ""
+    # When True, the upload pipeline re-encodes the image and strips EXIF (T-166).
+    strip_exif: bool = False
+    # Soft retention hint for purge jobs (None = indefinite). Days since created_at.
+    retention_days: int | None = None
 
 
 # ── Profile registry ──────────────────────────────────────────────────────────
@@ -80,6 +84,26 @@ LECTURE_IMAGE = UploadProfile(
     description="Teacher-embedded image in the lecture TipTap editor (Flow 5 §3.5, T-132)",
 )
 
+# WEBP uses a sentinel magic token (see pipeline._validate_magic_bytes) because
+# the RIFF container header alone is not format-specific — we also check bytes 8-11.
+_WEBP_MAGIC_SENTINEL = b"WEBP"
+
+STUDENT_QUESTION_IMAGE = UploadProfile(
+    name="student_question_image",
+    bucket="images",
+    key_prefix="student-question-image",
+    allowed_mime_types=frozenset({"image/jpeg", "image/png", "image/webp"}),
+    magic_bytes=[b"\xff\xd8\xff", b"\x89PNG\r\n\x1a\n", _WEBP_MAGIC_SENTINEL],
+    max_size_bytes=5 * 1024 * 1024,  # 5 MB per ARCH §11.19
+    description=(
+        "Student-attached image on a lecture Q&A question (Flow 6 §3.5 / T-166). "
+        "JPEG/PNG/WEBP only; GIF rejected; EXIF stripped; 1-year retention; "
+        "max 3 images per question enforced at submit."
+    ),
+    strip_exif=True,
+    retention_days=365,
+)
+
 BULK_IMPORT = UploadProfile(
     name="bulk_import",
     bucket="imports",
@@ -103,8 +127,12 @@ _REGISTRY: dict[str, UploadProfile] = {
     SCHOOL_LIBRARY_CONTENT.name: SCHOOL_LIBRARY_CONTENT,
     INDEPENDENT_PERSONAL_CONTENT.name: INDEPENDENT_PERSONAL_CONTENT,
     LECTURE_IMAGE.name: LECTURE_IMAGE,
+    STUDENT_QUESTION_IMAGE.name: STUDENT_QUESTION_IMAGE,
     BULK_IMPORT.name: BULK_IMPORT,
 }
+
+# Soft limit: max images attachable to one student question (ARCH §11.19 / §8.22).
+STUDENT_QUESTION_IMAGE_MAX_PER_QUESTION = 3
 
 
 def get_profile(name: str) -> UploadProfile:

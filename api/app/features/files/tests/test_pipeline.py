@@ -27,6 +27,19 @@ def test_list_profiles_includes_independent_personal_content() -> None:
     assert "independent_personal_content" in list_profiles()
 
 
+def test_list_profiles_includes_student_question_image() -> None:
+    assert "student_question_image" in list_profiles()
+
+
+def test_get_profile_student_question_image() -> None:
+    profile = get_profile("student_question_image")
+    assert profile.max_size_bytes == 5 * 1024 * 1024
+    assert profile.strip_exif is True
+    assert profile.retention_days == 365
+    assert "image/webp" in profile.allowed_mime_types
+    assert "image/gif" not in profile.allowed_mime_types
+
+
 def test_get_profile_independent_personal_content() -> None:
     profile = get_profile("independent_personal_content")
     assert profile.max_size_bytes == 100 * 1024 * 1024
