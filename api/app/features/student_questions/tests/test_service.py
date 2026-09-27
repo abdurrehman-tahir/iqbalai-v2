@@ -24,7 +24,7 @@ def _student(**overrides: object) -> User:
         "school_id": "school-1",
     }
     defaults.update(overrides)
-    return User(**defaults)  # type: ignore[arg-type]
+    return User(**defaults)
 
 
 def test_question_to_read_includes_attached_images() -> None:

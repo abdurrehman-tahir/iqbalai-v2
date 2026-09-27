@@ -75,7 +75,7 @@ def strip_exif_metadata(data: bytes) -> bytes:
     if fmt is None:
         return data
     try:
-        from PIL import Image  # type: ignore[import-untyped]
+        from PIL import Image
     except ImportError as exc:  # pragma: no cover — pdfplumber pulls Pillow in
         raise RuntimeError("Pillow is required to strip EXIF from student images") from exc
 
@@ -84,14 +84,12 @@ def strip_exif_metadata(data: bytes) -> bytes:
         cleaned = Image.new(img.mode, img.size)
         cleaned.putdata(list(img.getdata()))
         out = io.BytesIO()
-        save_kwargs: dict[str, object] = {"format": fmt}
         if fmt == "JPEG":
             if cleaned.mode not in ("RGB", "L"):
                 cleaned = cleaned.convert("RGB")
-            save_kwargs["quality"] = 92
-            save_kwargs["optimize"] = True
-            save_kwargs["exif"] = b""
-        cleaned.save(out, **save_kwargs)
+            cleaned.save(out, format=fmt, quality=92, optimize=True, exif=b"")
+        else:
+            cleaned.save(out, format=fmt)
         return out.getvalue()
 
 
