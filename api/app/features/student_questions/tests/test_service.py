@@ -91,9 +91,7 @@ async def test_resolve_attached_images_scopes_lookup_by_school_and_owner() -> No
     service = StudentQuestionService(AsyncMock())
     captured: dict[str, object] = {}
 
-    async def _get_owned(
-        storage_key: str, *, tenant_scope_id: str, uploaded_by: str
-    ) -> MagicMock:
+    async def _get_owned(storage_key: str, *, tenant_scope_id: str, uploaded_by: str) -> MagicMock:
         captured["tenant_scope_id"] = tenant_scope_id
         captured["uploaded_by"] = uploaded_by
         record = MagicMock()
@@ -123,9 +121,7 @@ async def test_resolve_attached_images_independent_student_scoped_by_own_user_id
     service = StudentQuestionService(AsyncMock())
     captured: dict[str, object] = {}
 
-    async def _get_owned(
-        storage_key: str, *, tenant_scope_id: str, uploaded_by: str
-    ) -> MagicMock:
+    async def _get_owned(storage_key: str, *, tenant_scope_id: str, uploaded_by: str) -> MagicMock:
         captured["tenant_scope_id"] = tenant_scope_id
         record = MagicMock()
         record.minio_key = storage_key

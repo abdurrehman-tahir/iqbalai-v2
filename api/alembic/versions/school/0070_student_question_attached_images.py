@@ -33,16 +33,12 @@ _SCHEMA = "school"
 def upgrade() -> None:
     op.add_column(
         "student_questions",
-        sa.Column(
-            "attached_images_jsonb", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("attached_images_jsonb", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         schema=_SCHEMA,
     )
     op.add_column(
         "student_question_conversations",
-        sa.Column(
-            "attached_images_jsonb", postgresql.JSONB(astext_type=sa.Text()), nullable=True
-        ),
+        sa.Column("attached_images_jsonb", postgresql.JSONB(astext_type=sa.Text()), nullable=True),
         schema=_SCHEMA,
     )
 

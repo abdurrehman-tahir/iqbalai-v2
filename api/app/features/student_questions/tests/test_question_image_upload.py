@@ -116,9 +116,7 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeSession.records = {}
     _FakeSession.audit_entries = []
     _pipeline_calls.clear()
-    monkeypatch.setattr(
-        "app.features.student_questions.image_upload.UserRepository", _FakeUserRepo
-    )
+    monkeypatch.setattr("app.features.student_questions.image_upload.UserRepository", _FakeUserRepo)
     monkeypatch.setattr(
         "app.features.student_questions.image_upload.run_upload_pipeline",
         _fake_run_upload_pipeline,
@@ -242,9 +240,7 @@ async def test_upload_rejects_oversized(
     async def _reject(**kwargs: Any) -> UploadInitiated:
         raise ValueError("File size 6000000 bytes exceeds limit of 5242880 bytes")
 
-    monkeypatch.setattr(
-        "app.features.student_questions.image_upload.run_upload_pipeline", _reject
-    )
+    monkeypatch.setattr("app.features.student_questions.image_upload.run_upload_pipeline", _reject)
     res = await client.post(
         "/api/v1/students/me/question-images",
         files={"image": ("huge.jpg", _JPEG_SOI + b"0" * 100, "image/jpeg")},
@@ -281,6 +277,4 @@ async def test_independent_student_scoped_to_user_id(
     )
     assert res.status_code == 201
     assert _pipeline_calls[0]["school_id"] == "ind-student-1"
-    assert res.json()["data"]["storage_key"].startswith(
-        "student-question-image/ind-student-1/"
-    )
+    assert res.json()["data"]["storage_key"].startswith("student-question-image/ind-student-1/")

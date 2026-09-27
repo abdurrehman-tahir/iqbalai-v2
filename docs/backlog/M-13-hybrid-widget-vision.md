@@ -252,7 +252,7 @@ The second of four Flow 6 milestones. M-13 completes the hybrid input widget (#5
 **Layer:** 6
 **Milestone:** M-13
 **Estimate:** 1.5 days
-**Status:** partial — E2E green (`frontend/e2e/lecture-hybrid-vision-smoke.spec.ts`, **8 passed**); milestone PR not opened yet (push + PR remain).
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.5

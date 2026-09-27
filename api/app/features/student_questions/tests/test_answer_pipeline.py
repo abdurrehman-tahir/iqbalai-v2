@@ -362,9 +362,7 @@ async def test_enforce_vision_cost_guard_allows_under_ceiling(
     fake_redis = AsyncMock()
     fake_redis.incr = AsyncMock(return_value=1)
     fake_redis.expire = AsyncMock(return_value=True)
-    monkeypatch.setattr(
-        "app.infrastructure.cache.client.get_redis", lambda: fake_redis
-    )
+    monkeypatch.setattr("app.infrastructure.cache.client.get_redis", lambda: fake_redis)
     await pipeline.enforce_vision_cost_guard("stu-1")
     fake_redis.incr.assert_awaited()
 
@@ -375,9 +373,7 @@ async def test_enforce_vision_cost_guard_blocks_over_ceiling(
 ) -> None:
     fake_redis = AsyncMock()
     fake_redis.incr = AsyncMock(return_value=21)  # > default ceiling of 20
-    monkeypatch.setattr(
-        "app.infrastructure.cache.client.get_redis", lambda: fake_redis
-    )
+    monkeypatch.setattr("app.infrastructure.cache.client.get_redis", lambda: fake_redis)
     with pytest.raises(ValidationError) as exc_info:
         await pipeline.enforce_vision_cost_guard("stu-1")
     assert "limit" in str(exc_info.value).lower()
@@ -406,9 +402,7 @@ async def test_audit_vision_routed_writes_audit_entry(
     session.add = MagicMock(side_effect=lambda obj: added.append(obj))
     session.commit = AsyncMock()
 
-    await pipeline._audit_vision_routed(
-        session, question=question, lecture=lecture, image_count=2
-    )
+    await pipeline._audit_vision_routed(session, question=question, lecture=lecture, image_count=2)
 
     assert len(added) == 1
     entry = added[0]
@@ -427,9 +421,7 @@ async def test_audit_vision_routed_never_raises_on_failure(
     session.add = MagicMock(side_effect=RuntimeError("db down"))
 
     # Must not raise — audit failures must never block Q&A.
-    await pipeline._audit_vision_routed(
-        session, question=question, lecture=lecture, image_count=1
-    )
+    await pipeline._audit_vision_routed(session, question=question, lecture=lecture, image_count=1)
 
 
 @pytest.mark.asyncio
@@ -522,9 +514,7 @@ async def test_stream_answer_passes_attached_images_to_stream_chat(
     ):
         tokens.append(tok)
 
-    assert captured["attached_images"] == [
-        "student-question-image/s/2026/01/01/u1/a.jpg"
-    ]
+    assert captured["attached_images"] == ["student-question-image/s/2026/01/01/u1/a.jpg"]
 
 
 @pytest.mark.asyncio

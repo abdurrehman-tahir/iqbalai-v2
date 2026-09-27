@@ -207,9 +207,7 @@ class StudentQuestionService:
                 key, tenant_scope_id=tenant_scope_id, uploaded_by=student.id
             )
             if record is None:
-                raise ValidationError(
-                    "Attached image not found, or not owned by this student"
-                )
+                raise ValidationError("Attached image not found, or not owned by this student")
             refs.append(
                 AttachedImageRef(
                     storage_key=record.minio_key,

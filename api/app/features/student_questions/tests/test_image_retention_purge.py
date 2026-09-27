@@ -46,9 +46,7 @@ async def test_purge_async_deletes_expired_uploads(monkeypatch: pytest.MonkeyPat
     async def _fake_purge(_session: Any, record: Any) -> None:
         purge_calls.append(record)
 
-    monkeypatch.setattr(
-        "app.features.student_questions.tasks.purge_expired_upload", _fake_purge
-    )
+    monkeypatch.setattr("app.features.student_questions.tasks.purge_expired_upload", _fake_purge)
 
     result = await _purge_expired_question_images_async(AsyncMock())
 
@@ -80,12 +78,8 @@ async def test_purge_uses_365_day_retention_cutoff(monkeypatch: pytest.MonkeyPat
         captured["cutoff"] = cutoff
         return []
 
-    monkeypatch.setattr(
-        "app.features.student_questions.tasks.list_expired_uploads", _fake_list
-    )
-    monkeypatch.setattr(
-        "app.features.student_questions.tasks.purge_expired_upload", AsyncMock()
-    )
+    monkeypatch.setattr("app.features.student_questions.tasks.list_expired_uploads", _fake_list)
+    monkeypatch.setattr("app.features.student_questions.tasks.purge_expired_upload", AsyncMock())
 
     await _purge_expired_question_images_async(AsyncMock())
 

@@ -90,9 +90,7 @@ async def test_list_expired_uploads_queries_by_profile_and_cutoff() -> None:
     session.execute = AsyncMock(return_value=execute_result)
 
     cutoff = datetime.now(timezone.utc) - timedelta(days=365)
-    rows = await list_expired_uploads(
-        session, profile_name="student_question_image", cutoff=cutoff
-    )
+    rows = await list_expired_uploads(session, profile_name="student_question_image", cutoff=cutoff)
 
     assert rows == [fake_row]
     session.execute.assert_awaited_once()

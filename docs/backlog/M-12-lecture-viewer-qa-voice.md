@@ -177,7 +177,7 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 2.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.5 (single reusable component; text + voice paths; live transcription)
