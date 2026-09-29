@@ -51,6 +51,38 @@ SYSTEM_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    "system.event_pipeline_lag": {
+        "default": {
+            "en": {
+                "title": "Event pipeline lag",
+                "body": (
+                    "Durable consumer '{durable_name}' is lagging "
+                    "{lag_seconds}s behind the stream (threshold exceeded)."
+                ),
+            },
+            "ur": {
+                "title": "ایونٹ پائپ لائن تاخیر",
+                "body": (
+                    "کنزیومر '{durable_name}' اسٹریم سے {lag_seconds} سیکنڈ پیچھے ہے "
+                    "(حد سے تجاوز)."
+                ),
+            },
+            "sd": {
+                "title": "ايونٽ پائپ لائن دير",
+                "body": (
+                    "ڪنزومر '{durable_name}' اسٽريم کان {lag_seconds} سيڪنڊ پٺتي آهي "
+                    "(حد کان وڌي ويو)."
+                ),
+            },
+            "ps": {
+                "title": "د پیښو پایپلاین ځنډ",
+                "body": (
+                    "د '{durable_name}' مصرف کوونکی د جریان څخه {lag_seconds} ثانیې وروسته دی "
+                    "(حد تېره شوې)."
+                ),
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {

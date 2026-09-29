@@ -13,9 +13,11 @@ from app.features.lectures.independent_ws_voice_router import (
 )
 from app.features.lectures.ws_router import router as lecture_generation_ws_router
 from app.features.lectures.ws_voice_router import router as lecture_voice_ws_router
+from app.features.live_feedback.ws_router import router as live_feedback_ws_router
 
 router = APIRouter()
 
 router.include_router(lecture_generation_ws_router)
 router.include_router(lecture_voice_ws_router)
 router.include_router(independent_lecture_voice_ws_router)
+router.include_router(live_feedback_ws_router)
