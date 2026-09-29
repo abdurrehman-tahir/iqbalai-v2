@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** in_progress
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-173 through T-184
 **Spec source:** `flow-6-student-studies-lecture.md` v1 §3.7 (live feedback panel #59), §3.8 (NATS JetStream event pipeline #60), §3.9 (per-session AI teaching adaptation #61)
