@@ -87,9 +87,7 @@ def upgrade() -> None:
 
 
 def downgrade() -> None:
-    op.drop_index(
-        "ix_ind_student_events_occurred_at", table_name="student_events", schema=_SCHEMA
-    )
+    op.drop_index("ix_ind_student_events_occurred_at", table_name="student_events", schema=_SCHEMA)
     op.drop_index("ix_ind_student_events_event_type", table_name="student_events", schema=_SCHEMA)
     op.drop_index("ix_ind_student_events_session_id", table_name="student_events", schema=_SCHEMA)
     op.drop_index("ix_ind_student_events_user_id", table_name="student_events", schema=_SCHEMA)

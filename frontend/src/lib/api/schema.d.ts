@@ -2457,6 +2457,26 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/lectures/sessions/{session_id}/events": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /**
+         * Emit student.lecture scroll/page_change/mode_switch (T-173)
+         * @description Accept interaction events and publish to NATS (owner session only).
+         */
+        post: operations["post_student_lecture_interaction_event"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/lectures/sessions/{session_id}/mode": {
         parameters: {
             query?: never;
@@ -5118,6 +5138,31 @@ export interface components {
             /** Image Url */
             image_url: string;
         };
+        /** LectureInteractionEventIn */
+        LectureInteractionEventIn: {
+            /**
+             * Event Type
+             * @enum {string}
+             */
+            event_type: "scroll" | "page_change" | "mode_switch";
+            /** Lecture Id */
+            lecture_id?: string | null;
+            /** Mode */
+            mode?: string | null;
+            /** Page Id */
+            page_id?: string | null;
+            /** Paragraph Id */
+            paragraph_id?: string | null;
+            /** Scroll Y */
+            scroll_y?: number | null;
+        };
+        /** LectureInteractionEventOut */
+        LectureInteractionEventOut: {
+            /** Accepted */
+            accepted: boolean;
+            /** Event Type */
+            event_type: string;
+        };
         /**
          * LectureLinkCreate
          * @description Self-link a lecture into another Grade-Subject offering the teacher owns (T-122).
@@ -6860,6 +6905,15 @@ export interface components {
         /** SuccessEnvelope[LectureImageUploadRead] */
         SuccessEnvelope_LectureImageUploadRead_: {
             data: components["schemas"]["LectureImageUploadRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[LectureInteractionEventOut] */
+        SuccessEnvelope_LectureInteractionEventOut_: {
+            data: components["schemas"]["LectureInteractionEventOut"];
             /**
              * Message
              * @default ok
@@ -13350,6 +13404,41 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_LectureSessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    post_student_lecture_interaction_event: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureInteractionEventIn"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureInteractionEventOut_"];
                 };
             };
             /** @description Validation Error */

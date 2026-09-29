@@ -1,7 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { render, screen, fireEvent } from "@testing-library/react";
 import { NextIntlClientProvider } from "next-intl";
-import en from "../../../../../messages/en/common.json";
+import en from "../../../../../../messages/en/common.json";
 import { LiveFeedbackPanel, StuckNudge } from "../LiveFeedbackPanel";
 
 function wrap(ui: React.ReactElement) {

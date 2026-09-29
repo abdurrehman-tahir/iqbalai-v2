@@ -123,9 +123,7 @@ async def live_feedback_ws(websocket: WebSocket) -> None:
     except Exception as exc:
         logger.warning("live_feedback_ws_error", user_id=user_id, error=str(exc))
         with contextlib.suppress(Exception):
-            await websocket.send_json(
-                build_message(EVENT_ERROR, {"reason": "internal_error"})
-            )
+            await websocket.send_json(build_message(EVENT_ERROR, {"reason": "internal_error"}))
     finally:
         heartbeat_task.cancel()
         with contextlib.suppress(asyncio.CancelledError):

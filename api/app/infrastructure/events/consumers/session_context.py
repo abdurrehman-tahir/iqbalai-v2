@@ -35,9 +35,7 @@ async def handle_session_context_event(envelope: dict[str, Any]) -> None:
 
     source_chunk_id = payload.get("source_chunk_id")
     lecture_id = str(envelope.get("lecture_id") or payload.get("lecture_id") or "") or None
-    paragraph_id = (
-        str(payload.get("paragraph_id")) if payload.get("paragraph_id") else None
-    )
+    paragraph_id = str(payload.get("paragraph_id")) if payload.get("paragraph_id") else None
     tenant_type = str(envelope.get("tenant_type") or "school")
 
     async with async_session_factory() as session:

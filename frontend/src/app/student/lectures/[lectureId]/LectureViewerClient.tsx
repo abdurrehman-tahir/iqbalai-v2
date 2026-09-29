@@ -496,7 +496,7 @@ export function LectureViewerClient({ lectureId }: Props) {
       />
 
       <LiveFeedbackPanel
-        sessionId={sessionIdRef.current}
+        sessionId={viewerQuery.data?.session.id ?? sessionIdRef.current}
         metrics={liveMetrics}
         collapsed={feedbackCollapsed}
         onToggleCollapsed={() => {

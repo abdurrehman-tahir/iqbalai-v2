@@ -249,9 +249,7 @@ class LectureSessionService:
                 "student_user_id": student.id,
                 "school_id": student.school_id or "",
                 "tenant_type": "school",
-                "mode": saved.mode.value
-                if hasattr(saved.mode, "value")
-                else str(saved.mode),
+                "mode": saved.mode.value if hasattr(saved.mode, "value") else str(saved.mode),
             }
         )
         return _to_read(saved)

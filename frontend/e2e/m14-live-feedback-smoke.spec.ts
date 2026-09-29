@@ -73,22 +73,27 @@ async function installMocks(page: Page) {
       return;
     }
 
-    if (method === "GET" && path === `/students/me/lectures/lec-m14`) {
+    // openViewer → POST /students/me/lectures/{id}/open (StudentLectureViewerRead)
+    if (method === "POST" && path === "/students/me/lectures/lec-m14/open") {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
         body: envelope({
-          lecture: {
-            id: "lec-m14",
-            title: "M-14 Live Feedback Lecture",
-            topic: "Adaptation",
-            status: "published",
-          },
+          lecture_id: "lec-m14",
+          title: "M-14 Live Feedback Lecture",
+          topic: "Adaptation",
+          current_version_id: "ver-m14",
+          language: null,
           session: {
             id: "sess-m14",
             lecture_id: "lec-m14",
-            status: "active",
+            student_user_id: "stu-1",
+            tenant_type: "school",
             mode: "text",
+            status: "active",
+            opened_at: "2026-09-21T12:00:00Z",
+            last_activity_at: "2026-09-21T12:00:00Z",
+            ended_at: null,
           },
           paragraphs: [
             {
@@ -97,6 +102,7 @@ async function installMocks(page: Page) {
               text: "Force equals mass times acceleration.",
               tier: "curriculum",
               book_name: null,
+              source_url: null,
             },
           ],
         }),
@@ -113,16 +119,26 @@ async function installMocks(page: Page) {
       return;
     }
 
-    if (path.includes("/sessions/") && path.endsWith("/touch")) {
+    if (path.includes("/sessions/") && path.endsWith("/activity")) {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: envelope({ id: "sess-m14", status: "active", mode: "text" }),
+        body: envelope({
+          id: "sess-m14",
+          lecture_id: "lec-m14",
+          student_user_id: "stu-1",
+          tenant_type: "school",
+          mode: "text",
+          status: "active",
+          opened_at: "2026-09-21T12:00:00Z",
+          last_activity_at: "2026-09-21T12:01:00Z",
+          ended_at: null,
+        }),
       });
       return;
     }
 
-    if (path.includes("/questions") && method === "GET") {
+    if (method === "GET" && path === "/students/me/lectures/lec-m14/questions") {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
@@ -147,44 +163,21 @@ async function installMocks(page: Page) {
     });
   });
 
-  // Stub WebSocket: inject metrics after connect via page evaluation helper.
-  await page.addInitScript(() => {
-    class FakeWS {
-      static OPEN = 1;
-      readyState = 1;
-      onmessage: ((ev: MessageEvent) => void) | null = null;
-      onclose: (() => void) | null = null;
-      onopen: (() => void) | null = null;
-      constructor(public url: string) {
-        queueMicrotask(() => {
-          this.onopen?.(new Event("open") as unknown as void);
-          // Simulate 2+ minutes activity + stuck nudge once.
-          this.onmessage?.(
-            new MessageEvent("message", {
-              data: JSON.stringify({
-                type: "live_feedback_update",
-                payload: {
-                  panel_visible: true,
-                  time_on_topic_seconds: 150,
-                  questions_asked_this_session: 0,
-                  mastery_estimate: null,
-                  daily_goal_status: null,
-                  stuck_nudge: { should_show: true, seconds_on_page: 700 },
-                },
-              }),
-            }),
-          );
-        });
-      }
-      send() {}
-      close() {
-        this.onclose?.();
-      }
-      addEventListener() {}
-      removeEventListener() {}
-    }
-    // @ts-expect-error test double
-    window.WebSocket = FakeWS;
+  // Mock live-feedback WebSocket — push metrics once the client connects.
+  await page.routeWebSocket(/\/ws\/v1\/live-feedback/, (ws) => {
+    ws.send(
+      JSON.stringify({
+        type: "live_feedback_update",
+        payload: {
+          panel_visible: true,
+          time_on_topic_seconds: 150,
+          questions_asked_this_session: 0,
+          mastery_estimate: null,
+          daily_goal_status: null,
+          stuck_nudge: { should_show: true, seconds_on_page: 700 },
+        },
+      }),
+    );
   });
 }
 
@@ -193,6 +186,7 @@ test.describe("M-14 live feedback smoke @smoke @mock", () => {
     await installMocks(page);
     await page.goto("/student/lectures/lec-m14");
 
+    await expect(page.getByTestId("lecture-viewer")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("live-feedback-panel")).toBeVisible({ timeout: 15_000 });
     await expect(page.getByTestId("live-feedback-questions")).toHaveText("0");
 

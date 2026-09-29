@@ -69,6 +69,4 @@ async def post_interaction_event(
         await publish_page_change(payload=payload)
     else:
         await publish_mode_switch(payload=payload)
-    return success(
-        LectureInteractionEventOut(accepted=True, event_type=body.event_type)
-    )
+    return success(LectureInteractionEventOut(accepted=True, event_type=body.event_type))

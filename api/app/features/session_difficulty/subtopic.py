@@ -55,8 +55,7 @@ async def resolve_sub_topic_id(
 
     if source_chunk_id:
         stmt = select(SchoolLectureParagraph).where(
-            SchoolLectureParagraph.source_metadata_jsonb["chunk_id"].astext
-            == source_chunk_id
+            SchoolLectureParagraph.source_metadata_jsonb["chunk_id"].astext == source_chunk_id
         )
         result = await session.execute(stmt.limit(1))
         para = result.scalar_one_or_none()

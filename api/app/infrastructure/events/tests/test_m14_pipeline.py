@@ -207,16 +207,12 @@ async def test_pipeline_lag_alert_fires() -> None:
     assert isinstance(state, ConsumerLagState)
 
     with (
-        patch(
-            "app.infrastructure.events.consumers.lag_monitor.get_settings"
-        ) as gs,
+        patch("app.infrastructure.events.consumers.lag_monitor.get_settings") as gs,
         patch(
             "app.infrastructure.events.consumers.lag_monitor.publish",
             new_callable=AsyncMock,
         ) as pub,
-        patch(
-            "app.infrastructure.events.consumers.lag_monitor.async_session_factory"
-        ) as factory,
+        patch("app.infrastructure.events.consumers.lag_monitor.async_session_factory") as factory,
         patch(
             "app.infrastructure.events.consumers.lag_monitor.notify_all_platform_admins",
             new_callable=AsyncMock,
@@ -252,9 +248,7 @@ async def test_pipeline_lag_alert_fires() -> None:
 async def test_dual_publish_alias_on_question_asked() -> None:
     from app.features.lectures.events import publish_student_lecture_event
 
-    with patch(
-        "app.features.lectures.events.publish", new_callable=AsyncMock
-    ) as pub:
+    with patch("app.features.lectures.events.publish", new_callable=AsyncMock) as pub:
         await publish_student_lecture_event(
             event_type="student.question.asked",
             payload={
