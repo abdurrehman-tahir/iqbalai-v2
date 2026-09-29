@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import asyncio
 import contextlib
+from typing import Any
 
 import structlog
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -90,7 +91,9 @@ async def live_feedback_ws(websocket: WebSocket) -> None:
                     recv_task = asyncio.create_task(
                         websocket.receive_json(),
                     )
-                    msg_task = asyncio.create_task(anext(messages))  # type: ignore[arg-type]
+                    msg_task: asyncio.Task[Any] = asyncio.create_task(
+                        anext(messages)  # type: ignore[arg-type]
+                    )
                     done, pending = await asyncio.wait(
                         {recv_task, msg_task},
                         timeout=HEARTBEAT_TIMEOUT_SECONDS,
@@ -128,5 +131,5 @@ async def live_feedback_ws(websocket: WebSocket) -> None:
         heartbeat_task.cancel()
         with contextlib.suppress(asyncio.CancelledError):
             await heartbeat_task
-        await connection_manager.disconnect(connection_id)
+        connection_manager.disconnect(connection_id, user_id=user_id)
         await _close_quietly(websocket, 1000)

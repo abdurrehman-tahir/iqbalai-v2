@@ -48,7 +48,7 @@ async def post_interaction_event(
     body: LectureInteractionEventIn,
     claims: dict[str, Any] = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-) -> SuccessEnvelope[LectureInteractionEventOut]:
+) -> dict[str, Any]:
     """Accept interaction events and publish to NATS (owner session only)."""
     svc = LectureSessionService(db)
     session = await svc.get_session(claims, session_id)

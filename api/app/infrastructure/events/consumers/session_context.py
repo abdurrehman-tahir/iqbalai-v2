@@ -27,7 +27,8 @@ async def handle_session_context_event(envelope: dict[str, Any]) -> None:
     }:
         return
 
-    payload = envelope.get("payload") if isinstance(envelope.get("payload"), dict) else {}
+    raw_payload = envelope.get("payload")
+    payload: dict[str, Any] = raw_payload if isinstance(raw_payload, dict) else {}
     session_id = str(envelope.get("session_id") or payload.get("session_id") or "")
     if not session_id:
         logger.warning("session_context_missing_session_id", event_type=event_type)

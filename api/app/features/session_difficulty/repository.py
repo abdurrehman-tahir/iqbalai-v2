@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -27,35 +27,35 @@ async def get_or_create_log(
     tenant_type: str = "school",
 ) -> SchoolSessionDifficultyLog | IndependentSessionDifficultyLog:
     if _is_independent(tenant_type):
-        stmt = select(IndependentSessionDifficultyLog).where(
+        ind_stmt = select(IndependentSessionDifficultyLog).where(
             IndependentSessionDifficultyLog.session_id == session_id,
             IndependentSessionDifficultyLog.sub_topic_id == sub_topic_id,
         )
-        row = (await session.execute(stmt)).scalar_one_or_none()
-        if row is None:
-            row = IndependentSessionDifficultyLog(
+        ind_row = (await session.execute(ind_stmt)).scalar_one_or_none()
+        if ind_row is None:
+            ind_row = IndependentSessionDifficultyLog(
                 session_id=session_id,
                 sub_topic_id=sub_topic_id,
                 tenant_type=DifficultyTenantType.INDEPENDENT,
             )
-            session.add(row)
+            session.add(ind_row)
             await session.flush()
-        return row
+        return ind_row
 
-    stmt = select(SchoolSessionDifficultyLog).where(
+    school_stmt = select(SchoolSessionDifficultyLog).where(
         SchoolSessionDifficultyLog.session_id == session_id,
         SchoolSessionDifficultyLog.sub_topic_id == sub_topic_id,
     )
-    row = (await session.execute(stmt)).scalar_one_or_none()
-    if row is None:
-        row = SchoolSessionDifficultyLog(
+    school_row = (await session.execute(school_stmt)).scalar_one_or_none()
+    if school_row is None:
+        school_row = SchoolSessionDifficultyLog(
             session_id=session_id,
             sub_topic_id=sub_topic_id,
             tenant_type=DifficultyTenantType.SCHOOL,
         )
-        session.add(row)
+        session.add(school_row)
         await session.flush()
-    return row
+    return school_row
 
 
 async def increment_question_count(
@@ -98,7 +98,7 @@ async def assign_next_angle(
     angle = next_angle(tried)
     if angle not in tried:
         tried.append(angle)
-    row.tried_angles = tried
+    row.tried_angles = cast(list[object], tried)
     row.last_angle = angle
     await session.flush()
     return row, angle
@@ -112,16 +112,16 @@ async def get_log(
     tenant_type: str = "school",
 ) -> SchoolSessionDifficultyLog | IndependentSessionDifficultyLog | None:
     if _is_independent(tenant_type):
-        stmt = select(IndependentSessionDifficultyLog).where(
+        ind_stmt = select(IndependentSessionDifficultyLog).where(
             IndependentSessionDifficultyLog.session_id == session_id,
             IndependentSessionDifficultyLog.sub_topic_id == sub_topic_id,
         )
-        return (await session.execute(stmt)).scalar_one_or_none()
-    stmt = select(SchoolSessionDifficultyLog).where(
+        return (await session.execute(ind_stmt)).scalar_one_or_none()
+    school_stmt = select(SchoolSessionDifficultyLog).where(
         SchoolSessionDifficultyLog.session_id == session_id,
         SchoolSessionDifficultyLog.sub_topic_id == sub_topic_id,
     )
-    return (await session.execute(stmt)).scalar_one_or_none()
+    return (await session.execute(school_stmt)).scalar_one_or_none()
 
 
 def log_as_dict(

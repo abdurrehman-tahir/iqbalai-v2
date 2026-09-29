@@ -51,7 +51,8 @@ async def handle_live_feedback_event(envelope: dict[str, Any]) -> None:
     if not user_id:
         return
 
-    payload = envelope.get("payload") if isinstance(envelope.get("payload"), dict) else {}
+    raw_payload = envelope.get("payload")
+    payload: dict[str, Any] = raw_payload if isinstance(raw_payload, dict) else {}
     session_id = str(envelope.get("session_id") or payload.get("session_id") or "")
     lecture_id = str(envelope.get("lecture_id") or payload.get("lecture_id") or "")
     tenant_type = str(envelope.get("tenant_type") or "school")
