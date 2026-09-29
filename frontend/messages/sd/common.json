@@ -630,7 +630,21 @@
       "classification_knowledge_gap": "علم جي گهٽتائي",
       "classification_unclassified": "سوال",
       "privacy_share_label": "منهنجا سوال استاد سان شيئر ڪريو",
-      "privacy_share_help": "بند هجڻ تي استاد ۽ والدين ليڪچر سوال نه ڏسي سگهن."
+      "privacy_share_help": "بند هجڻ تي استاد ۽ والدين ليڪچر سوال نه ڏسي سگهن.",
+      "live_feedback": {
+        "title": "لائيو فيڊبڪ",
+        "collapse": "بند ڪريو",
+        "expand": "کوليو",
+        "time_on_topic": "موضوع تي وقت",
+        "questions_asked": "هن سيشن جا سوال"
+      },
+      "stuck_nudge": {
+        "message": "۱۰ منٽ هتي آهيو — مدد گهرجي؟",
+        "rephrase": "آخري پيراگراف ٻيهر بيان ڪريو",
+        "list_concepts": "اهم تصورن جي فهرست",
+        "switch_voice": "آواز موڊ تي وڃو",
+        "dismiss": "بند ڪريو"
+      }
     },
     "quiz_attempt": {
       "title": "ڪوئز",

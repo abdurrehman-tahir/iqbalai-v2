@@ -21,6 +21,12 @@ import {
 import { AnswerSidePanel } from "./AnswerSidePanel";
 import { QuestionsTab } from "./QuestionsTab";
 import { TeacherShareToggle } from "./TeacherShareToggle";
+import {
+  LiveFeedbackPanel,
+  StuckNudge,
+  useLiveFeedbackSocket,
+  type LiveFeedbackMetrics,
+} from "./LiveFeedbackPanel";
 
 type Props = { lectureId: string };
 
@@ -98,6 +104,11 @@ export function LectureViewerClient({ lectureId }: Props) {
   const [streamingText, setStreamingText] = useState<string | undefined>(undefined);
   const [panelOpen, setPanelOpen] = useState(false);
   const paragraphRefs = useRef<Map<string, HTMLElement>>(new Map());
+  const [liveMetrics, setLiveMetrics] = useState<LiveFeedbackMetrics | null>(null);
+  const [feedbackCollapsed, setFeedbackCollapsed] = useState(false);
+  const [stuckOpen, setStuckOpen] = useState(false);
+  const stuckFiredRef = useRef(false);
+  const lastPageRef = useRef<string | null>(null);
 
   const viewerQuery = useQuery({
     queryKey: ["student", "lecture-viewer", lectureId],
@@ -116,6 +127,46 @@ export function LectureViewerClient({ lectureId }: Props) {
   useEffect(() => {
     sessionIdRef.current = viewerQuery.data?.session.id ?? null;
   }, [viewerQuery.data?.session.id]);
+
+  useEffect(() => {
+    const sid = viewerQuery.data?.session.id;
+    if (!sid) return;
+    const key = `live-feedback-collapsed:${sid}`;
+    setFeedbackCollapsed(sessionStorage.getItem(key) === "1");
+  }, [viewerQuery.data?.session.id]);
+
+  const onLiveMetrics = useCallback((m: LiveFeedbackMetrics) => {
+    setLiveMetrics(m);
+    if (m.stuck_nudge?.should_show && !stuckFiredRef.current) {
+      stuckFiredRef.current = true;
+      setStuckOpen(true);
+    }
+  }, []);
+
+  useLiveFeedbackSocket(
+    mounted && !!token && !!viewerQuery.data?.session.id,
+    onLiveMetrics,
+  );
+
+  useEffect(() => {
+    if (!token || !sessionIdRef.current) return;
+    const sid = sessionIdRef.current;
+    const firstPara = viewerQuery.data?.paragraphs?.[0]?.id;
+    if (!firstPara || lastPageRef.current === firstPara) return;
+    lastPageRef.current = firstPara;
+    const api = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
+    void fetch(`${api}/students/me/lectures/sessions/${sid}/events`, {
+      method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        event_type: "page_change",
+        lecture_id: lectureId,
+        page_id: firstPara,
+        paragraph_id: firstPara,
+      }),
+    }).catch(() => undefined);
+  }, [token, lectureId, viewerQuery.data?.paragraphs, viewerQuery.data?.session.id]);
 
   useEffect(() => {
     if (!token || !sessionIdRef.current) return;
@@ -441,6 +492,49 @@ export function LectureViewerClient({ lectureId }: Props) {
               block: "center",
             });
           }
+        }}
+      />
+
+      <LiveFeedbackPanel
+        sessionId={sessionIdRef.current}
+        metrics={liveMetrics}
+        collapsed={feedbackCollapsed}
+        onToggleCollapsed={() => {
+          const next = !feedbackCollapsed;
+          setFeedbackCollapsed(next);
+          const sid = sessionIdRef.current;
+          if (sid) {
+            sessionStorage.setItem(
+              `live-feedback-collapsed:${sid}`,
+              next ? "1" : "0",
+            );
+          }
+        }}
+      />
+
+      <StuckNudge
+        open={stuckOpen}
+        onDismiss={() => setStuckOpen(false)}
+        onRephrase={() => {
+          const last = paragraphs[paragraphs.length - 1];
+          if (!last) return;
+          setSelection({
+            text: last.text.slice(0, 280),
+            paragraphId: last.id,
+            sourceChunkId: null,
+          });
+        }}
+        onListConcepts={() => {
+          const first = paragraphs[0];
+          if (!first) return;
+          setSelection({
+            text: `List the key concepts in: ${first.text.slice(0, 160)}`,
+            paragraphId: first.id,
+            sourceChunkId: null,
+          });
+        }}
+        onSwitchVoice={() => {
+          if (!voiceMode) void toggleVoice();
         }}
       />
     </div>

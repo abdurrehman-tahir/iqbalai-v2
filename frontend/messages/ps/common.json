@@ -630,7 +630,21 @@
       "classification_knowledge_gap": "د پوهې تشه",
       "classification_unclassified": "پوښتنه",
       "privacy_share_label": "زما پوښتنې د ښوونکي سره شریکې کړئ",
-      "privacy_share_help": "کله چې بند وي، ښوونکی او مور او پلار لیکچر پوښتنې نه شي لیدلی."
+      "privacy_share_help": "کله چې بند وي، ښوونکی او مور او پلار لیکچر پوښتنې نه شي لیدلی.",
+      "live_feedback": {
+        "title": "ژوندی فیډبیک",
+        "collapse": "ټول کړئ",
+        "expand": "پراخ کړئ",
+        "time_on_topic": "په موضوع وخت",
+        "questions_asked": "د دې ناستې پوښتنې"
+      },
+      "stuck_nudge": {
+        "message": "۱۰ دقیقې دلته یاست — مرستې ته اړتیا لرئ؟",
+        "rephrase": "وروستی پاراګراف بیا ووایاست",
+        "list_concepts": "کلیدي مفهومونه لیست کړئ",
+        "switch_voice": "غږ حالت ته لاړ شئ",
+        "dismiss": "بند کړئ"
+      }
     },
     "quiz_attempt": {
       "title": "کوئز",
