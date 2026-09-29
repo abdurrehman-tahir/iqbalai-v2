@@ -22,6 +22,7 @@ from app.features.library import school_tasks as _school_tasks  # noqa: F401
 from app.features.library import tasks as _library_tasks  # noqa: F401
 from app.infrastructure.celery.celery_app import celery_app  # noqa: F401 — Redis broker bootstrap
 from app.infrastructure.events import close_nats, init_nats
+from app.infrastructure.events.consumers import start_m14_consumers, stop_m14_consumers
 
 logger = structlog.get_logger(__name__)
 
@@ -32,7 +33,9 @@ async def lifespan(application: FastAPI) -> AsyncGenerator[None, None]:
     configure_logging()
     logger.info("iqbalai_api_starting", version=application.version)
     await init_nats()
+    await start_m14_consumers()
     yield
+    await stop_m14_consumers()
     await close_nats()
     logger.info("iqbalai_api_stopping")
 
