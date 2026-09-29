@@ -123,7 +123,9 @@ import type {
   LectureAudioCacheRead,
   StudentQuestionRead,
   StudentQuestionCreateRequest,
+  StudentQuestionFollowUpRequest,
   StudentQuestionAnswerRead,
+  StudentQuestionImageUploadRead,
 } from "./types";
 
 // Re-export M-12 generated types (A-002) for consumers importing from `@/lib/api`.
@@ -143,9 +145,11 @@ export type {
   StudentQuestionCreateRequest,
   StudentQuestionFollowUpRequest,
   StudentQuestionAnswerRead,
+  StudentQuestionImageUploadRead,
   ConversationTurnRead,
   QuestionClassification,
 } from "./types";
+export type { AttachedImageRef } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -1683,17 +1687,26 @@ export const studentQuestionsApi = {
     lectureId: string,
     questionId: string,
     content: string,
-    idempotencyKey?: string
-  ) =>
-    request<StudentQuestionRead>(
+    idempotencyKey?: string,
+    /** MinIO storage keys from studentQuestionImagesApi.upload (T-169). Max 3. */
+    attachedImages?: string[]
+  ) => {
+    const body: StudentQuestionFollowUpRequest = {
+      content,
+      ...(attachedImages && attachedImages.length > 0
+        ? { attached_images: attachedImages }
+        : {}),
+    };
+    return request<StudentQuestionRead>(
       `/students/me/lectures/${lectureId}/questions/${questionId}/turns`,
       {
         method: "POST",
-        body: JSON.stringify({ content }),
+        body: JSON.stringify(body),
         headers: idempotencyKey ? { "Idempotency-Key": idempotencyKey } : undefined,
       },
       token
-    ),
+    );
+  },
   getAnswer: (token: string, lectureId: string, questionId: string) =>
     request<StudentQuestionAnswerRead>(
       `/students/me/lectures/${lectureId}/questions/${questionId}/answer`,
@@ -1702,6 +1715,28 @@ export const studentQuestionsApi = {
     ),
   streamAnswerUrl: (lectureId: string, questionId: string) =>
     `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/students/me/lectures/${lectureId}/questions/${questionId}/answer/stream`,
+};
+
+/**
+ * Student question-image uploads (T-166/T-167). Backs the HybridInputWidget's
+ * `allowImages` path on the lecture Q&A surfaces — POSTs multipart to the
+ * `student_question_image` upload profile, returns a MinIO storage key that
+ * gets threaded into `studentQuestionsApi.ask`/`followUp` as `attached_images`.
+ */
+export const studentQuestionImagesApi = {
+  upload: (token: string, image: File | Blob, alreadyAttached = 0) => {
+    const formData = new FormData();
+    formData.append("image", image, image instanceof File ? image.name : "image.jpg");
+    const qs =
+      alreadyAttached > 0
+        ? `?${new URLSearchParams({ already_attached: String(alreadyAttached) }).toString()}`
+        : "";
+    return requestFormData<StudentQuestionImageUploadRead>(
+      `/students/me/question-images${qs}`,
+      formData,
+      token
+    );
+  },
 };
 
 /** Teacher quiz results + aggregates (T-147). */

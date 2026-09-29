@@ -999,6 +999,7 @@
       "image_format_unsupported": "فارمټ نه ملاتړ کیږي — JPEG، PNG یا WEBP وکاروئ",
       "image_max_reached": "په هره پوښتنه کې اعظمي {count} انځورونه",
       "image_not_ready": "د انځور ضمیمه کول لاهم شتون نلري",
+      "image_upload_failed": "انځور اپلوډ نشو. بیا هڅه وکړئ.",
       "mic_permission_denied": "د ثبت اجازه اړینه ده",
       "send": "ولېږئ",
       "send_error": "ونه لېږل شو. بیا هڅه وکړئ.",

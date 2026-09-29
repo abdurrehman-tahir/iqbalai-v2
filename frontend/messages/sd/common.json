@@ -999,6 +999,7 @@
       "image_format_unsupported": "فارميٽ سپورٽ ناهي — JPEG، PNG يا WEBP استعمال ڪريو",
       "image_max_reached": "في سوال وڌ ۾ وڌ {count} تصويرون",
       "image_not_ready": "تصوير منسلڪ ڪرڻ اڃا دستياب ناهي",
+      "image_upload_failed": "تصوير اپلوڊ نه ٿي سگهي. مهرباني ڪري ٻيهر ڪوشش ڪريو.",
       "mic_permission_denied": "ريڪارڊنگ جي اجازت گهربل آهي",
       "send": "موڪليو",
       "send_error": "موڪلي نه سگهيو. مهرباني ڪري ٻيهر ڪوشش ڪريو.",

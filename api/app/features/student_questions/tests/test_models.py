@@ -25,6 +25,14 @@ _SCHOOL_MIGRATION = (
     / "0068_student_questions.py"
 )
 
+_ATTACHED_IMAGES_MIGRATION = (
+    Path(__file__).resolve().parents[4]
+    / "alembic"
+    / "versions"
+    / "school"
+    / "0070_student_question_attached_images.py"
+)
+
 
 def test_student_questions_tables_registered_school_only() -> None:
     assert "school.student_questions" in Base.metadata.tables
@@ -109,3 +117,42 @@ def test_migration_file_exists_and_revises_audio_caches() -> None:
     assert "student_questions" in text
     assert "student_question_conversations" in text
     assert "Flow 8" in text
+
+
+# ---------------------------------------------------------------------------
+# T-169 — attached_images_jsonb (school_0070)
+# ---------------------------------------------------------------------------
+
+
+def test_attached_images_jsonb_column_registered_on_both_tables() -> None:
+    questions = Base.metadata.tables["school.student_questions"]
+    conversations = Base.metadata.tables["school.student_question_conversations"]
+    assert "attached_images_jsonb" in {c.name for c in questions.columns}
+    assert "attached_images_jsonb" in {c.name for c in conversations.columns}
+
+
+def test_attached_images_jsonb_nullable_and_none_by_default() -> None:
+    now = datetime.now(timezone.utc)
+    row = SchoolStudentQuestion(
+        student_user_id="stu-1",
+        session_id="sess-1",
+        lecture_id="lec-1",
+        question_text="Explain: gravity",
+        asked_at=now,
+    )
+    assert row.attached_images_jsonb is None
+
+    turn = SchoolStudentQuestionConversation(
+        root_question_id="q-1",
+        turn_index=0,
+        role=ConversationRole.USER,
+        content="hi",
+    )
+    assert turn.attached_images_jsonb is None
+
+
+def test_attached_images_migration_revises_0069() -> None:
+    text = _ATTACHED_IMAGES_MIGRATION.read_text(encoding="utf-8")
+    assert 'revision: str = "school_0070"' in text
+    assert 'down_revision: str = "school_0069"' in text
+    assert "attached_images_jsonb" in text

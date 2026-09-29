@@ -73,6 +73,8 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 | Variable | Default | Purpose | Source |
 |---|---|---|---|
 | `LLM_VISION_MODEL` | `groq:llama-3.2-90b-vision-preview` | The vision-capable model used when a request payload contains `attached_images[]`. Overrides per-task default model for that single call. | Flow 6 v2 + ARCH §8.22 |
+| `VISION_QA_DAILY_SOFT_CEILING` | `20` | Soft per-student/day ceiling on vision-model Q&A calls (T-170). Excess image-bearing questions are rejected before the LLM call to bound ~2–3× vision cost. | Flow 6 §3.5 + M-13 T-170 |
+| `VISION_QA_USD_PER_CALL` | `0.01` | Approximate USD cost used when logging vision-call observability (not billing-grade). | Flow 6 §3.5 + M-13 T-170 |
 
 ### Subscription module — Phase 2 placeholders (ARCH §3.17 + §11.20 + Flow 13)
 

@@ -17,7 +17,8 @@ type Props = {
   streamingText?: string;
   open: boolean;
   onClose: () => void;
-  onFollowUp: (content: string) => Promise<void>;
+  /** `attachedImages` are MinIO storage keys from image attach (T-167/T-169). */
+  onFollowUp: (content: string, attachedImages: string[]) => Promise<void>;
   onSourceBadgeClick?: (chunkId: string | null) => void;
 };
 
@@ -48,7 +49,10 @@ export function AnswerSidePanel({
     async (payload: SubmitPayload) => {
       setBusy(true);
       try {
-        await onFollowUp(payload.text);
+        await onFollowUp(
+          payload.text,
+          payload.attached_images.map((img) => img.storage_key)
+        );
       } finally {
         setBusy(false);
       }
@@ -169,7 +173,7 @@ export function AnswerSidePanel({
           onSubmit={handleFollowUp}
           disabled={busy}
           allowVoice
-          allowImages={false}
+          allowImages
           voiceLanguage={language}
           placeholder={t("follow_up_placeholder")}
         />

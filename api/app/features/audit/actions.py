@@ -229,6 +229,19 @@ M12_AUDIT_ACTIONS = frozenset(
     }
 )
 
+# M-13 — hybrid widget image + vision LLM (T-171). Both are routine
+# self-service actions (a student uploading their own image; the system
+# choosing a model tier) — not elevated, same tier as STUDENT_MODE_CHANGED.
+STUDENT_QUESTION_IMAGE_UPLOADED = "student_question_image.uploaded"
+LLM_VISION_ROUTED = "llm.vision_routed"
+
+M13_AUDIT_ACTIONS = frozenset(
+    {
+        STUDENT_QUESTION_IMAGE_UPLOADED,
+        LLM_VISION_ROUTED,
+    }
+)
+
 REGISTERED_AUDIT_ACTIONS = (
     M04_AUDIT_ACTIONS
     | M06_AUDIT_ACTIONS
@@ -238,4 +251,5 @@ REGISTERED_AUDIT_ACTIONS = (
     | M10_AUDIT_ACTIONS
     | M11_AUDIT_ACTIONS
     | M12_AUDIT_ACTIONS
+    | M13_AUDIT_ACTIONS
 )

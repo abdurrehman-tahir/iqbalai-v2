@@ -62,6 +62,7 @@ from app.features.student_mode.router import router as student_mode_router
 from app.features.student_onboarding.router import router as student_onboarding_router
 from app.features.student_privacy.parent_router import router as parent_lecture_questions_router
 from app.features.student_privacy.router import router as student_privacy_router
+from app.features.student_questions.image_router import router as student_question_images_router
 from app.features.student_questions.router import router as student_lecture_questions_router
 from app.features.student_voice.router import router as student_voice_router
 from app.features.subjects.router import router as subjects_router
@@ -124,6 +125,7 @@ router.include_router(lecture_wizard_router)
 router.include_router(independent_lecture_wizard_router)
 router.include_router(student_lecture_sessions_router)
 router.include_router(student_lecture_questions_router)
+router.include_router(student_question_images_router)
 router.include_router(student_quizzes_router)
 router.include_router(teacher_quiz_results_router)
 router.include_router(teacher_coaching_router)

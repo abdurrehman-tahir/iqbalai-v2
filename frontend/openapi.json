@@ -319,6 +319,51 @@
         "title": "AnswerSourceSpanRead",
         "type": "object"
       },
+      "AttachedImageRef": {
+        "additionalProperties": false,
+        "description": "One image reference stored on a question / conversation turn (T-166).",
+        "properties": {
+          "mime_type": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "title": "Mime Type",
+            "type": "string"
+          },
+          "size_bytes": {
+            "minimum": 1.0,
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "storage_key": {
+            "maxLength": 1000,
+            "minLength": 1,
+            "title": "Storage Key",
+            "type": "string"
+          },
+          "upload_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Upload Id"
+          }
+        },
+        "required": [
+          "storage_key",
+          "mime_type",
+          "size_bytes"
+        ],
+        "title": "AttachedImageRef",
+        "type": "object"
+      },
       "AuditLogEntryRead": {
         "description": "Read schema for a single audit log row.\n\nmetadata_json is returned as a raw string \u2014 callers parse JSON as needed.\nIntentionally no write schema: audit rows are created only via the\ninfrastructure helper (app/infrastructure/audit/log.py), never via the API.",
         "properties": {
@@ -584,6 +629,20 @@
         "title": "Body_student_transcribe_voice",
         "type": "object"
       },
+      "Body_student_upload_question_image": {
+        "properties": {
+          "image": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Image",
+            "type": "string"
+          }
+        },
+        "required": [
+          "image"
+        ],
+        "title": "Body_student_upload_question_image",
+        "type": "object"
+      },
       "Body_teacher_transcribe_voice_edit": {
         "properties": {
           "audio": {
@@ -823,6 +882,13 @@
       },
       "ConversationTurnRead": {
         "properties": {
+          "attached_images": {
+            "items": {
+              "$ref": "#/components/schemas/AttachedImageRef"
+            },
+            "title": "Attached Images",
+            "type": "array"
+          },
           "content": {
             "title": "Content",
             "type": "string"
@@ -6390,8 +6456,16 @@
       },
       "StudentQuestionCreateRequest": {
         "additionalProperties": false,
-        "description": "Submit a highlight-triggered (or free-form) question (T-156).",
+        "description": "Submit a highlight-triggered (or free-form) question (T-156 / T-169).",
         "properties": {
+          "attached_images": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Attached Images",
+            "type": "array"
+          },
           "highlight_text": {
             "anyOf": [
               {
@@ -6455,8 +6529,16 @@
       },
       "StudentQuestionFollowUpRequest": {
         "additionalProperties": false,
-        "description": "Append a user follow-up turn to an existing conversation (T-160).",
+        "description": "Append a user follow-up turn to an existing conversation (T-160 / T-169).",
         "properties": {
+          "attached_images": {
+            "items": {
+              "type": "string"
+            },
+            "maxItems": 3,
+            "title": "Attached Images",
+            "type": "array"
+          },
           "content": {
             "maxLength": 4000,
             "minLength": 1,
@@ -6468,6 +6550,46 @@
           "content"
         ],
         "title": "StudentQuestionFollowUpRequest",
+        "type": "object"
+      },
+      "StudentQuestionImageUploadRead": {
+        "additionalProperties": false,
+        "description": "Response after a successful student_question_image ingest (T-166).",
+        "properties": {
+          "mime_type": {
+            "enum": [
+              "image/jpeg",
+              "image/png",
+              "image/webp"
+            ],
+            "title": "Mime Type",
+            "type": "string"
+          },
+          "retention_days": {
+            "default": 365,
+            "title": "Retention Days",
+            "type": "integer"
+          },
+          "size_bytes": {
+            "title": "Size Bytes",
+            "type": "integer"
+          },
+          "storage_key": {
+            "title": "Storage Key",
+            "type": "string"
+          },
+          "upload_id": {
+            "title": "Upload Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "upload_id",
+          "storage_key",
+          "mime_type",
+          "size_bytes"
+        ],
+        "title": "StudentQuestionImageUploadRead",
         "type": "object"
       },
       "StudentQuestionRead": {
@@ -6515,6 +6637,13 @@
             "format": "date-time",
             "title": "Asked At",
             "type": "string"
+          },
+          "attached_images": {
+            "items": {
+              "$ref": "#/components/schemas/AttachedImageRef"
+            },
+            "title": "Attached Images",
+            "type": "array"
           },
           "classification": {
             "$ref": "#/components/schemas/QuestionClassificationLiteral"
@@ -8187,6 +8316,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[StudentQuestionAnswerRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudentQuestionImageUploadRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudentQuestionImageUploadRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudentQuestionImageUploadRead]",
         "type": "object"
       },
       "SuccessEnvelope_StudentQuestionRead_": {
@@ -18928,6 +19074,63 @@
         "summary": "Toggle #72 share-with-teacher preference (audit-logged)",
         "tags": [
           "student-privacy"
+        ]
+      }
+    },
+    "/api/v1/students/me/question-images": {
+      "post": {
+        "operationId": "student_upload_question_image",
+        "parameters": [
+          {
+            "description": "How many images are already queued on this question (max 3 total)",
+            "in": "query",
+            "name": "already_attached",
+            "required": false,
+            "schema": {
+              "default": 0,
+              "description": "How many images are already queued on this question (max 3 total)",
+              "maximum": 3,
+              "minimum": 0,
+              "title": "Already Attached",
+              "type": "integer"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_student_upload_question_image"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudentQuestionImageUploadRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload a student_question_image (JPEG/PNG/WEBP, \u22645 MB, EXIF stripped) (T-166)",
+        "tags": [
+          "student-question-images"
         ]
       }
     },

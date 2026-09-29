@@ -24,6 +24,8 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.exceptions import ValidationError
+from app.features.audit.actions import LLM_VISION_ROUTED
 from app.features.lectures.exam_overlay import (
     ExamOverlayContext,
     get_student_exam_framework_overlay,
@@ -42,6 +44,7 @@ from app.features.student_questions.models import (
     SchoolStudentQuestionConversation,
 )
 from app.features.subjects.models import Subject
+from app.infrastructure.audit.log import audit
 from app.infrastructure.llm.client import chat, stream_chat
 from app.infrastructure.llm.persona import prepend_persona
 from app.infrastructure.llm.persona import resolve_base_persona as resolve_base_persona
@@ -67,6 +70,101 @@ SourceTierName = Literal["curriculum", "reference", "ai_knowledge", "web", "no_s
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+# ---------------------------------------------------------------------------
+# T-169 / T-170 / T-171 — attached_images collection, vision cost guard, audit
+# ---------------------------------------------------------------------------
+
+
+def collect_attached_images(
+    question: SchoolStudentQuestion,
+    turns: Sequence[SchoolStudentQuestionConversation],
+) -> list[str]:
+    """Storage keys from the root question + the latest user turn (T-169).
+
+    Both the initial ask and any follow-up may carry images; this is a pure,
+    no-I/O merge (deduped, order-preserving, capped at 3) so both the cost
+    guard and the vision-routed LLM call see the same set.
+    """
+    keys: list[str] = []
+    seen: set[str] = set()
+
+    def _add(raw: object) -> None:
+        if not isinstance(raw, list):
+            return
+        for item in raw:
+            if isinstance(item, dict):
+                key = item.get("storage_key")
+                if isinstance(key, str) and key and key not in seen:
+                    seen.add(key)
+                    keys.append(key)
+
+    _add(question.attached_images_jsonb)
+    for turn in reversed(list(turns)):
+        if turn.role == ConversationRole.USER:
+            _add(turn.attached_images_jsonb)
+            break
+    return keys[:3]
+
+
+async def enforce_vision_cost_guard(student_user_id: str) -> None:
+    """Per-student/day soft ceiling on vision Q&A calls (T-170).
+
+    Redis counter ``vision_qa:{student_id}:{YYYY-MM-DD}`` — raises
+    ``ValidationError`` *before* any LLM call once the configured daily
+    ceiling is crossed. Fails open (never blocks Q&A) if Redis itself is
+    unavailable — a cost guard must not become an availability outage.
+    """
+    from app.config import get_settings
+    from app.infrastructure.cache.client import get_redis
+
+    settings = get_settings()
+    today = _utcnow().strftime("%Y-%m-%d")
+    key = f"vision_qa:{student_user_id}:{today}"
+    try:
+        redis = get_redis()
+        count = await redis.incr(key)
+        if count == 1:
+            await redis.expire(key, 60 * 60 * 26)  # ~26h, safely past UTC midnight
+    except Exception as exc:
+        logger.warning("vision_qa_cost_guard_unavailable", error=str(exc))
+        return
+
+    if count > settings.VISION_QA_DAILY_SOFT_CEILING:
+        logger.warning(
+            "vision_qa_cost_guard_blocked",
+            student_user_id=student_user_id,
+            count=count,
+            ceiling=settings.VISION_QA_DAILY_SOFT_CEILING,
+        )
+        raise ValidationError(
+            f"Daily image-question limit reached ({settings.VISION_QA_DAILY_SOFT_CEILING})."
+            " Try again tomorrow, or ask without an attached image."
+        )
+
+
+async def _audit_vision_routed(
+    session: AsyncSession,
+    *,
+    question: SchoolStudentQuestion,
+    lecture: SchoolLecture,
+    image_count: int,
+) -> None:
+    """Audit the vision-routing decision (T-171). Best-effort — never blocks Q&A."""
+    try:
+        await audit(
+            session=session,
+            action=LLM_VISION_ROUTED,
+            actor_id=question.student_user_id,
+            actor_role="student",
+            target_type="student_question",
+            target_id=question.id,
+            school_id=lecture.school_id,
+            metadata={"image_count": image_count},
+        )
+    except Exception as exc:
+        logger.warning("llm_vision_routed_audit_failed", question_id=question.id, error=str(exc))
 
 
 def _badge_for_tier(tier: SourceTierName, book_name: str | None = None) -> str:
@@ -342,8 +440,16 @@ async def retrieve_qa_chunks(
     *,
     lecture: SchoolLecture,
     query: str,
+    skip_web_fallback: bool = False,
 ) -> tuple[list[QaChunkRef], list[QaChunkRef], list[QaChunkRef], bool]:
-    """Pattern S dual-RAG + web fallback. Returns ``(..., no_coverage)``."""
+    """Pattern S dual-RAG + web fallback. Returns ``(..., no_coverage)``.
+
+    ``skip_web_fallback`` (T-169): when the question carries attached images
+    and curriculum/reference retrieval found nothing, skip the Pattern A web
+    fallback — an image-bearing question with no text-answerable coverage
+    should reason from the image ([AI Knowledge]), not from an unrelated web
+    search grounded only in the question text.
+    """
     school_id = lecture.school_id or ""
     curriculum_items, ref_items = await resolve_lecture_corpus(session, lecture)
 
@@ -430,12 +536,17 @@ async def retrieve_qa_chunks(
     web_refs: list[QaChunkRef] = []
     no_coverage = False
     if not curr_refs and not ref_refs:
-        web_refs = await _fetch_web_fallback_chunks(query)
-        if web_refs:
-            logger.info("lecture_qa_web_fallback", lecture_id=lecture.id, web_hits=len(web_refs))
+        if skip_web_fallback:
+            logger.info("lecture_qa_vision_only_no_rag_coverage", lecture_id=lecture.id)
         else:
-            no_coverage = True
-            logger.info("lecture_qa_no_coverage", lecture_id=lecture.id)
+            web_refs = await _fetch_web_fallback_chunks(query)
+            if web_refs:
+                logger.info(
+                    "lecture_qa_web_fallback", lecture_id=lecture.id, web_hits=len(web_refs)
+                )
+            else:
+                no_coverage = True
+                logger.info("lecture_qa_no_coverage", lecture_id=lecture.id)
 
     return curr_refs, ref_refs, web_refs, no_coverage
 
@@ -589,7 +700,14 @@ async def stream_answer_for_question(
     if question.highlight_text:
         query = f"{query}\n{question.highlight_text}"
 
-    curr, refs, web, no_coverage = await retrieve_qa_chunks(session, lecture=lecture, query=query)
+    attached_images = collect_attached_images(question, turns)
+    if attached_images:
+        await _audit_vision_routed(
+            session, question=question, lecture=lecture, image_count=len(attached_images)
+        )
+    curr, refs, web, no_coverage = await retrieve_qa_chunks(
+        session, lecture=lecture, query=query, skip_web_fallback=bool(attached_images)
+    )
     prompt, primary, spans = await _render_qa_prompt(
         session,
         question=question,
@@ -612,6 +730,7 @@ async def stream_answer_for_question(
             task="student_qa",
             temperature=prompt.temperature,
             max_tokens=prompt.max_tokens,
+            attached_images=attached_images or None,
         ):
             parts.append(token)
             yield token
@@ -684,7 +803,15 @@ async def generate_and_store_answer(
     if question.highlight_text:
         query = f"{query}\n{question.highlight_text}"
 
-    curr, refs, web, no_coverage = await retrieve_qa_chunks(session, lecture=lecture, query=query)
+    attached_images = collect_attached_images(question, turns)
+    if attached_images:
+        await enforce_vision_cost_guard(question.student_user_id)
+        await _audit_vision_routed(
+            session, question=question, lecture=lecture, image_count=len(attached_images)
+        )
+    curr, refs, web, no_coverage = await retrieve_qa_chunks(
+        session, lecture=lecture, query=query, skip_web_fallback=bool(attached_images)
+    )
     prompt, primary, spans = await _render_qa_prompt(
         session,
         question=question,
@@ -705,6 +832,7 @@ async def generate_and_store_answer(
             task="student_qa",
             temperature=prompt.temperature,
             max_tokens=prompt.max_tokens,
+            attached_images=attached_images or None,
         )
     except Exception as exc:
         logger.error("lecture_qa_llm_failed", question_id=qid, error=str(exc))

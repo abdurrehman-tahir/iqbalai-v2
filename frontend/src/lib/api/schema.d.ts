@@ -2833,6 +2833,23 @@ export interface paths {
         patch: operations["student_set_teacher_activity_share"];
         trace?: never;
     };
+    "/api/v1/students/me/question-images": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload a student_question_image (JPEG/PNG/WEBP, ≤5 MB, EXIF stripped) (T-166) */
+        post: operations["student_upload_question_image"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/quizzes": {
         parameters: {
             query?: never;
@@ -3777,6 +3794,23 @@ export interface components {
             tier: "curriculum" | "reference" | "ai_knowledge" | "web" | "no_source";
         };
         /**
+         * AttachedImageRef
+         * @description One image reference stored on a question / conversation turn (T-166).
+         */
+        AttachedImageRef: {
+            /**
+             * Mime Type
+             * @enum {string}
+             */
+            mime_type: "image/jpeg" | "image/png" | "image/webp";
+            /** Size Bytes */
+            size_bytes: number;
+            /** Storage Key */
+            storage_key: string;
+            /** Upload Id */
+            upload_id?: string | null;
+        };
+        /**
          * AuditLogEntryRead
          * @description Read schema for a single audit log row.
          *
@@ -3865,6 +3899,11 @@ export interface components {
         Body_student_transcribe_voice: {
             /** Audio */
             audio: string;
+        };
+        /** Body_student_upload_question_image */
+        Body_student_upload_question_image: {
+            /** Image */
+            image: string;
         };
         /** Body_teacher_transcribe_voice_edit */
         Body_teacher_transcribe_voice_edit: {
@@ -3971,6 +4010,8 @@ export interface components {
         ConversationRoleLiteral: "user" | "assistant";
         /** ConversationTurnRead */
         ConversationTurnRead: {
+            /** Attached Images */
+            attached_images?: components["schemas"]["AttachedImageRef"][];
             /** Content */
             content: string;
             /**
@@ -6216,9 +6257,11 @@ export interface components {
         };
         /**
          * StudentQuestionCreateRequest
-         * @description Submit a highlight-triggered (or free-form) question (T-156).
+         * @description Submit a highlight-triggered (or free-form) question (T-156 / T-169).
          */
         StudentQuestionCreateRequest: {
+            /** Attached Images */
+            attached_images?: string[];
             /** Highlight Text */
             highlight_text?: string | null;
             /** Paragraph Id */
@@ -6236,11 +6279,35 @@ export interface components {
         };
         /**
          * StudentQuestionFollowUpRequest
-         * @description Append a user follow-up turn to an existing conversation (T-160).
+         * @description Append a user follow-up turn to an existing conversation (T-160 / T-169).
          */
         StudentQuestionFollowUpRequest: {
+            /** Attached Images */
+            attached_images?: string[];
             /** Content */
             content: string;
+        };
+        /**
+         * StudentQuestionImageUploadRead
+         * @description Response after a successful student_question_image ingest (T-166).
+         */
+        StudentQuestionImageUploadRead: {
+            /**
+             * Mime Type
+             * @enum {string}
+             */
+            mime_type: "image/jpeg" | "image/png" | "image/webp";
+            /**
+             * Retention Days
+             * @default 365
+             */
+            retention_days: number;
+            /** Size Bytes */
+            size_bytes: number;
+            /** Storage Key */
+            storage_key: string;
+            /** Upload Id */
+            upload_id: string;
         };
         /** StudentQuestionRead */
         StudentQuestionRead: {
@@ -6257,6 +6324,8 @@ export interface components {
              * Format: date-time
              */
             asked_at: string;
+            /** Attached Images */
+            attached_images?: components["schemas"]["AttachedImageRef"][];
             classification: components["schemas"]["QuestionClassificationLiteral"];
             /** Conversations */
             conversations?: components["schemas"]["ConversationTurnRead"][];
@@ -7070,6 +7139,15 @@ export interface components {
         /** SuccessEnvelope[StudentQuestionAnswerRead] */
         SuccessEnvelope_StudentQuestionAnswerRead_: {
             data: components["schemas"]["StudentQuestionAnswerRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudentQuestionImageUploadRead] */
+        SuccessEnvelope_StudentQuestionImageUploadRead_: {
+            data: components["schemas"]["StudentQuestionImageUploadRead"];
             /**
              * Message
              * @default ok
@@ -14015,6 +14093,42 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_TeacherActivityShareRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_upload_question_image: {
+        parameters: {
+            query?: {
+                /** @description How many images are already queued on this question (max 3 total) */
+                already_attached?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_student_upload_question_image"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudentQuestionImageUploadRead_"];
                 };
             };
             /** @description Validation Error */

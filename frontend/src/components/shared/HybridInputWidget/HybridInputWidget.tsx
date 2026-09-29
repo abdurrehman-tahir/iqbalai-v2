@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { ClipboardEvent, DragEvent } from "react";
 import { ImagePlusIcon, SendIcon } from "lucide-react";
 import { useTranslations } from "next-intl";
 
@@ -42,6 +43,7 @@ export function HybridInputWidget({
   const [submitting, setSubmitting] = useState(false);
   const [inlineError, setInlineError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number | null>(null);
+  const [dragActive, setDragActive] = useState(false);
 
   const prefixBeforeVoiceRef = useRef("");
   const textRef = useRef(text);
@@ -206,14 +208,63 @@ export function HybridInputWidget({
     if (imageError === "too_large") return t("image_too_large");
     if (imageError === "format_unsupported") return t("image_format_unsupported");
     if (imageError === "max_reached") return t("image_max_reached", { count: imageCap });
-    return t("image_not_ready");
+    // "upload_failed" (T-167) — network/backend error uploading a valid file.
+    return t("image_upload_failed");
   })();
 
   const busy = disabled || submitting || isTranscribing || imageUploading;
   const canSend = (text.trim().length > 0 || images.length > 0) && !busy && !isRecording;
 
+  // T-167: drag-drop and paste share the same "attach these image files"
+  // path as the file-picker input, up to maxImages / one-at-a-time server
+  // validation (format/size) surfaced via the existing imageErrorMessage.
+  const attachFiles = useCallback(
+    (files: Iterable<File>) => {
+      if (!allowImages || busy) return;
+      const imageFiles = Array.from(files).filter((f) => f.type.startsWith("image/"));
+      if (imageFiles.length === 0) return;
+      cancelAutoSend();
+      clearImageError();
+      for (const file of imageFiles) {
+        void uploadImage(file);
+      }
+    },
+    [allowImages, busy, cancelAutoSend, clearImageError, uploadImage]
+  );
+
+  const onDrop = (e: DragEvent<HTMLDivElement>) => {
+    if (!allowImages) return;
+    e.preventDefault();
+    setDragActive(false);
+    attachFiles(e.dataTransfer.files);
+  };
+
+  const onPaste = (e: ClipboardEvent<HTMLDivElement>) => {
+    if (!allowImages) return;
+    const files = Array.from(e.clipboardData?.items ?? [])
+      .filter((item) => item.kind === "file" && item.type.startsWith("image/"))
+      .map((item) => item.getAsFile())
+      .filter((f): f is File => f !== null);
+    if (files.length === 0) return;
+    attachFiles(files);
+  };
+
   return (
-    <div className="w-full space-y-2" data-testid="hybrid-input-widget">
+    <div
+      className={cn(
+        "w-full space-y-2",
+        dragActive && "rounded-lg outline-2 outline-dashed outline-brand-500"
+      )}
+      data-testid="hybrid-input-widget"
+      onDragOver={(e) => {
+        if (!allowImages) return;
+        e.preventDefault();
+        setDragActive(true);
+      }}
+      onDragLeave={() => setDragActive(false)}
+      onDrop={onDrop}
+      onPaste={onPaste}
+    >
       {allowImages && images.length > 0 ? (
         <div className="flex flex-wrap gap-2" data-testid="hybrid-image-row">
           {images.map((img) => (

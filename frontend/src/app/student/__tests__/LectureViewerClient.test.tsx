@@ -38,6 +38,9 @@ vi.mock("@/lib/api", () => ({
   studentVoiceApi: {
     transcribe: vi.fn().mockResolvedValue({ transcript: "hello" }),
   },
+  studentQuestionImagesApi: {
+    upload: vi.fn(),
+  },
 }));
 
 vi.mock("@/hooks/use-client-auth", () => ({
@@ -126,6 +129,7 @@ const messages = {
       image_format_unsupported: "Bad format",
       image_max_reached: "Max images",
       image_not_ready: "Not ready",
+      image_upload_failed: "Upload failed",
     },
   },
 };

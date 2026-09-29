@@ -254,6 +254,7 @@ export function LectureViewerClient({ lectureId }: Props) {
     paragraph_id: string | null;
     source_chunk_id: string | null;
     question_language: "en" | "ur" | "sd" | "ps";
+    attached_images: string[];
   }) => {
     const sid = sessionIdRef.current;
     if (!token || !sid) return;
@@ -268,6 +269,9 @@ export function LectureViewerClient({ lectureId }: Props) {
         paragraph_id: payload.paragraph_id,
         source_chunk_id: payload.source_chunk_id,
         question_language: payload.question_language,
+        ...(payload.attached_images.length > 0
+          ? { attached_images: payload.attached_images }
+          : {}),
       },
       idem
     );
@@ -275,14 +279,15 @@ export function LectureViewerClient({ lectureId }: Props) {
     await openAnswerStream(created);
   };
 
-  const onFollowUp = async (content: string) => {
+  const onFollowUp = async (content: string, attachedImages: string[]) => {
     if (!token || !activeQuestion) return;
     const updated = await studentQuestionsApi.followUp(
       token,
       lectureId,
       activeQuestion.id,
       content,
-      crypto.randomUUID()
+      crypto.randomUUID(),
+      attachedImages
     );
     await openAnswerStream(updated);
   };

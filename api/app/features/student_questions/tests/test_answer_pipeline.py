@@ -8,6 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
+from app.core.exceptions import ValidationError
 from app.features.lectures.models import LectureStatus, LectureType, SchoolLecture
 from app.features.library.school_models import LibraryContentType
 from app.features.student_questions import answer_pipeline as pipeline
@@ -189,7 +190,11 @@ async def test_stream_answer_persists_assistant_turn(
     session.add = MagicMock(side_effect=lambda obj: added.append(obj))
 
     async def _retrieve(
-        _session: Any, *, lecture: SchoolLecture, query: str
+        _session: Any,
+        *,
+        lecture: SchoolLecture,
+        query: str,
+        skip_web_fallback: bool = False,
     ) -> tuple[list[QaChunkRef], list[QaChunkRef], list[QaChunkRef], bool]:
         return (
             [
@@ -279,6 +284,237 @@ async def test_stream_answer_replays_stored_when_already_answered(
     assert tokens == ["Already answered. [Curriculum]"]
     assert called["stream"] is False
     session.commit.assert_not_called()
+
+
+def test_collect_attached_images_merges_question_and_latest_user_turn() -> None:
+    question = _question(
+        attached_images_jsonb=[
+            {
+                "storage_key": "student-question-image/s/2026/01/01/u1/a.jpg",
+                "mime_type": "image/jpeg",
+                "size_bytes": 10,
+            }
+        ]
+    )
+    turns = [
+        _user_turn(),
+        SchoolStudentQuestionConversation(
+            id="turn-a-1",
+            root_question_id="q-1",
+            turn_index=1,
+            role=ConversationRole.ASSISTANT,
+            content="answer",
+        ),
+        SchoolStudentQuestionConversation(
+            id="turn-u-2",
+            root_question_id="q-1",
+            turn_index=2,
+            role=ConversationRole.USER,
+            content="follow up",
+            attached_images_jsonb=[
+                {
+                    "storage_key": "student-question-image/s/2026/01/02/u2/b.jpg",
+                    "mime_type": "image/jpeg",
+                    "size_bytes": 20,
+                }
+            ],
+        ),
+    ]
+    keys = pipeline.collect_attached_images(question, turns)
+    assert keys == [
+        "student-question-image/s/2026/01/01/u1/a.jpg",
+        "student-question-image/s/2026/01/02/u2/b.jpg",
+    ]
+
+
+def test_collect_attached_images_caps_at_three() -> None:
+    question = _question(
+        attached_images_jsonb=[
+            {"storage_key": f"k{i}", "mime_type": "image/jpeg", "size_bytes": 1} for i in range(3)
+        ]
+    )
+    turns = [
+        SchoolStudentQuestionConversation(
+            id="turn-u-0",
+            root_question_id="q-1",
+            turn_index=0,
+            role=ConversationRole.USER,
+            content="q",
+            attached_images_jsonb=[
+                {"storage_key": "k-extra", "mime_type": "image/jpeg", "size_bytes": 1}
+            ],
+        )
+    ]
+    keys = pipeline.collect_attached_images(question, turns)
+    assert len(keys) == 3
+    assert keys == ["k0", "k1", "k2"]
+
+
+def test_collect_attached_images_none_when_no_images() -> None:
+    question = _question()
+    assert pipeline.collect_attached_images(question, [_user_turn()]) == []
+
+
+@pytest.mark.asyncio
+async def test_enforce_vision_cost_guard_allows_under_ceiling(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_redis = AsyncMock()
+    fake_redis.incr = AsyncMock(return_value=1)
+    fake_redis.expire = AsyncMock(return_value=True)
+    monkeypatch.setattr("app.infrastructure.cache.client.get_redis", lambda: fake_redis)
+    await pipeline.enforce_vision_cost_guard("stu-1")
+    fake_redis.incr.assert_awaited()
+
+
+@pytest.mark.asyncio
+async def test_enforce_vision_cost_guard_blocks_over_ceiling(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    fake_redis = AsyncMock()
+    fake_redis.incr = AsyncMock(return_value=21)  # > default ceiling of 20
+    monkeypatch.setattr("app.infrastructure.cache.client.get_redis", lambda: fake_redis)
+    with pytest.raises(ValidationError) as exc_info:
+        await pipeline.enforce_vision_cost_guard("stu-1")
+    assert "limit" in str(exc_info.value).lower()
+
+
+@pytest.mark.asyncio
+async def test_enforce_vision_cost_guard_fails_open_when_redis_unavailable(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def _raise() -> Any:
+        raise ConnectionError("redis down")
+
+    monkeypatch.setattr("app.infrastructure.cache.client.get_redis", _raise)
+    # Must not raise — a cache outage should never block Q&A.
+    await pipeline.enforce_vision_cost_guard("stu-1")
+
+
+@pytest.mark.asyncio
+async def test_audit_vision_routed_writes_audit_entry(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lecture = _lecture()
+    question = _question()
+    session = AsyncMock()
+    added: list[Any] = []
+    session.add = MagicMock(side_effect=lambda obj: added.append(obj))
+    session.commit = AsyncMock()
+
+    await pipeline._audit_vision_routed(session, question=question, lecture=lecture, image_count=2)
+
+    assert len(added) == 1
+    entry = added[0]
+    assert entry.action == "llm.vision_routed"
+    assert entry.actor_id == question.student_user_id
+    assert entry.metadata_json == '{"image_count": 2}'
+
+
+@pytest.mark.asyncio
+async def test_audit_vision_routed_never_raises_on_failure(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lecture = _lecture()
+    question = _question()
+    session = AsyncMock()
+    session.add = MagicMock(side_effect=RuntimeError("db down"))
+
+    # Must not raise — audit failures must never block Q&A.
+    await pipeline._audit_vision_routed(session, question=question, lecture=lecture, image_count=1)
+
+
+@pytest.mark.asyncio
+async def test_retrieve_qa_chunks_skips_web_fallback_when_images_attached(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """T-169: pure-vision reasoning (no RAG, images present) → no web fallback,
+    so build_source_tags lands on [AI Knowledge] rather than [Web]/[No Source]."""
+    lecture = _lecture()
+    session = AsyncMock()
+
+    async def _resolve(_session: Any, _lec: SchoolLecture) -> tuple[list[Any], list[Any]]:
+        return [], []
+
+    async def _retrieve(**_kwargs: Any) -> list[dict[str, Any]]:
+        return []
+
+    web_called = {"called": False}
+
+    async def _web(_topic: str) -> list[Any]:
+        web_called["called"] = True
+        return []
+
+    monkeypatch.setattr(pipeline, "resolve_lecture_corpus", _resolve)
+    monkeypatch.setattr(pipeline, "_retrieve_for_items", _retrieve)
+    monkeypatch.setattr(pipeline, "_fetch_web_fallback_chunks", _web)
+
+    curr, ref, web, no_coverage = await pipeline.retrieve_qa_chunks(
+        session, lecture=lecture, query="what is this?", skip_web_fallback=True
+    )
+    assert curr == []
+    assert ref == []
+    assert web == []
+    assert no_coverage is False
+    assert web_called["called"] is False
+
+    primary, _tags = pipeline.build_source_tags(
+        curriculum=curr, reference=ref, web=web, no_coverage=no_coverage
+    )
+    assert primary == "[AI Knowledge]"
+
+
+@pytest.mark.asyncio
+async def test_stream_answer_passes_attached_images_to_stream_chat(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    lecture = _lecture()
+    question = _question(
+        attached_images_jsonb=[
+            {
+                "storage_key": "student-question-image/s/2026/01/01/u1/a.jpg",
+                "mime_type": "image/jpeg",
+                "size_bytes": 10,
+            }
+        ]
+    )
+    turns = [_user_turn()]
+    session = AsyncMock()
+    session.add = MagicMock()
+    session.flush = AsyncMock()
+    session.commit = AsyncMock()
+
+    async def _retrieve(
+        _session: Any, *, lecture: SchoolLecture, query: str, skip_web_fallback: bool = False
+    ) -> tuple[list[Any], list[Any], list[Any], bool]:
+        assert skip_web_fallback is True
+        return [], [], [], False
+
+    captured: dict[str, Any] = {}
+
+    async def _fake_stream(*_a: Any, **kwargs: Any) -> Any:
+        captured["attached_images"] = kwargs.get("attached_images")
+        yield "It shows a force diagram. [AI Knowledge]"
+
+    async def _persona(*_a: Any, **_k: Any) -> str:
+        return "You are a warm tutor."
+
+    monkeypatch.setattr(pipeline, "retrieve_qa_chunks", _retrieve)
+    monkeypatch.setattr(pipeline, "resolve_base_persona", _persona)
+    monkeypatch.setattr(pipeline, "stream_chat", _fake_stream)
+    monkeypatch.setattr(pipeline, "_audit_vision_routed", AsyncMock())
+    monkeypatch.setattr(
+        pipeline, "get_student_exam_framework_overlay", AsyncMock(return_value=None)
+    )
+    session.get = AsyncMock(return_value=None)
+
+    tokens: list[str] = []
+    async for tok in pipeline.stream_answer_for_question(
+        session, question=question, lecture=lecture, turns=turns
+    ):
+        tokens.append(tok)
+
+    assert captured["attached_images"] == ["student-question-image/s/2026/01/01/u1/a.jpg"]
 
 
 @pytest.mark.asyncio

@@ -5,10 +5,13 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import AsyncGenerator
 from datetime import datetime, timezone
+from typing import Literal
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
+from app.features.files.models import UploadRecord
+from app.features.files.profiles import STUDENT_QUESTION_IMAGE_MAX_PER_QUESTION
 from app.features.lectures.lecture_session import LectureSessionService
 from app.features.lectures.models import (
     LectureSessionStatus,
@@ -20,6 +23,8 @@ from app.features.lectures.schemas import ParagraphSourceMetadata
 from app.features.lectures.service import LectureService
 from app.features.student_privacy.service import student_allows_teacher_share
 from app.features.student_questions.answer_pipeline import (
+    collect_attached_images,
+    enforce_vision_cost_guard,
     enqueue_answer_generation,
     stream_answer_for_question,
 )
@@ -37,10 +42,12 @@ from app.features.student_questions.models import (
 from app.features.student_questions.repository import (
     LectureParagraphLookup,
     StudentQuestionConversationRepository,
+    StudentQuestionImageLookup,
     StudentQuestionRepository,
 )
 from app.features.student_questions.schemas import (
     AnswerSourceSpanRead,
+    AttachedImageRef,
     ConversationRoleLiteral,
     ConversationTurnRead,
     QuestionClassificationLiteral,
@@ -52,9 +59,49 @@ from app.features.student_questions.schemas import (
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 
+_MIME_BY_EXT: dict[str, Literal["image/jpeg", "image/png", "image/webp"]] = {
+    ".jpg": "image/jpeg",
+    ".jpeg": "image/jpeg",
+    ".png": "image/png",
+    ".webp": "image/webp",
+}
+
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)
+
+
+def _mime_from_filename(filename: str) -> Literal["image/jpeg", "image/png", "image/webp"]:
+    lower = filename.lower()
+    for ext, mime in _MIME_BY_EXT.items():
+        if lower.endswith(ext):
+            return mime
+    return "image/jpeg"
+
+
+def _tenant_scope_id(student: User) -> str:
+    """Per-tenant MinIO scope: school_id for school students, else user id.
+
+    Mirrors ``image_upload._tenant_scope_id`` — kept as a local duplicate
+    (not imported) since services don't reach into each other's private
+    helpers; both must stay in lockstep with how uploads are scoped (T-166).
+    """
+    if student.school_id:
+        return student.school_id
+    return student.id
+
+
+def _parse_attached_images(raw: list[object] | None) -> list[AttachedImageRef]:
+    if not isinstance(raw, list):
+        return []
+    result: list[AttachedImageRef] = []
+    for item in raw:
+        if isinstance(item, dict):
+            try:
+                result.append(AttachedImageRef.model_validate(item))
+            except Exception:
+                continue
+    return result
 
 
 def _turn_to_read(row: SchoolStudentQuestionConversation) -> ConversationTurnRead:
@@ -65,6 +112,7 @@ def _turn_to_read(row: SchoolStudentQuestionConversation) -> ConversationTurnRea
         role=ConversationRoleLiteral(row.role.value),
         content=row.content,
         source_tags_jsonb=row.source_tags_jsonb,
+        attached_images=_parse_attached_images(row.attached_images_jsonb),
         created_at=row.created_at,
     )
 
@@ -87,6 +135,7 @@ def question_to_read(
         classification=QuestionClassificationLiteral(row.classification.value),
         answer_text=row.answer_text,
         answer_source_tags_jsonb=row.answer_source_tags_jsonb,
+        attached_images=_parse_attached_images(row.attached_images_jsonb),
         asked_at=row.asked_at,
         answered_at=row.answered_at,
         conversations=[_turn_to_read(t) for t in (turns or [])],
@@ -104,6 +153,7 @@ class StudentQuestionService:
         self._questions = StudentQuestionRepository(session)
         self._conversations = StudentQuestionConversationRepository(session)
         self._paragraphs = LectureParagraphLookup(session)
+        self._images = StudentQuestionImageLookup(session)
 
     async def _require_student(self, claims: dict[str, object]) -> User:
         user = await self._users.get_by_authentik_id(str(claims.get("sub", "")))
@@ -132,6 +182,41 @@ class StudentQuestionService:
         if row.status != LectureSessionStatus.ACTIVE:
             raise ValidationError("Lecture session has ended; open a new session")
         return row
+
+    async def _resolve_attached_images(
+        self, student: User, storage_keys: list[str]
+    ) -> list[AttachedImageRef]:
+        """Validate + resolve ``attached_images`` storage keys (T-169 / T-170).
+
+        Enforces: max 3 per question/turn, and that each key is an
+        ``UploadRecord`` under the ``student_question_image`` profile owned
+        by *this* student within *this* student's tenant scope (school_id, or
+        the student's own id for independent) — cross-student and
+        cross-tenant image references are rejected (tenant isolation).
+        """
+        if not storage_keys:
+            return []
+        if len(storage_keys) > STUDENT_QUESTION_IMAGE_MAX_PER_QUESTION:
+            raise ValidationError(
+                f"Max {STUDENT_QUESTION_IMAGE_MAX_PER_QUESTION} images per question"
+            )
+        tenant_scope_id = _tenant_scope_id(student)
+        refs: list[AttachedImageRef] = []
+        for key in storage_keys:
+            record: UploadRecord | None = await self._images.get_owned(
+                key, tenant_scope_id=tenant_scope_id, uploaded_by=student.id
+            )
+            if record is None:
+                raise ValidationError("Attached image not found, or not owned by this student")
+            refs.append(
+                AttachedImageRef(
+                    storage_key=record.minio_key,
+                    mime_type=_mime_from_filename(record.filename),
+                    size_bytes=record.size_bytes,
+                    upload_id=record.id,
+                )
+            )
+        return refs
 
     async def _resolve_source_chunk_id(
         self, *, paragraph_id: str | None, source_chunk_id: str | None
@@ -164,6 +249,7 @@ class StudentQuestionService:
             paragraph_id=payload.paragraph_id,
             source_chunk_id=payload.source_chunk_id,
         )
+        attached_images = await self._resolve_attached_images(student, payload.attached_images)
 
         lecture_excerpt = ""
         if payload.paragraph_id:
@@ -191,6 +277,11 @@ class StudentQuestionService:
             paragraph_id=payload.paragraph_id,
             source_chunk_id=source_chunk_id,
             classification=classification,
+            attached_images_jsonb=(
+                [img.model_dump(mode="json") for img in attached_images]
+                if attached_images
+                else None
+            ),
             asked_at=now,
         )
         created = await self._questions.create(question)
@@ -201,6 +292,11 @@ class StudentQuestionService:
             role=ConversationRole.USER,
             content=payload.question_text,
             source_tags_jsonb=None,
+            attached_images_jsonb=(
+                [img.model_dump(mode="json") for img in attached_images]
+                if attached_images
+                else None
+            ),
         )
         await self._conversations.create(user_turn)
 
@@ -227,6 +323,9 @@ class StudentQuestionService:
             "question_text": created.question_text,
             "highlight_text": created.highlight_text,
             "asked_at": created.asked_at.isoformat(),
+            # T-169: image refs carried on the event so downstream consumers
+            # (e.g. Cognitive DNA, Flow 9/M-18) see vision-routed questions.
+            "attached_images": [img.storage_key for img in attached_images],
         }
         await publish_student_question_asked(payload=event_payload)
         if created.highlight_text:
@@ -292,6 +391,8 @@ class StudentQuestionService:
             study_session.last_activity_at = _utcnow()
             await self._sessions.save(study_session)
 
+        attached_images = await self._resolve_attached_images(student, payload.attached_images)
+
         turn_index = await self._conversations.next_turn_index(question_id)
         user_turn = SchoolStudentQuestionConversation(
             root_question_id=question_id,
@@ -299,8 +400,23 @@ class StudentQuestionService:
             role=ConversationRole.USER,
             content=payload.content,
             source_tags_jsonb=None,
+            attached_images_jsonb=(
+                [img.model_dump(mode="json") for img in attached_images]
+                if attached_images
+                else None
+            ),
         )
         await self._conversations.create(user_turn)
+
+        if attached_images:
+            # T-169: a new image changes what the answer must address — clear
+            # the cached answer so the stream endpoint regenerates instead of
+            # replaying the pre-image answer (see stream_answer_for_question's
+            # early-return-on-cached-answer guard).
+            question.answer_text = None
+            question.answered_at = None
+            await self._questions.save(question)
+
         await self._session.commit()
 
         await enqueue_answer_generation(
@@ -368,7 +484,10 @@ class StudentQuestionService:
         """SSE token stream for Pattern S + ``lecture_qa_v1`` (T-158).
 
         Access checks run before the generator is returned so FastAPI can still
-        emit 403/404 instead of a half-open SSE body.
+        emit 403/404 instead of a half-open SSE body. The T-170 vision cost
+        guard runs here too (before any LLM call, and before the SSE body
+        starts) for the same reason — a 429/422 must land as a normal JSON
+        error response, not a half-open stream.
         """
         student = await self._require_student(claims)
         lecture = await self._require_accessible_lecture(student, lecture_id)
@@ -376,6 +495,11 @@ class StudentQuestionService:
             student, lecture_id=lecture_id, question_id=question_id
         )
         turns = await self._conversations.list_for_question(question_id)
+
+        if not question.answer_text:
+            attached_images = collect_attached_images(question, turns)
+            if attached_images:
+                await enforce_vision_cost_guard(question.student_user_id)
 
         # Keep the study session warm while the answer streams.
         study_session = await self._sessions.get_by_id(question.session_id)

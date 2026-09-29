@@ -121,11 +121,14 @@ export type LectureSessionRead = Schemas["LectureSessionRead"];
 export type LectureAudioAlignmentSpan = Schemas["LectureAudioAlignmentSpan"];
 export type LectureAudioCacheRead = Schemas["LectureAudioCacheRead"];
 export type LectureAudioRequest = Schemas["LectureAudioRequest"];
-export type StudentQuestionRead = Schemas["StudentQuestionRead"];
+// ── M-13 hybrid widget image + vision LLM (A-002 generated via pnpm gen:api) ─
+export type AttachedImageRef = Schemas["AttachedImageRef"];
+export type StudentQuestionImageUploadRead = Schemas["StudentQuestionImageUploadRead"];
 export type StudentQuestionCreateRequest = Schemas["StudentQuestionCreateRequest"];
 export type StudentQuestionFollowUpRequest = Schemas["StudentQuestionFollowUpRequest"];
-export type StudentQuestionAnswerRead = Schemas["StudentQuestionAnswerRead"];
 export type ConversationTurnRead = Schemas["ConversationTurnRead"];
+export type StudentQuestionRead = Schemas["StudentQuestionRead"];
+export type StudentQuestionAnswerRead = Schemas["StudentQuestionAnswerRead"];
 export type QuestionClassification = Schemas["QuestionClassificationLiteral"];
 export type TeacherActivityShareRead = Schemas["TeacherActivityShareRead"];
 export type TeacherActivityShareUpdate = Schemas["TeacherActivityShareUpdate"];

@@ -1,12 +1,19 @@
 "use client";
 
 /**
- * Client-side image upload hook (M-13 extension point).
- * M-12: stubbed — validates locally then rejects with a clear error until
- * the student_question_image upload profile lands in M-13.
+ * Client-side image upload hook (T-167).
+ *
+ * POSTs to `studentQuestionImagesApi.upload` (student_question_image upload
+ * profile, T-166) and keeps a local thumbnail (FileReader data URL) alongside
+ * the returned MinIO storage key so `ImageAttachmentChip` can render without
+ * a round-trip, and `HybridInputWidget.onSubmit` can thread the storage keys
+ * up to the parent as `attached_images`.
  */
 
 import { useCallback, useState } from "react";
+
+import { useClientAuth } from "@/hooks/use-client-auth";
+import { studentQuestionImagesApi } from "@/lib/api";
 
 import type { ImageRef } from "../types";
 
@@ -17,7 +24,7 @@ export type ImageUploadErrorCode =
   | "too_large"
   | "format_unsupported"
   | "max_reached"
-  | "not_implemented";
+  | "upload_failed";
 
 export type UseImageUploadOptions = {
   maxImages?: number;
@@ -25,8 +32,19 @@ export type UseImageUploadOptions = {
   onAttached?: (count: number) => void;
 };
 
+function readAsDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
+    reader.onerror = () => reject(reader.error ?? new Error("file_read_failed"));
+    reader.readAsDataURL(file);
+  });
+}
+
 export function useImageUpload(options: UseImageUploadOptions = {}) {
   const { maxImages = 3, enabled = false, onAttached } = options;
+  const { token } = useClientAuth();
+
   const [images, setImages] = useState<ImageRef[]>([]);
   const [error, setError] = useState<ImageUploadErrorCode | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -42,10 +60,7 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
   const uploadImage = useCallback(
     async (file: File): Promise<ImageRef | null> => {
       setError(null);
-      if (!enabled) {
-        setError("not_implemented");
-        return null;
-      }
+      if (!enabled) return null;
       if (images.length >= maxImages) {
         setError("max_reached");
         return null;
@@ -59,17 +74,31 @@ export function useImageUpload(options: UseImageUploadOptions = {}) {
         return null;
       }
 
-      // M-13: POST /api/v1/uploads with student_question_image profile.
       setUploading(true);
       try {
-        setError("not_implemented");
+        const result = await studentQuestionImagesApi.upload(
+          token ?? "cookie-session",
+          file,
+          images.length
+        );
+        const thumbnailDataUrl = await readAsDataUrl(file).catch(() => "");
+        const ref: ImageRef = {
+          storage_key: result.storage_key,
+          mime_type: result.mime_type,
+          size_bytes: result.size_bytes,
+          thumbnail_data_url: thumbnailDataUrl,
+        };
+        setImages((prev) => [...prev, ref]);
+        onAttached?.(images.length + 1);
+        return ref;
+      } catch {
+        setError("upload_failed");
         return null;
       } finally {
         setUploading(false);
-        onAttached?.(images.length);
       }
     },
-    [enabled, images.length, maxImages, onAttached]
+    [enabled, images.length, maxImages, onAttached, token]
   );
 
   return {
