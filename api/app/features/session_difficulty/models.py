@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from sqlalchemy import ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy import Enum as SAEnum
+from sqlalchemy import ForeignKey, Index, Integer, String, UniqueConstraint
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
