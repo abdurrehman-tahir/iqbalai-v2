@@ -239,7 +239,22 @@ class LectureSessionService:
             raise ValidationError("Lecture session has ended; open a new session")
         row.mode = LectureSessionMode(payload.mode.value)
         row.last_activity_at = now
-        return _to_read(await self._sessions.save(row))
+        saved = await self._sessions.save(row)
+        from app.features.lectures.events import publish_mode_switch
+
+        await publish_mode_switch(
+            payload={
+                "session_id": saved.id,
+                "lecture_id": saved.lecture_id,
+                "student_user_id": student.id,
+                "school_id": student.school_id or "",
+                "tenant_type": "school",
+                "mode": saved.mode.value
+                if hasattr(saved.mode, "value")
+                else str(saved.mode),
+            }
+        )
+        return _to_read(saved)
 
     async def end_session(self, claims: dict[str, object], session_id: str) -> LectureSessionRead:
         student = await self._require_student(claims)

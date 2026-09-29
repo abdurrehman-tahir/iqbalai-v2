@@ -41,6 +41,7 @@ from app.features.library.independent_personal_router import (
 from app.features.library.platform_library_router import router as platform_library_router
 from app.features.library.router import router as library_router
 from app.features.library.school_library_router import router as school_library_router
+from app.features.live_feedback.interaction_router import router as lecture_interaction_router
 from app.features.notifications.router import router as notifications_router
 from app.features.offerings.router import router as offerings_router
 from app.features.parent_child_links.parent_router import router as parent_links_router
@@ -124,6 +125,7 @@ router.include_router(teacher_onboarding_router)
 router.include_router(lecture_wizard_router)
 router.include_router(independent_lecture_wizard_router)
 router.include_router(student_lecture_sessions_router)
+router.include_router(lecture_interaction_router)
 router.include_router(student_lecture_questions_router)
 router.include_router(student_question_images_router)
 router.include_router(student_quizzes_router)

@@ -27,6 +27,14 @@ class Settings(BaseSettings):
     # When false, lifespan skips eager NATS connect (core-only compose boot — T-236).
     EVENTS_ENABLED: bool = False
 
+    # M-14 — live feedback + per-session adaptation (Flow 6 §3.7–§3.9).
+    AI_ADAPT_QUESTION_THRESHOLD: int = 2
+    LIVE_FEEDBACK_TICK_SECONDS: int = 60
+    LIVE_FEEDBACK_PANEL_DELAY_SECONDS: int = 120
+    STUCK_NUDGE_SECONDS: int = 600
+    EVENT_PIPELINE_LAG_SECONDS: int = 30
+    EVENT_PIPELINE_LAG_CHECK_SECONDS: int = 15
+
     # MinIO / S3-compatible
     MINIO_ENDPOINT: str = "localhost:9000"
     MINIO_ACCESS_KEY: str = "minio_admin"
