@@ -22,6 +22,7 @@ from app.features.student_highlights.anchoring import locate_anchor, resolve_mar
 from app.features.student_highlights.models import HighlightTenantType, SchoolStudentHighlight
 from app.features.student_highlights.repository import StudentHighlightRepository
 from app.features.student_highlights.schemas import HighlightMarkRead, StudentHighlightRead
+from app.features.student_onboarding.models import StudentProfile
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 
@@ -99,6 +100,12 @@ class StudentHighlightService:
         questions, or a selection spanning paragraphs.
         """
         if not highlighted_text or paragraph is None:
+            return None
+        # flow-6 §5.10: a graduated student in the school read-only window can view
+        # past lectures and highlights but cannot create new highlights (and so no
+        # new flashcards either).
+        profile = await self._session.get(StudentProfile, student_user_id)
+        if profile is not None and profile.is_graduated and not profile.migrated_out:
             return None
         anchor = locate_anchor(paragraph.text, highlighted_text, offset_hint)
         if anchor is None:
