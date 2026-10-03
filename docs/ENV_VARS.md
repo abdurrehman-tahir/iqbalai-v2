@@ -73,6 +73,12 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 | `EVENT_PIPELINE_LAG_SECONDS` | `30` | Consumer lag threshold before `system.event_pipeline_lag` (T-178). | Flow 6 §3.8 |
 | `EVENT_PIPELINE_LAG_CHECK_SECONDS` | `15` | How often the lag monitor polls durable consumers. | T-178 |
 
+### Concept enrichment (Flow 6 §3.10 + ARCH §10.6)
+
+| Variable | Default | Purpose | Source |
+|---|---|---|---|
+| `CONCEPT_ENRICHMENT_CACHE_DAYS` | `90` | Age (in days, 1–365) after which a per-concept enrichment entry (real-world uses, career links, mini-sim) is regenerated. The Celery beat `concept.refresh_quarterly` runs daily and picks up entries whose `generated_at` is older than this. Read in `features/concept_enrichment/cache.py`. | Flow 6 §3.10 + ARCH §10.6 + M-15 T-189 |
+
 ### Vision-LLM routing (ARCH §8.22)
 
 | Variable | Default | Purpose | Source |
@@ -122,3 +128,4 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 | Date | Change | Author |
 |---|---|---|
 | 2026-05-14 | Initial file created during T0 batch. Lists 9 spec-set additions (Custom Persona, Exam Framework engine, Graduation, AI adaptation, Vision-LLM, Stripe placeholders). | @abdurrehman (with Claude) |
+| 2026-10-03 | Added `CONCEPT_ENRICHMENT_CACHE_DAYS` (M-15 T-189). | M-15 (with Claude) |

@@ -10,7 +10,9 @@ without leaving rows behind.
 
 from __future__ import annotations
 
+import importlib
 import os
+import pkgutil
 from collections.abc import AsyncIterator
 from dataclasses import dataclass
 from datetime import datetime, timezone
@@ -29,6 +31,20 @@ from app.features.lectures.models import (
 from app.features.schools.models import District, School
 from app.features.student_questions.models import SchoolStudentQuestion
 from app.features.users.models import User, UserAccountStatus, UserRole
+
+
+def _load_all_models() -> None:
+    """Register every feature model so cross-feature FKs resolve on flush, even
+    when a test module is collected on its own (e.g. lectures → offerings)."""
+    import app.features as features
+
+    for mod in pkgutil.walk_packages(features.__path__, prefix="app.features."):
+        leaf = mod.name.rsplit(".", 1)[-1]
+        if ".tests" not in mod.name and (leaf == "models" or leaf.endswith("_models")):
+            importlib.import_module(mod.name)
+
+
+_load_all_models()
 
 
 def _db_url() -> str | None:

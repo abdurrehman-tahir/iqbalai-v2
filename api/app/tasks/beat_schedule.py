@@ -63,6 +63,13 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "benchmark.update_weekly",
         "schedule": crontab(day_of_week=0, hour=20, minute=0),
     },
+    # M-15 concept enrichment cache (T-189, ARCH §10.6 locked entry): daily at
+    # 00:30 PKT; the sweep regenerates entries older than
+    # CONCEPT_ENRICHMENT_CACHE_DAYS (default 90) — cadence enforced in the task.
+    "refresh-concept-applications": {
+        "task": "concept.refresh_quarterly",
+        "schedule": crontab(hour=19, minute=30),
+    },
     # M-13 student_question_image 1-year retention purge (T-166 / T-170).
     # Daily is plenty for a year-long window; offset from the other daily sweeps.
     "purge-expired-student-question-images": {
