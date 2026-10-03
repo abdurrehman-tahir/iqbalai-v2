@@ -16,7 +16,7 @@ from __future__ import annotations
 
 from enum import StrEnum
 
-from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, String, Text
+from sqlalchemy import CheckConstraint, ForeignKey, Index, Integer, String, Text, text
 from sqlalchemy import Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
@@ -33,6 +33,40 @@ def _tenant_type_enum(schema: str) -> SAEnum:
     return SAEnum(
         HighlightTenantType,
         name="lectures_tenant_type_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
+class FlashcardSourceType(StrEnum):
+    """Where a flashcard came from (flow-6 §10). ``manual`` is reserved for Flow 8."""
+
+    HIGHLIGHT = "highlight"
+    MANUAL = "manual"
+
+
+class FlashcardStatus(StrEnum):
+    ACTIVE = "active"
+    DISMISSED = "dismissed"
+
+
+def _flashcard_source_type_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        FlashcardSourceType,
+        name="student_flashcards_source_type_enum",
+        schema=schema,
+        values_callable=lambda items: [item.value for item in items],
+        native_enum=True,
+        create_type=False,
+    )
+
+
+def _flashcard_status_enum(schema: str) -> SAEnum:
+    return SAEnum(
+        FlashcardStatus,
+        name="student_flashcards_status_enum",
         schema=schema,
         values_callable=lambda items: [item.value for item in items],
         native_enum=True,
@@ -104,4 +138,84 @@ class SchoolStudentHighlight(AuditMixin, SoftDeleteMixin, Base):
             kwargs["id"] = _uuid7()
         if "tenant_type" not in kwargs:
             kwargs["tenant_type"] = HighlightTenantType.SCHOOL
+        super().__init__(**kwargs)
+
+
+class SchoolStudentFlashcard(AuditMixin, SoftDeleteMixin, Base):
+    """Auto-generated flashcard from a highlight + AI answer pair (T-186, §3.6).
+
+    Dedupe: ``dedupe_hash`` = sha256(lecture_id, normalised highlight text),
+    unique per student among non-deleted cards (partial unique index) — the
+    same student highlighting the same text in the same lecture reuses the
+    card; two different students each get their own.
+
+    Survives its source highlight: ``source_highlight_id`` is SET NULL, and a
+    highlight whose mark drops after a lecture re-edit (§5.5) leaves the card
+    untouched. Spaced-repetition state is NOT here — it belongs to Flow 8/9
+    (py-fsrs, M-17/M-18); M-15 only creates cards and publishes the event.
+    """
+
+    __tablename__ = "student_flashcards"
+    __table_args__ = (
+        Index(
+            "student_flashcards_student_dedupe_uq",
+            "student_user_id",
+            "dedupe_hash",
+            unique=True,
+            postgresql_where=text("deleted_at IS NULL"),
+        ),
+        Index("ix_student_flashcards_student_created", "student_user_id", "created_at"),
+        Index("ix_student_flashcards_lecture_id", "lecture_id"),
+        Index("ix_student_flashcards_source_highlight_id", "source_highlight_id"),
+        {"schema": "school"},
+    )
+
+    id: Mapped[str] = mapped_column(String(36), primary_key=True, default=_uuid7)
+    student_user_id: Mapped[str] = mapped_column(
+        String(36),
+        ForeignKey("school.users.id", ondelete="CASCADE"),
+        nullable=False,
+    )
+    # Nullable per flow-6 §10 (manual cards have no lecture). SET NULL: a card's
+    # front/back stay useful to the student even if the lecture is hard-removed.
+    lecture_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.lectures.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    source_type: Mapped[FlashcardSourceType] = mapped_column(
+        _flashcard_source_type_enum("school"),
+        nullable=False,
+        default=FlashcardSourceType.HIGHLIGHT,
+    )
+    source_highlight_id: Mapped[str | None] = mapped_column(
+        String(36),
+        ForeignKey("school.student_highlights.id", ondelete="SET NULL"),
+        nullable=True,
+    )
+    concept_tag: Mapped[str | None] = mapped_column(String(128), nullable=True)
+    front_text: Mapped[str] = mapped_column(Text, nullable=False)
+    # Empty string = placeholder back (AI answer failed, §5.5); never NULL.
+    back_text: Mapped[str] = mapped_column(Text, nullable=False)
+    dedupe_hash: Mapped[str] = mapped_column(String(64), nullable=False)
+    status: Mapped[FlashcardStatus] = mapped_column(
+        _flashcard_status_enum("school"),
+        nullable=False,
+        default=FlashcardStatus.ACTIVE,
+    )
+    tenant_type: Mapped[HighlightTenantType] = mapped_column(
+        _tenant_type_enum("school"),
+        nullable=False,
+        default=HighlightTenantType.SCHOOL,
+    )
+
+    def __init__(self, **kwargs: object) -> None:
+        if "id" not in kwargs:
+            kwargs["id"] = _uuid7()
+        if "tenant_type" not in kwargs:
+            kwargs["tenant_type"] = HighlightTenantType.SCHOOL
+        if "source_type" not in kwargs:
+            kwargs["source_type"] = FlashcardSourceType.HIGHLIGHT
+        if "status" not in kwargs:
+            kwargs["status"] = FlashcardStatus.ACTIVE
         super().__init__(**kwargs)
