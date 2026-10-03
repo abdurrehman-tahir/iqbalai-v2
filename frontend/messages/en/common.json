@@ -650,6 +650,45 @@
         "topics_heading": "Topics (by past-paper weight)",
         "no_topics": "No topics in this plan yet."
       }
+    },
+    "nav": {
+      "label": "Student navigation",
+      "home": "Home",
+      "highlights": "My Highlights"
+    },
+    "highlights": {
+      "title": "My Highlights",
+      "subtitle": "Everything you highlighted while studying, with the flashcard made from each one.",
+      "list_label": "Your highlights, newest first",
+      "error": "Could not load your highlights.",
+      "retry": "Try again",
+      "empty_title": "No highlights yet",
+      "empty_description": "Highlight a passage in a lecture and ask about it — it will appear here with a flashcard.",
+      "empty_cta": "Go to my lectures",
+      "lecture_label": "Lecture: {title}",
+      "concept_label": "Concept: {concept}",
+      "open_in_lecture": "Open in lecture",
+      "flashcard_label": "Flashcard",
+      "flashcard_front": "Front",
+      "flashcard_back": "Back",
+      "show_back": "Show answer",
+      "show_front": "Show question",
+      "placeholder_back": "The answer for this card couldn't be generated. Add your own.",
+      "add_back": "Add answer",
+      "edit_back": "Edit answer",
+      "edit_back_label": "Answer on the back of the card",
+      "edit_back_required": "Write an answer before saving.",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "delete_confirm": "Delete this highlight and its flashcard?",
+      "delete_yes": "Yes, delete",
+      "action_error": "That didn't work. Please try again.",
+      "pagination_label": "Highlight pages",
+      "prev_page": "Previous",
+      "next_page": "Next",
+      "page_of": "Page {page} of {pages}"
     }
   },
   "teacher": {

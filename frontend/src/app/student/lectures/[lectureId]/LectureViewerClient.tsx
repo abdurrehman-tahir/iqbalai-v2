@@ -138,6 +138,26 @@ export function LectureViewerClient({ lectureId }: Props) {
     [highlightsQuery.data],
   );
 
+  // T-188: "Open in lecture" from My Highlights → ?highlight=<id> scrolls to
+  // (and focuses) that yellow mark once it renders. If the mark was dropped
+  // after a re-edit (§5.5) there is nothing to scroll to — the lecture just opens.
+  const deepLinkDoneRef = useRef(false);
+  useEffect(() => {
+    if (deepLinkDoneRef.current || !highlightsQuery.data || !viewerQuery.data) return;
+    const target = new URLSearchParams(window.location.search).get("highlight");
+    if (!target) return;
+    const el = document.querySelector<HTMLElement>(
+      `[data-testid="highlight-mark"][data-highlight-id="${CSS.escape(target)}"]`,
+    );
+    deepLinkDoneRef.current = true;
+    if (!el) return;
+    el.setAttribute("tabindex", "-1");
+    if (typeof el.scrollIntoView === "function") {
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
+    el.focus({ preventScroll: true });
+  }, [highlightsQuery.data, viewerQuery.data]);
+
   useEffect(() => {
     sessionIdRef.current = viewerQuery.data?.session.id ?? null;
   }, [viewerQuery.data?.session.id]);

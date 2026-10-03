@@ -133,6 +133,11 @@ export type QuestionClassification = Schemas["QuestionClassificationLiteral"];
 // ── M-15 highlights / flashcards / enrichment / rating (A-002 generated) ─────
 export type StudentHighlightRead = Schemas["StudentHighlightRead"];
 export type HighlightMarkRead = Schemas["HighlightMarkRead"];
+export type MyHighlightRead = Schemas["MyHighlightRead"];
+export type MyHighlightsPage = Schemas["PaginatedEnvelope_MyHighlightRead_"];
+export type PairedFlashcardRead = Schemas["PairedFlashcardRead"];
+export type FlashcardBackUpdate = Schemas["FlashcardBackUpdate"];
+export type DeletedResponse = Schemas["DeletedResponse"];
 export type TeacherActivityShareRead = Schemas["TeacherActivityShareRead"];
 export type TeacherActivityShareUpdate = Schemas["TeacherActivityShareUpdate"];
 export type TeacherActivityShare = TeacherActivityShareRead["teacher_activity_share"];

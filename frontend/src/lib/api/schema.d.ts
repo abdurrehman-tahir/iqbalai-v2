@@ -1749,6 +1749,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/parents/me/students/{student_user_id}/highlights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read-only highlights + flashcards for a linked child (respects #72) (T-188) */
+        get: operations["parent_list_student_highlights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/parents/me/students/{student_user_id}/lecture-questions": {
         parameters: {
             query?: never;
@@ -1907,6 +1924,23 @@ export interface paths {
         };
         /** Get a school by ID (School Admin — own school only) */
         get: operations["school_admin_get_school"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/school/lectures/{lecture_id}/highlight-aggregate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anonymous highlight/flashcard counts for a lecture (Coordinator+, §6.19) (T-188) */
+        get: operations["school_lecture_highlight_aggregate"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2372,6 +2406,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/flashcards/{flashcard_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit an own flashcard's back (placeholder cards, flow-6 §5.5) (T-188) */
+        patch: operations["student_update_flashcard_back"];
+        trace?: never;
+    };
     "/api/v1/students/me/graduation": {
         parameters: {
             query?: never;
@@ -2384,6 +2435,40 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/highlights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Highlights: own highlights + paired flashcards, newest first (T-188) */
+        get: operations["student_list_my_highlights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/highlights/{highlight_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete an own highlight; its flashcard is removed with it (flow-6 §5.5) (T-188) */
+        delete: operations["student_delete_highlight"];
         options?: never;
         head?: never;
         patch?: never;
@@ -4040,6 +4125,13 @@ export interface components {
             /** Weakness Type */
             weakness_type: string;
         };
+        /** ConceptCountRead */
+        ConceptCountRead: {
+            /** Concept Tag */
+            concept_tag: string;
+            /** Count */
+            count: number;
+        };
         /**
          * ConversationRoleLiteral
          * @enum {string}
@@ -4557,6 +4649,14 @@ export interface components {
             region?: string | null;
         };
         /**
+         * FlashcardBackUpdate
+         * @description Edit a flashcard's back (§5.5 placeholder cards are editable).
+         */
+        FlashcardBackUpdate: {
+            /** Back Text */
+            back_text: string;
+        };
+        /**
          * FocusAreaRead
          * @description Coaching focus area — never a grade/score (Flow 4 §3.6 / T-105).
          */
@@ -4724,6 +4824,15 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HighlightLectureRefRead */
+        HighlightLectureRefRead: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Topic */
+            topic: string;
         };
         /**
          * HighlightMarkRead
@@ -5158,6 +5267,25 @@ export interface components {
             topic: string;
         };
         /**
+         * LectureHighlightAggregateRead
+         * @description Anonymous per-lecture highlight/flashcard counts (Coordinator/Admin, §6.19).
+         *
+         *     Counts only students who share study activity (#72 is inviolate even for
+         *     aggregates); no highlight text, no student identities.
+         */
+        LectureHighlightAggregateRead: {
+            /** Flashcard Count */
+            flashcard_count: number;
+            /** Highlight Count */
+            highlight_count: number;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Student Count */
+            student_count: number;
+            /** Top Concepts */
+            top_concepts: components["schemas"]["ConceptCountRead"][];
+        };
+        /**
          * LectureImageUploadRead
          * @description Servable URL for a just-uploaded lecture image (T-132).
          */
@@ -5508,6 +5636,29 @@ export interface components {
             };
         };
         /**
+         * MyHighlightRead
+         * @description One row of the "My Highlights" tab (chronological, newest first).
+         */
+        MyHighlightRead: {
+            /** Concept Tag */
+            concept_tag?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            flashcard?: components["schemas"]["PairedFlashcardRead"] | null;
+            /** Highlighted Text */
+            highlighted_text: string;
+            /** Id */
+            id: string;
+            lecture: components["schemas"]["HighlightLectureRefRead"];
+            /** Paragraph Ordinal */
+            paragraph_ordinal: number;
+            /** Question Id */
+            question_id?: string | null;
+        };
+        /**
          * NotificationListResponse
          * @description Paginated notification list with unread counter for the bell badge.
          */
@@ -5619,6 +5770,45 @@ export interface components {
             pages: number;
             /** Total */
             total: number;
+        };
+        /** PaginatedEnvelope[MyHighlightRead] */
+        PaginatedEnvelope_MyHighlightRead_: {
+            /** Items */
+            items: components["schemas"]["MyHighlightRead"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Pages */
+            pages: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * PairedFlashcardRead
+         * @description The flashcard paired with a highlight (shared by repeat highlights).
+         */
+        PairedFlashcardRead: {
+            /** Back Is Placeholder */
+            back_is_placeholder: boolean;
+            /** Back Text */
+            back_text: string;
+            /** Concept Tag */
+            concept_tag?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Front Text */
+            front_text: string;
+            /** Id */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "dismissed";
         };
         /** ParentChildLinkRead */
         ParentChildLinkRead: {
@@ -6969,6 +7159,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LectureHighlightAggregateRead] */
+        SuccessEnvelope_LectureHighlightAggregateRead_: {
+            data: components["schemas"]["LectureHighlightAggregateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LectureImageUploadRead] */
         SuccessEnvelope_LectureImageUploadRead_: {
             data: components["schemas"]["LectureImageUploadRead"];
@@ -7071,6 +7270,15 @@ export interface components {
         /** SuccessEnvelope[OfferingRead] */
         SuccessEnvelope_OfferingRead_: {
             data: components["schemas"]["OfferingRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[PairedFlashcardRead] */
+        SuccessEnvelope_PairedFlashcardRead_: {
+            data: components["schemas"]["PairedFlashcardRead"];
             /**
              * Message
              * @default ok
@@ -12247,6 +12455,40 @@ export interface operations {
             };
         };
     };
+    parent_list_student_highlights: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                student_user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedEnvelope_MyHighlightRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     parent_list_student_lecture_questions: {
         parameters: {
             query?: {
@@ -12513,6 +12755,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_lecture_highlight_aggregate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureHighlightAggregateRead_"];
                 };
             };
             /** @description Validation Error */
@@ -13361,6 +13634,41 @@ export interface operations {
             };
         };
     };
+    student_update_flashcard_back: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                flashcard_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FlashcardBackUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_PairedFlashcardRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     student_get_graduation_status: {
         parameters: {
             query?: never;
@@ -13377,6 +13685,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_StudentGraduationStatusRead_"];
+                };
+            };
+        };
+    };
+    student_list_my_highlights: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedEnvelope_MyHighlightRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_delete_highlight: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                highlight_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DeletedResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

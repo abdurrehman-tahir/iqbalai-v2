@@ -872,6 +872,25 @@
         "title": "CoachingSuggestionRead",
         "type": "object"
       },
+      "ConceptCountRead": {
+        "additionalProperties": false,
+        "properties": {
+          "concept_tag": {
+            "title": "Concept Tag",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "concept_tag",
+          "count"
+        ],
+        "title": "ConceptCountRead",
+        "type": "object"
+      },
       "ConversationRoleLiteral": {
         "enum": [
           "user",
@@ -2205,6 +2224,23 @@
         "title": "ExamSyllabusUpdate",
         "type": "object"
       },
+      "FlashcardBackUpdate": {
+        "additionalProperties": false,
+        "description": "Edit a flashcard's back (\u00a75.5 placeholder cards are editable).",
+        "properties": {
+          "back_text": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Back Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "back_text"
+        ],
+        "title": "FlashcardBackUpdate",
+        "type": "object"
+      },
       "FocusAreaRead": {
         "description": "Coaching focus area \u2014 never a grade/score (Flow 4 \u00a73.6 / T-105).",
         "properties": {
@@ -2619,6 +2655,30 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HighlightLectureRefRead": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "topic"
+        ],
+        "title": "HighlightLectureRefRead",
         "type": "object"
       },
       "HighlightMarkRead": {
@@ -3717,6 +3777,44 @@
         "title": "LectureGenerateRequest",
         "type": "object"
       },
+      "LectureHighlightAggregateRead": {
+        "additionalProperties": false,
+        "description": "Anonymous per-lecture highlight/flashcard counts (Coordinator/Admin, \u00a76.19).\n\nCounts only students who share study activity (#72 is inviolate even for\naggregates); no highlight text, no student identities.",
+        "properties": {
+          "flashcard_count": {
+            "title": "Flashcard Count",
+            "type": "integer"
+          },
+          "highlight_count": {
+            "title": "Highlight Count",
+            "type": "integer"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "student_count": {
+            "title": "Student Count",
+            "type": "integer"
+          },
+          "top_concepts": {
+            "items": {
+              "$ref": "#/components/schemas/ConceptCountRead"
+            },
+            "title": "Top Concepts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "highlight_count",
+          "student_count",
+          "flashcard_count",
+          "top_concepts"
+        ],
+        "title": "LectureHighlightAggregateRead",
+        "type": "object"
+      },
       "LectureImageUploadRead": {
         "description": "Servable URL for a just-uploaded lecture image (T-132).",
         "properties": {
@@ -4529,6 +4627,73 @@
         "title": "ModeStateBlob",
         "type": "object"
       },
+      "MyHighlightRead": {
+        "additionalProperties": false,
+        "description": "One row of the \"My Highlights\" tab (chronological, newest first).",
+        "properties": {
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "flashcard": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PairedFlashcardRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "highlighted_text": {
+            "title": "Highlighted Text",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture": {
+            "$ref": "#/components/schemas/HighlightLectureRefRead"
+          },
+          "paragraph_ordinal": {
+            "title": "Paragraph Ordinal",
+            "type": "integer"
+          },
+          "question_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Id"
+          }
+        },
+        "required": [
+          "id",
+          "highlighted_text",
+          "created_at",
+          "lecture",
+          "paragraph_ordinal"
+        ],
+        "title": "MyHighlightRead",
+        "type": "object"
+      },
       "NotificationListResponse": {
         "description": "Paginated notification list with unread counter for the bell badge.",
         "properties": {
@@ -4805,6 +4970,98 @@
           "pages"
         ],
         "title": "PaginatedEnvelope[LectureVersionRead]",
+        "type": "object"
+      },
+      "PaginatedEnvelope_MyHighlightRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MyHighlightRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "pages"
+        ],
+        "title": "PaginatedEnvelope[MyHighlightRead]",
+        "type": "object"
+      },
+      "PairedFlashcardRead": {
+        "additionalProperties": false,
+        "description": "The flashcard paired with a highlight (shared by repeat highlights).",
+        "properties": {
+          "back_is_placeholder": {
+            "title": "Back Is Placeholder",
+            "type": "boolean"
+          },
+          "back_text": {
+            "title": "Back Text",
+            "type": "string"
+          },
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "front_text": {
+            "title": "Front Text",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "dismissed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "front_text",
+          "back_text",
+          "back_is_placeholder",
+          "status",
+          "created_at"
+        ],
+        "title": "PairedFlashcardRead",
         "type": "object"
       },
       "ParentChildLinkRead": {
@@ -8004,6 +8261,23 @@
         "title": "SuccessEnvelope[LectureGenerateRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureHighlightAggregateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureHighlightAggregateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureHighlightAggregateRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LectureImageUploadRead_": {
         "properties": {
           "data": {
@@ -8206,6 +8480,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[OfferingRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_PairedFlashcardRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PairedFlashcardRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[PairedFlashcardRead]",
         "type": "object"
       },
       "SuccessEnvelope_ParentChildLinkRead_": {
@@ -16389,6 +16680,71 @@
         ]
       }
     },
+    "/api/v1/parents/me/students/{student_user_id}/highlights": {
+      "get": {
+        "operationId": "parent_list_student_highlights",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_user_id",
+            "required": true,
+            "schema": {
+              "title": "Student User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEnvelope_MyHighlightRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read-only highlights + flashcards for a linked child (respects #72) (T-188)",
+        "tags": [
+          "parent-student-highlights"
+        ]
+      }
+    },
     "/api/v1/parents/me/students/{student_user_id}/lecture-questions": {
       "get": {
         "description": "Return the child's lecture questions only when #72 = share.\n\nWhen the student has opted out (private), returns an empty list so parents\ncannot observe individual Q&A (INVIOLATE). Requires an approved link.",
@@ -16824,6 +17180,48 @@
         "summary": "Get a school by ID (School Admin \u2014 own school only)",
         "tags": [
           "school-admin"
+        ]
+      }
+    },
+    "/api/v1/school/lectures/{lecture_id}/highlight-aggregate": {
+      "get": {
+        "operationId": "school_lecture_highlight_aggregate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureHighlightAggregateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Anonymous highlight/flashcard counts for a lecture (Coordinator+, \u00a76.19) (T-188)",
+        "tags": [
+          "school-highlight-aggregates"
         ]
       }
     },
@@ -18123,6 +18521,58 @@
         ]
       }
     },
+    "/api/v1/students/me/flashcards/{flashcard_id}": {
+      "patch": {
+        "operationId": "student_update_flashcard_back",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "flashcard_id",
+            "required": true,
+            "schema": {
+              "title": "Flashcard Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlashcardBackUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_PairedFlashcardRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit an own flashcard's back (placeholder cards, flow-6 \u00a75.5) (T-188)",
+        "tags": [
+          "student-highlights"
+        ]
+      }
+    },
     "/api/v1/students/me/graduation": {
       "get": {
         "operationId": "student_get_graduation_status",
@@ -18141,6 +18591,104 @@
         "summary": "Get school student graduation / read-only status",
         "tags": [
           "graduation"
+        ]
+      }
+    },
+    "/api/v1/students/me/highlights": {
+      "get": {
+        "operationId": "student_list_my_highlights",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEnvelope_MyHighlightRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "My Highlights: own highlights + paired flashcards, newest first (T-188)",
+        "tags": [
+          "student-highlights"
+        ]
+      }
+    },
+    "/api/v1/students/me/highlights/{highlight_id}": {
+      "delete": {
+        "operationId": "student_delete_highlight",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "highlight_id",
+            "required": true,
+            "schema": {
+              "title": "Highlight Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DeletedResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete an own highlight; its flashcard is removed with it (flow-6 \u00a75.5) (T-188)",
+        "tags": [
+          "student-highlights"
         ]
       }
     },

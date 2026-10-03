@@ -127,10 +127,21 @@ import type {
   StudentQuestionAnswerRead,
   StudentQuestionImageUploadRead,
   StudentHighlightRead,
+  MyHighlightsPage,
+  PairedFlashcardRead,
+  FlashcardBackUpdate,
+  DeletedResponse,
 } from "./types";
 
 // Re-export M-15 generated types (A-002).
-export type { StudentHighlightRead, HighlightMarkRead } from "./types";
+export type {
+  StudentHighlightRead,
+  HighlightMarkRead,
+  MyHighlightRead,
+  MyHighlightsPage,
+  PairedFlashcardRead,
+  FlashcardBackUpdate,
+} from "./types";
 
 // Re-export M-12 generated types (A-002) for consumers importing from `@/lib/api`.
 export type {
@@ -1721,10 +1732,31 @@ export const studentQuestionsApi = {
     `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/students/me/lectures/${lectureId}/questions/${questionId}/answer/stream`,
 };
 
-/** Persisted lecture highlights + yellow-mark positions (T-185). */
+/** Persisted lecture highlights + yellow marks (T-185) and My Highlights (T-188). */
 export const studentHighlightsApi = {
   listForLecture: (token: string, lectureId: string) =>
     request<StudentHighlightRead[]>(`/students/me/lectures/${lectureId}/highlights`, {}, token),
+  listMine: (token: string, page = 1, pageSize = 20) =>
+    request<MyHighlightsPage>(
+      `/students/me/highlights?${new URLSearchParams({
+        page: String(page),
+        page_size: String(pageSize),
+      }).toString()}`,
+      {},
+      token
+    ),
+  updateFlashcardBack: (token: string, flashcardId: string, body: FlashcardBackUpdate) =>
+    request<PairedFlashcardRead>(
+      `/students/me/flashcards/${flashcardId}`,
+      { method: "PATCH", body: JSON.stringify(body) },
+      token
+    ),
+  deleteHighlight: (token: string, highlightId: string) =>
+    request<DeletedResponse>(
+      `/students/me/highlights/${highlightId}`,
+      { method: "DELETE" },
+      token
+    ),
 };
 
 /**
