@@ -1556,6 +1556,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/lectures/{lecture_id}/rating-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anonymous rating aggregate + blended quality score (teacher/staff) (T-192) */
+        get: operations["lecture_rating_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications/": {
         parameters: {
             query?: never;
@@ -1749,6 +1766,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/parents/me/students/{student_user_id}/highlights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read-only highlights + flashcards for a linked child (respects #72) (T-188) */
+        get: operations["parent_list_student_highlights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/parents/me/students/{student_user_id}/lecture-questions": {
         parameters: {
             query?: never;
@@ -1907,6 +1941,23 @@ export interface paths {
         };
         /** Get a school by ID (School Admin — own school only) */
         get: operations["school_admin_get_school"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/school/lectures/{lecture_id}/highlight-aggregate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anonymous highlight/flashcard counts for a lecture (Coordinator+, §6.19) (T-188) */
+        get: operations["school_lecture_highlight_aggregate"];
         put?: never;
         post?: never;
         delete?: never;
@@ -2372,6 +2423,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/flashcards/{flashcard_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Edit an own flashcard's back (placeholder cards, flow-6 §5.5) (T-188) */
+        patch: operations["student_update_flashcard_back"];
+        trace?: never;
+    };
     "/api/v1/students/me/graduation": {
         parameters: {
             query?: never;
@@ -2384,6 +2452,40 @@ export interface paths {
         put?: never;
         post?: never;
         delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/highlights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** My Highlights: own highlights + paired flashcards, newest first (T-188) */
+        get: operations["student_list_my_highlights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/highlights/{highlight_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        /** Delete an own highlight; its flashcard is removed with it (flow-6 §5.5) (T-188) */
+        delete: operations["student_delete_highlight"];
         options?: never;
         head?: never;
         patch?: never;
@@ -2545,6 +2647,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/lectures/{lecture_id}/concepts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Concepts a lecture covers, each anchored at its first paragraph (T-190) */
+        get: operations["student_list_lecture_concepts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/enrichment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Real-world uses, careers and mini-sim for a concept (cached per concept) (T-190) */
+        get: operations["student_get_concept_enrichment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/highlights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List own highlights on a lecture with current yellow-mark positions (T-185) */
+        get: operations["student_list_lecture_highlights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/lectures/{lecture_id}/open": {
         parameters: {
             query?: never;
@@ -2647,6 +2800,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/lectures/{lecture_id}/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's own rating for a lecture (null if not rated) (T-192) */
+        get: operations["student_get_my_lecture_rating"];
+        /** Submit or change an optional 1-5 rating after completing a lecture (T-192) */
+        put: operations["student_rate_lecture"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/lectures/{lecture_id}/sessions": {
         parameters: {
             query?: never;
@@ -2675,6 +2846,24 @@ export interface paths {
         put?: never;
         /** Submit a lecture question (idempotent; classified) (T-156/T-157) */
         post: operations["student_ask_lecture_question"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/simulation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The student's saved mini-simulation state for a concept (T-191) */
+        get: operations["student_get_simulation_progress"];
+        /** Save the student's mini-simulation state for a concept (T-191) */
+        put: operations["student_save_simulation_progress"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -3995,6 +4184,15 @@ export interface components {
              */
             status: "valid" | "invalid" | "enrolled" | "failed";
         };
+        /** CareerRead */
+        CareerRead: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Sector */
+            sector: string;
+        };
         /** CoachingResponseRequest */
         CoachingResponseRequest: {
             /**
@@ -4022,6 +4220,44 @@ export interface components {
             updated_at: string;
             /** Weakness Type */
             weakness_type: string;
+        };
+        /** ConceptCountRead */
+        ConceptCountRead: {
+            /** Concept Tag */
+            concept_tag: string;
+            /** Count */
+            count: number;
+        };
+        /**
+         * ConceptEnrichmentRead
+         * @description Per-concept enrichment as served to a student.
+         *
+         *     ``status=pending`` → generation is queued (cache miss); poll again.
+         *     ``refreshing`` → a stale entry is being regenerated; the content shown is
+         *     still valid ("updated" badge once refreshed, flow-6 §5.9).
+         */
+        ConceptEnrichmentRead: {
+            /** Careers */
+            careers?: components["schemas"]["CareerRead"][];
+            /** Concept Id */
+            concept_id: string;
+            /** Concept Label */
+            concept_label: string;
+            /** Generated At */
+            generated_at?: string | null;
+            mini_sim?: components["schemas"]["MiniSimSpecRead"] | null;
+            /** Real World Uses */
+            real_world_uses?: components["schemas"]["RealWorldUseRead"][];
+            /**
+             * Refreshing
+             * @default false
+             */
+            refreshing: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "ready" | "failed";
         };
         /**
          * ConversationRoleLiteral
@@ -4540,6 +4776,14 @@ export interface components {
             region?: string | null;
         };
         /**
+         * FlashcardBackUpdate
+         * @description Edit a flashcard's back (§5.5 placeholder cards are editable).
+         */
+        FlashcardBackUpdate: {
+            /** Back Text */
+            back_text: string;
+        };
+        /**
          * FocusAreaRead
          * @description Coaching focus area — never a grade/score (Flow 4 §3.6 / T-105).
          */
@@ -4707,6 +4951,27 @@ export interface components {
         HTTPValidationError: {
             /** Detail */
             detail?: components["schemas"]["ValidationError"][];
+        };
+        /** HighlightLectureRefRead */
+        HighlightLectureRefRead: {
+            /** Id */
+            id: string;
+            /** Title */
+            title: string;
+            /** Topic */
+            topic: string;
+        };
+        /**
+         * HighlightMarkRead
+         * @description Where to draw the yellow mark in the *current* lecture version.
+         */
+        HighlightMarkRead: {
+            /** Length */
+            length: number;
+            /** Offset */
+            offset: number;
+            /** Paragraph Id */
+            paragraph_id: string;
         };
         /**
          * IndependentLectureGenerateRequest
@@ -5072,6 +5337,20 @@ export interface components {
              */
             language: "en" | "ur" | "sd" | "ps";
         };
+        /**
+         * LectureConceptRead
+         * @description A concept the lecture covers, anchored at its first paragraph.
+         */
+        LectureConceptRead: {
+            /** Concept Id */
+            concept_id: string;
+            /** First Paragraph Id */
+            first_paragraph_id: string;
+            /** First Paragraph Ordinal */
+            first_paragraph_ordinal: number;
+            /** Label */
+            label: string;
+        };
         /** LectureDraftRead */
         LectureDraftRead: {
             /** Data */
@@ -5127,6 +5406,25 @@ export interface components {
             teaching_mode: components["schemas"]["TeachingMode"];
             /** Topic */
             topic: string;
+        };
+        /**
+         * LectureHighlightAggregateRead
+         * @description Anonymous per-lecture highlight/flashcard counts (Coordinator/Admin, §6.19).
+         *
+         *     Counts only students who share study activity (#72 is inviolate even for
+         *     aggregates); no highlight text, no student identities.
+         */
+        LectureHighlightAggregateRead: {
+            /** Flashcard Count */
+            flashcard_count: number;
+            /** Highlight Count */
+            highlight_count: number;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Student Count */
+            student_count: number;
+            /** Top Concepts */
+            top_concepts: components["schemas"]["ConceptCountRead"][];
         };
         /**
          * LectureImageUploadRead
@@ -5236,6 +5534,37 @@ export interface components {
             quizzes_published: number;
             /** Status */
             status: string;
+        };
+        /** LectureRatingSubmit */
+        LectureRatingSubmit: {
+            /** Rating */
+            rating: number;
+        };
+        /**
+         * LectureRatingSummaryRead
+         * @description Teacher/staff view: anonymous aggregate only (no ids, no individual values).
+         *
+         *     ``average_rating`` is withheld (null) until at least
+         *     ``min_ratings_for_display`` students have rated, so a single student's
+         *     rating can never be read off the "average".
+         */
+        LectureRatingSummaryRead: {
+            /** Ai Score */
+            ai_score?: number | null;
+            /** Ai Score Max */
+            ai_score_max: number;
+            /** Average Rating */
+            average_rating?: number | null;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Min Ratings For Display */
+            min_ratings_for_display: number;
+            /** Quality Score */
+            quality_score?: number | null;
+            /** Rating Count */
+            rating_count: number;
+            /** Rating Weight */
+            rating_weight: number;
         };
         /**
          * LectureRosterRead
@@ -5464,6 +5793,52 @@ export interface components {
             /** User Id */
             user_id: string;
         };
+        /** MiniSimOutputRead */
+        MiniSimOutputRead: {
+            /** Expression */
+            expression: string;
+            /** Label */
+            label: string;
+            /**
+             * Unit
+             * @default
+             */
+            unit: string;
+        };
+        /**
+         * MiniSimSpecRead
+         * @description Declarative mini-sim; the client evaluates ``output.expression`` with the
+         *     same safe grammar as ``sim_expression.py`` (never eval).
+         */
+        MiniSimSpecRead: {
+            output: components["schemas"]["MiniSimOutputRead"];
+            /** Scenario */
+            scenario: string;
+            /** Title */
+            title: string;
+            /** Variables */
+            variables: components["schemas"]["MiniSimVariableRead"][];
+        };
+        /** MiniSimVariableRead */
+        MiniSimVariableRead: {
+            /** Default */
+            default: number;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Max */
+            max: number;
+            /** Min */
+            min: number;
+            /** Step */
+            step: number;
+            /**
+             * Unit
+             * @default
+             */
+            unit: string;
+        };
         /**
          * ModeStateBlob
          * @description Per-mode UI restore state (flow-4 §3.4 — no data loss across switches).
@@ -5477,6 +5852,39 @@ export interface components {
             self_study?: {
                 [key: string]: unknown;
             };
+        };
+        /**
+         * MyHighlightRead
+         * @description One row of the "My Highlights" tab (chronological, newest first).
+         */
+        MyHighlightRead: {
+            /** Concept Tag */
+            concept_tag?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            flashcard?: components["schemas"]["PairedFlashcardRead"] | null;
+            /** Highlighted Text */
+            highlighted_text: string;
+            /** Id */
+            id: string;
+            lecture: components["schemas"]["HighlightLectureRefRead"];
+            /** Paragraph Ordinal */
+            paragraph_ordinal: number;
+            /** Question Id */
+            question_id?: string | null;
+        };
+        /**
+         * MyLectureRatingRead
+         * @description The caller's OWN rating only — never other students' ratings.
+         */
+        MyLectureRatingRead: {
+            /** Lecture Id */
+            lecture_id: string;
+            /** Rating */
+            rating?: number | null;
         };
         /**
          * NotificationListResponse
@@ -5590,6 +5998,45 @@ export interface components {
             pages: number;
             /** Total */
             total: number;
+        };
+        /** PaginatedEnvelope[MyHighlightRead] */
+        PaginatedEnvelope_MyHighlightRead_: {
+            /** Items */
+            items: components["schemas"]["MyHighlightRead"][];
+            /** Page */
+            page: number;
+            /** Page Size */
+            page_size: number;
+            /** Pages */
+            pages: number;
+            /** Total */
+            total: number;
+        };
+        /**
+         * PairedFlashcardRead
+         * @description The flashcard paired with a highlight (shared by repeat highlights).
+         */
+        PairedFlashcardRead: {
+            /** Back Is Placeholder */
+            back_is_placeholder: boolean;
+            /** Back Text */
+            back_text: string;
+            /** Concept Tag */
+            concept_tag?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Front Text */
+            front_text: string;
+            /** Id */
+            id: string;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "dismissed";
         };
         /** ParentChildLinkRead */
         ParentChildLinkRead: {
@@ -5834,6 +6281,13 @@ export interface components {
                 [key: string]: string;
             };
         };
+        /** RealWorldUseRead */
+        RealWorldUseRead: {
+            /** Description */
+            description: string;
+            /** Title */
+            title: string;
+        };
         /**
          * ResearchJobStatus
          * @description Pattern-A research-run lifecycle (Flow 4 §3.5.1, ARCH §8.21, T-093).
@@ -6042,6 +6496,38 @@ export interface components {
          */
         SelectionStatus: "active" | "abandoned";
         /**
+         * SimulationProgressRead
+         * @description The student's saved sim state for one concept (per-student, T-191).
+         *
+         *     ``was_reset`` is true when stored state no longer matched the concept's
+         *     sim spec and was discarded (flow-6 §5.9 "progress was reset" notice).
+         */
+        SimulationProgressRead: {
+            /** Concept Id */
+            concept_id: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Values */
+            values?: {
+                [key: string]: number;
+            };
+            /**
+             * Was Reset
+             * @default false
+             */
+            was_reset: boolean;
+        };
+        /**
+         * SimulationStateUpdate
+         * @description Slider values keyed by the sim spec's variable keys.
+         */
+        SimulationStateUpdate: {
+            /** Values */
+            values: {
+                [key: string]: number;
+            };
+        };
+        /**
          * SourceTier
          * @description Provenance tier for a generated paragraph (Flow 5 #26 / #27).
          * @enum {string}
@@ -6150,6 +6636,42 @@ export interface components {
              * @default true
              */
             self_study_enabled: boolean;
+        };
+        /**
+         * StudentHighlightRead
+         * @description A persisted highlight. ``mark`` is null when the anchor no longer maps
+         *     onto the current lecture version (flow-6 §5.5 — the mark drops silently).
+         */
+        StudentHighlightRead: {
+            /** Concept Tag */
+            concept_tag?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Highlighted Text */
+            highlighted_text: string;
+            /** Id */
+            id: string;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Lecture Version Id */
+            lecture_version_id?: string | null;
+            mark?: components["schemas"]["HighlightMarkRead"] | null;
+            /** Paragraph Ordinal */
+            paragraph_ordinal: number;
+            /** Question Id */
+            question_id?: string | null;
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
+            /** Text Range Length */
+            text_range_length: number;
+            /** Text Range Offset */
+            text_range_offset: number;
         };
         /**
          * StudentLectureCardRead
@@ -6307,6 +6829,8 @@ export interface components {
         StudentQuestionCreateRequest: {
             /** Attached Images */
             attached_images?: string[];
+            /** Highlight Offset */
+            highlight_offset?: number | null;
             /** Highlight Text */
             highlight_text?: string | null;
             /** Paragraph Id */
@@ -6668,6 +7192,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[ConceptEnrichmentRead] */
+        SuccessEnvelope_ConceptEnrichmentRead_: {
+            data: components["schemas"]["ConceptEnrichmentRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[DataRightsRequestRead] */
         SuccessEnvelope_DataRightsRequestRead_: {
             data: components["schemas"]["DataRightsRequestRead"];
@@ -6902,6 +7435,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LectureHighlightAggregateRead] */
+        SuccessEnvelope_LectureHighlightAggregateRead_: {
+            data: components["schemas"]["LectureHighlightAggregateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LectureImageUploadRead] */
         SuccessEnvelope_LectureImageUploadRead_: {
             data: components["schemas"]["LectureImageUploadRead"];
@@ -6932,6 +7474,15 @@ export interface components {
         /** SuccessEnvelope[LecturePublishRead] */
         SuccessEnvelope_LecturePublishRead_: {
             data: components["schemas"]["LecturePublishRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[LectureRatingSummaryRead] */
+        SuccessEnvelope_LectureRatingSummaryRead_: {
+            data: components["schemas"]["LectureRatingSummaryRead"];
             /**
              * Message
              * @default ok
@@ -7001,9 +7552,27 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[MyLectureRatingRead] */
+        SuccessEnvelope_MyLectureRatingRead_: {
+            data: components["schemas"]["MyLectureRatingRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[OfferingRead] */
         SuccessEnvelope_OfferingRead_: {
             data: components["schemas"]["OfferingRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[PairedFlashcardRead] */
+        SuccessEnvelope_PairedFlashcardRead_: {
+            data: components["schemas"]["PairedFlashcardRead"];
             /**
              * Message
              * @default ok
@@ -7130,6 +7699,15 @@ export interface components {
         /** SuccessEnvelope[SectionRead] */
         SuccessEnvelope_SectionRead_: {
             data: components["schemas"]["SectionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SimulationProgressRead] */
+        SuccessEnvelope_SimulationProgressRead_: {
+            data: components["schemas"]["SimulationProgressRead"];
             /**
              * Message
              * @default ok
@@ -7494,6 +8072,16 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[list[LectureConceptRead]] */
+        SuccessEnvelope_list_LectureConceptRead__: {
+            /** Data */
+            data: components["schemas"]["LectureConceptRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[list[LectureLinkRead]] */
         SuccessEnvelope_list_LectureLinkRead__: {
             /** Data */
@@ -7538,6 +8126,16 @@ export interface components {
         SuccessEnvelope_list_SectionRead__: {
             /** Data */
             data: components["schemas"]["SectionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[StudentHighlightRead]] */
+        SuccessEnvelope_list_StudentHighlightRead__: {
+            /** Data */
+            data: components["schemas"]["StudentHighlightRead"][];
             /**
              * Message
              * @default ok
@@ -11857,6 +12455,37 @@ export interface operations {
             };
         };
     };
+    lecture_rating_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureRatingSummaryRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_notifications: {
         parameters: {
             query?: {
@@ -12170,6 +12799,40 @@ export interface operations {
             };
         };
     };
+    parent_list_student_highlights: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path: {
+                student_user_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedEnvelope_MyHighlightRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     parent_list_student_lecture_questions: {
         parameters: {
             query?: {
@@ -12436,6 +13099,37 @@ export interface operations {
                     "application/json": {
                         [key: string]: unknown;
                     };
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    school_lecture_highlight_aggregate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureHighlightAggregateRead_"];
                 };
             };
             /** @description Validation Error */
@@ -13284,6 +13978,41 @@ export interface operations {
             };
         };
     };
+    student_update_flashcard_back: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                flashcard_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["FlashcardBackUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_PairedFlashcardRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     student_get_graduation_status: {
         parameters: {
             query?: never;
@@ -13300,6 +14029,69 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_StudentGraduationStatusRead_"];
+                };
+            };
+        };
+    };
+    student_list_my_highlights: {
+        parameters: {
+            query?: {
+                page?: number;
+                page_size?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["PaginatedEnvelope_MyHighlightRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_delete_highlight: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                highlight_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DeletedResponse_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
@@ -13586,6 +14378,101 @@ export interface operations {
             };
         };
     };
+    student_list_lecture_concepts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_LectureConceptRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_concept_enrichment: {
+        parameters: {
+            query: {
+                concept_id: string;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ConceptEnrichmentRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_list_lecture_highlights: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_StudentHighlightRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     student_open_lecture_viewer: {
         parameters: {
             query?: never;
@@ -13784,6 +14671,72 @@ export interface operations {
             };
         };
     };
+    student_get_my_lecture_rating: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_MyLectureRatingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_rate_lecture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureRatingSubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_MyLectureRatingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     student_open_lecture_session: {
         parameters: {
             query?: never;
@@ -13842,6 +14795,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_StudentQuestionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_simulation_progress: {
+        parameters: {
+            query: {
+                concept_id: string;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SimulationProgressRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_save_simulation_progress: {
+        parameters: {
+            query: {
+                concept_id: string;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimulationStateUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SimulationProgressRead_"];
                 };
             };
             /** @description Validation Error */

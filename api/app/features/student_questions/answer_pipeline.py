@@ -38,6 +38,10 @@ from app.features.library.school_models import (
     SchoolLibraryItemChunk,
 )
 from app.features.offerings.models import GradeSubjectOffering
+from app.features.student_highlights.events import publish_flashcard_created
+from app.features.student_highlights.flashcards import ensure_flashcard_for_highlight
+from app.features.student_highlights.models import SchoolStudentFlashcard
+from app.features.student_highlights.repository import StudentHighlightRepository
 from app.features.student_questions.models import (
     ConversationRole,
     SchoolStudentQuestion,
@@ -677,7 +681,16 @@ async def _persist_answer(
     answer_text: str,
     tags: dict[str, Any],
     next_turn_index: int,
-) -> None:
+    answer_ok: bool = True,
+    school_id: str | None = None,
+) -> SchoolStudentFlashcard | None:
+    """Persist the answer; for a highlight question also ensure its flashcard.
+
+    T-186: the flashcard is written in the same transaction as the answer.
+    T-187: a *newly* created card is announced on ``student.flashcard.created``
+    after the commit (§9.9); dedupe hits publish nothing (idempotent).
+    Returns the flashcard only when it was newly created.
+    """
     question.answer_text = answer_text
     question.answer_source_tags_jsonb = tags
     question.answered_at = _utcnow()
@@ -691,7 +704,18 @@ async def _persist_answer(
         )
     )
     await session.flush()
+
+    new_card: SchoolStudentFlashcard | None = None
+    highlight = await StudentHighlightRepository(session).get_by_question_id(question.id)
+    if highlight is not None:
+        card, created = await ensure_flashcard_for_highlight(
+            session, highlight=highlight, answer_text=answer_text, answer_ok=answer_ok
+        )
+        new_card = card if created else None
     await session.commit()
+    if new_card is not None:
+        await publish_flashcard_created(new_card, school_id=school_id)
+    return new_card
 
 
 async def stream_answer_for_question(
@@ -737,6 +761,7 @@ async def stream_answer_for_question(
     tags = source_tags_jsonb(primary, spans)
 
     parts: list[str] = []
+    answer_ok = True
     try:
         async for token in stream_chat(
             [
@@ -752,6 +777,7 @@ async def stream_answer_for_question(
             yield token
     except Exception as exc:
         logger.error("lecture_qa_stream_failed", question_id=question.id, error=str(exc))
+        answer_ok = False
         fallback = (
             "I couldn't generate an answer right now. Please try again in a moment. [No Source]"
         )
@@ -770,7 +796,9 @@ async def stream_answer_for_question(
         ]
         tags = source_tags_jsonb(primary, spans)
 
-    answer = "".join(parts).strip() or "I don't have information on this. [No Source]"
+    joined = "".join(parts).strip()
+    answer_ok = answer_ok and bool(joined)
+    answer = joined or "I don't have information on this. [No Source]"
     next_idx = max((t.turn_index for t in turns), default=-1) + 1
     await _persist_answer(
         session,
@@ -778,6 +806,8 @@ async def stream_answer_for_question(
         answer_text=answer,
         tags=tags,
         next_turn_index=next_idx,
+        answer_ok=answer_ok,
+        school_id=lecture.school_id,
     )
     logger.info(
         "lecture_qa_answer_stored",
@@ -839,6 +869,7 @@ async def generate_and_store_answer(
         no_coverage=no_coverage,
     )
     tags = source_tags_jsonb(primary, spans)
+    answer_ok = True
     try:
         answer = await chat(
             [
@@ -852,6 +883,7 @@ async def generate_and_store_answer(
         )
     except Exception as exc:
         logger.error("lecture_qa_llm_failed", question_id=qid, error=str(exc))
+        answer_ok = False
         answer = (
             "I couldn't generate an answer right now. Please try again in a moment. [No Source]"
         )
@@ -868,7 +900,9 @@ async def generate_and_store_answer(
         ]
         tags = source_tags_jsonb(primary, spans)
 
-    answer = (answer or "").strip() or "I don't have information on this. [No Source]"
+    stripped = (answer or "").strip()
+    answer_ok = answer_ok and bool(stripped)
+    answer = stripped or "I don't have information on this. [No Source]"
     next_idx = max((t.turn_index for t in turns), default=-1) + 1
     await _persist_answer(
         session,
@@ -876,6 +910,8 @@ async def generate_and_store_answer(
         answer_text=answer,
         tags=tags,
         next_turn_index=next_idx,
+        answer_ok=answer_ok,
+        school_id=lecture.school_id,
     )
     return {"answer_text": answer, "primary_badge": primary, "turn_index": turn_index}
 

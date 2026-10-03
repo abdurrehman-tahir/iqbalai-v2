@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2 weeks
 **Tickets:** T-185 through T-194
 **Spec source:** `flow-6-student-studies-lecture.md` v1 §3.6 (highlight persistence + auto-flashcards #58), §3.10 (real-world app + career links + mini-simulation #71), §3.11 (lecture rating)
@@ -44,7 +44,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 5
 **Milestone:** M-15
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done — commit `703706e`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.6 (highlights table: text_range, content, lecture_id, AI response; yellow marks on return), §5.5 (offset-no-longer-exists edge)
@@ -77,7 +77,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 5
 **Milestone:** M-15
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done — commit `6225d09`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.6 (auto-flashcard on every highlight+answer pair; front=highlight, back=AI answer; dedupe by hash(highlight_text, lecture_id))
@@ -110,7 +110,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 5
 **Milestone:** M-15
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done — commit `ef98bb6`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.6 (this flow only PUBLISHES the flashcard event; spaced-repetition scheduling via py-fsrs is Flow 9, surfaced by Flow 8)
@@ -146,7 +146,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 5
 **Milestone:** M-15
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done — commit `8fd10c8`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.6 ("My Highlights" tab; chronological with lecture + concept tags), §4 (permissions matrix: view own; parent view-only if #72 allows)
@@ -179,7 +179,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 5
 **Milestone:** M-15
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done — commit `09dd7b6`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.10 (cached PER CONCEPT; `careers` controlled vocab seeded Pakistani + required_concepts; `student_simulation_progress`; ~90-day cache invalidation)
@@ -212,7 +212,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 5
 **Milestone:** M-15
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done — commit `a3ea855`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.10 (cache miss → Celery `concept.enrich_applications` → LLM generates real-world uses + career links + mini-sim prompt → persist; ~$0.10/concept amortized ~$0/student)
@@ -245,7 +245,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 5
 **Milestone:** M-15
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done — commit `78ce8cf`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.10 (mini-sim is a structured prompt rendered as an interactive widget; per-student save state in `student_simulation_progress`)
@@ -278,7 +278,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 5
 **Milestone:** M-15
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done — commit `1d1c9c3`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.11 (1-5 stars on completion ≥80% scroll/end; optional; 5% into teacher quality score; anonymous; never used to rank students)
@@ -311,7 +311,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 5 / 6
 **Milestone:** M-15
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done — commit `a80f629`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §4 (permissions matrix for #58/#71/rating), §3.x privacy #72
@@ -344,7 +344,7 @@ The fourth and final Flow 6 milestone — **completes Flow 6.** It adds the last
 **Layer:** 6
 **Milestone:** M-15
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done — commit `d2428ab`
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.6, §3.10, §3.11 (and Flow 6 end-to-end completeness)

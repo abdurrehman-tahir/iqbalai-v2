@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from functools import lru_cache
 
+from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -169,6 +170,14 @@ class Settings(BaseSettings):
     # §8.21/§10.6). The beat runs daily and picks PUBLISHED frameworks whose last
     # research run is older than this — cadence is enforced in the task, not the beat.
     FRAMEWORK_REFRESH_DAYS: int = 90
+
+    # Concept enrichment cache age (T-189, flow-6 §3.10, ARCH §10.6). The beat
+    # `concept.refresh_quarterly` runs daily and regenerates per-concept
+    # enrichment older than this many days — cadence enforced in the task.
+    CONCEPT_ENRICHMENT_CACHE_DAYS: int = Field(default=90, ge=1, le=365)
+    # Blended token price used to log/persist an enrichment run's estimated USD
+    # cost (T-190; observability, not billing-grade — cf. FRAMEWORK_RESEARCH_*).
+    CONCEPT_ENRICHMENT_USD_PER_1K_TOKENS: float = Field(default=0.001, ge=0)
 
     @property
     def cors_allowed_origins(self) -> list[str]:

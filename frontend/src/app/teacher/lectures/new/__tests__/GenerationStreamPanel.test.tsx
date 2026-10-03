@@ -114,6 +114,20 @@ vi.mock("@/lib/api", () => ({
     listResults: (...args: unknown[]) => listQuizResults(...args),
     getAggregate: (...args: unknown[]) => getQuizAggregate(...args),
   },
+  // M-15 T-192: the post-generation stack now includes the quality summary card.
+  lectureRatingApi: {
+    summary: () =>
+      Promise.resolve({
+        lecture_id: "lec-1",
+        rating_count: 0,
+        min_ratings_for_display: 3,
+        average_rating: null,
+        ai_score: null,
+        ai_score_max: 55,
+        quality_score: null,
+        rating_weight: 0.05,
+      }),
+  },
   ApiError: class ApiError extends Error {
     constructor(
       public status: number,

@@ -573,7 +573,8 @@
         "list_concepts": "List key concepts",
         "switch_voice": "Switch to voice mode",
         "dismiss": "Dismiss"
-      }
+      },
+      "highlight_mark_label": "Your highlight"
     },
     "quiz_attempt": {
       "title": "Quiz",
@@ -649,6 +650,76 @@
         "topics_heading": "Topics (by past-paper weight)",
         "no_topics": "No topics in this plan yet."
       }
+    },
+    "nav": {
+      "label": "Student navigation",
+      "home": "Home",
+      "highlights": "My Highlights"
+    },
+    "highlights": {
+      "title": "My Highlights",
+      "subtitle": "Everything you highlighted while studying, with the flashcard made from each one.",
+      "list_label": "Your highlights, newest first",
+      "error": "Could not load your highlights.",
+      "retry": "Try again",
+      "empty_title": "No highlights yet",
+      "empty_description": "Highlight a passage in a lecture and ask about it — it will appear here with a flashcard.",
+      "empty_cta": "Go to my lectures",
+      "lecture_label": "Lecture: {title}",
+      "concept_label": "Concept: {concept}",
+      "open_in_lecture": "Open in lecture",
+      "flashcard_label": "Flashcard",
+      "flashcard_front": "Front",
+      "flashcard_back": "Back",
+      "show_back": "Show answer",
+      "show_front": "Show question",
+      "placeholder_back": "The answer for this card couldn't be generated. Add your own.",
+      "add_back": "Add answer",
+      "edit_back": "Edit answer",
+      "edit_back_label": "Answer on the back of the card",
+      "edit_back_required": "Write an answer before saving.",
+      "save": "Save",
+      "saving": "Saving…",
+      "cancel": "Cancel",
+      "delete": "Delete",
+      "delete_confirm": "Delete this highlight and its flashcard?",
+      "delete_yes": "Yes, delete",
+      "action_error": "That didn't work. Please try again.",
+      "pagination_label": "Highlight pages",
+      "prev_page": "Previous",
+      "next_page": "Next",
+      "page_of": "Page {page} of {pages}"
+    },
+    "enrichment": {
+      "heading": "Why {concept} matters",
+      "updating": "Updating",
+      "preparing": "Preparing real-world examples and careers…",
+      "error": "Couldn't load real-world examples for this concept.",
+      "retry": "Try again",
+      "empty": "No real-world examples are available for this concept yet.",
+      "uses_label": "In real life",
+      "careers_label": "Careers in Pakistan that use this",
+      "career_chip": "{name} · {sector}",
+      "sim_text_only": "An interactive simulation isn't available for this concept — explore the examples above.",
+      "sim_heading": "Try it: {title}",
+      "sim_reset_notice": "Your progress was reset due to a data issue.",
+      "sim_progress_unavailable": "Your saved progress couldn't be loaded; changes may not be saved.",
+      "sim_output": "{label}: {value} {unit}",
+      "sim_output_undefined": "{label}: not defined for these values",
+      "sim_save_error": "Couldn't save your simulation progress."
+    },
+    "lecture_rating": {
+      "title": "How useful was this lecture?",
+      "subtitle": "Optional — your rating helps your teacher improve. It's anonymous and never affects your grades.",
+      "stars_label": "Rate this lecture from 1 to 5 stars",
+      "star_label": "{count, plural, one {# star} other {# stars}}",
+      "submit": "Submit rating",
+      "submitting": "Submitting…",
+      "dismiss": "Dismiss rating",
+      "privacy_note": "Your teacher only sees the class average.",
+      "error": "Couldn't save your rating. Please try again.",
+      "thanks_title": "Thanks for your rating!",
+      "thanks_body": "Your feedback helps improve this lecture."
     }
   },
   "teacher": {
@@ -897,6 +968,19 @@
       "success_new": "\"{title}\" uploaded and pending ingestion.",
       "success_deduped": "\"{title}\" already exists in your school library — storage reused.",
       "error_generic": "Upload failed. Check the file and try again."
+    },
+    "lecture_quality": {
+      "title": "Lecture quality score",
+      "error": "Couldn't load the quality score.",
+      "retry": "Try again",
+      "score": "{score} / 100",
+      "score_pending": "Not scored yet",
+      "ai_line": "AI score: {score} / {max}",
+      "ai_pending": "AI score is still being calculated.",
+      "no_ratings": "No student ratings yet.",
+      "ratings_hidden": "{count, plural, one {# student rating} other {# student ratings}} — the average appears once {min} students have rated, to keep ratings anonymous.",
+      "rating_line": "Student rating: {average} / 5 ({count, plural, one {# rating} other {# ratings}})",
+      "weighting_note": "Students' anonymous ratings count for {weight}% of the score; the AI score counts for the rest."
     }
   },
   "coordinator": {

@@ -126,6 +126,36 @@ import type {
   StudentQuestionFollowUpRequest,
   StudentQuestionAnswerRead,
   StudentQuestionImageUploadRead,
+  StudentHighlightRead,
+  MyHighlightsPage,
+  PairedFlashcardRead,
+  FlashcardBackUpdate,
+  DeletedResponse,
+  LectureConceptRead,
+  ConceptEnrichmentRead,
+  SimulationProgressRead,
+  SimulationStateUpdate,
+  LectureRatingSubmit,
+  MyLectureRatingRead,
+  LectureRatingSummaryRead,
+} from "./types";
+
+// Re-export M-15 generated types (A-002).
+export type {
+  StudentHighlightRead,
+  HighlightMarkRead,
+  MyHighlightRead,
+  MyHighlightsPage,
+  PairedFlashcardRead,
+  FlashcardBackUpdate,
+  LectureConceptRead,
+  ConceptEnrichmentRead,
+  MiniSimSpecRead,
+  SimulationProgressRead,
+  SimulationStateUpdate,
+  LectureRatingSubmit,
+  MyLectureRatingRead,
+  LectureRatingSummaryRead,
 } from "./types";
 
 // Re-export M-12 generated types (A-002) for consumers importing from `@/lib/api`.
@@ -1715,6 +1745,82 @@ export const studentQuestionsApi = {
     ),
   streamAnswerUrl: (lectureId: string, questionId: string) =>
     `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/students/me/lectures/${lectureId}/questions/${questionId}/answer/stream`,
+};
+
+/** Persisted lecture highlights + yellow marks (T-185) and My Highlights (T-188). */
+export const studentHighlightsApi = {
+  listForLecture: (token: string, lectureId: string) =>
+    request<StudentHighlightRead[]>(`/students/me/lectures/${lectureId}/highlights`, {}, token),
+  listMine: (token: string, page = 1, pageSize = 20) =>
+    request<MyHighlightsPage>(
+      `/students/me/highlights?${new URLSearchParams({
+        page: String(page),
+        page_size: String(pageSize),
+      }).toString()}`,
+      {},
+      token
+    ),
+  updateFlashcardBack: (token: string, flashcardId: string, body: FlashcardBackUpdate) =>
+    request<PairedFlashcardRead>(
+      `/students/me/flashcards/${flashcardId}`,
+      { method: "PATCH", body: JSON.stringify(body) },
+      token
+    ),
+  deleteHighlight: (token: string, highlightId: string) =>
+    request<DeletedResponse>(
+      `/students/me/highlights/${highlightId}`,
+      { method: "DELETE" },
+      token
+    ),
+};
+
+/** Optional lecture rating (student) + anonymous summary (teacher/staff) — T-192. */
+export const lectureRatingApi = {
+  getMine: (token: string, lectureId: string) =>
+    request<MyLectureRatingRead>(`/students/me/lectures/${lectureId}/rating`, {}, token),
+  submit: (token: string, lectureId: string, body: LectureRatingSubmit) =>
+    request<MyLectureRatingRead>(
+      `/students/me/lectures/${lectureId}/rating`,
+      { method: "PUT", body: JSON.stringify(body) },
+      token
+    ),
+  summary: (token: string, lectureId: string) =>
+    request<LectureRatingSummaryRead>(`/lectures/${lectureId}/rating-summary`, {}, token),
+};
+
+/** Concept enrichment + mini-sim state (T-190 / T-191). concept_id may contain "/". */
+export const conceptEnrichmentApi = {
+  listConcepts: (token: string, lectureId: string) =>
+    request<LectureConceptRead[]>(`/students/me/lectures/${lectureId}/concepts`, {}, token),
+  getEnrichment: (token: string, lectureId: string, conceptId: string) =>
+    request<ConceptEnrichmentRead>(
+      `/students/me/lectures/${lectureId}/enrichment?${new URLSearchParams({
+        concept_id: conceptId,
+      }).toString()}`,
+      {},
+      token
+    ),
+  getSimulation: (token: string, lectureId: string, conceptId: string) =>
+    request<SimulationProgressRead>(
+      `/students/me/lectures/${lectureId}/simulation?${new URLSearchParams({
+        concept_id: conceptId,
+      }).toString()}`,
+      {},
+      token
+    ),
+  saveSimulation: (
+    token: string,
+    lectureId: string,
+    conceptId: string,
+    body: SimulationStateUpdate
+  ) =>
+    request<SimulationProgressRead>(
+      `/students/me/lectures/${lectureId}/simulation?${new URLSearchParams({
+        concept_id: conceptId,
+      }).toString()}`,
+      { method: "PUT", body: JSON.stringify(body) },
+      token
+    ),
 };
 
 /**

@@ -16,6 +16,8 @@ export type HighlightSelection = {
   text: string;
   paragraphId: string | null;
   sourceChunkId: string | null;
+  /** T-185: offset of `text` inside the paragraph text (persisted highlight anchor). */
+  offset?: number | null;
 };
 
 type Props = {
@@ -24,6 +26,7 @@ type Props = {
   onSubmit: (payload: {
     question_text: string;
     highlight_text: string;
+    highlight_offset: number | null;
     paragraph_id: string | null;
     source_chunk_id: string | null;
     question_language: "en" | "ur" | "sd" | "ps";
@@ -55,6 +58,7 @@ export function HighlightQuestionBox({ selection, onCancel, onSubmit }: Props) {
         await onSubmit({
           question_text: payload.text,
           highlight_text: selection.text,
+          highlight_offset: selection.offset ?? null,
           paragraph_id: selection.paragraphId,
           source_chunk_id: selection.sourceChunkId,
           question_language: language,

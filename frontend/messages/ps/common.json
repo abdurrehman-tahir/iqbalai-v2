@@ -644,7 +644,8 @@
         "list_concepts": "کلیدي مفهومونه لیست کړئ",
         "switch_voice": "غږ حالت ته لاړ شئ",
         "dismiss": "بند کړئ"
-      }
+      },
+      "highlight_mark_label": "ستاسو نښه شوی متن"
     },
     "quiz_attempt": {
       "title": "کوئز",
@@ -661,6 +662,76 @@
       "review": "بیاکتنه وکړئ",
       "source_label": "له لیکچر څخه",
       "back_dashboard": "ډشبورډ ته بیرته"
+    },
+    "nav": {
+      "label": "د زده کوونکي لارښوونه",
+      "home": "کور",
+      "highlights": "زما نښه شوي متنونه"
+    },
+    "highlights": {
+      "title": "زما نښه شوي متنونه",
+      "subtitle": "هر هغه څه چې تاسو د زده کړې پر مهال نښه کړي، د هر یوه له فلش کارډ سره.",
+      "list_label": "ستاسو نښه شوي متنونه، نوي لومړی",
+      "error": "ستاسو نښه شوي متنونه بار نشول.",
+      "retry": "بیا هڅه وکړئ",
+      "empty_title": "تر اوسه هیڅ نښه شوی متن نشته",
+      "empty_description": "په لیکچر کې یوه برخه نښه کړئ او د هغې په اړه وپوښتئ — دا به دلته له فلش کارډ سره ښکاره شي.",
+      "empty_cta": "زما لیکچرونو ته لاړ شئ",
+      "lecture_label": "لیکچر: {title}",
+      "concept_label": "مفهوم: {concept}",
+      "open_in_lecture": "په لیکچر کې یې پرانیزئ",
+      "flashcard_label": "فلش کارډ",
+      "flashcard_front": "مخ",
+      "flashcard_back": "شا",
+      "show_back": "ځواب وښایاست",
+      "show_front": "پوښتنه وښایاست",
+      "placeholder_back": "د دې کارډ ځواب جوړ نشو. خپل ځواب ولیکئ.",
+      "add_back": "ځواب اضافه کړئ",
+      "edit_back": "ځواب سم کړئ",
+      "edit_back_label": "د کارډ په شا ځواب",
+      "edit_back_required": "د خوندي کولو دمخه ځواب ولیکئ.",
+      "save": "خوندي کړئ",
+      "saving": "خوندي کېږي…",
+      "cancel": "لغوه کړئ",
+      "delete": "ړنګ کړئ",
+      "delete_confirm": "دا نښه شوی متن او د هغه فلش کارډ ړنګ کړو؟",
+      "delete_yes": "هو، ړنګ یې کړئ",
+      "action_error": "دا کار ونشو. مهرباني وکړئ بیا هڅه وکړئ.",
+      "pagination_label": "د نښه شویو متنونو پاڼې",
+      "prev_page": "مخکنی",
+      "next_page": "بل",
+      "page_of": "پاڼه {page} له {pages} څخه"
+    },
+    "enrichment": {
+      "heading": "{concept} ولې مهم دی",
+      "updating": "تازه کېږي",
+      "preparing": "د ریښتني ژوند بېلګې او مسلکونه چمتو کېږي…",
+      "error": "د دې مفهوم د ریښتني ژوند بېلګې بار نشوې.",
+      "retry": "بیا هڅه وکړئ",
+      "empty": "د دې مفهوم لپاره لا د ریښتني ژوند بېلګې نشته.",
+      "uses_label": "په ریښتني ژوند کې",
+      "careers_label": "په پاکستان کې هغه مسلکونه چې دا کاروي",
+      "career_chip": "{name} · {sector}",
+      "sim_text_only": "د دې مفهوم لپاره متقابل سمولیشن نشته — پورته بېلګې وګورئ.",
+      "sim_heading": "یې وازمویئ: {title}",
+      "sim_reset_notice": "د معلوماتو د ستونزې له امله ستاسو پرمختګ له سره پیل شو.",
+      "sim_progress_unavailable": "ستاسو خوندي شوی پرمختګ بار نشو؛ بدلونونه ښايي خوندي نشي.",
+      "sim_output": "{label}: {value} {unit}",
+      "sim_output_undefined": "{label}: د دې ارزښتونو لپاره نه دی ټاکل شوی",
+      "sim_save_error": "ستاسو د سمولیشن پرمختګ خوندي نشو."
+    },
+    "lecture_rating": {
+      "title": "دا لیکچر څومره ګټور و؟",
+      "subtitle": "اختیاري — ستاسو درجه بندي ستاسو ښوونکي سره د ښه کېدو مرسته کوي. دا بې نومه ده او هېڅکله ستاسو په نمرو اغېز نه کوي.",
+      "stars_label": "دې لیکچر ته له 1 تر 5 ستورو درجه ورکړئ",
+      "star_label": "{count, plural, one {# ستوری} other {# ستوري}}",
+      "submit": "درجه بندي وسپارئ",
+      "submitting": "سپارل کېږي…",
+      "dismiss": "درجه بندي وتړئ",
+      "privacy_note": "ستاسو ښوونکی یوازې د ټولګي اوسط ویني.",
+      "error": "ستاسو درجه بندي خوندي نشوه. مهرباني وکړئ بیا هڅه وکړئ.",
+      "thanks_title": "د درجه بندۍ مننه!",
+      "thanks_body": "ستاسو نظر د دې لیکچر په ښه کولو کې مرسته کوي."
     }
   },
   "independent": {
@@ -990,6 +1061,19 @@
         "benchmark_opt_out": "__TODO__ Stop comparing me to peers",
         "benchmark_opt_in": "__TODO__ Resume peer comparison"
       }
+    },
+    "lecture_quality": {
+      "title": "د لیکچر د کیفیت نمره",
+      "error": "د کیفیت نمره بار نشوه.",
+      "retry": "بیا هڅه وکړئ",
+      "score": "{score} / 100",
+      "score_pending": "لا نمره نه ده ورکړل شوې",
+      "ai_line": "د AI نمره: {score} / {max}",
+      "ai_pending": "د AI نمره لا شمېرل کېږي.",
+      "no_ratings": "لا د زده کوونکو درجه بندي نشته.",
+      "ratings_hidden": "{count, plural, one {د زده کوونکي # درجه بندي} other {د زده کوونکو # درجه بندۍ}} — د بې نومۍ لپاره اوسط هغه وخت ښکاري چې {min} زده کوونکي درجه ورکړي.",
+      "rating_line": "د زده کوونکو درجه بندي: {average} / 5 ({count, plural, one {# درجه بندي} other {# درجه بندۍ}})",
+      "weighting_note": "د زده کوونکو بې نومه درجه بندي د نمرې {weight}% ده؛ پاتې د AI نمره ده."
     }
   },
   "district_admin": {

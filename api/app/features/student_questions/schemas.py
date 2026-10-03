@@ -27,6 +27,9 @@ class StudentQuestionCreateRequest(BaseModel):
 
     question_text: str = Field(min_length=1, max_length=4000)
     highlight_text: str | None = Field(default=None, max_length=4000)
+    # T-185: character offset of ``highlight_text`` inside the paragraph's text.
+    # A hint — the server re-verifies it and falls back to a text search.
+    highlight_offset: int | None = Field(default=None, ge=0)
     paragraph_id: str | None = Field(default=None, min_length=1, max_length=36)
     source_chunk_id: str | None = Field(default=None, max_length=128)
     question_language: Literal["en", "ur", "sd", "ps"] = "en"
