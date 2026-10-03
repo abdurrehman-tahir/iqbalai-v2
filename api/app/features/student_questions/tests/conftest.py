@@ -20,3 +20,5 @@ def _no_highlight_for_answers(monkeypatch: pytest.MonkeyPatch) -> None:
     repo = MagicMock()
     repo.get_by_question_id = AsyncMock(return_value=None)
     monkeypatch.setattr(answer_pipeline, "StudentHighlightRepository", MagicMock(return_value=repo))
+    # T-187: never publish flashcard.created from these unit tests.
+    monkeypatch.setattr(answer_pipeline, "publish_flashcard_created", AsyncMock())

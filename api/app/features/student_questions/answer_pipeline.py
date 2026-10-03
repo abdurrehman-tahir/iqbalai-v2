@@ -38,6 +38,7 @@ from app.features.library.school_models import (
     SchoolLibraryItemChunk,
 )
 from app.features.offerings.models import GradeSubjectOffering
+from app.features.student_highlights.events import publish_flashcard_created
 from app.features.student_highlights.flashcards import ensure_flashcard_for_highlight
 from app.features.student_highlights.models import SchoolStudentFlashcard
 from app.features.student_highlights.repository import StudentHighlightRepository
@@ -681,11 +682,14 @@ async def _persist_answer(
     tags: dict[str, Any],
     next_turn_index: int,
     answer_ok: bool = True,
+    school_id: str | None = None,
 ) -> SchoolStudentFlashcard | None:
     """Persist the answer; for a highlight question also ensure its flashcard.
 
     T-186: the flashcard is written in the same transaction as the answer.
-    Returns the flashcard only when it was *newly* created (dedupe hit → None).
+    T-187: a *newly* created card is announced on ``student.flashcard.created``
+    after the commit (§9.9); dedupe hits publish nothing (idempotent).
+    Returns the flashcard only when it was newly created.
     """
     question.answer_text = answer_text
     question.answer_source_tags_jsonb = tags
@@ -709,6 +713,8 @@ async def _persist_answer(
         )
         new_card = card if created else None
     await session.commit()
+    if new_card is not None:
+        await publish_flashcard_created(new_card, school_id=school_id)
     return new_card
 
 
@@ -801,6 +807,7 @@ async def stream_answer_for_question(
         tags=tags,
         next_turn_index=next_idx,
         answer_ok=answer_ok,
+        school_id=lecture.school_id,
     )
     logger.info(
         "lecture_qa_answer_stored",
@@ -904,6 +911,7 @@ async def generate_and_store_answer(
         tags=tags,
         next_turn_index=next_idx,
         answer_ok=answer_ok,
+        school_id=lecture.school_id,
     )
     return {"answer_text": answer, "primary_badge": primary, "turn_index": turn_index}
 
