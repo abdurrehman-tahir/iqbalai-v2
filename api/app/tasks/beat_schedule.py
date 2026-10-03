@@ -70,6 +70,12 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "concept.refresh_quarterly",
         "schedule": crontab(hour=19, minute=30),
     },
+    # M-15 nightly flashcard batch notification (T-193, flow-6 §7, ARCH §10.6
+    # locked entry): 23:15 PKT, one in-app note per student, never per card.
+    "batch-flashcard-notifications": {
+        "task": "flashcards.batch_notification",
+        "schedule": crontab(hour=18, minute=15),
+    },
     # M-13 student_question_image 1-year retention purge (T-166 / T-170).
     # Daily is plenty for a year-long window; offset from the other daily sweeps.
     "purge-expired-student-question-images": {

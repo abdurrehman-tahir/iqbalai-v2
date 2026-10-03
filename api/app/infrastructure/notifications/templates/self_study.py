@@ -108,9 +108,32 @@ SELF_STUDY_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    # M-15 T-193 (flow-6 §7): nightly batch of flashcards auto-created from the
+    # day's highlights. Batched (one per student per night), never per card.
+    "self_study.flashcards_added_batch": {
+        "default": {
+            "en": {
+                "title": "New flashcards from today",
+                "body": "{count} new flashcard(s) were made from your highlights today. Find them in My Highlights.",  # noqa: E501
+            },
+            "ur": {
+                "title": "آج کے نئے فلیش کارڈ",
+                "body": 'آج آپ کی نمایاں عبارتوں سے {count} نئے فلیش کارڈ بنے۔ انہیں "میری نمایاں عبارتیں" میں دیکھیں۔',  # noqa: E501
+            },
+            "sd": {
+                "title": "اڄ جا نوان فليش ڪارڊ",
+                "body": 'اڄ توهان جي نمايان حصن مان {count} نوان فليش ڪارڊ ٺهيا. انهن کي "منهنجا نمايان حصا" ۾ ڏسو.',  # noqa: E501
+            },
+            "ps": {
+                "title": "د نن ورځې نوي فلش کارډونه",
+                "body": 'نن ستاسو له نښه شویو متنونو {count} نوي فلش کارډونه جوړ شول. هغه په "زما نښه شوي متنونه" کې ومومئ.',  # noqa: E501
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
+    "self_study.flashcards_added_batch": frozenset({"in_app"}),
     # in_app only — FCM push / email channel publishers deferred (T-023 / Phase 2).
     "self_study.exam_countdown": frozenset({"in_app"}),
     "self_study.exam_passed": frozenset({"in_app"}),
