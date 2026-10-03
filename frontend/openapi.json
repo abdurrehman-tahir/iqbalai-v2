@@ -820,6 +820,30 @@
         "title": "BulkImportRowResult",
         "type": "object"
       },
+      "CareerRead": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sector": {
+            "title": "Sector",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sector"
+        ],
+        "title": "CareerRead",
+        "type": "object"
+      },
       "CoachingResponseRequest": {
         "properties": {
           "response": {
@@ -889,6 +913,77 @@
           "count"
         ],
         "title": "ConceptCountRead",
+        "type": "object"
+      },
+      "ConceptEnrichmentRead": {
+        "additionalProperties": false,
+        "description": "Per-concept enrichment as served to a student.\n\n``status=pending`` \u2192 generation is queued (cache miss); poll again.\n``refreshing`` \u2192 a stale entry is being regenerated; the content shown is\nstill valid (\"updated\" badge once refreshed, flow-6 \u00a75.9).",
+        "properties": {
+          "careers": {
+            "items": {
+              "$ref": "#/components/schemas/CareerRead"
+            },
+            "title": "Careers",
+            "type": "array"
+          },
+          "concept_id": {
+            "title": "Concept Id",
+            "type": "string"
+          },
+          "concept_label": {
+            "title": "Concept Label",
+            "type": "string"
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "mini_sim": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MiniSimSpecRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "real_world_uses": {
+            "items": {
+              "$ref": "#/components/schemas/RealWorldUseRead"
+            },
+            "title": "Real World Uses",
+            "type": "array"
+          },
+          "refreshing": {
+            "default": false,
+            "title": "Refreshing",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "ready",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "concept_id",
+          "concept_label",
+          "status"
+        ],
+        "title": "ConceptEnrichmentRead",
         "type": "object"
       },
       "ConversationRoleLiteral": {
@@ -3639,6 +3734,36 @@
         "title": "LectureAudioRequest",
         "type": "object"
       },
+      "LectureConceptRead": {
+        "additionalProperties": false,
+        "description": "A concept the lecture covers, anchored at its first paragraph.",
+        "properties": {
+          "concept_id": {
+            "title": "Concept Id",
+            "type": "string"
+          },
+          "first_paragraph_id": {
+            "title": "First Paragraph Id",
+            "type": "string"
+          },
+          "first_paragraph_ordinal": {
+            "title": "First Paragraph Ordinal",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "concept_id",
+          "label",
+          "first_paragraph_id",
+          "first_paragraph_ordinal"
+        ],
+        "title": "LectureConceptRead",
+        "type": "object"
+      },
       "LectureDraftRead": {
         "properties": {
           "data": {
@@ -4607,6 +4732,106 @@
           "role"
         ],
         "title": "MeResponse",
+        "type": "object"
+      },
+      "MiniSimOutputRead": {
+        "additionalProperties": false,
+        "properties": {
+          "expression": {
+            "title": "Expression",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "expression"
+        ],
+        "title": "MiniSimOutputRead",
+        "type": "object"
+      },
+      "MiniSimSpecRead": {
+        "additionalProperties": false,
+        "description": "Declarative mini-sim; the client evaluates ``output.expression`` with the\nsame safe grammar as ``sim_expression.py`` (never eval).",
+        "properties": {
+          "output": {
+            "$ref": "#/components/schemas/MiniSimOutputRead"
+          },
+          "scenario": {
+            "title": "Scenario",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "variables": {
+            "items": {
+              "$ref": "#/components/schemas/MiniSimVariableRead"
+            },
+            "title": "Variables",
+            "type": "array"
+          }
+        },
+        "required": [
+          "title",
+          "scenario",
+          "variables",
+          "output"
+        ],
+        "title": "MiniSimSpecRead",
+        "type": "object"
+      },
+      "MiniSimVariableRead": {
+        "additionalProperties": false,
+        "properties": {
+          "default": {
+            "title": "Default",
+            "type": "number"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "max": {
+            "title": "Max",
+            "type": "number"
+          },
+          "min": {
+            "title": "Min",
+            "type": "number"
+          },
+          "step": {
+            "title": "Step",
+            "type": "number"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "min",
+          "max",
+          "step",
+          "default"
+        ],
+        "title": "MiniSimVariableRead",
         "type": "object"
       },
       "ModeStateBlob": {
@@ -5729,6 +5954,25 @@
           }
         },
         "title": "QuizSubmitRequest",
+        "type": "object"
+      },
+      "RealWorldUseRead": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "description"
+        ],
+        "title": "RealWorldUseRead",
         "type": "object"
       },
       "ResearchJobStatus": {
@@ -7819,6 +8063,23 @@
         "title": "SuccessEnvelope[CoachingSuggestionRead]",
         "type": "object"
       },
+      "SuccessEnvelope_ConceptEnrichmentRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ConceptEnrichmentRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ConceptEnrichmentRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DataRightsRequestRead_": {
         "properties": {
           "data": {
@@ -9437,6 +9698,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[IndependentWizardReferenceRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_LectureConceptRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/LectureConceptRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[LectureConceptRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_LectureLinkRead__": {
@@ -19100,6 +19382,101 @@
         "summary": "302 redirect to 5-min presigned lecture audio URL (T-154)",
         "tags": [
           "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/concepts": {
+      "get": {
+        "operationId": "student_list_lecture_concepts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_LectureConceptRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Concepts a lecture covers, each anchored at its first paragraph (T-190)",
+        "tags": [
+          "student-concept-enrichment"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/enrichment": {
+      "get": {
+        "operationId": "student_get_concept_enrichment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "concept_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Concept Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ConceptEnrichmentRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Real-world uses, careers and mini-sim for a concept (cached per concept) (T-190)",
+        "tags": [
+          "student-concept-enrichment"
         ]
       }
     },

@@ -11,9 +11,29 @@ import structlog
 from celery import shared_task
 
 from app.db.celery_async import run_db
-from app.features.concept_enrichment.cache import sweep_due_refreshes
+from app.features.concept_enrichment.cache import ENRICH_TASK_NAME, sweep_due_refreshes
 
 logger = structlog.get_logger(__name__)
+
+
+@shared_task(  # type: ignore[misc]
+    name=ENRICH_TASK_NAME,
+    queue="ml",
+    acks_late=True,
+    reject_on_worker_lost=True,
+    soft_time_limit=120,
+    time_limit=180,
+)
+def enrich_applications(application_id: str) -> str:
+    """Generate one concept's enrichment (T-190). Idempotent: a fresh READY row
+    or a row locked by another worker is skipped inside the generator. Failures
+    are recorded on the row and retried by the daily sweep, not by Celery retry
+    (avoids paying for repeated LLM calls in a tight loop)."""
+    from app.features.concept_enrichment.generation import generate_enrichment
+
+    outcome = run_db(lambda session: generate_enrichment(session, application_id))
+    logger.info("concept_enrich_task_done", application_id=application_id, outcome=outcome)
+    return outcome
 
 
 @shared_task(name="concept.refresh_quarterly", queue="ml")  # type: ignore[misc]

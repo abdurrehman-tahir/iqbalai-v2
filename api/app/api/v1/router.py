@@ -10,6 +10,7 @@ from app.features.audit.router import router as audit_router
 from app.features.audit.school_admin_router import router as school_audit_router
 from app.features.auth.router import router as auth_router
 from app.features.bulk_imports.router import router as bulk_imports_router
+from app.features.concept_enrichment.router import router as concept_enrichment_router
 from app.features.data_rights.parent_router import router as parent_data_rights_router
 from app.features.data_rights.student_router import router as student_data_rights_router
 from app.features.diagnostics.router import router as diagnostics_router
@@ -134,6 +135,7 @@ router.include_router(student_question_images_router)
 router.include_router(student_highlights_router)
 router.include_router(parent_highlights_router)
 router.include_router(highlight_aggregate_router)
+router.include_router(concept_enrichment_router)
 router.include_router(student_quizzes_router)
 router.include_router(teacher_quiz_results_router)
 router.include_router(teacher_coaching_router)

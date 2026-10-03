@@ -2630,6 +2630,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/lectures/{lecture_id}/concepts": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Concepts a lecture covers, each anchored at its first paragraph (T-190) */
+        get: operations["student_list_lecture_concepts"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/enrichment": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Real-world uses, careers and mini-sim for a concept (cached per concept) (T-190) */
+        get: operations["student_get_concept_enrichment"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/lectures/{lecture_id}/highlights": {
         parameters: {
             query?: never;
@@ -4097,6 +4131,15 @@ export interface components {
              */
             status: "valid" | "invalid" | "enrolled" | "failed";
         };
+        /** CareerRead */
+        CareerRead: {
+            /** Id */
+            id: string;
+            /** Name */
+            name: string;
+            /** Sector */
+            sector: string;
+        };
         /** CoachingResponseRequest */
         CoachingResponseRequest: {
             /**
@@ -4131,6 +4174,37 @@ export interface components {
             concept_tag: string;
             /** Count */
             count: number;
+        };
+        /**
+         * ConceptEnrichmentRead
+         * @description Per-concept enrichment as served to a student.
+         *
+         *     ``status=pending`` → generation is queued (cache miss); poll again.
+         *     ``refreshing`` → a stale entry is being regenerated; the content shown is
+         *     still valid ("updated" badge once refreshed, flow-6 §5.9).
+         */
+        ConceptEnrichmentRead: {
+            /** Careers */
+            careers?: components["schemas"]["CareerRead"][];
+            /** Concept Id */
+            concept_id: string;
+            /** Concept Label */
+            concept_label: string;
+            /** Generated At */
+            generated_at?: string | null;
+            mini_sim?: components["schemas"]["MiniSimSpecRead"] | null;
+            /** Real World Uses */
+            real_world_uses?: components["schemas"]["RealWorldUseRead"][];
+            /**
+             * Refreshing
+             * @default false
+             */
+            refreshing: boolean;
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "pending" | "ready" | "failed";
         };
         /**
          * ConversationRoleLiteral
@@ -5210,6 +5284,20 @@ export interface components {
              */
             language: "en" | "ur" | "sd" | "ps";
         };
+        /**
+         * LectureConceptRead
+         * @description A concept the lecture covers, anchored at its first paragraph.
+         */
+        LectureConceptRead: {
+            /** Concept Id */
+            concept_id: string;
+            /** First Paragraph Id */
+            first_paragraph_id: string;
+            /** First Paragraph Ordinal */
+            first_paragraph_ordinal: number;
+            /** Label */
+            label: string;
+        };
         /** LectureDraftRead */
         LectureDraftRead: {
             /** Data */
@@ -5620,6 +5708,52 @@ export interface components {
             tenant_type: string;
             /** User Id */
             user_id: string;
+        };
+        /** MiniSimOutputRead */
+        MiniSimOutputRead: {
+            /** Expression */
+            expression: string;
+            /** Label */
+            label: string;
+            /**
+             * Unit
+             * @default
+             */
+            unit: string;
+        };
+        /**
+         * MiniSimSpecRead
+         * @description Declarative mini-sim; the client evaluates ``output.expression`` with the
+         *     same safe grammar as ``sim_expression.py`` (never eval).
+         */
+        MiniSimSpecRead: {
+            output: components["schemas"]["MiniSimOutputRead"];
+            /** Scenario */
+            scenario: string;
+            /** Title */
+            title: string;
+            /** Variables */
+            variables: components["schemas"]["MiniSimVariableRead"][];
+        };
+        /** MiniSimVariableRead */
+        MiniSimVariableRead: {
+            /** Default */
+            default: number;
+            /** Key */
+            key: string;
+            /** Label */
+            label: string;
+            /** Max */
+            max: number;
+            /** Min */
+            min: number;
+            /** Step */
+            step: number;
+            /**
+             * Unit
+             * @default
+             */
+            unit: string;
         };
         /**
          * ModeStateBlob
@@ -6052,6 +6186,13 @@ export interface components {
             answers?: {
                 [key: string]: string;
             };
+        };
+        /** RealWorldUseRead */
+        RealWorldUseRead: {
+            /** Description */
+            description: string;
+            /** Title */
+            title: string;
         };
         /**
          * ResearchJobStatus
@@ -6925,6 +7066,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[ConceptEnrichmentRead] */
+        SuccessEnvelope_ConceptEnrichmentRead_: {
+            data: components["schemas"]["ConceptEnrichmentRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[DataRightsRequestRead] */
         SuccessEnvelope_DataRightsRequestRead_: {
             data: components["schemas"]["DataRightsRequestRead"];
@@ -7763,6 +7913,16 @@ export interface components {
         SuccessEnvelope_list_IndependentWizardReferenceRead__: {
             /** Data */
             data: components["schemas"]["IndependentWizardReferenceRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[LectureConceptRead]] */
+        SuccessEnvelope_list_LectureConceptRead__: {
+            /** Data */
+            data: components["schemas"]["LectureConceptRead"][];
             /**
              * Message
              * @default ok
@@ -14021,6 +14181,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_list_lecture_concepts: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_LectureConceptRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_concept_enrichment: {
+        parameters: {
+            query: {
+                concept_id: string;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ConceptEnrichmentRead_"];
                 };
             };
             /** @description Validation Error */
