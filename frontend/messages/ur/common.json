@@ -719,6 +719,19 @@
       "sim_output": "{label}: {value} {unit}",
       "sim_output_undefined": "{label}: ان اقدار کے لیے متعین نہیں",
       "sim_save_error": "آپ کی سمولیشن کی پیش رفت محفوظ نہیں ہو سکی۔"
+    },
+    "lecture_rating": {
+      "title": "یہ لیکچر کتنا مفید تھا؟",
+      "subtitle": "اختیاری — آپ کی درجہ بندی آپ کے استاد کو بہتر بنانے میں مدد دیتی ہے۔ یہ گمنام ہے اور آپ کے نمبروں پر کبھی اثر نہیں ڈالتی۔",
+      "stars_label": "اس لیکچر کو 1 سے 5 ستاروں تک درجہ دیں",
+      "star_label": "{count, plural, one {# ستارہ} other {# ستارے}}",
+      "submit": "درجہ بندی جمع کریں",
+      "submitting": "جمع کیا جا رہا ہے…",
+      "dismiss": "درجہ بندی بند کریں",
+      "privacy_note": "آپ کے استاد صرف کلاس کی اوسط دیکھتے ہیں۔",
+      "error": "آپ کی درجہ بندی محفوظ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
+      "thanks_title": "درجہ بندی کا شکریہ!",
+      "thanks_body": "آپ کی رائے اس لیکچر کو بہتر بنانے میں مدد دیتی ہے۔"
     }
   },
   "independent": {
@@ -1048,6 +1061,19 @@
         "benchmark_opt_out": "__TODO__ Stop comparing me to peers",
         "benchmark_opt_in": "__TODO__ Resume peer comparison"
       }
+    },
+    "lecture_quality": {
+      "title": "لیکچر کے معیار کا اسکور",
+      "error": "معیار کا اسکور لوڈ نہیں ہو سکا۔",
+      "retry": "دوبارہ کوشش کریں",
+      "score": "{score} / 100",
+      "score_pending": "ابھی اسکور نہیں ہوا",
+      "ai_line": "اے آئی اسکور: {score} / {max}",
+      "ai_pending": "اے آئی اسکور ابھی شمار ہو رہا ہے۔",
+      "no_ratings": "ابھی طلبہ کی کوئی درجہ بندی نہیں۔",
+      "ratings_hidden": "{count, plural, one {طالب علم کی # درجہ بندی} other {طلبہ کی # درجہ بندیاں}} — درجہ بندی گمنام رکھنے کے لیے اوسط تب دکھائی جائے گی جب {min} طلبہ درجہ دے دیں۔",
+      "rating_line": "طلبہ کی درجہ بندی: {average} / 5 ({count, plural, one {# درجہ بندی} other {# درجہ بندیاں}})",
+      "weighting_note": "طلبہ کی گمنام درجہ بندی اسکور کا {weight}% ہے؛ باقی اے آئی اسکور ہے۔"
     }
   },
   "district_admin": {

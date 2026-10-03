@@ -31,6 +31,8 @@ from app.features.independent_teacher_onboarding.router import (
     router as independent_teacher_onboarding_router,
 )
 from app.features.invites.router import router as invites_router
+from app.features.lecture_ratings.router import staff_router as lecture_rating_summary_router
+from app.features.lecture_ratings.router import student_router as student_lecture_rating_router
 from app.features.lectures.independent_router import router as independent_lecture_wizard_router
 from app.features.lectures.router import router as lecture_wizard_router
 from app.features.lectures.student_router import (
@@ -136,6 +138,8 @@ router.include_router(student_highlights_router)
 router.include_router(parent_highlights_router)
 router.include_router(highlight_aggregate_router)
 router.include_router(concept_enrichment_router)
+router.include_router(student_lecture_rating_router)
+router.include_router(lecture_rating_summary_router)
 router.include_router(student_quizzes_router)
 router.include_router(teacher_quiz_results_router)
 router.include_router(teacher_coaching_router)

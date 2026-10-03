@@ -4215,6 +4215,90 @@
         "title": "LecturePublishRead",
         "type": "object"
       },
+      "LectureRatingSubmit": {
+        "additionalProperties": false,
+        "properties": {
+          "rating": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rating",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rating"
+        ],
+        "title": "LectureRatingSubmit",
+        "type": "object"
+      },
+      "LectureRatingSummaryRead": {
+        "additionalProperties": false,
+        "description": "Teacher/staff view: anonymous aggregate only (no ids, no individual values).\n\n``average_rating`` is withheld (null) until at least\n``min_ratings_for_display`` students have rated, so a single student's\nrating can never be read off the \"average\".",
+        "properties": {
+          "ai_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Score"
+          },
+          "ai_score_max": {
+            "title": "Ai Score Max",
+            "type": "integer"
+          },
+          "average_rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Rating"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "min_ratings_for_display": {
+            "title": "Min Ratings For Display",
+            "type": "integer"
+          },
+          "quality_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Score"
+          },
+          "rating_count": {
+            "title": "Rating Count",
+            "type": "integer"
+          },
+          "rating_weight": {
+            "title": "Rating Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "rating_count",
+          "min_ratings_for_display",
+          "ai_score_max",
+          "rating_weight"
+        ],
+        "title": "LectureRatingSummaryRead",
+        "type": "object"
+      },
       "LectureRosterRead": {
         "description": "The lecture's grade roster, for building the access-restriction picker.",
         "properties": {
@@ -4917,6 +5001,32 @@
           "paragraph_ordinal"
         ],
         "title": "MyHighlightRead",
+        "type": "object"
+      },
+      "MyLectureRatingRead": {
+        "additionalProperties": false,
+        "description": "The caller's OWN rating only \u2014 never other students' ratings.",
+        "properties": {
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          }
+        },
+        "required": [
+          "lecture_id"
+        ],
+        "title": "MyLectureRatingRead",
         "type": "object"
       },
       "NotificationListResponse": {
@@ -8665,6 +8775,23 @@
         "title": "SuccessEnvelope[LecturePublishRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureRatingSummaryRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureRatingSummaryRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureRatingSummaryRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LectureRosterRead_": {
         "properties": {
           "data": {
@@ -8782,6 +8909,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[MeResponse]",
+        "type": "object"
+      },
+      "SuccessEnvelope_MyLectureRatingRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MyLectureRatingRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[MyLectureRatingRead]",
         "type": "object"
       },
       "SuccessEnvelope_OfferingRead_": {
@@ -16626,6 +16770,48 @@
         ]
       }
     },
+    "/api/v1/lectures/{lecture_id}/rating-summary": {
+      "get": {
+        "operationId": "lecture_rating_summary",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureRatingSummaryRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Anonymous rating aggregate + blended quality score (teacher/staff) (T-192)",
+        "tags": [
+          "lecture-rating-summary"
+        ]
+      }
+    },
     "/api/v1/notifications/": {
       "get": {
         "description": "Returns non-deleted notifications newest-first, with unread count for bell badge.",
@@ -19907,6 +20093,98 @@
         "summary": "Append a follow-up turn to a lecture question thread (T-160)",
         "tags": [
           "student-lecture-questions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/rating": {
+      "get": {
+        "operationId": "student_get_my_lecture_rating",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_MyLectureRatingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The caller's own rating for a lecture (null if not rated) (T-192)",
+        "tags": [
+          "student-lecture-rating"
+        ]
+      },
+      "put": {
+        "operationId": "student_rate_lecture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureRatingSubmit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_MyLectureRatingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit or change an optional 1-5 rating after completing a lecture (T-192)",
+        "tags": [
+          "student-lecture-rating"
         ]
       }
     },

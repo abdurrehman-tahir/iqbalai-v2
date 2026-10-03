@@ -1556,6 +1556,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/lectures/{lecture_id}/rating-summary": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Anonymous rating aggregate + blended quality score (teacher/staff) (T-192) */
+        get: operations["lecture_rating_summary"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/notifications/": {
         parameters: {
             query?: never;
@@ -2777,6 +2794,24 @@ export interface paths {
         put?: never;
         /** Append a follow-up turn to a lecture question thread (T-160) */
         post: operations["student_follow_up_lecture_question"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/students/me/lectures/{lecture_id}/rating": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The caller's own rating for a lecture (null if not rated) (T-192) */
+        get: operations["student_get_my_lecture_rating"];
+        /** Submit or change an optional 1-5 rating after completing a lecture (T-192) */
+        put: operations["student_rate_lecture"];
+        post?: never;
         delete?: never;
         options?: never;
         head?: never;
@@ -5500,6 +5535,37 @@ export interface components {
             /** Status */
             status: string;
         };
+        /** LectureRatingSubmit */
+        LectureRatingSubmit: {
+            /** Rating */
+            rating: number;
+        };
+        /**
+         * LectureRatingSummaryRead
+         * @description Teacher/staff view: anonymous aggregate only (no ids, no individual values).
+         *
+         *     ``average_rating`` is withheld (null) until at least
+         *     ``min_ratings_for_display`` students have rated, so a single student's
+         *     rating can never be read off the "average".
+         */
+        LectureRatingSummaryRead: {
+            /** Ai Score */
+            ai_score?: number | null;
+            /** Ai Score Max */
+            ai_score_max: number;
+            /** Average Rating */
+            average_rating?: number | null;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Min Ratings For Display */
+            min_ratings_for_display: number;
+            /** Quality Score */
+            quality_score?: number | null;
+            /** Rating Count */
+            rating_count: number;
+            /** Rating Weight */
+            rating_weight: number;
+        };
         /**
          * LectureRosterRead
          * @description The lecture's grade roster, for building the access-restriction picker.
@@ -5809,6 +5875,16 @@ export interface components {
             paragraph_ordinal: number;
             /** Question Id */
             question_id?: string | null;
+        };
+        /**
+         * MyLectureRatingRead
+         * @description The caller's OWN rating only — never other students' ratings.
+         */
+        MyLectureRatingRead: {
+            /** Lecture Id */
+            lecture_id: string;
+            /** Rating */
+            rating?: number | null;
         };
         /**
          * NotificationListResponse
@@ -7404,6 +7480,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[LectureRatingSummaryRead] */
+        SuccessEnvelope_LectureRatingSummaryRead_: {
+            data: components["schemas"]["LectureRatingSummaryRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[LectureRosterRead] */
         SuccessEnvelope_LectureRosterRead_: {
             data: components["schemas"]["LectureRosterRead"];
@@ -7461,6 +7546,15 @@ export interface components {
         /** SuccessEnvelope[MeResponse] */
         SuccessEnvelope_MeResponse_: {
             data: components["schemas"]["MeResponse"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[MyLectureRatingRead] */
+        SuccessEnvelope_MyLectureRatingRead_: {
+            data: components["schemas"]["MyLectureRatingRead"];
             /**
              * Message
              * @default ok
@@ -12361,6 +12455,37 @@ export interface operations {
             };
         };
     };
+    lecture_rating_summary: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_LectureRatingSummaryRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
     list_notifications: {
         parameters: {
             query?: {
@@ -14533,6 +14658,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_StudentQuestionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_my_lecture_rating: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_MyLectureRatingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_rate_lecture: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["LectureRatingSubmit"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_MyLectureRatingRead_"];
                 };
             };
             /** @description Validation Error */

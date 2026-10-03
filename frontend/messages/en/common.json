@@ -707,6 +707,19 @@
       "sim_output": "{label}: {value} {unit}",
       "sim_output_undefined": "{label}: not defined for these values",
       "sim_save_error": "Couldn't save your simulation progress."
+    },
+    "lecture_rating": {
+      "title": "How useful was this lecture?",
+      "subtitle": "Optional — your rating helps your teacher improve. It's anonymous and never affects your grades.",
+      "stars_label": "Rate this lecture from 1 to 5 stars",
+      "star_label": "{count, plural, one {# star} other {# stars}}",
+      "submit": "Submit rating",
+      "submitting": "Submitting…",
+      "dismiss": "Dismiss rating",
+      "privacy_note": "Your teacher only sees the class average.",
+      "error": "Couldn't save your rating. Please try again.",
+      "thanks_title": "Thanks for your rating!",
+      "thanks_body": "Your feedback helps improve this lecture."
     }
   },
   "teacher": {
@@ -955,6 +968,19 @@
       "success_new": "\"{title}\" uploaded and pending ingestion.",
       "success_deduped": "\"{title}\" already exists in your school library — storage reused.",
       "error_generic": "Upload failed. Check the file and try again."
+    },
+    "lecture_quality": {
+      "title": "Lecture quality score",
+      "error": "Couldn't load the quality score.",
+      "retry": "Try again",
+      "score": "{score} / 100",
+      "score_pending": "Not scored yet",
+      "ai_line": "AI score: {score} / {max}",
+      "ai_pending": "AI score is still being calculated.",
+      "no_ratings": "No student ratings yet.",
+      "ratings_hidden": "{count, plural, one {# student rating} other {# student ratings}} — the average appears once {min} students have rated, to keep ratings anonymous.",
+      "rating_line": "Student rating: {average} / 5 ({count, plural, one {# rating} other {# ratings}})",
+      "weighting_note": "Students' anonymous ratings count for {weight}% of the score; the AI score counts for the rest."
     }
   },
   "coordinator": {

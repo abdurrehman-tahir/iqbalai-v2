@@ -719,6 +719,19 @@
       "sim_output": "{label}: {value} {unit}",
       "sim_output_undefined": "{label}: انهن قدرن لاءِ طئي ناهي",
       "sim_save_error": "توهان جي سموليشن جي پيش رفت محفوظ نه ٿي سگهي."
+    },
+    "lecture_rating": {
+      "title": "هي ليڪچر ڪيترو ڪارائتو هو؟",
+      "subtitle": "اختياري — توهان جي درجه بندي توهان جي استاد کي بهتر ڪرڻ ۾ مدد ڪري ٿي. اها گمنام آهي ۽ توهان جي نمبرن تي ڪڏهن به اثر نه ٿي ڪري.",
+      "stars_label": "هن ليڪچر کي 1 کان 5 تارن تائين درجو ڏيو",
+      "star_label": "{count, plural, one {# تارو} other {# تارا}}",
+      "submit": "درجه بندي جمع ڪريو",
+      "submitting": "جمع ٿي رهيو آهي…",
+      "dismiss": "درجه بندي بند ڪريو",
+      "privacy_note": "توهان جو استاد صرف ڪلاس جي سراسري ڏسي ٿو.",
+      "error": "توهان جي درجه بندي محفوظ نه ٿي سگهي. مهرباني ڪري ٻيهر ڪوشش ڪريو.",
+      "thanks_title": "درجه بندي جي مهرباني!",
+      "thanks_body": "توهان جي راءِ هن ليڪچر کي بهتر بڻائڻ ۾ مدد ڪري ٿي."
     }
   },
   "independent": {
@@ -1048,6 +1061,19 @@
         "benchmark_opt_out": "__TODO__ Stop comparing me to peers",
         "benchmark_opt_in": "__TODO__ Resume peer comparison"
       }
+    },
+    "lecture_quality": {
+      "title": "ليڪچر جي معيار جو اسڪور",
+      "error": "معيار جو اسڪور لوڊ نه ٿي سگهيو.",
+      "retry": "ٻيهر ڪوشش ڪريو",
+      "score": "{score} / 100",
+      "score_pending": "اڃا اسڪور ناهي ٿيو",
+      "ai_line": "اي آءِ اسڪور: {score} / {max}",
+      "ai_pending": "اي آءِ اسڪور اڃا ڳڻيو پيو وڃي.",
+      "no_ratings": "اڃا شاگردن جي ڪا درجه بندي ناهي.",
+      "ratings_hidden": "{count, plural, one {شاگرد جي # درجه بندي} other {شاگردن جون # درجه بنديون}} — درجه بندي گمنام رکڻ لاءِ سراسري تڏهن ڏيکاري ويندي جڏهن {min} شاگرد درجو ڏين.",
+      "rating_line": "شاگردن جي درجه بندي: {average} / 5 ({count, plural, one {# درجه بندي} other {# درجه بنديون}})",
+      "weighting_note": "شاگردن جي گمنام درجه بندي اسڪور جو {weight}% آهي؛ باقي اي آءِ اسڪور آهي."
     }
   },
   "district_admin": {

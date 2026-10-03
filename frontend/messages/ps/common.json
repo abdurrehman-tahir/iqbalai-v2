@@ -719,6 +719,19 @@
       "sim_output": "{label}: {value} {unit}",
       "sim_output_undefined": "{label}: د دې ارزښتونو لپاره نه دی ټاکل شوی",
       "sim_save_error": "ستاسو د سمولیشن پرمختګ خوندي نشو."
+    },
+    "lecture_rating": {
+      "title": "دا لیکچر څومره ګټور و؟",
+      "subtitle": "اختیاري — ستاسو درجه بندي ستاسو ښوونکي سره د ښه کېدو مرسته کوي. دا بې نومه ده او هېڅکله ستاسو په نمرو اغېز نه کوي.",
+      "stars_label": "دې لیکچر ته له 1 تر 5 ستورو درجه ورکړئ",
+      "star_label": "{count, plural, one {# ستوری} other {# ستوري}}",
+      "submit": "درجه بندي وسپارئ",
+      "submitting": "سپارل کېږي…",
+      "dismiss": "درجه بندي وتړئ",
+      "privacy_note": "ستاسو ښوونکی یوازې د ټولګي اوسط ویني.",
+      "error": "ستاسو درجه بندي خوندي نشوه. مهرباني وکړئ بیا هڅه وکړئ.",
+      "thanks_title": "د درجه بندۍ مننه!",
+      "thanks_body": "ستاسو نظر د دې لیکچر په ښه کولو کې مرسته کوي."
     }
   },
   "independent": {
@@ -1048,6 +1061,19 @@
         "benchmark_opt_out": "__TODO__ Stop comparing me to peers",
         "benchmark_opt_in": "__TODO__ Resume peer comparison"
       }
+    },
+    "lecture_quality": {
+      "title": "د لیکچر د کیفیت نمره",
+      "error": "د کیفیت نمره بار نشوه.",
+      "retry": "بیا هڅه وکړئ",
+      "score": "{score} / 100",
+      "score_pending": "لا نمره نه ده ورکړل شوې",
+      "ai_line": "د AI نمره: {score} / {max}",
+      "ai_pending": "د AI نمره لا شمېرل کېږي.",
+      "no_ratings": "لا د زده کوونکو درجه بندي نشته.",
+      "ratings_hidden": "{count, plural, one {د زده کوونکي # درجه بندي} other {د زده کوونکو # درجه بندۍ}} — د بې نومۍ لپاره اوسط هغه وخت ښکاري چې {min} زده کوونکي درجه ورکړي.",
+      "rating_line": "د زده کوونکو درجه بندي: {average} / 5 ({count, plural, one {# درجه بندي} other {# درجه بندۍ}})",
+      "weighting_note": "د زده کوونکو بې نومه درجه بندي د نمرې {weight}% ده؛ پاتې د AI نمره ده."
     }
   },
   "district_admin": {

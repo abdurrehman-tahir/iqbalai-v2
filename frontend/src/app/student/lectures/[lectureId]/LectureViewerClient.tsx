@@ -23,6 +23,8 @@ import {
 import { AnswerSidePanel } from "./AnswerSidePanel";
 import { marksByParagraph, segmentParagraph, selectionOffsetWithin } from "./highlight-marks";
 import { ConceptReachedSlot } from "./ConceptReachedSlot";
+import { LectureRatingPrompt } from "./LectureRatingPrompt";
+import { useLectureCompletion } from "./use-lecture-completion";
 import { QuestionsTab } from "./QuestionsTab";
 import { TeacherShareToggle } from "./TeacherShareToggle";
 import {
@@ -139,6 +141,10 @@ export function LectureViewerClient({ lectureId }: Props) {
     () => marksByParagraph(Array.isArray(highlightsQuery.data) ? highlightsQuery.data : []),
     [highlightsQuery.data],
   );
+
+  // T-192: completion (end reached or ≥80% scrolled) → optional rating prompt.
+  const paragraphsRef = useRef<HTMLDivElement | null>(null);
+  const completed = useLectureCompletion(paragraphsRef, !!viewerQuery.data);
 
   // T-190/T-191: concepts covered by the lecture → enrichment card after each
   // concept's first paragraph. Failure just means no cards (never blocks text).
@@ -467,6 +473,7 @@ export function LectureViewerClient({ lectureId }: Props) {
           className="space-y-5"
           data-testid="lecture-paragraphs"
           onMouseUp={onMouseUpSelect}
+          ref={paragraphsRef}
         >
           {paragraphs.map((paragraph) => {
             const isActive =
@@ -529,6 +536,7 @@ export function LectureViewerClient({ lectureId }: Props) {
             );
           })}
         </div>
+        <LectureRatingPrompt lectureId={lectureId} completed={completed} />
       </article>
 
       <QuestionsTab

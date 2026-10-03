@@ -90,6 +90,28 @@ _DIMENSION_CAPS: dict[str, int] = {
 }
 MAX_TOTAL_SCORE = sum(_DIMENSION_CAPS.values())
 
+# M-15 T-192 (flow-6 §3.11): the displayed lecture quality score blends the
+# AI score above (95%) with the students' anonymous 1–5 rating average (5%).
+# No separate pipeline — the AI score is still exactly what this module writes.
+STUDENT_RATING_WEIGHT = 0.05
+AI_SCORE_WEIGHT = 1 - STUDENT_RATING_WEIGHT
+
+
+def blended_quality_score(ai_total: int | None, rating_average: float | None) -> float | None:
+    """Displayed quality score on a 0–100 scale.
+
+    ``ai_total`` is the version's 7-dimension total (0–MAX_TOTAL_SCORE);
+    ``rating_average`` is 1–5 (normalised so 1 → 0, 5 → 100). Without an
+    (anonymity-eligible) rating average the score is the AI score alone.
+    """
+    if ai_total is None:
+        return None
+    ai_pct = max(0.0, min(100.0, ai_total / MAX_TOTAL_SCORE * 100))
+    if rating_average is None:
+        return round(ai_pct, 1)
+    rating_pct = (max(1.0, min(5.0, rating_average)) - 1) / 4 * 100
+    return round(AI_SCORE_WEIGHT * ai_pct + STUDENT_RATING_WEIGHT * rating_pct, 1)
+
 
 def _parse_json_payload(raw: str) -> dict[str, Any]:
     text = _JSON_FENCE_RE.sub("", raw.strip()).strip()

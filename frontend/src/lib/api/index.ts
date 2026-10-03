@@ -135,6 +135,9 @@ import type {
   ConceptEnrichmentRead,
   SimulationProgressRead,
   SimulationStateUpdate,
+  LectureRatingSubmit,
+  MyLectureRatingRead,
+  LectureRatingSummaryRead,
 } from "./types";
 
 // Re-export M-15 generated types (A-002).
@@ -150,6 +153,9 @@ export type {
   MiniSimSpecRead,
   SimulationProgressRead,
   SimulationStateUpdate,
+  LectureRatingSubmit,
+  MyLectureRatingRead,
+  LectureRatingSummaryRead,
 } from "./types";
 
 // Re-export M-12 generated types (A-002) for consumers importing from `@/lib/api`.
@@ -1766,6 +1772,20 @@ export const studentHighlightsApi = {
       { method: "DELETE" },
       token
     ),
+};
+
+/** Optional lecture rating (student) + anonymous summary (teacher/staff) — T-192. */
+export const lectureRatingApi = {
+  getMine: (token: string, lectureId: string) =>
+    request<MyLectureRatingRead>(`/students/me/lectures/${lectureId}/rating`, {}, token),
+  submit: (token: string, lectureId: string, body: LectureRatingSubmit) =>
+    request<MyLectureRatingRead>(
+      `/students/me/lectures/${lectureId}/rating`,
+      { method: "PUT", body: JSON.stringify(body) },
+      token
+    ),
+  summary: (token: string, lectureId: string) =>
+    request<LectureRatingSummaryRead>(`/lectures/${lectureId}/rating-summary`, {}, token),
 };
 
 /** Concept enrichment + mini-sim state (T-190 / T-191). concept_id may contain "/". */

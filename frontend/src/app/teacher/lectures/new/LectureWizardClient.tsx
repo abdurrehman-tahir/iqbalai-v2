@@ -21,6 +21,7 @@ import { ErrorState } from "@/components/error-state";
 import { Skeleton } from "@/components/ui/skeleton";
 import { LectureEditorPanel } from "@/components/lectures/LectureEditorPanel";
 import { ScoreTimelineChart } from "@/components/lectures/ScoreTimelineChart";
+import { LectureQualitySummaryCard } from "@/components/lectures/LectureQualitySummaryCard";
 import { TeachingInnovationCard } from "@/components/lectures/TeachingInnovationCard";
 import { BenchmarkCard } from "@/components/lectures/BenchmarkCard";
 
@@ -754,6 +755,7 @@ function GenerationStreamPanel({
           t={t}
           queryKeyPrefix="teacher"
         />
+        <LectureQualitySummaryCard token={token!} lectureId={lectureId} />
         <LectureParagraphsView token={token!} lectureId={lectureId} t={t} />
         <LectureLinksPanel token={token!} lectureId={lectureId} t={t} />
         <LectureAccessPanel token={token!} lectureId={lectureId} t={t} />
