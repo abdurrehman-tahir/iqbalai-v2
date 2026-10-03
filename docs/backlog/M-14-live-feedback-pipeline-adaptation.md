@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-173 through T-184
 **Spec source:** `flow-6-student-studies-lecture.md` v1 §3.7 (live feedback panel #59), §3.8 (NATS JetStream event pipeline #60), §3.9 (per-session AI teaching adaptation #61)
@@ -40,7 +40,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.8 (subject pattern `student.lecture.{event_type}`; structured envelope; 7-day retention)
@@ -73,7 +73,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.8 (Analytics Consumer persists to Postgres `student_events` for long-term aggregation; read by Flow 7 + Flow 9 + Flow 11 nightly)
@@ -109,7 +109,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.9 (sub-topic via `lecture_paragraphs.source_chunk_id` → curriculum topic_tree; `session_difficulty_log` accumulates; `tried_angles`)
@@ -142,7 +142,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.8 (AI Session Context Consumer updates per-session difficulty log for #61)
@@ -175,7 +175,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.8 (Live Feedback Consumer pushes to WebSocket; powers #59), §3.7 (channel `student.live_feedback.{user_id}`, 60s cadence)
@@ -208,7 +208,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.8 (backpressure >30s lag → `system.event_pipeline_lag`; independent tagged + routed)
@@ -241,7 +241,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.7 (metrics: time-on-topic, questions-asked, mastery estimate, daily-goal status)
@@ -278,7 +278,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.7 (auto-show after 2 min; bottom-right collapsible; 60s WebSocket updates; collapse persists)
@@ -311,7 +311,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.7 (>10 min same page + 0 questions → one-time nudge with quick actions)
@@ -344,7 +344,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5
 **Milestone:** M-14
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.9 (2+ same sub-topic → angle switch; cycle angle types; persona co-exists; long-term DNA export is Flow 9)
@@ -377,7 +377,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 5 / 6
 **Milestone:** M-14
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.7-§3.9, §4 (permissions), §3.x privacy #72
@@ -410,7 +410,7 @@ The third of four Flow 6 milestones, and the one that turns the events M-12 *emi
 **Layer:** 6
 **Milestone:** M-14
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.7-§3.9

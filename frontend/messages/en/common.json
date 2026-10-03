@@ -559,7 +559,21 @@
       "classification_knowledge_gap": "Knowledge gap",
       "classification_unclassified": "Question",
       "privacy_share_label": "Share study questions with my teacher",
-      "privacy_share_help": "When off, teachers and linked parents cannot see your lecture questions (#72)."
+      "privacy_share_help": "When off, teachers and linked parents cannot see your lecture questions (#72).",
+      "live_feedback": {
+        "title": "Live feedback",
+        "collapse": "Collapse",
+        "expand": "Expand",
+        "time_on_topic": "Time on topic",
+        "questions_asked": "Questions this session"
+      },
+      "stuck_nudge": {
+        "message": "Been here 10 min — need help?",
+        "rephrase": "Rephrase last paragraph",
+        "list_concepts": "List key concepts",
+        "switch_voice": "Switch to voice mode",
+        "dismiss": "Dismiss"
+      }
     },
     "quiz_attempt": {
       "title": "Quiz",

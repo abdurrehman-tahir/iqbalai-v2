@@ -15,7 +15,7 @@ from app.infrastructure.events.publisher import _build_envelope, publish
 
 
 def test_envelope_contains_all_required_fields() -> None:
-    """Per ARCH §9: envelope must have all 7 required fields."""
+    """Per ARCH §9 / M-14: envelope must have required fields."""
     envelope = _build_envelope(
         event_type="system.smoke_test",
         payload={"key": "value"},
@@ -29,6 +29,8 @@ def test_envelope_contains_all_required_fields() -> None:
         "tenant_type",
         "user_id",
         "session_id",
+        "lecture_id",
+        "timestamp",
         "occurred_at",
         "event_type",
         "payload",

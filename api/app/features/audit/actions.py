@@ -242,6 +242,17 @@ M13_AUDIT_ACTIONS = frozenset(
     }
 )
 
+# M-14 — NATS pipeline lag + live-feedback privacy surface (T-178 / T-183).
+EVENT_PIPELINE_LAG = "system.event_pipeline_lag"
+LIVE_FEEDBACK_SUBSCRIBED = "live_feedback.subscribed"
+
+M14_AUDIT_ACTIONS = frozenset(
+    {
+        EVENT_PIPELINE_LAG,
+        LIVE_FEEDBACK_SUBSCRIBED,
+    }
+)
+
 REGISTERED_AUDIT_ACTIONS = (
     M04_AUDIT_ACTIONS
     | M06_AUDIT_ACTIONS
@@ -252,4 +263,5 @@ REGISTERED_AUDIT_ACTIONS = (
     | M11_AUDIT_ACTIONS
     | M12_AUDIT_ACTIONS
     | M13_AUDIT_ACTIONS
+    | M14_AUDIT_ACTIONS
 )

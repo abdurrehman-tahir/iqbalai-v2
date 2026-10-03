@@ -1,7 +1,8 @@
 """NATS JetStream event publisher.
 
-Per ARCH §9: all events use the standard envelope with tenant_id, tenant_type,
-user_id, session_id, occurred_at, event_type, payload.
+Per ARCH §9 + M-14 T-173: events use the standard envelope with
+tenant_id, tenant_type, user_id, session_id, lecture_id, timestamp
+(occurred_at alias), event_type, payload.
 """
 
 from __future__ import annotations
@@ -25,14 +26,19 @@ def _build_envelope(
     tenant_type: str,
     user_id: str,
     session_id: str = "",
+    lecture_id: str = "",
 ) -> dict[str, Any]:
-    """Build a standard event envelope per ARCH §9."""
+    """Build a standard event envelope per ARCH §9 / M-14 T-173."""
+    occurred = datetime.now(timezone.utc).isoformat()
+    resolved_lecture = lecture_id or str(payload.get("lecture_id") or "")
     return {
         "tenant_id": tenant_id,
         "tenant_type": tenant_type,
         "user_id": user_id,
         "session_id": session_id,
-        "occurred_at": datetime.now(timezone.utc).isoformat(),
+        "lecture_id": resolved_lecture,
+        "timestamp": occurred,
+        "occurred_at": occurred,  # pre-M-14 field retained for compatibility
         "event_type": event_type,
         "payload": payload,
     }
@@ -46,6 +52,7 @@ async def publish(
     tenant_type: str = "school",
     user_id: str = "",
     session_id: str = "",
+    lecture_id: str = "",
 ) -> None:
     """Publish a JetStream event to the given subject.
 
@@ -71,6 +78,7 @@ async def publish(
         tenant_type=tenant_type,
         user_id=user_id,
         session_id=session_id,
+        lecture_id=lecture_id,
     )
     message = json.dumps(envelope).encode()
 

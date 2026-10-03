@@ -1,4 +1,4 @@
-"""T-163 — NATS student lecture event emission (mock publish)."""
+"""T-163 / T-173 — NATS student lecture event emission (mock publish)."""
 
 from __future__ import annotations
 
@@ -8,12 +8,13 @@ import pytest
 
 from app.features.lectures import events as lecture_events
 from app.features.lectures.events import (
+    STUDENT_LECTURE_HIGHLIGHT_CREATED,
+    STUDENT_LECTURE_QUESTION_ASKED,
     STUDENT_LECTURE_SESSION_CLOSED,
     STUDENT_LECTURE_SESSION_OPENED,
     publish_session_closed,
     publish_session_opened,
 )
-from app.features.student_questions import events as question_events
 from app.features.student_questions.events import (
     STUDENT_HIGHLIGHT_CREATED,
     STUDENT_QUESTION_ASKED,
@@ -26,7 +27,6 @@ from app.features.student_questions.events import (
 def publish_spy(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
     spy = AsyncMock()
     monkeypatch.setattr(lecture_events, "publish", spy)
-    monkeypatch.setattr(question_events, "publish", spy)
     return spy
 
 
@@ -98,10 +98,11 @@ async def test_publish_question_asked(publish_spy: AsyncMock) -> None:
     }
     await publish_student_question_asked(payload=payload)
 
-    publish_spy.assert_awaited_once()
-    assert publish_spy.await_args is not None
-    args, kwargs = publish_spy.await_args
-    assert args[0] == STUDENT_QUESTION_ASKED
+    # T-173 dual-publish: M-12 ticket subject + ARCH student.lecture.* alias
+    assert publish_spy.await_count == 2
+    subjects = [c.args[0] for c in publish_spy.await_args_list]
+    assert subjects == [STUDENT_QUESTION_ASKED, STUDENT_LECTURE_QUESTION_ASKED]
+    kwargs = publish_spy.await_args_list[0].kwargs
     assert kwargs["tenant_id"] == "school-1"
     assert kwargs["session_id"] == "sess-1"
 
@@ -119,19 +120,17 @@ async def test_publish_highlight_created(publish_spy: AsyncMock) -> None:
     }
     await publish_student_highlight_created(payload=payload)
 
-    publish_spy.assert_awaited_once()
-    assert publish_spy.await_args is not None
-    args, kwargs = publish_spy.await_args
-    assert args[0] == STUDENT_HIGHLIGHT_CREATED
-    assert args[2]["highlight_text"] == "F = ma"
-    assert kwargs["tenant_type"] == "school"
+    assert publish_spy.await_count == 2
+    subjects = [c.args[0] for c in publish_spy.await_args_list]
+    assert subjects == [STUDENT_HIGHLIGHT_CREATED, STUDENT_LECTURE_HIGHLIGHT_CREATED]
+    assert publish_spy.await_args_list[0].args[2]["highlight_text"] == "F = ma"
+    assert publish_spy.await_args_list[0].kwargs["tenant_type"] == "school"
 
 
 @pytest.mark.asyncio
 async def test_publish_swallows_errors(monkeypatch: pytest.MonkeyPatch) -> None:
     failing = AsyncMock(side_effect=RuntimeError("nats down"))
     monkeypatch.setattr(lecture_events, "publish", failing)
-    monkeypatch.setattr(question_events, "publish", failing)
 
     await publish_session_opened(
         payload={

@@ -636,6 +636,22 @@ async def _render_qa_prompt(
     persona = await resolve_base_persona(
         session, student_user_id=question.student_user_id, language=lang
     )
+    from app.infrastructure.llm.session_adapter import (
+        prepend_adaptation,
+        resolve_adaptation_block,
+    )
+
+    adaptation = await resolve_adaptation_block(
+        session,
+        session_id=question.session_id,
+        source_chunk_id=question.source_chunk_id,
+        lecture_id=lecture.id,
+        paragraph_id=question.paragraph_id,
+        tenant_type=str(
+            getattr(question.tenant_type, "value", None) or question.tenant_type or "school"
+        ),
+    )
+    system = prepend_adaptation(adaptation, prepend_persona(persona, prompt.system))
     primary, spans = build_source_tags(
         curriculum=curr[:_TOP_CURRICULUM],
         reference=refs[:_TOP_REFERENCE],
@@ -644,7 +660,7 @@ async def _render_qa_prompt(
     )
     return (
         _RenderedPrompt(
-            system=prepend_persona(persona, prompt.system),
+            system=system,
             user=prompt.user,
             temperature=prompt.temperature,
             max_tokens=prompt.max_tokens,

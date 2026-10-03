@@ -67,6 +67,11 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 | Variable | Default | Purpose | Source |
 |---|---|---|---|
 | `AI_ADAPT_QUESTION_THRESHOLD` | `2` | Number of questions on the same sub-topic in a single session that triggers the per-session angle-switch (Flow 6 §3.9). Read in `infrastructure/llm/session_adapter.py`. | Flow 6 v1 §3.9 + ARCH §8.22 |
+| `LIVE_FEEDBACK_TICK_SECONDS` | `60` | Cadence for live-feedback WebSocket ticks (T-177). | Flow 6 §3.7 |
+| `LIVE_FEEDBACK_PANEL_DELAY_SECONDS` | `120` | Seconds of activity before the live feedback panel auto-shows (T-180). | Flow 6 §3.7 |
+| `STUCK_NUDGE_SECONDS` | `600` | Same-page idle with 0 questions before one-time stuck nudge (T-181). | Flow 6 §3.7 |
+| `EVENT_PIPELINE_LAG_SECONDS` | `30` | Consumer lag threshold before `system.event_pipeline_lag` (T-178). | Flow 6 §3.8 |
+| `EVENT_PIPELINE_LAG_CHECK_SECONDS` | `15` | How often the lag monitor polls durable consumers. | T-178 |
 
 ### Vision-LLM routing (ARCH §8.22)
 

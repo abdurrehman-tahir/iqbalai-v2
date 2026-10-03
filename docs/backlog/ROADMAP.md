@@ -28,7 +28,7 @@
 | M-11 | Auto-quiz Per Student + Publish Lecture | 4 | T-141 to T-150 | ~2-3 days | done | Lecture publishes; auto-quizzes generate per student; students see quizzes |
 | M-12 | Lecture Mode Viewer + Highlight + Q&A + Voice | 5 | T-151 to T-165 | ~1.5 weeks | in-progress | Student opens lecture; voice-reads; highlights; asks questions w/ AI answers |
 | M-13 | Hybrid Widget + Multimodal Image + Vision LLM | 5 | T-166 to T-172 | ~2-3 days | done | Student attaches image to question; gets vision-LLM answer |
-| M-14 | Live Feedback Panel + NATS Event Pipeline + Adaptation | 5 | T-173 to T-184 | ~1 week | drafted | Live feedback updates; stuck nudge fires; AI adapts angle on repeat |
+| M-14 | Live Feedback Panel + NATS Event Pipeline + Adaptation | 5 | T-173 to T-184 | ~1 week | done | Live feedback updates; stuck nudge fires; AI adapts angle on repeat |
 | M-15 | Flashcards + Concept Enrichment + Lecture Rating | 5 | T-185 to T-194 | ~2-3 days | drafted | Highlights become flashcards; concepts have career links; ratings flow to teacher |
 | M-16 | Next-Day Review (Flow 7) | 6 | T-195 to T-208 | ~3-4 days | drafted | Teacher gets next-day review; publishes targeted mini-lecture |
 | M-17 | Self-Study Mode (Flow 8) | 6 | T-209 to T-222 | ~3-4 days | drafted | Student builds study plan from prep book; adherence tracked |

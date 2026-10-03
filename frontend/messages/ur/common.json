@@ -630,7 +630,21 @@
       "classification_knowledge_gap": "علم کی کمی",
       "classification_unclassified": "سوال",
       "privacy_share_label": "میرے سوالات استاد کے ساتھ شیئر کریں",
-      "privacy_share_help": "بند ہونے پر استاد اور والدین آپ کے لیکچر سوالات نہیں دیکھ سکتے۔"
+      "privacy_share_help": "بند ہونے پر استاد اور والدین آپ کے لیکچر سوالات نہیں دیکھ سکتے۔",
+      "live_feedback": {
+        "title": "لائیو فیڈبیک",
+        "collapse": "سکیڑیں",
+        "expand": "کھولیں",
+        "time_on_topic": "موضوع پر وقت",
+        "questions_asked": "اس سیشن کے سوالات"
+      },
+      "stuck_nudge": {
+        "message": "۱۰ منٹ سے یہاں ہیں — مدد چاہیے؟",
+        "rephrase": "آخری پیراگراف دوبارہ بیان کریں",
+        "list_concepts": "اہم تصورات کی فہرست",
+        "switch_voice": "آواز موڈ پر جائیں",
+        "dismiss": "بند کریں"
+      }
     },
     "quiz_attempt": {
       "title": "کوئز",
