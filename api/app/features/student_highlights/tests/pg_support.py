@@ -143,7 +143,8 @@ async def seed_lecture(
         lecture_version_id=version.id,
         ordinal=0,
         text=paragraph_text,
-        source_metadata_jsonb={"tier": "curriculum", "topic_id": "forces/newton-2"},
+        # Must satisfy ParagraphSourceMetadata (extra=forbid) like real rows do.
+        source_metadata_jsonb={"tier": "curriculum"},
     )
     session.add(paragraph)
     study = SchoolLectureSession(
