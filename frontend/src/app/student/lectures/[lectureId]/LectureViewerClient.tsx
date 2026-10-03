@@ -4,6 +4,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  studentHighlightsApi,
   studentLecturesApi,
   studentQuestionsApi,
   type LectureAudioAlignmentSpan,
@@ -19,6 +20,7 @@ import {
   type HighlightSelection,
 } from "./HighlightQuestionBox";
 import { AnswerSidePanel } from "./AnswerSidePanel";
+import { marksByParagraph, segmentParagraph, selectionOffsetWithin } from "./highlight-marks";
 import { QuestionsTab } from "./QuestionsTab";
 import { TeacherShareToggle } from "./TeacherShareToggle";
 import {
@@ -123,6 +125,18 @@ export function LectureViewerClient({ lectureId }: Props) {
     queryFn: () => studentQuestionsApi.list(token!, lectureId),
     enabled: mounted && !!token && !!lectureId,
   });
+
+  // T-185: persisted highlights → yellow marks. Failure here must never block
+  // the lecture text, so an error simply renders no marks.
+  const highlightsQuery = useQuery({
+    queryKey: ["student", "lecture-highlights", lectureId],
+    queryFn: () => studentHighlightsApi.listForLecture(token!, lectureId),
+    enabled: mounted && !!token && !!lectureId,
+  });
+  const marks = useMemo(
+    () => marksByParagraph(Array.isArray(highlightsQuery.data) ? highlightsQuery.data : []),
+    [highlightsQuery.data],
+  );
 
   useEffect(() => {
     sessionIdRef.current = viewerQuery.data?.session.id ?? null;
@@ -281,27 +295,39 @@ export function LectureViewerClient({ lectureId }: Props) {
     const text = sel?.toString().trim() ?? "";
     if (text.length < 2) return;
     let paragraphId: string | null = null;
+    let textEl: Element | null = null;
     let node: Node | null = sel?.anchorNode ?? null;
     while (node) {
       if (node instanceof HTMLElement && node.dataset.testid === "lecture-paragraph") {
         paragraphId = node.dataset.paragraphId ?? null;
+        textEl = node.querySelector('[data-testid="lecture-paragraph-text"]');
         break;
       }
       node = node.parentNode;
     }
-    const paragraph = paragraphs.find((p) => p.id === paragraphId);
+    // T-185: anchor offset inside the paragraph text (server re-verifies it).
+    let offset: number | null = null;
+    if (textEl && sel && sel.rangeCount > 0) {
+      const range = sel.getRangeAt(0);
+      const raw = selectionOffsetWithin(textEl, range);
+      if (raw !== null) {
+        const leading = (sel.toString().length - sel.toString().trimStart().length) || 0;
+        offset = raw + leading;
+      }
+    }
     setSelection({
       text,
       paragraphId,
       sourceChunkId: null,
+      offset,
       // source chunk resolved server-side from paragraph metadata when paragraph_id set
     });
-    void paragraph;
   };
 
   const submitQuestion = async (payload: {
     question_text: string;
     highlight_text: string;
+    highlight_offset: number | null;
     paragraph_id: string | null;
     source_chunk_id: string | null;
     question_language: "en" | "ur" | "sd" | "ps";
@@ -317,6 +343,7 @@ export function LectureViewerClient({ lectureId }: Props) {
       {
         question_text: payload.question_text,
         highlight_text: payload.highlight_text,
+        highlight_offset: payload.highlight_offset,
         paragraph_id: payload.paragraph_id,
         source_chunk_id: payload.source_chunk_id,
         question_language: payload.question_language,
@@ -327,6 +354,9 @@ export function LectureViewerClient({ lectureId }: Props) {
       idem
     );
     setSelection(null);
+    void queryClient.invalidateQueries({
+      queryKey: ["student", "lecture-highlights", lectureId],
+    });
     await openAnswerStream(created);
   };
 
@@ -420,8 +450,26 @@ export function LectureViewerClient({ lectureId }: Props) {
                 <div className="flex flex-wrap items-center gap-2">
                   <SourceBadge paragraph={paragraph} t={t} />
                 </div>
-                <p className="whitespace-pre-wrap text-base leading-relaxed text-gray-900">
-                  {paragraph.text}
+                <p
+                  className="whitespace-pre-wrap text-base leading-relaxed text-gray-900"
+                  data-testid="lecture-paragraph-text"
+                >
+                  {segmentParagraph(paragraph.text, marks.get(paragraph.id) ?? []).map(
+                    (segment, i) =>
+                      segment.highlightId ? (
+                        <mark
+                          key={`${segment.highlightId}-${i}`}
+                          className="rounded-sm bg-yellow-200 px-0.5 text-gray-900"
+                          data-testid="highlight-mark"
+                          data-highlight-id={segment.highlightId}
+                          title={t("highlight_mark_label")}
+                        >
+                          {segment.text}
+                        </mark>
+                      ) : (
+                        <span key={`plain-${i}`}>{segment.text}</span>
+                      ),
+                  )}
                 </p>
                 {isActive && activeSpan ? (
                   <p
@@ -522,6 +570,7 @@ export function LectureViewerClient({ lectureId }: Props) {
             text: last.text.slice(0, 280),
             paragraphId: last.id,
             sourceChunkId: null,
+            offset: 0,
           });
         }}
         onListConcepts={() => {

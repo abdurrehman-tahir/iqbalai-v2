@@ -59,6 +59,7 @@ from app.features.schools.school_router import router as schools_router
 from app.features.sections.router import router as sections_router
 from app.features.smoketest.router import router as smoketest_router
 from app.features.student_enrollments.router import router as student_enrollments_router
+from app.features.student_highlights.router import router as student_highlights_router
 from app.features.student_mode.router import router as student_mode_router
 from app.features.student_onboarding.router import router as student_onboarding_router
 from app.features.student_privacy.parent_router import router as parent_lecture_questions_router
@@ -128,6 +129,7 @@ router.include_router(student_lecture_sessions_router)
 router.include_router(lecture_interaction_router)
 router.include_router(student_lecture_questions_router)
 router.include_router(student_question_images_router)
+router.include_router(student_highlights_router)
 router.include_router(student_quizzes_router)
 router.include_router(teacher_quiz_results_router)
 router.include_router(teacher_coaching_router)

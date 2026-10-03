@@ -644,7 +644,8 @@
         "list_concepts": "کلیدي مفهومونه لیست کړئ",
         "switch_voice": "غږ حالت ته لاړ شئ",
         "dismiss": "بند کړئ"
-      }
+      },
+      "highlight_mark_label": "ستاسو نښه شوی متن"
     },
     "quiz_attempt": {
       "title": "کوئز",

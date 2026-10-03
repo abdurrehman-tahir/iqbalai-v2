@@ -573,7 +573,8 @@
         "list_concepts": "List key concepts",
         "switch_voice": "Switch to voice mode",
         "dismiss": "Dismiss"
-      }
+      },
+      "highlight_mark_label": "Your highlight"
     },
     "quiz_attempt": {
       "title": "Quiz",

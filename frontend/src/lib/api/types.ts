@@ -130,6 +130,9 @@ export type ConversationTurnRead = Schemas["ConversationTurnRead"];
 export type StudentQuestionRead = Schemas["StudentQuestionRead"];
 export type StudentQuestionAnswerRead = Schemas["StudentQuestionAnswerRead"];
 export type QuestionClassification = Schemas["QuestionClassificationLiteral"];
+// ── M-15 highlights / flashcards / enrichment / rating (A-002 generated) ─────
+export type StudentHighlightRead = Schemas["StudentHighlightRead"];
+export type HighlightMarkRead = Schemas["HighlightMarkRead"];
 export type TeacherActivityShareRead = Schemas["TeacherActivityShareRead"];
 export type TeacherActivityShareUpdate = Schemas["TeacherActivityShareUpdate"];
 export type TeacherActivityShare = TeacherActivityShareRead["teacher_activity_share"];

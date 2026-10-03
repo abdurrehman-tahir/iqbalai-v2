@@ -644,7 +644,8 @@
         "list_concepts": "اہم تصورات کی فہرست",
         "switch_voice": "آواز موڈ پر جائیں",
         "dismiss": "بند کریں"
-      }
+      },
+      "highlight_mark_label": "آپ کا نمایاں کردہ متن"
     },
     "quiz_attempt": {
       "title": "کوئز",

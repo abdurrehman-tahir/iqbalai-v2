@@ -41,6 +41,9 @@ vi.mock("@/lib/api", () => ({
   studentQuestionImagesApi: {
     upload: vi.fn(),
   },
+  studentHighlightsApi: {
+    listForLecture: vi.fn().mockResolvedValue([]),
+  },
 }));
 
 vi.mock("@/hooks/use-client-auth", () => ({
@@ -109,6 +112,7 @@ const messages = {
       classification_unclassified: "Question",
       privacy_share_label: "Share study questions with my teacher",
       privacy_share_help: "When off, teachers cannot see your questions.",
+      highlight_mark_label: "Your highlight",
     },
   },
   widgets: {

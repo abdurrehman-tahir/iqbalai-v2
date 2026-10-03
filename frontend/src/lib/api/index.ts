@@ -126,7 +126,11 @@ import type {
   StudentQuestionFollowUpRequest,
   StudentQuestionAnswerRead,
   StudentQuestionImageUploadRead,
+  StudentHighlightRead,
 } from "./types";
+
+// Re-export M-15 generated types (A-002).
+export type { StudentHighlightRead, HighlightMarkRead } from "./types";
 
 // Re-export M-12 generated types (A-002) for consumers importing from `@/lib/api`.
 export type {
@@ -1715,6 +1719,12 @@ export const studentQuestionsApi = {
     ),
   streamAnswerUrl: (lectureId: string, questionId: string) =>
     `${process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1"}/students/me/lectures/${lectureId}/questions/${questionId}/answer/stream`,
+};
+
+/** Persisted lecture highlights + yellow-mark positions (T-185). */
+export const studentHighlightsApi = {
+  listForLecture: (token: string, lectureId: string) =>
+    request<StudentHighlightRead[]>(`/students/me/lectures/${lectureId}/highlights`, {}, token),
 };
 
 /**

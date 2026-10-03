@@ -2621,6 +2621,31 @@
         "title": "HTTPValidationError",
         "type": "object"
       },
+      "HighlightMarkRead": {
+        "additionalProperties": false,
+        "description": "Where to draw the yellow mark in the *current* lecture version.",
+        "properties": {
+          "length": {
+            "title": "Length",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "paragraph_id": {
+            "title": "Paragraph Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "paragraph_id",
+          "offset",
+          "length"
+        ],
+        "title": "HighlightMarkRead",
+        "type": "object"
+      },
       "IndependentLectureGenerateRequest": {
         "description": "Commit the independent wizard \u2014 no Grade-Subject offering, no curriculum.",
         "properties": {
@@ -3709,6 +3734,101 @@
           "image_url"
         ],
         "title": "LectureImageUploadRead",
+        "type": "object"
+      },
+      "LectureInteractionEventIn": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "scroll",
+              "page_change",
+              "mode_switch"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "lecture_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lecture Id"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "page_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Id"
+          },
+          "paragraph_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paragraph Id"
+          },
+          "scroll_y": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scroll Y"
+          }
+        },
+        "required": [
+          "event_type"
+        ],
+        "title": "LectureInteractionEventIn",
+        "type": "object"
+      },
+      "LectureInteractionEventOut": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accepted",
+          "event_type"
+        ],
+        "title": "LectureInteractionEventOut",
         "type": "object"
       },
       "LectureLinkCreate": {
@@ -6052,6 +6172,104 @@
         "title": "StudentGraduationStatusRead",
         "type": "object"
       },
+      "StudentHighlightRead": {
+        "additionalProperties": false,
+        "description": "A persisted highlight. ``mark`` is null when the anchor no longer maps\nonto the current lecture version (flow-6 \u00a75.5 \u2014 the mark drops silently).",
+        "properties": {
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "highlighted_text": {
+            "title": "Highlighted Text",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lecture Version Id"
+          },
+          "mark": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HighlightMarkRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paragraph_ordinal": {
+            "title": "Paragraph Ordinal",
+            "type": "integer"
+          },
+          "question_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Id"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          },
+          "text_range_length": {
+            "title": "Text Range Length",
+            "type": "integer"
+          },
+          "text_range_offset": {
+            "title": "Text Range Offset",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "paragraph_ordinal",
+          "text_range_offset",
+          "text_range_length",
+          "highlighted_text",
+          "tenant_type",
+          "created_at"
+        ],
+        "title": "StudentHighlightRead",
+        "type": "object"
+      },
       "StudentLectureCardRead": {
         "description": "Dashboard card for a published lecture the student can open (T-152).",
         "properties": {
@@ -6465,6 +6683,18 @@
             "maxItems": 3,
             "title": "Attached Images",
             "type": "array"
+          },
+          "highlight_offset": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highlight Offset"
           },
           "highlight_text": {
             "anyOf": [
@@ -7791,6 +8021,23 @@
         "title": "SuccessEnvelope[LectureImageUploadRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureInteractionEventOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureInteractionEventOut"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureInteractionEventOut]",
+        "type": "object"
+      },
       "SuccessEnvelope_LectureLinkRead_": {
         "properties": {
           "data": {
@@ -9004,6 +9251,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[SectionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_StudentHighlightRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/StudentHighlightRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[StudentHighlightRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_StudentLectureCardRead__": {
@@ -18023,6 +18291,59 @@
         ]
       }
     },
+    "/api/v1/students/me/lectures/sessions/{session_id}/events": {
+      "post": {
+        "description": "Accept interaction events and publish to NATS (owner session only).",
+        "operationId": "post_student_lecture_interaction_event",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureInteractionEventIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureInteractionEventOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Emit student.lecture scroll/page_change/mode_switch (T-173)",
+        "tags": [
+          "student-lecture-events"
+        ]
+      }
+    },
     "/api/v1/students/me/lectures/sessions/{session_id}/mode": {
       "patch": {
         "operationId": "student_set_lecture_session_mode",
@@ -18231,6 +18552,48 @@
         "summary": "302 redirect to 5-min presigned lecture audio URL (T-154)",
         "tags": [
           "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/highlights": {
+      "get": {
+        "operationId": "student_list_lecture_highlights",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_StudentHighlightRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List own highlights on a lecture with current yellow-mark positions (T-185)",
+        "tags": [
+          "student-highlights"
         ]
       }
     },

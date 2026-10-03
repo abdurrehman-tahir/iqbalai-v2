@@ -2545,6 +2545,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/lectures/{lecture_id}/highlights": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List own highlights on a lecture with current yellow-mark positions (T-185) */
+        get: operations["student_list_lecture_highlights"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/lectures/{lecture_id}/open": {
         parameters: {
             query?: never;
@@ -4709,6 +4726,18 @@ export interface components {
             detail?: components["schemas"]["ValidationError"][];
         };
         /**
+         * HighlightMarkRead
+         * @description Where to draw the yellow mark in the *current* lecture version.
+         */
+        HighlightMarkRead: {
+            /** Length */
+            length: number;
+            /** Offset */
+            offset: number;
+            /** Paragraph Id */
+            paragraph_id: string;
+        };
+        /**
          * IndependentLectureGenerateRequest
          * @description Commit the independent wizard — no Grade-Subject offering, no curriculum.
          */
@@ -6152,6 +6181,42 @@ export interface components {
             self_study_enabled: boolean;
         };
         /**
+         * StudentHighlightRead
+         * @description A persisted highlight. ``mark`` is null when the anchor no longer maps
+         *     onto the current lecture version (flow-6 §5.5 — the mark drops silently).
+         */
+        StudentHighlightRead: {
+            /** Concept Tag */
+            concept_tag?: string | null;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Highlighted Text */
+            highlighted_text: string;
+            /** Id */
+            id: string;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Lecture Version Id */
+            lecture_version_id?: string | null;
+            mark?: components["schemas"]["HighlightMarkRead"] | null;
+            /** Paragraph Ordinal */
+            paragraph_ordinal: number;
+            /** Question Id */
+            question_id?: string | null;
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
+            /** Text Range Length */
+            text_range_length: number;
+            /** Text Range Offset */
+            text_range_offset: number;
+        };
+        /**
          * StudentLectureCardRead
          * @description Dashboard card for a published lecture the student can open (T-152).
          */
@@ -6307,6 +6372,8 @@ export interface components {
         StudentQuestionCreateRequest: {
             /** Attached Images */
             attached_images?: string[];
+            /** Highlight Offset */
+            highlight_offset?: number | null;
             /** Highlight Text */
             highlight_text?: string | null;
             /** Paragraph Id */
@@ -7538,6 +7605,16 @@ export interface components {
         SuccessEnvelope_list_SectionRead__: {
             /** Data */
             data: components["schemas"]["SectionRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[StudentHighlightRead]] */
+        SuccessEnvelope_list_StudentHighlightRead__: {
+            /** Data */
+            data: components["schemas"]["StudentHighlightRead"][];
             /**
              * Message
              * @default ok
@@ -13573,6 +13650,37 @@ export interface operations {
                 };
                 content: {
                     "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_list_lecture_highlights: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_StudentHighlightRead__"];
                 };
             };
             /** @description Validation Error */
