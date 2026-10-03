@@ -1,9 +1,10 @@
 "use client";
 
 import { useLocale, useTranslations } from "next-intl";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Fragment, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
+  conceptEnrichmentApi,
   studentHighlightsApi,
   studentLecturesApi,
   studentQuestionsApi,
@@ -21,6 +22,7 @@ import {
 } from "./HighlightQuestionBox";
 import { AnswerSidePanel } from "./AnswerSidePanel";
 import { marksByParagraph, segmentParagraph, selectionOffsetWithin } from "./highlight-marks";
+import { ConceptReachedSlot } from "./ConceptReachedSlot";
 import { QuestionsTab } from "./QuestionsTab";
 import { TeacherShareToggle } from "./TeacherShareToggle";
 import {
@@ -137,6 +139,19 @@ export function LectureViewerClient({ lectureId }: Props) {
     () => marksByParagraph(Array.isArray(highlightsQuery.data) ? highlightsQuery.data : []),
     [highlightsQuery.data],
   );
+
+  // T-190/T-191: concepts covered by the lecture → enrichment card after each
+  // concept's first paragraph. Failure just means no cards (never blocks text).
+  const conceptsQuery = useQuery({
+    queryKey: ["student", "lecture-concepts", lectureId],
+    queryFn: () => conceptEnrichmentApi.listConcepts(token!, lectureId),
+    enabled: mounted && !!token && !!lectureId,
+    staleTime: Infinity,
+  });
+  const conceptByFirstParagraph = useMemo(() => {
+    const list = Array.isArray(conceptsQuery.data) ? conceptsQuery.data : [];
+    return new Map(list.map((c) => [c.first_paragraph_id, c]));
+  }, [conceptsQuery.data]);
 
   // T-188: "Open in lecture" from My Highlights → ?highlight=<id> scrolls to
   // (and focuses) that yellow mark once it renders. If the mark was dropped
@@ -314,6 +329,10 @@ export function LectureViewerClient({ lectureId }: Props) {
     const sel = window.getSelection();
     const text = sel?.toString().trim() ?? "";
     if (text.length < 2) return;
+    // Selecting inside an enrichment card is not a lecture highlight.
+    const anchor = sel?.anchorNode;
+    const anchorEl = anchor instanceof Element ? anchor : anchor?.parentElement;
+    if (anchorEl?.closest('[data-testid="concept-enrichment"]')) return;
     let paragraphId: string | null = null;
     let textEl: Element | null = null;
     let node: Node | null = sel?.anchorNode ?? null;
@@ -453,8 +472,8 @@ export function LectureViewerClient({ lectureId }: Props) {
             const isActive =
               voiceMode && activeSpan != null && activeSpan.paragraph_id === paragraph.id;
             return (
+              <Fragment key={paragraph.id}>
               <section
-                key={paragraph.id}
                 ref={(el) => {
                   if (el) paragraphRefs.current.set(paragraph.id, el);
                   else paragraphRefs.current.delete(paragraph.id);
@@ -500,6 +519,13 @@ export function LectureViewerClient({ lectureId }: Props) {
                   </p>
                 ) : null}
               </section>
+              {conceptByFirstParagraph.has(paragraph.id) ? (
+                <ConceptReachedSlot
+                  lectureId={lectureId}
+                  concept={conceptByFirstParagraph.get(paragraph.id)!}
+                />
+              ) : null}
+              </Fragment>
             );
           })}
         </div>

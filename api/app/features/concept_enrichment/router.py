@@ -9,8 +9,14 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.responses import SuccessEnvelope, success
-from app.features.concept_enrichment.schemas import ConceptEnrichmentRead, LectureConceptRead
+from app.features.concept_enrichment.schemas import (
+    ConceptEnrichmentRead,
+    LectureConceptRead,
+    SimulationProgressRead,
+    SimulationStateUpdate,
+)
 from app.features.concept_enrichment.service import ConceptEnrichmentService
+from app.features.concept_enrichment.simulation import SimulationProgressService
 
 router = APIRouter(prefix="/students/me/lectures", tags=["student-concept-enrichment"])
 
@@ -49,5 +55,44 @@ async def get_concept_enrichment(
 ) -> dict[str, Any]:
     result = await ConceptEnrichmentService(db).get_enrichment(
         claims, lecture_id=lecture_id, concept_id=concept_id
+    )
+    return success(result.model_dump(mode="json"))
+
+
+@router.get(
+    "/{lecture_id}/simulation",
+    response_model=SuccessEnvelope[SimulationProgressRead],
+    operation_id="student_get_simulation_progress",
+    summary="The student's saved mini-simulation state for a concept (T-191)",
+    dependencies=[require_role("student")],
+)
+async def get_simulation_progress(
+    lecture_id: str,
+    concept_id: str = _CONCEPT,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    result = await SimulationProgressService(db).get(
+        claims, lecture_id=lecture_id, concept_id=concept_id
+    )
+    return success(result.model_dump(mode="json"))
+
+
+@router.put(
+    "/{lecture_id}/simulation",
+    response_model=SuccessEnvelope[SimulationProgressRead],
+    operation_id="student_save_simulation_progress",
+    summary="Save the student's mini-simulation state for a concept (T-191)",
+    dependencies=[require_role("student")],
+)
+async def save_simulation_progress(
+    lecture_id: str,
+    payload: SimulationStateUpdate,
+    concept_id: str = _CONCEPT,
+    claims: dict[str, object] = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    result = await SimulationProgressService(db).save(
+        claims, lecture_id=lecture_id, concept_id=concept_id, values=payload.values
     )
     return success(result.model_dump(mode="json"))

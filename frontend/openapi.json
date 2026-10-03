@@ -6433,6 +6433,64 @@
         "title": "SelectionStatus",
         "type": "string"
       },
+      "SimulationProgressRead": {
+        "additionalProperties": false,
+        "description": "The student's saved sim state for one concept (per-student, T-191).\n\n``was_reset`` is true when stored state no longer matched the concept's\nsim spec and was discarded (flow-6 \u00a75.9 \"progress was reset\" notice).",
+        "properties": {
+          "concept_id": {
+            "title": "Concept Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Values",
+            "type": "object"
+          },
+          "was_reset": {
+            "default": false,
+            "title": "Was Reset",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "concept_id"
+        ],
+        "title": "SimulationProgressRead",
+        "type": "object"
+      },
+      "SimulationStateUpdate": {
+        "additionalProperties": false,
+        "description": "Slider values keyed by the sim spec's variable keys.",
+        "properties": {
+          "values": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "maxProperties": 3,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "values"
+        ],
+        "title": "SimulationStateUpdate",
+        "type": "object"
+      },
       "SourceTier": {
         "description": "Provenance tier for a generated paragraph (Flow 5 #26 / #27).",
         "enum": [
@@ -8996,6 +9054,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[SectionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SimulationProgressRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SimulationProgressRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SimulationProgressRead]",
         "type": "object"
       },
       "SuccessEnvelope_StudentConnectionsRead_": {
@@ -19952,6 +20027,120 @@
         "summary": "Submit a lecture question (idempotent; classified) (T-156/T-157)",
         "tags": [
           "student-lecture-questions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/simulation": {
+      "get": {
+        "operationId": "student_get_simulation_progress",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "concept_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Concept Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SimulationProgressRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The student's saved mini-simulation state for a concept (T-191)",
+        "tags": [
+          "student-concept-enrichment"
+        ]
+      },
+      "put": {
+        "operationId": "student_save_simulation_progress",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "concept_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Concept Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulationStateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SimulationProgressRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save the student's mini-simulation state for a concept (T-191)",
+        "tags": [
+          "student-concept-enrichment"
         ]
       }
     },

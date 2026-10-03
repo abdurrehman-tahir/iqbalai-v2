@@ -131,6 +131,10 @@ import type {
   PairedFlashcardRead,
   FlashcardBackUpdate,
   DeletedResponse,
+  LectureConceptRead,
+  ConceptEnrichmentRead,
+  SimulationProgressRead,
+  SimulationStateUpdate,
 } from "./types";
 
 // Re-export M-15 generated types (A-002).
@@ -141,6 +145,11 @@ export type {
   MyHighlightsPage,
   PairedFlashcardRead,
   FlashcardBackUpdate,
+  LectureConceptRead,
+  ConceptEnrichmentRead,
+  MiniSimSpecRead,
+  SimulationProgressRead,
+  SimulationStateUpdate,
 } from "./types";
 
 // Re-export M-12 generated types (A-002) for consumers importing from `@/lib/api`.
@@ -1755,6 +1764,41 @@ export const studentHighlightsApi = {
     request<DeletedResponse>(
       `/students/me/highlights/${highlightId}`,
       { method: "DELETE" },
+      token
+    ),
+};
+
+/** Concept enrichment + mini-sim state (T-190 / T-191). concept_id may contain "/". */
+export const conceptEnrichmentApi = {
+  listConcepts: (token: string, lectureId: string) =>
+    request<LectureConceptRead[]>(`/students/me/lectures/${lectureId}/concepts`, {}, token),
+  getEnrichment: (token: string, lectureId: string, conceptId: string) =>
+    request<ConceptEnrichmentRead>(
+      `/students/me/lectures/${lectureId}/enrichment?${new URLSearchParams({
+        concept_id: conceptId,
+      }).toString()}`,
+      {},
+      token
+    ),
+  getSimulation: (token: string, lectureId: string, conceptId: string) =>
+    request<SimulationProgressRead>(
+      `/students/me/lectures/${lectureId}/simulation?${new URLSearchParams({
+        concept_id: conceptId,
+      }).toString()}`,
+      {},
+      token
+    ),
+  saveSimulation: (
+    token: string,
+    lectureId: string,
+    conceptId: string,
+    body: SimulationStateUpdate
+  ) =>
+    request<SimulationProgressRead>(
+      `/students/me/lectures/${lectureId}/simulation?${new URLSearchParams({
+        concept_id: conceptId,
+      }).toString()}`,
+      { method: "PUT", body: JSON.stringify(body) },
       token
     ),
 };

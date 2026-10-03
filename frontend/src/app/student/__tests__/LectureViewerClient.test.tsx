@@ -41,6 +41,9 @@ vi.mock("@/lib/api", () => ({
   studentQuestionImagesApi: {
     upload: vi.fn(),
   },
+  conceptEnrichmentApi: {
+    listConcepts: vi.fn().mockResolvedValue([]),
+  },
   studentHighlightsApi: {
     listForLecture: vi.fn().mockResolvedValue([]),
   },

@@ -84,3 +84,29 @@ class ConceptEnrichmentRead(BaseModel):
     mini_sim: MiniSimSpecRead | None = None
     generated_at: datetime | None = None
     refreshing: bool = False
+
+
+# --- T-191 mini-simulation progress -------------------------------------------
+
+
+class SimulationStateUpdate(BaseModel):
+    """Slider values keyed by the sim spec's variable keys."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    values: dict[str, float] = Field(max_length=3)
+
+
+class SimulationProgressRead(BaseModel):
+    """The student's saved sim state for one concept (per-student, T-191).
+
+    ``was_reset`` is true when stored state no longer matched the concept's
+    sim spec and was discarded (flow-6 §5.9 "progress was reset" notice).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    concept_id: str
+    values: dict[str, float] = Field(default_factory=dict)
+    updated_at: datetime | None = None
+    was_reset: bool = False

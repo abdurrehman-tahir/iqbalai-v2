@@ -2817,6 +2817,24 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/students/me/lectures/{lecture_id}/simulation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** The student's saved mini-simulation state for a concept (T-191) */
+        get: operations["student_get_simulation_progress"];
+        /** Save the student's mini-simulation state for a concept (T-191) */
+        put: operations["student_save_simulation_progress"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/students/me/link-requests": {
         parameters: {
             query?: never;
@@ -6402,6 +6420,38 @@ export interface components {
          */
         SelectionStatus: "active" | "abandoned";
         /**
+         * SimulationProgressRead
+         * @description The student's saved sim state for one concept (per-student, T-191).
+         *
+         *     ``was_reset`` is true when stored state no longer matched the concept's
+         *     sim spec and was discarded (flow-6 §5.9 "progress was reset" notice).
+         */
+        SimulationProgressRead: {
+            /** Concept Id */
+            concept_id: string;
+            /** Updated At */
+            updated_at?: string | null;
+            /** Values */
+            values?: {
+                [key: string]: number;
+            };
+            /**
+             * Was Reset
+             * @default false
+             */
+            was_reset: boolean;
+        };
+        /**
+         * SimulationStateUpdate
+         * @description Slider values keyed by the sim spec's variable keys.
+         */
+        SimulationStateUpdate: {
+            /** Values */
+            values: {
+                [key: string]: number;
+            };
+        };
+        /**
          * SourceTier
          * @description Provenance tier for a generated paragraph (Flow 5 #26 / #27).
          * @enum {string}
@@ -7555,6 +7605,15 @@ export interface components {
         /** SuccessEnvelope[SectionRead] */
         SuccessEnvelope_SectionRead_: {
             data: components["schemas"]["SectionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SimulationProgressRead] */
+        SuccessEnvelope_SimulationProgressRead_: {
+            data: components["schemas"]["SimulationProgressRead"];
             /**
              * Message
              * @default ok
@@ -14545,6 +14604,76 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_StudentQuestionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_get_simulation_progress: {
+        parameters: {
+            query: {
+                concept_id: string;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SimulationProgressRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    student_save_simulation_progress: {
+        parameters: {
+            query: {
+                concept_id: string;
+            };
+            header?: never;
+            path: {
+                lecture_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SimulationStateUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SimulationProgressRead_"];
                 };
             };
             /** @description Validation Error */

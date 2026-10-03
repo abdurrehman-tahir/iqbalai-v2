@@ -701,6 +701,24 @@
       "prev_page": "مخکنی",
       "next_page": "بل",
       "page_of": "پاڼه {page} له {pages} څخه"
+    },
+    "enrichment": {
+      "heading": "{concept} ولې مهم دی",
+      "updating": "تازه کېږي",
+      "preparing": "د ریښتني ژوند بېلګې او مسلکونه چمتو کېږي…",
+      "error": "د دې مفهوم د ریښتني ژوند بېلګې بار نشوې.",
+      "retry": "بیا هڅه وکړئ",
+      "empty": "د دې مفهوم لپاره لا د ریښتني ژوند بېلګې نشته.",
+      "uses_label": "په ریښتني ژوند کې",
+      "careers_label": "په پاکستان کې هغه مسلکونه چې دا کاروي",
+      "career_chip": "{name} · {sector}",
+      "sim_text_only": "د دې مفهوم لپاره متقابل سمولیشن نشته — پورته بېلګې وګورئ.",
+      "sim_heading": "یې وازمویئ: {title}",
+      "sim_reset_notice": "د معلوماتو د ستونزې له امله ستاسو پرمختګ له سره پیل شو.",
+      "sim_progress_unavailable": "ستاسو خوندي شوی پرمختګ بار نشو؛ بدلونونه ښايي خوندي نشي.",
+      "sim_output": "{label}: {value} {unit}",
+      "sim_output_undefined": "{label}: د دې ارزښتونو لپاره نه دی ټاکل شوی",
+      "sim_save_error": "ستاسو د سمولیشن پرمختګ خوندي نشو."
     }
   },
   "independent": {
