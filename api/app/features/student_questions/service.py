@@ -21,6 +21,7 @@ from app.features.lectures.models import (
 from app.features.lectures.repository import LectureRepository, LectureSessionRepository
 from app.features.lectures.schemas import ParagraphSourceMetadata
 from app.features.lectures.service import LectureService
+from app.features.student_highlights.service import StudentHighlightService
 from app.features.student_privacy.service import student_allows_teacher_share
 from app.features.student_questions.answer_pipeline import (
     collect_attached_images,
@@ -252,6 +253,7 @@ class StudentQuestionService:
         attached_images = await self._resolve_attached_images(student, payload.attached_images)
 
         lecture_excerpt = ""
+        paragraph = None
         if payload.paragraph_id:
             paragraph = await self._paragraphs.get_by_id(payload.paragraph_id)
             if paragraph is not None:
@@ -299,6 +301,25 @@ class StudentQuestionService:
             ),
         )
         await self._conversations.create(user_turn)
+
+        # T-185: persist the highlight (same transaction). Only anchor against a
+        # paragraph of the lecture's current version — a stale paragraph id from
+        # an older version can't produce a restorable mark.
+        await StudentHighlightService(self._session).persist_for_question(
+            student_user_id=student.id,
+            lecture=lecture,
+            question_id=created.id,
+            tenant_type=created.tenant_type.value,
+            paragraph=(
+                paragraph
+                if paragraph is not None
+                and paragraph.lecture_version_id == lecture.current_version_id
+                else None
+            ),
+            highlighted_text=payload.highlight_text,
+            offset_hint=payload.highlight_offset,
+            source_chunk_id=source_chunk_id,
+        )
 
         # Bump session activity.
         study_session.last_activity_at = now

@@ -10,6 +10,7 @@ from app.features.audit.router import router as audit_router
 from app.features.audit.school_admin_router import router as school_audit_router
 from app.features.auth.router import router as auth_router
 from app.features.bulk_imports.router import router as bulk_imports_router
+from app.features.concept_enrichment.router import router as concept_enrichment_router
 from app.features.data_rights.parent_router import router as parent_data_rights_router
 from app.features.data_rights.student_router import router as student_data_rights_router
 from app.features.diagnostics.router import router as diagnostics_router
@@ -30,6 +31,8 @@ from app.features.independent_teacher_onboarding.router import (
     router as independent_teacher_onboarding_router,
 )
 from app.features.invites.router import router as invites_router
+from app.features.lecture_ratings.router import staff_router as lecture_rating_summary_router
+from app.features.lecture_ratings.router import student_router as student_lecture_rating_router
 from app.features.lectures.independent_router import router as independent_lecture_wizard_router
 from app.features.lectures.router import router as lecture_wizard_router
 from app.features.lectures.student_router import (
@@ -59,6 +62,9 @@ from app.features.schools.school_router import router as schools_router
 from app.features.sections.router import router as sections_router
 from app.features.smoketest.router import router as smoketest_router
 from app.features.student_enrollments.router import router as student_enrollments_router
+from app.features.student_highlights.router import parent_router as parent_highlights_router
+from app.features.student_highlights.router import router as student_highlights_router
+from app.features.student_highlights.router import staff_router as highlight_aggregate_router
 from app.features.student_mode.router import router as student_mode_router
 from app.features.student_onboarding.router import router as student_onboarding_router
 from app.features.student_privacy.parent_router import router as parent_lecture_questions_router
@@ -128,6 +134,12 @@ router.include_router(student_lecture_sessions_router)
 router.include_router(lecture_interaction_router)
 router.include_router(student_lecture_questions_router)
 router.include_router(student_question_images_router)
+router.include_router(student_highlights_router)
+router.include_router(parent_highlights_router)
+router.include_router(highlight_aggregate_router)
+router.include_router(concept_enrichment_router)
+router.include_router(student_lecture_rating_router)
+router.include_router(lecture_rating_summary_router)
 router.include_router(student_quizzes_router)
 router.include_router(teacher_quiz_results_router)
 router.include_router(teacher_coaching_router)

@@ -820,6 +820,30 @@
         "title": "BulkImportRowResult",
         "type": "object"
       },
+      "CareerRead": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "name": {
+            "title": "Name",
+            "type": "string"
+          },
+          "sector": {
+            "title": "Sector",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "sector"
+        ],
+        "title": "CareerRead",
+        "type": "object"
+      },
       "CoachingResponseRequest": {
         "properties": {
           "response": {
@@ -870,6 +894,96 @@
           "updated_at"
         ],
         "title": "CoachingSuggestionRead",
+        "type": "object"
+      },
+      "ConceptCountRead": {
+        "additionalProperties": false,
+        "properties": {
+          "concept_tag": {
+            "title": "Concept Tag",
+            "type": "string"
+          },
+          "count": {
+            "title": "Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "concept_tag",
+          "count"
+        ],
+        "title": "ConceptCountRead",
+        "type": "object"
+      },
+      "ConceptEnrichmentRead": {
+        "additionalProperties": false,
+        "description": "Per-concept enrichment as served to a student.\n\n``status=pending`` \u2192 generation is queued (cache miss); poll again.\n``refreshing`` \u2192 a stale entry is being regenerated; the content shown is\nstill valid (\"updated\" badge once refreshed, flow-6 \u00a75.9).",
+        "properties": {
+          "careers": {
+            "items": {
+              "$ref": "#/components/schemas/CareerRead"
+            },
+            "title": "Careers",
+            "type": "array"
+          },
+          "concept_id": {
+            "title": "Concept Id",
+            "type": "string"
+          },
+          "concept_label": {
+            "title": "Concept Label",
+            "type": "string"
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "mini_sim": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MiniSimSpecRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "real_world_uses": {
+            "items": {
+              "$ref": "#/components/schemas/RealWorldUseRead"
+            },
+            "title": "Real World Uses",
+            "type": "array"
+          },
+          "refreshing": {
+            "default": false,
+            "title": "Refreshing",
+            "type": "boolean"
+          },
+          "status": {
+            "enum": [
+              "pending",
+              "ready",
+              "failed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "concept_id",
+          "concept_label",
+          "status"
+        ],
+        "title": "ConceptEnrichmentRead",
         "type": "object"
       },
       "ConversationRoleLiteral": {
@@ -2205,6 +2319,23 @@
         "title": "ExamSyllabusUpdate",
         "type": "object"
       },
+      "FlashcardBackUpdate": {
+        "additionalProperties": false,
+        "description": "Edit a flashcard's back (\u00a75.5 placeholder cards are editable).",
+        "properties": {
+          "back_text": {
+            "maxLength": 8000,
+            "minLength": 1,
+            "title": "Back Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "back_text"
+        ],
+        "title": "FlashcardBackUpdate",
+        "type": "object"
+      },
       "FocusAreaRead": {
         "description": "Coaching focus area \u2014 never a grade/score (Flow 4 \u00a73.6 / T-105).",
         "properties": {
@@ -2619,6 +2750,55 @@
           }
         },
         "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "HighlightLectureRefRead": {
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "topic": {
+            "title": "Topic",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "topic"
+        ],
+        "title": "HighlightLectureRefRead",
+        "type": "object"
+      },
+      "HighlightMarkRead": {
+        "additionalProperties": false,
+        "description": "Where to draw the yellow mark in the *current* lecture version.",
+        "properties": {
+          "length": {
+            "title": "Length",
+            "type": "integer"
+          },
+          "offset": {
+            "title": "Offset",
+            "type": "integer"
+          },
+          "paragraph_id": {
+            "title": "Paragraph Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "paragraph_id",
+          "offset",
+          "length"
+        ],
+        "title": "HighlightMarkRead",
         "type": "object"
       },
       "IndependentLectureGenerateRequest": {
@@ -3554,6 +3734,36 @@
         "title": "LectureAudioRequest",
         "type": "object"
       },
+      "LectureConceptRead": {
+        "additionalProperties": false,
+        "description": "A concept the lecture covers, anchored at its first paragraph.",
+        "properties": {
+          "concept_id": {
+            "title": "Concept Id",
+            "type": "string"
+          },
+          "first_paragraph_id": {
+            "title": "First Paragraph Id",
+            "type": "string"
+          },
+          "first_paragraph_ordinal": {
+            "title": "First Paragraph Ordinal",
+            "type": "integer"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          }
+        },
+        "required": [
+          "concept_id",
+          "label",
+          "first_paragraph_id",
+          "first_paragraph_ordinal"
+        ],
+        "title": "LectureConceptRead",
+        "type": "object"
+      },
       "LectureDraftRead": {
         "properties": {
           "data": {
@@ -3692,6 +3902,44 @@
         "title": "LectureGenerateRequest",
         "type": "object"
       },
+      "LectureHighlightAggregateRead": {
+        "additionalProperties": false,
+        "description": "Anonymous per-lecture highlight/flashcard counts (Coordinator/Admin, \u00a76.19).\n\nCounts only students who share study activity (#72 is inviolate even for\naggregates); no highlight text, no student identities.",
+        "properties": {
+          "flashcard_count": {
+            "title": "Flashcard Count",
+            "type": "integer"
+          },
+          "highlight_count": {
+            "title": "Highlight Count",
+            "type": "integer"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "student_count": {
+            "title": "Student Count",
+            "type": "integer"
+          },
+          "top_concepts": {
+            "items": {
+              "$ref": "#/components/schemas/ConceptCountRead"
+            },
+            "title": "Top Concepts",
+            "type": "array"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "highlight_count",
+          "student_count",
+          "flashcard_count",
+          "top_concepts"
+        ],
+        "title": "LectureHighlightAggregateRead",
+        "type": "object"
+      },
       "LectureImageUploadRead": {
         "description": "Servable URL for a just-uploaded lecture image (T-132).",
         "properties": {
@@ -3709,6 +3957,101 @@
           "image_url"
         ],
         "title": "LectureImageUploadRead",
+        "type": "object"
+      },
+      "LectureInteractionEventIn": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "scroll",
+              "page_change",
+              "mode_switch"
+            ],
+            "title": "Event Type",
+            "type": "string"
+          },
+          "lecture_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lecture Id"
+          },
+          "mode": {
+            "anyOf": [
+              {
+                "maxLength": 32,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mode"
+          },
+          "page_id": {
+            "anyOf": [
+              {
+                "maxLength": 128,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Page Id"
+          },
+          "paragraph_id": {
+            "anyOf": [
+              {
+                "maxLength": 36,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paragraph Id"
+          },
+          "scroll_y": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Scroll Y"
+          }
+        },
+        "required": [
+          "event_type"
+        ],
+        "title": "LectureInteractionEventIn",
+        "type": "object"
+      },
+      "LectureInteractionEventOut": {
+        "properties": {
+          "accepted": {
+            "title": "Accepted",
+            "type": "boolean"
+          },
+          "event_type": {
+            "title": "Event Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "accepted",
+          "event_type"
+        ],
+        "title": "LectureInteractionEventOut",
         "type": "object"
       },
       "LectureLinkCreate": {
@@ -3870,6 +4213,90 @@
           "published_by_user_id"
         ],
         "title": "LecturePublishRead",
+        "type": "object"
+      },
+      "LectureRatingSubmit": {
+        "additionalProperties": false,
+        "properties": {
+          "rating": {
+            "maximum": 5.0,
+            "minimum": 1.0,
+            "title": "Rating",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "rating"
+        ],
+        "title": "LectureRatingSubmit",
+        "type": "object"
+      },
+      "LectureRatingSummaryRead": {
+        "additionalProperties": false,
+        "description": "Teacher/staff view: anonymous aggregate only (no ids, no individual values).\n\n``average_rating`` is withheld (null) until at least\n``min_ratings_for_display`` students have rated, so a single student's\nrating can never be read off the \"average\".",
+        "properties": {
+          "ai_score": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Ai Score"
+          },
+          "ai_score_max": {
+            "title": "Ai Score Max",
+            "type": "integer"
+          },
+          "average_rating": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Average Rating"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "min_ratings_for_display": {
+            "title": "Min Ratings For Display",
+            "type": "integer"
+          },
+          "quality_score": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Quality Score"
+          },
+          "rating_count": {
+            "title": "Rating Count",
+            "type": "integer"
+          },
+          "rating_weight": {
+            "title": "Rating Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "lecture_id",
+          "rating_count",
+          "min_ratings_for_display",
+          "ai_score_max",
+          "rating_weight"
+        ],
+        "title": "LectureRatingSummaryRead",
         "type": "object"
       },
       "LectureRosterRead": {
@@ -4391,6 +4818,106 @@
         "title": "MeResponse",
         "type": "object"
       },
+      "MiniSimOutputRead": {
+        "additionalProperties": false,
+        "properties": {
+          "expression": {
+            "title": "Expression",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "label",
+          "expression"
+        ],
+        "title": "MiniSimOutputRead",
+        "type": "object"
+      },
+      "MiniSimSpecRead": {
+        "additionalProperties": false,
+        "description": "Declarative mini-sim; the client evaluates ``output.expression`` with the\nsame safe grammar as ``sim_expression.py`` (never eval).",
+        "properties": {
+          "output": {
+            "$ref": "#/components/schemas/MiniSimOutputRead"
+          },
+          "scenario": {
+            "title": "Scenario",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          },
+          "variables": {
+            "items": {
+              "$ref": "#/components/schemas/MiniSimVariableRead"
+            },
+            "title": "Variables",
+            "type": "array"
+          }
+        },
+        "required": [
+          "title",
+          "scenario",
+          "variables",
+          "output"
+        ],
+        "title": "MiniSimSpecRead",
+        "type": "object"
+      },
+      "MiniSimVariableRead": {
+        "additionalProperties": false,
+        "properties": {
+          "default": {
+            "title": "Default",
+            "type": "number"
+          },
+          "key": {
+            "title": "Key",
+            "type": "string"
+          },
+          "label": {
+            "title": "Label",
+            "type": "string"
+          },
+          "max": {
+            "title": "Max",
+            "type": "number"
+          },
+          "min": {
+            "title": "Min",
+            "type": "number"
+          },
+          "step": {
+            "title": "Step",
+            "type": "number"
+          },
+          "unit": {
+            "default": "",
+            "title": "Unit",
+            "type": "string"
+          }
+        },
+        "required": [
+          "key",
+          "label",
+          "min",
+          "max",
+          "step",
+          "default"
+        ],
+        "title": "MiniSimVariableRead",
+        "type": "object"
+      },
       "ModeStateBlob": {
         "additionalProperties": false,
         "description": "Per-mode UI restore state (flow-4 \u00a73.4 \u2014 no data loss across switches).",
@@ -4407,6 +4934,99 @@
           }
         },
         "title": "ModeStateBlob",
+        "type": "object"
+      },
+      "MyHighlightRead": {
+        "additionalProperties": false,
+        "description": "One row of the \"My Highlights\" tab (chronological, newest first).",
+        "properties": {
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "flashcard": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/PairedFlashcardRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "highlighted_text": {
+            "title": "Highlighted Text",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture": {
+            "$ref": "#/components/schemas/HighlightLectureRefRead"
+          },
+          "paragraph_ordinal": {
+            "title": "Paragraph Ordinal",
+            "type": "integer"
+          },
+          "question_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Id"
+          }
+        },
+        "required": [
+          "id",
+          "highlighted_text",
+          "created_at",
+          "lecture",
+          "paragraph_ordinal"
+        ],
+        "title": "MyHighlightRead",
+        "type": "object"
+      },
+      "MyLectureRatingRead": {
+        "additionalProperties": false,
+        "description": "The caller's OWN rating only \u2014 never other students' ratings.",
+        "properties": {
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "rating": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rating"
+          }
+        },
+        "required": [
+          "lecture_id"
+        ],
+        "title": "MyLectureRatingRead",
         "type": "object"
       },
       "NotificationListResponse": {
@@ -4685,6 +5305,98 @@
           "pages"
         ],
         "title": "PaginatedEnvelope[LectureVersionRead]",
+        "type": "object"
+      },
+      "PaginatedEnvelope_MyHighlightRead_": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/MyHighlightRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "page": {
+            "title": "Page",
+            "type": "integer"
+          },
+          "page_size": {
+            "title": "Page Size",
+            "type": "integer"
+          },
+          "pages": {
+            "title": "Pages",
+            "type": "integer"
+          },
+          "total": {
+            "title": "Total",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "page_size",
+          "pages"
+        ],
+        "title": "PaginatedEnvelope[MyHighlightRead]",
+        "type": "object"
+      },
+      "PairedFlashcardRead": {
+        "additionalProperties": false,
+        "description": "The flashcard paired with a highlight (shared by repeat highlights).",
+        "properties": {
+          "back_is_placeholder": {
+            "title": "Back Is Placeholder",
+            "type": "boolean"
+          },
+          "back_text": {
+            "title": "Back Text",
+            "type": "string"
+          },
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "front_text": {
+            "title": "Front Text",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "dismissed"
+            ],
+            "title": "Status",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "front_text",
+          "back_text",
+          "back_is_placeholder",
+          "status",
+          "created_at"
+        ],
+        "title": "PairedFlashcardRead",
         "type": "object"
       },
       "ParentChildLinkRead": {
@@ -5354,6 +6066,25 @@
         "title": "QuizSubmitRequest",
         "type": "object"
       },
+      "RealWorldUseRead": {
+        "additionalProperties": false,
+        "properties": {
+          "description": {
+            "title": "Description",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "description"
+        ],
+        "title": "RealWorldUseRead",
+        "type": "object"
+      },
       "ResearchJobStatus": {
         "description": "Pattern-A research-run lifecycle (Flow 4 \u00a73.5.1, ARCH \u00a78.21, T-093).\n\nrunning -> succeeded (plan produced, pending approval)\n        -> partial   (cost ceiling hit; partial result preserved + flagged)\n        -> research_failed (retries exhausted; framework reverts to draft).\nAdditive-only per ARCH \u00a74.9.",
         "enum": [
@@ -5812,6 +6543,64 @@
         "title": "SelectionStatus",
         "type": "string"
       },
+      "SimulationProgressRead": {
+        "additionalProperties": false,
+        "description": "The student's saved sim state for one concept (per-student, T-191).\n\n``was_reset`` is true when stored state no longer matched the concept's\nsim spec and was discarded (flow-6 \u00a75.9 \"progress was reset\" notice).",
+        "properties": {
+          "concept_id": {
+            "title": "Concept Id",
+            "type": "string"
+          },
+          "updated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Updated At"
+          },
+          "values": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "title": "Values",
+            "type": "object"
+          },
+          "was_reset": {
+            "default": false,
+            "title": "Was Reset",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "concept_id"
+        ],
+        "title": "SimulationProgressRead",
+        "type": "object"
+      },
+      "SimulationStateUpdate": {
+        "additionalProperties": false,
+        "description": "Slider values keyed by the sim spec's variable keys.",
+        "properties": {
+          "values": {
+            "additionalProperties": {
+              "type": "number"
+            },
+            "maxProperties": 3,
+            "title": "Values",
+            "type": "object"
+          }
+        },
+        "required": [
+          "values"
+        ],
+        "title": "SimulationStateUpdate",
+        "type": "object"
+      },
       "SourceTier": {
         "description": "Provenance tier for a generated paragraph (Flow 5 #26 / #27).",
         "enum": [
@@ -6050,6 +6839,104 @@
           }
         },
         "title": "StudentGraduationStatusRead",
+        "type": "object"
+      },
+      "StudentHighlightRead": {
+        "additionalProperties": false,
+        "description": "A persisted highlight. ``mark`` is null when the anchor no longer maps\nonto the current lecture version (flow-6 \u00a75.5 \u2014 the mark drops silently).",
+        "properties": {
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "highlighted_text": {
+            "title": "Highlighted Text",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_version_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lecture Version Id"
+          },
+          "mark": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/HighlightMarkRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "paragraph_ordinal": {
+            "title": "Paragraph Ordinal",
+            "type": "integer"
+          },
+          "question_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question Id"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          },
+          "text_range_length": {
+            "title": "Text Range Length",
+            "type": "integer"
+          },
+          "text_range_offset": {
+            "title": "Text Range Offset",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "paragraph_ordinal",
+          "text_range_offset",
+          "text_range_length",
+          "highlighted_text",
+          "tenant_type",
+          "created_at"
+        ],
+        "title": "StudentHighlightRead",
         "type": "object"
       },
       "StudentLectureCardRead": {
@@ -6465,6 +7352,18 @@
             "maxItems": 3,
             "title": "Attached Images",
             "type": "array"
+          },
+          "highlight_offset": {
+            "anyOf": [
+              {
+                "minimum": 0.0,
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Highlight Offset"
           },
           "highlight_text": {
             "anyOf": [
@@ -7332,6 +8231,23 @@
         "title": "SuccessEnvelope[CoachingSuggestionRead]",
         "type": "object"
       },
+      "SuccessEnvelope_ConceptEnrichmentRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ConceptEnrichmentRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ConceptEnrichmentRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_DataRightsRequestRead_": {
         "properties": {
           "data": {
@@ -7774,6 +8690,23 @@
         "title": "SuccessEnvelope[LectureGenerateRead]",
         "type": "object"
       },
+      "SuccessEnvelope_LectureHighlightAggregateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureHighlightAggregateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureHighlightAggregateRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_LectureImageUploadRead_": {
         "properties": {
           "data": {
@@ -7789,6 +8722,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LectureImageUploadRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureInteractionEventOut_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureInteractionEventOut"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureInteractionEventOut]",
         "type": "object"
       },
       "SuccessEnvelope_LectureLinkRead_": {
@@ -7823,6 +8773,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[LecturePublishRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_LectureRatingSummaryRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/LectureRatingSummaryRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[LectureRatingSummaryRead]",
         "type": "object"
       },
       "SuccessEnvelope_LectureRosterRead_": {
@@ -7944,6 +8911,23 @@
         "title": "SuccessEnvelope[MeResponse]",
         "type": "object"
       },
+      "SuccessEnvelope_MyLectureRatingRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/MyLectureRatingRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[MyLectureRatingRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_OfferingRead_": {
         "properties": {
           "data": {
@@ -7959,6 +8943,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[OfferingRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_PairedFlashcardRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PairedFlashcardRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[PairedFlashcardRead]",
         "type": "object"
       },
       "SuccessEnvelope_ParentChildLinkRead_": {
@@ -8197,6 +9198,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[SectionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SimulationProgressRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SimulationProgressRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SimulationProgressRead]",
         "type": "object"
       },
       "SuccessEnvelope_StudentConnectionsRead_": {
@@ -8901,6 +9919,27 @@
         "title": "SuccessEnvelope[list[IndependentWizardReferenceRead]]",
         "type": "object"
       },
+      "SuccessEnvelope_list_LectureConceptRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/LectureConceptRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[LectureConceptRead]]",
+        "type": "object"
+      },
       "SuccessEnvelope_list_LectureLinkRead__": {
         "properties": {
           "data": {
@@ -9004,6 +10043,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[SectionRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_StudentHighlightRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/StudentHighlightRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[StudentHighlightRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_StudentLectureCardRead__": {
@@ -15710,6 +16770,48 @@
         ]
       }
     },
+    "/api/v1/lectures/{lecture_id}/rating-summary": {
+      "get": {
+        "operationId": "lecture_rating_summary",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureRatingSummaryRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Anonymous rating aggregate + blended quality score (teacher/staff) (T-192)",
+        "tags": [
+          "lecture-rating-summary"
+        ]
+      }
+    },
     "/api/v1/notifications/": {
       "get": {
         "description": "Returns non-deleted notifications newest-first, with unread count for bell badge.",
@@ -16118,6 +17220,71 @@
         "summary": "Read-only access gate for a linked student (Flow 10)",
         "tags": [
           "parent-links"
+        ]
+      }
+    },
+    "/api/v1/parents/me/students/{student_user_id}/highlights": {
+      "get": {
+        "operationId": "parent_list_student_highlights",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "student_user_id",
+            "required": true,
+            "schema": {
+              "title": "Student User Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEnvelope_MyHighlightRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Read-only highlights + flashcards for a linked child (respects #72) (T-188)",
+        "tags": [
+          "parent-student-highlights"
         ]
       }
     },
@@ -16556,6 +17723,48 @@
         "summary": "Get a school by ID (School Admin \u2014 own school only)",
         "tags": [
           "school-admin"
+        ]
+      }
+    },
+    "/api/v1/school/lectures/{lecture_id}/highlight-aggregate": {
+      "get": {
+        "operationId": "school_lecture_highlight_aggregate",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureHighlightAggregateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Anonymous highlight/flashcard counts for a lecture (Coordinator+, \u00a76.19) (T-188)",
+        "tags": [
+          "school-highlight-aggregates"
         ]
       }
     },
@@ -17855,6 +19064,58 @@
         ]
       }
     },
+    "/api/v1/students/me/flashcards/{flashcard_id}": {
+      "patch": {
+        "operationId": "student_update_flashcard_back",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "flashcard_id",
+            "required": true,
+            "schema": {
+              "title": "Flashcard Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FlashcardBackUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_PairedFlashcardRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Edit an own flashcard's back (placeholder cards, flow-6 \u00a75.5) (T-188)",
+        "tags": [
+          "student-highlights"
+        ]
+      }
+    },
     "/api/v1/students/me/graduation": {
       "get": {
         "operationId": "student_get_graduation_status",
@@ -17873,6 +19134,104 @@
         "summary": "Get school student graduation / read-only status",
         "tags": [
           "graduation"
+        ]
+      }
+    },
+    "/api/v1/students/me/highlights": {
+      "get": {
+        "operationId": "student_list_my_highlights",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "minimum": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 20,
+              "maximum": 100,
+              "minimum": 1,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/PaginatedEnvelope_MyHighlightRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "My Highlights: own highlights + paired flashcards, newest first (T-188)",
+        "tags": [
+          "student-highlights"
+        ]
+      }
+    },
+    "/api/v1/students/me/highlights/{highlight_id}": {
+      "delete": {
+        "operationId": "student_delete_highlight",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "highlight_id",
+            "required": true,
+            "schema": {
+              "title": "Highlight Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DeletedResponse_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Delete an own highlight; its flashcard is removed with it (flow-6 \u00a75.5) (T-188)",
+        "tags": [
+          "student-highlights"
         ]
       }
     },
@@ -18020,6 +19379,59 @@
         "summary": "End a lecture study session (T-151)",
         "tags": [
           "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/sessions/{session_id}/events": {
+      "post": {
+        "description": "Accept interaction events and publish to NATS (owner session only).",
+        "operationId": "post_student_lecture_interaction_event",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureInteractionEventIn"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_LectureInteractionEventOut_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Emit student.lecture scroll/page_change/mode_switch (T-173)",
+        "tags": [
+          "student-lecture-events"
         ]
       }
     },
@@ -18231,6 +19643,143 @@
         "summary": "302 redirect to 5-min presigned lecture audio URL (T-154)",
         "tags": [
           "student-lecture-sessions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/concepts": {
+      "get": {
+        "operationId": "student_list_lecture_concepts",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_LectureConceptRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Concepts a lecture covers, each anchored at its first paragraph (T-190)",
+        "tags": [
+          "student-concept-enrichment"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/enrichment": {
+      "get": {
+        "operationId": "student_get_concept_enrichment",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "concept_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Concept Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ConceptEnrichmentRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Real-world uses, careers and mini-sim for a concept (cached per concept) (T-190)",
+        "tags": [
+          "student-concept-enrichment"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/highlights": {
+      "get": {
+        "operationId": "student_list_lecture_highlights",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_StudentHighlightRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List own highlights on a lecture with current yellow-mark positions (T-185)",
+        "tags": [
+          "student-highlights"
         ]
       }
     },
@@ -18547,6 +20096,98 @@
         ]
       }
     },
+    "/api/v1/students/me/lectures/{lecture_id}/rating": {
+      "get": {
+        "operationId": "student_get_my_lecture_rating",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_MyLectureRatingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The caller's own rating for a lecture (null if not rated) (T-192)",
+        "tags": [
+          "student-lecture-rating"
+        ]
+      },
+      "put": {
+        "operationId": "student_rate_lecture",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LectureRatingSubmit"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_MyLectureRatingRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Submit or change an optional 1-5 rating after completing a lecture (T-192)",
+        "tags": [
+          "student-lecture-rating"
+        ]
+      }
+    },
     "/api/v1/students/me/lectures/{lecture_id}/sessions": {
       "post": {
         "operationId": "student_open_lecture_session",
@@ -18664,6 +20305,120 @@
         "summary": "Submit a lecture question (idempotent; classified) (T-156/T-157)",
         "tags": [
           "student-lecture-questions"
+        ]
+      }
+    },
+    "/api/v1/students/me/lectures/{lecture_id}/simulation": {
+      "get": {
+        "operationId": "student_get_simulation_progress",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "concept_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Concept Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SimulationProgressRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "The student's saved mini-simulation state for a concept (T-191)",
+        "tags": [
+          "student-concept-enrichment"
+        ]
+      },
+      "put": {
+        "operationId": "student_save_simulation_progress",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "lecture_id",
+            "required": true,
+            "schema": {
+              "title": "Lecture Id",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "concept_id",
+            "required": true,
+            "schema": {
+              "maxLength": 128,
+              "minLength": 1,
+              "title": "Concept Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SimulationStateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SimulationProgressRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Save the student's mini-simulation state for a concept (T-191)",
+        "tags": [
+          "student-concept-enrichment"
         ]
       }
     },

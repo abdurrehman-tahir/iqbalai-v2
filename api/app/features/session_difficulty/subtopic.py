@@ -30,6 +30,19 @@ def _sub_topic_from_metadata(meta: dict[str, Any], *, source_chunk_id: str) -> s
     return source_chunk_id[:128]
 
 
+def sub_topic_for_paragraph(meta: dict[str, Any], *, lecture_topic: str) -> str:
+    """Concept id for one paragraph without a DB round-trip (M-15 T-190).
+
+    Same answer ``resolve_sub_topic_id(paragraph_id=...)`` gives for that
+    paragraph: provenance metadata when the paragraph carries a chunk id,
+    otherwise the lecture topic.
+    """
+    chunk = str(meta.get("chunk_id") or "")
+    if chunk:
+        return _sub_topic_from_metadata(meta, source_chunk_id=chunk)
+    return lecture_topic[:128]
+
+
 async def resolve_sub_topic_id(
     session: AsyncSession,
     *,
