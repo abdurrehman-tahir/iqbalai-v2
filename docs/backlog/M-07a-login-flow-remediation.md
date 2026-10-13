@@ -1,6 +1,6 @@
 # M-07a — Login Flow Remediation (§6.4 Conformance + Audit Fixes)
 
-**Status:** drafted
+**Status:** done
 **Layer:** 3 (rides between M-07 and M-08)
 **Sequence:** after M-07 merges, before M-08 (M-08 `Depends on` flips to M-07a)
 **Ticket range:** T-238 to T-249 (off the T-237 high-water mark; **non-positional** numbering. Note: T-238–T-247 were briefly assigned to the retired M-07b draft — that milestone was rejected, its doc was never committed, and its partial code died with closed PR #21, so the range is free and reassigned here. This paragraph is the authoritative record of that reuse.)
@@ -446,7 +446,8 @@ Playwright specs tagged `@auth @real` (no route mocking), one per role in the un
 **Layer:** 3
 **Milestone:** M-07a
 **Estimate:** 0.25 day
-**Status:** todo
+**Status:** done
+**Commit:** 0f5c34b (milestone merge, PR #27; closed at handover — PR merged; demo status not recorded in the repo)
 
 ### Depends on
 - T-238 … T-248
