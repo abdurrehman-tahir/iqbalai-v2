@@ -19,7 +19,7 @@ Read `ROADMAP.md` from the top. The first row whose Status is not `done` is your
 
 | Row | What to do |
 |---|---|
-| A milestone row (`M-NN`) with status `drafted-spec` | Draft it: §2, then §3, then §4 |
+| A milestone row (`M-NN`) with status `drafted-spec` | Draft it: §2, then §3, then §4. If the row says its scope comes from `DEFERRED_REGISTER.md`, the scope is exactly the register rows targeting that milestone, and each ticket cites the item's original source (a flow's §9 or `TODO.md`) as its spec source. |
 | The `Deferred work` placeholder | Build the deferred-work register: §5 |
 | A `Rollout N` placeholder | Draft that rollout: §6 |
 
@@ -78,7 +78,7 @@ This runs when the `Deferred work` row is the first not-`done` row. It can also 
 **Then:**
 1. Write `docs/drafting/DEFERRED_REGISTER.md`: one row per item with its source (file and section), the item, its class, whether it is built (with evidence), and its target milestone.
 2. Group the dev items into milestones by flow or theme, 7 to 16 tickets each, in dependency order.
-3. In `ROADMAP.md`, replace the `Deferred work` row with one row per new milestone (status `drafted-spec`), numbered after the highest existing milestone number, placed before the Rollout rows.
+3. In `ROADMAP.md`, replace the `Deferred work` row with one row per new milestone (status `drafted-spec`), numbered after the highest existing milestone number, placed before the Rollout rows. Each new row's name ends with "(scope: DEFERRED_REGISTER.md)" so the session that drafts it knows where its scope comes from.
 4. Open the docs-only PR with the register and the roadmap change. Stop. Each new milestone is then drafted in its own session using §2 to §4.
 
 ## 6. Rollouts
