@@ -1,6 +1,6 @@
 # M-01 — Platform Setup: Platform Admin + Languages + ToS + Personas + Exam Syllabi
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-016 through T-027
 **Spec source:** `flow-1-platform-setup.md` v2
@@ -474,7 +474,8 @@ E2E Playwright test: Platform Admin logs in fresh → accepts ToS → goes throu
 **Layer:** 1
 **Milestone:** M-01
 **Estimate:** 0.5 days
-**Status:** todo
+**Status:** done
+**Commit:** d322bbb (milestone merge, PR #9; closed at handover — PR merged; whether the demo recording was made is not recorded in the repo)
 
 ### What this ticket builds
 

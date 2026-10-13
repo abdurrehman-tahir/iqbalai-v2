@@ -13,26 +13,28 @@
 | ID | Milestone | Layer | Tickets | Est. duration | Status | Demo deliverable |
 |---|---|---|---|---|---|---|
 | M-00 | Foundation: infra + containers + base code | 0 | T-001 to T-015 | ~1.5 weeks | done | All services run locally; smoke-test API returns 200 |
-| M-01 | Platform Setup: Platform Admin + ToS + personas + langs | 1 | T-016 to T-027 | ~3-4 days | in-progress | Platform Admin logs in, configures personas, exam syllabi, languages |
+| M-01 | Platform Setup: Platform Admin + ToS + personas + langs | 1 | T-016 to T-027 | ~3-4 days | done | Platform Admin logs in, configures personas, exam syllabi, languages |
 | M-01a | Foundation Remediation + FE/Integration Enforcement | 1 | T-223 to T-237 | ~1 week | done | Nav reaches every page; ToS renders/scrolls; FE tests + typed client + model-first migrations enforced in CI |
 | M-02 | School Onboarding: District + School + role hierarchy | 1 | T-028 to T-040 | ~3-4 days | done | Platform Admin creates a District, then School, then School Admin who logs in |
 | M-03 | Subjects + Grade/Section/Subject offerings | 2 | T-041 to T-052 | ~2-3 days | done | School Admin creates Coordinator, Coordinator creates Grade/Section/Subjects, assigns Teacher |
-| M-04 | Teacher Onboarding + Content Library (school-tier) | 2 | T-053 to T-068 | ~3-4 days | in-progress | Teacher logs in, uploads curriculum, sees it ingest + appear in their library |
+| M-04 | Teacher Onboarding + Content Library (school-tier) | 2 | T-053 to T-068 | ~3-4 days | done | Teacher logs in, uploads curriculum, sees it ingest + appear in their library |
 | M-05 | Independent Users: signup + Platform Library | 2 | T-069 to T-076 | ~2-3 days | done | Independent teacher self-signs up, accesses Platform Library |
 | M-06 | Student Onboarding (school) + Parent Linking | 2 | T-077 to T-090 | ~3-4 days | done | Coordinator enrolls students into Grade-Section; parents link to children |
 | M-07 | Exam Framework Engine (platform-tier) | 3 | T-091 to T-100 | ~3-4 days | done | Platform Admin triggers AI research; approves; students can select framework |
-| M-07a | Login Flow Remediation (§6.4 conformance + audit fixes) | 3 | T-238 to T-249 | ~1 week | in-progress | Testers log in via the public URL through branded /idp; cookie-only auth per §6.4/§6.17; per-role @auth @real E2E green |
+| M-07a | Login Flow Remediation (§6.4 conformance + audit fixes) | 3 | T-238 to T-249 | ~1 week | done | Testers log in via the public URL through branded /idp; cookie-only auth per §6.4/§6.17; per-role @auth @real E2E green |
 | M-08 | Student Mode + Diagnostic + Cognitive DNA seed | 3 | T-101 to T-112 | ~3-4 days | done | Student picks mode, takes diagnostic, cognitive DNA initialized |
 | M-09 | Lecture Wizard + AI Generation (Pattern S RAG) | 4 | T-113 to T-128 | ~1.5 weeks | done | Teacher generates first lecture; sees streaming output with source badges |
 | M-10 | Lecture Edit + Versions + 7-Dim Scoring | 4 | T-129 to T-140 | ~3-4 days | done | Teacher edits lecture; sees score timeline + Innovation Record suggestions |
 | M-11 | Auto-quiz Per Student + Publish Lecture | 4 | T-141 to T-150 | ~2-3 days | done | Lecture publishes; auto-quizzes generate per student; students see quizzes |
-| M-12 | Lecture Mode Viewer + Highlight + Q&A + Voice | 5 | T-151 to T-165 | ~1.5 weeks | in-progress | Student opens lecture; voice-reads; highlights; asks questions w/ AI answers |
+| M-12 | Lecture Mode Viewer + Highlight + Q&A + Voice | 5 | T-151 to T-165 | ~1.5 weeks | done | Student opens lecture; voice-reads; highlights; asks questions w/ AI answers |
 | M-13 | Hybrid Widget + Multimodal Image + Vision LLM | 5 | T-166 to T-172 | ~2-3 days | done | Student attaches image to question; gets vision-LLM answer |
 | M-14 | Live Feedback Panel + NATS Event Pipeline + Adaptation | 5 | T-173 to T-184 | ~1 week | done | Live feedback updates; stuck nudge fires; AI adapts angle on repeat |
 | M-15 | Flashcards + Concept Enrichment + Lecture Rating | 5 | T-185 to T-194 | ~2-3 days | done | Highlights become flashcards; concepts have career links; ratings flow to teacher |
+| M-22 | Promotion Workflow + Graduation Lifecycle (Flow 2 §3.4 + Flow 4 §3.9) | 6 | TBD (numbered at draft time) | ~2-3 days | drafted-spec | Coordinator initiates promotion; School Admin approves; Grade 12 student migrates. **Largely built already** (graduation + migration to independent shipped in M-06; promotion fields exist in grades) — draft ONLY what the code is missing; mark done if nothing is |
+| M-23 | Subscriptions schema-only + Platform Admin CRUD (Flow 13 §3.1) | 6 | TBD (numbered at draft time) | ~1-2 days | drafted-spec | Platform Admin creates tier definitions; District/School see "Coming soon". **Largely built already** (tier schema + Platform Admin CRUD shipped in M-01) — draft ONLY what the code is missing; mark done if nothing is |
 | M-16 | Next-Day Review (Flow 7) | 6 | T-195 to T-208 | ~3-4 days | drafted | Teacher gets next-day review; publishes targeted mini-lecture |
 | M-17 | Self-Study Mode (Flow 8) | 6 | T-209 to T-222 | ~3-4 days | drafted | Student builds study plan from prep book; adherence tracked |
-| M-18a | AI Intelligence — Question Bank + Collection (Flow 9: #42,#43,#74-#76) | 6 | TBD (off T-222) | ~1 week | drafted-spec | Build-first foundation: bank, Bloom tags, unified queue |
+| M-18a | AI Intelligence — Question Bank + Collection (Flow 9: #42,#43,#74-#76) | 6 | TBD (numbered at draft time) | ~1 week | drafted-spec | Build-first foundation: bank, Bloom tags, unified queue |
 | M-18b | AI Intelligence — Cognitive DNA engine (Flow 9: #77-#84) | 6 | TBD | ~1 week | drafted-spec | Signals, mistake tracking, DNA profile + role visibility |
 | M-18c | AI Intelligence — Prediction + recommendations (Flow 9: #85-#93) | 6 | TBD | ~1 week | drafted-spec | Pass-prob, nightly recalc, 2-future, recovery (heuristic-first) |
 | M-18d | AI Intelligence — Spaced repetition + pedagogy (Flow 9: #94-#99) | 6 | TBD | ~1 week | drafted-spec | FSRS scheduling, micro-revision, retention, weekly pedagogy |
@@ -41,8 +43,11 @@
 | M-20b | Dashboards (Flow 11: #73,#104,#105-student,#106) | 6 | TBD (off M-20a; deps M-18b/c + M-10 T-139) | ~2-3 days | drafted-spec | Teacher/admin/coordinator dashboards + class comparison + learning record (compose, no #38 rebuild) |
 | M-21a | AI Chatbot (Flow 12: #107) | 6 | TBD (off M-20b; deps RAG stack M-09/M-12 + §7.21) | ~2-3 days | drafted-spec | Floating always-available subject Q&A, role-scoped, source badges |
 | M-21b | Virtual Assistant (Flow 12: #108) | 6 | TBD (off M-21a; deps M-18 + Flow 7/8/11 + M-21a) | ~3-4 days | drafted-spec | Proactive guide composing Flow 9/7/8/11 signals; suggest-and-confirm actions |
-| M-22 | Promotion Workflow + Graduation Lifecycle | 6 | T-200 to T-208 | ~2-3 days | drafted | Coordinator initiates promotion; School Admin approves; Grade 12 student migrates |
-| M-23 | Subscriptions schema-only + Platform Admin CRUD | 6 | T-209 to T-213 | ~1-2 days | drafted | Platform Admin creates tier definitions; District/School see "Coming soon" |
+| Deferred work | Deferred-work series — every not-yet-built dev item from the flows' §9 out-of-scope sections, TODO.md and orphaned BLOCKED-HOOKs | — | TBD | TBD | drafted-spec | First run builds `docs/drafting/DEFERRED_REGISTER.md` and replaces this row with real M-NN rows; see `docs/drafting/PLAYBOOK.md` |
+| Rollout 1 | Pilot readiness (non-dev tasks) | — | TBD | TBD | drafted-spec | Drafted only after every build milestone is on this roadmap; see PLAYBOOK §Rollouts |
+| Rollout 2 | Pilot (non-dev tasks) | — | TBD | TBD | drafted-spec | |
+| Rollout 3 | Production launch (non-dev tasks) | — | TBD | TBD | drafted-spec | |
+| Rollout 4 | Post-launch (non-dev tasks) | — | TBD | TBD | drafted-spec | |
 
 ---
 
@@ -78,6 +83,8 @@ M-00 ████████████████ Foundation (~1.5w)
 
 **Approximate total to launch-ready core:** ~2-3 months for M-00 through M-15 + M-22 + M-23 (Claude-Code velocity, tiered; was 7-9 months hand-coding).
 **Milestones M-16 to M-21** add ~1-1.5 months → **full v2 launch ~3-4.5 months total** (was ~10-14 months hand-coding).
+**Not yet estimated:** the deferred-work series and the four Rollouts. Re-estimate once `docs/drafting/DEFERRED_REGISTER.md` exists.
+**Order = build order.** The first row not marked `done` is what happens next; if it has no backlog file, that means draft it (see `docs/drafting/`).
 
 ---
 

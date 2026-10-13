@@ -1,7 +1,7 @@
 {
   "rules/000-core.mdc": {
-    "sha256_source": "001b1387027e7cca345dd2a7918125d84cf61612671243088c012cdc030a0c99",
-    "sha256_target": "19fcf42015f05d5ad52bc6f1fe215c8cd91858c42bfae04c2692d4b46b50bf99",
+    "sha256_source": "084ec9e8d8bbeb4077b7d973938cc5eb005aad71930858a08a6e03f99ba33db6",
+    "sha256_target": "96fd001dd8f5aec87ffa92531510eaacb6b32052adfba74de0baa9d94bd23fcd",
     "source": ".claude/CLAUDE.md"
   },
   "rules/ticket-loader.mdc": {

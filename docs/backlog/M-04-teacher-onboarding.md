@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-053 through T-068
 **Spec source:** `flow-3-teacher-onboarding.md` v3 (school-tier scope only — independent teacher onboarding is M-05)
@@ -589,7 +589,8 @@ A School Teacher logs in for the first time, completes a forced profile screen, 
 **Layer:** 6
 **Milestone:** M-04
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** 6c60e80 (milestone merge, PR #16; closed at handover — PR merged; demo status not recorded in the repo)
 
 ### Spec source
 - `flow-3-teacher-onboarding.md` v3 (whole flow, school tier)

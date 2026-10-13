@@ -9,7 +9,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 3-4 weeks
 **Tickets:** T-151 through T-165
 **Spec source:** `flow-6-student-studies-lecture.md` v1 §3.1 (session lifecycle), §3.2 (viewer + TTS voice #54), §3.3 (highlight → auto-prompt → submit #55), §3.4 (AI answer side panel #56), §3.5 (hybrid input widget — text+voice base of #57)
@@ -43,7 +43,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.1 (session bounded by opened/close or 30-min inactivity; concurrent sessions; new session on re-open)
@@ -78,7 +79,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 2.5 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.2 (TEXT_MODE — lecture text rendered with source badges)
@@ -111,7 +113,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.2 (TTS engines per language; audio cached per lecture; lazy gen; invalidate on re-edit)
@@ -144,7 +147,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.2 (VOICE_MODE — karaoke read-aloud, text scrolls in sync; controls)
@@ -213,7 +217,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 2.5 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.3 (selection → prefilled box → 3s countdown → submit; content-element tagging)
@@ -246,7 +251,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.3 (auto-classify misconception/knowledge_gap; Phase 1 baseline)
@@ -278,7 +284,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 3 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.4 (streamed answer; source badges per #26/#27)
@@ -311,7 +318,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 2.5 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.4 (side panel / bottom sheet; header quote; streamed answer; source-badge click → source passage; anchored on scroll)
@@ -344,7 +352,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.4 (multi-turn in same panel; conversation grouped under session under lecture; persists; reopenable from "questions" tab)
@@ -377,7 +386,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.19 reference + §10 (framework may overlay context on AI answers, not lecture body)
@@ -409,7 +419,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §4 (permissions matrix), §3.x privacy #72; Open Q12 (default = share)
@@ -444,7 +455,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5
 **Milestone:** M-12
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.1 (events at every interaction), §3.8 reference (#60 pipeline is M-14)
@@ -481,7 +493,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 5 / 6
 **Milestone:** M-12
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §7 (notifications), §3.x (#72 audit), i18n throughout
@@ -514,7 +527,8 @@ So in M-12: highlights are transient triggers for questions (persistent yellow-m
 **Layer:** 6
 **Milestone:** M-12
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** 812755b (milestone merge, PR #33; closed at handover — branch commits did not name tickets; PR #33 lists T-151–T-165 as delivered)
 
 ### Spec source
 - `flow-6-student-studies-lecture.md` §3.1-§3.5
