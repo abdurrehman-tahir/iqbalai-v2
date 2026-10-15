@@ -492,6 +492,9 @@
       "self_study_section_body": "Your self-study plan and diagnostic focus areas guide this mode. Full planning arrives in a later milestone — coaching focus from your diagnostic already seeds Cognitive DNA for AI personalization.",
       "mode_hint_lecture": "Lecture mode is active — Self-Study tools are hidden until you switch.",
       "mode_hint_self_study": "Self-Study mode is active — Lecture materials are hidden until you switch.",
+      "self_study_resumed_state": "Resumed last goal / material / plan view when available.",
+      "self_study_loading_entry": "Loading self-study…",
+      "self_study_entry_error": "Could not load self-study state.",
       "exam_date_passed_prompt": "Your exam date has passed. Set a new exam date to keep pacing on track."
     },
     "quizzes": {
@@ -1967,7 +1970,12 @@
         "exam_date_error": "Could not save exam date. Please try again.",
         "exam_date_future_warning": "Exam date is more than 5 years away — you can update it anytime before your exam.",
         "self_study_section_title": "Self-Study",
-        "self_study_section_body": "Self-Study is your only mode. Diagnostic focus areas seed Cognitive DNA for future AI personalization — full planning comes later."
+        "self_study_section_body": "Self-Study is your only mode. Diagnostic focus areas seed Cognitive DNA for future AI personalization — full planning comes later.",
+        "redirecting_to_self_study": "Redirecting to Self-Study…",
+        "resumed_state_label": "Resumed from last session",
+        "loading_entry": "Loading self-study…",
+        "entry_error": "Could not load self-study. Try again.",
+        "subscription_gate_noop": "Plan limits are not enforced yet."
       }
     }
   },

@@ -6543,6 +6543,178 @@
         "title": "SelectionStatus",
         "type": "string"
       },
+      "SelfStudyEntryRead": {
+        "description": "Entering-mode payload for school + independent students.",
+        "properties": {
+          "active_mode": {
+            "enum": [
+              "lecture",
+              "self_study"
+            ],
+            "title": "Active Mode",
+            "type": "string"
+          },
+          "lecture_mode_redirect_to": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Lecture Mode Redirect To"
+          },
+          "locked_to_self_study": {
+            "title": "Locked To Self Study",
+            "type": "boolean"
+          },
+          "state": {
+            "$ref": "#/components/schemas/SelfStudyPersistedState"
+          },
+          "subscription_gate": {
+            "$ref": "#/components/schemas/SelfStudySubscriptionGateRead"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "tenant_type",
+          "locked_to_self_study",
+          "active_mode",
+          "state",
+          "subscription_gate"
+        ],
+        "title": "SelfStudyEntryRead",
+        "type": "object"
+      },
+      "SelfStudyPersistedState": {
+        "additionalProperties": false,
+        "description": "Last-view keys restored when entering self-study (Flow 8 \u00a73.1).",
+        "properties": {
+          "last_goal_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Goal Id"
+          },
+          "last_material_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Material Id"
+          },
+          "last_plan_view": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Plan View"
+          }
+        },
+        "title": "SelfStudyPersistedState",
+        "type": "object"
+      },
+      "SelfStudyStateUpdate": {
+        "additionalProperties": false,
+        "description": "Partial update of persisted self-study view keys.",
+        "properties": {
+          "last_goal_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Goal Id"
+          },
+          "last_material_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Material Id"
+          },
+          "last_plan_view": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Plan View"
+          }
+        },
+        "title": "SelfStudyStateUpdate",
+        "type": "object"
+      },
+      "SelfStudySubscriptionGateRead": {
+        "description": "No-op gate at launch \u2014 limits unset until Flow 13 / M-23.",
+        "properties": {
+          "allowed": {
+            "default": true,
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "enforced": {
+            "default": false,
+            "title": "Enforced",
+            "type": "boolean"
+          },
+          "max_active_plans": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Active Plans"
+          },
+          "max_monthly_uploads": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Max Monthly Uploads"
+          }
+        },
+        "title": "SelfStudySubscriptionGateRead",
+        "type": "object"
+      },
       "SimulationProgressRead": {
         "additionalProperties": false,
         "description": "The student's saved sim state for one concept (per-student, T-191).\n\n``was_reset`` is true when stored state no longer matched the concept's\nsim spec and was discarded (flow-6 \u00a75.9 \"progress was reset\" notice).",
@@ -9198,6 +9370,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[SectionRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SelfStudyEntryRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SelfStudyEntryRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SelfStudyEntryRead]",
         "type": "object"
       },
       "SuccessEnvelope_SimulationProgressRead_": {
@@ -18313,6 +18502,68 @@
         "summary": "Update reference book visibility",
         "tags": [
           "school-library"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/entry": {
+      "get": {
+        "operationId": "self_study_get_entry",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudyEntryRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Enter self-study mode (resume state; independent redirects)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/state": {
+      "patch": {
+        "operationId": "self_study_patch_state",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfStudyStateUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudyEntryRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Persist last goal / material / plan view for self-study",
+        "tags": [
+          "self-study"
         ]
       }
     },

@@ -60,6 +60,7 @@ from app.features.schools.router import router as districts_router
 from app.features.schools.school_admin_router import router as school_admin_router
 from app.features.schools.school_router import router as schools_router
 from app.features.sections.router import router as sections_router
+from app.features.self_study.router import router as self_study_router
 from app.features.smoketest.router import router as smoketest_router
 from app.features.student_enrollments.router import router as student_enrollments_router
 from app.features.student_highlights.router import parent_router as parent_highlights_router
@@ -116,6 +117,7 @@ router.include_router(sections_router)
 router.include_router(student_enrollments_router)
 router.include_router(student_onboarding_router)
 router.include_router(student_mode_router)
+router.include_router(self_study_router)
 router.include_router(student_privacy_router)
 router.include_router(parent_lecture_questions_router)
 router.include_router(student_voice_router)

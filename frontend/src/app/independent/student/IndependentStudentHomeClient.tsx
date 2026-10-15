@@ -3,7 +3,7 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { independentStudentOnboardingApi } from "@/lib/api";
+import { independentStudentOnboardingApi, selfStudyApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,16 @@ export function IndependentStudentHomeClient() {
     enabled: mounted && !!token,
   });
 
+  const {
+    data: entry,
+    isLoading: entryLoading,
+    isError: entryError,
+  } = useQuery({
+    queryKey: ["self-study", "entry"],
+    queryFn: () => selfStudyApi.getEntry(token!),
+    enabled: mounted && !!token && !!onboarding?.ready_to_study,
+  });
+
   const examDateMutation = useMutation({
     mutationFn: (value: string) => independentStudentOnboardingApi.setExamDate(token ?? "", value),
     onSuccess: (data) => {
@@ -38,6 +48,11 @@ export function IndependentStudentHomeClient() {
 
   if (!onboarding?.ready_to_study) return null;
 
+  const hasResumedState =
+    !!entry?.state.last_goal_id ||
+    !!entry?.state.last_material_id ||
+    !!entry?.state.last_plan_view;
+
   return (
     <div className="space-y-4" data-testid="independent-self-study-dashboard">
       <div className="rounded-lg border border-green-200 bg-green-50 p-4">
@@ -52,6 +67,30 @@ export function IndependentStudentHomeClient() {
       >
         <h3 className="text-lg font-medium text-gray-900">{t("self_study_section_title")}</h3>
         <p className="text-sm text-gray-600">{t("self_study_section_body")}</p>
+        {entryLoading && (
+          <p className="text-xs text-gray-500" data-testid="self-study-entry-loading">
+            {t("loading_entry")}
+          </p>
+        )}
+        {entryError && (
+          <p className="text-xs text-red-600" data-testid="self-study-entry-error" role="alert">
+            {t("entry_error")}
+          </p>
+        )}
+        {entry && (
+          <>
+            {hasResumedState && (
+              <p className="text-xs text-gray-500" data-testid="self-study-resumed-state">
+                {t("resumed_state_label")}
+              </p>
+            )}
+            {!entry.subscription_gate.enforced && (
+              <p className="text-xs text-gray-400" data-testid="self-study-subscription-gate">
+                {t("subscription_gate_noop")}
+              </p>
+            )}
+          </>
+        )}
       </section>
 
       {onboarding.exam_date_passed && (

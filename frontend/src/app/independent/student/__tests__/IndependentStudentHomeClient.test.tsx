@@ -19,6 +19,22 @@ vi.mock("@/lib/api", () => ({
     }),
     setExamDate: vi.fn(),
   },
+  selfStudyApi: {
+    getEntry: vi.fn().mockResolvedValue({
+      tenant_type: "independent",
+      locked_to_self_study: true,
+      active_mode: "self_study",
+      state: { last_goal_id: null, last_material_id: null, last_plan_view: null },
+      subscription_gate: {
+        enforced: false,
+        allowed: true,
+        max_active_plans: null,
+        max_monthly_uploads: null,
+      },
+      lecture_mode_redirect_to: "/independent/student",
+    }),
+    patchState: vi.fn(),
+  },
 }));
 
 function renderHome() {
@@ -32,7 +48,7 @@ function renderHome() {
   );
 }
 
-describe("IndependentStudentHomeClient (T-108)", () => {
+describe("IndependentStudentHomeClient (T-209)", () => {
   beforeEach(() => {
     vi.clearAllMocks();
   });
@@ -43,5 +59,6 @@ describe("IndependentStudentHomeClient (T-108)", () => {
     expect(screen.getByTestId("self-study-section")).toBeInTheDocument();
     expect(screen.queryByTestId("lecture-section")).not.toBeInTheDocument();
     expect(screen.getByText(/no lecture mode switcher/i)).toBeInTheDocument();
+    expect(await screen.findByTestId("self-study-subscription-gate")).toBeInTheDocument();
   });
 });

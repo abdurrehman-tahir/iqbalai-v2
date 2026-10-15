@@ -93,6 +93,8 @@ import type {
   StudentModeSelect,
   StudentModeRead,
   StudentModeUpdate,
+  SelfStudyEntryRead,
+  SelfStudyStateUpdate,
   DiagnosticRead,
   DiagnosticResultRead,
   DiagnosticStartRequest,
@@ -1551,6 +1553,17 @@ export const studentModeApi = {
     request<StudentModeRead>(
       "/students/me/mode",
       { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+};
+
+/** Self-study entry + persisted view state (T-209 / Flow 8 §3.1). */
+export const selfStudyApi = {
+  getEntry: (token: string) => request<SelfStudyEntryRead>("/self-study/me/entry", {}, token),
+  patchState: (token: string, data: SelfStudyStateUpdate) =>
+    request<SelfStudyEntryRead>(
+      "/self-study/me/state",
+      { method: "PATCH", body: JSON.stringify(data) },
       token
     ),
 };

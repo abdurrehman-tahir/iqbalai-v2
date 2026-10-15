@@ -2094,6 +2094,40 @@ export interface paths {
         patch: operations["school_library_set_reference_visibility"];
         trace?: never;
     };
+    "/api/v1/self-study/me/entry": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Enter self-study mode (resume state; independent redirects) */
+        get: operations["self_study_get_entry"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/state": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Persist last goal / material / plan view for self-study */
+        patch: operations["self_study_patch_state"];
+        trace?: never;
+    };
     "/api/v1/smoketest/llm": {
         parameters: {
             query?: never;
@@ -6496,6 +6530,72 @@ export interface components {
          */
         SelectionStatus: "active" | "abandoned";
         /**
+         * SelfStudyEntryRead
+         * @description Entering-mode payload for school + independent students.
+         */
+        SelfStudyEntryRead: {
+            /**
+             * Active Mode
+             * @enum {string}
+             */
+            active_mode: "lecture" | "self_study";
+            /** Lecture Mode Redirect To */
+            lecture_mode_redirect_to?: string | null;
+            /** Locked To Self Study */
+            locked_to_self_study: boolean;
+            state: components["schemas"]["SelfStudyPersistedState"];
+            subscription_gate: components["schemas"]["SelfStudySubscriptionGateRead"];
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
+        };
+        /**
+         * SelfStudyPersistedState
+         * @description Last-view keys restored when entering self-study (Flow 8 §3.1).
+         */
+        SelfStudyPersistedState: {
+            /** Last Goal Id */
+            last_goal_id?: string | null;
+            /** Last Material Id */
+            last_material_id?: string | null;
+            /** Last Plan View */
+            last_plan_view?: string | null;
+        };
+        /**
+         * SelfStudyStateUpdate
+         * @description Partial update of persisted self-study view keys.
+         */
+        SelfStudyStateUpdate: {
+            /** Last Goal Id */
+            last_goal_id?: string | null;
+            /** Last Material Id */
+            last_material_id?: string | null;
+            /** Last Plan View */
+            last_plan_view?: string | null;
+        };
+        /**
+         * SelfStudySubscriptionGateRead
+         * @description No-op gate at launch — limits unset until Flow 13 / M-23.
+         */
+        SelfStudySubscriptionGateRead: {
+            /**
+             * Allowed
+             * @default true
+             */
+            allowed: boolean;
+            /**
+             * Enforced
+             * @default false
+             */
+            enforced: boolean;
+            /** Max Active Plans */
+            max_active_plans?: number | null;
+            /** Max Monthly Uploads */
+            max_monthly_uploads?: number | null;
+        };
+        /**
          * SimulationProgressRead
          * @description The student's saved sim state for one concept (per-student, T-191).
          *
@@ -7699,6 +7799,15 @@ export interface components {
         /** SuccessEnvelope[SectionRead] */
         SuccessEnvelope_SectionRead_: {
             data: components["schemas"]["SectionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SelfStudyEntryRead] */
+        SuccessEnvelope_SelfStudyEntryRead_: {
+            data: components["schemas"]["SelfStudyEntryRead"];
             /**
              * Message
              * @default ok
@@ -13397,6 +13506,59 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_SchoolLibraryItemRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_get_entry: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudyEntryRead_"];
+                };
+            };
+        };
+    };
+    self_study_patch_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelfStudyStateUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudyEntryRead_"];
                 };
             };
             /** @description Validation Error */

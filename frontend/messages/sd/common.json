@@ -563,7 +563,10 @@
       "diagnostics_link": "__TODO__ Take a diagnostic",
       "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date to keep pacing on track.",
       "mode_hint_lecture": "__TODO__ Lecture mode is active.",
-      "mode_hint_self_study": "__TODO__ Self-Study mode is active."
+      "mode_hint_self_study": "__TODO__ Self-Study mode is active.",
+      "self_study_resumed_state": "__TODO__ Resumed last goal / material / plan view when available.",
+      "self_study_loading_entry": "__TODO__ Loading self-study…",
+      "self_study_entry_error": "__TODO__ Could not load self-study state."
     },
     "quizzes": {
       "title": "توهان جا ڪوئز",
@@ -846,7 +849,12 @@
         "exam_date_error": "__TODO__ Could not save exam date.",
         "exam_date_future_warning": "__TODO__ Exam date is more than 5 years away.",
         "self_study_section_title": "__TODO__ Self-Study",
-        "self_study_section_body": "__TODO__ Self-Study is your only mode."
+        "self_study_section_body": "__TODO__ Self-Study is your only mode.",
+        "redirecting_to_self_study": "__TODO__ Redirecting to Self-Study…",
+        "resumed_state_label": "__TODO__ Resumed from last session",
+        "loading_entry": "__TODO__ Loading self-study…",
+        "entry_error": "__TODO__ Could not load self-study. Try again.",
+        "subscription_gate_noop": "__TODO__ Plan limits are not enforced yet."
       }
     }
   },
