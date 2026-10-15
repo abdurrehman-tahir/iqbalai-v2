@@ -114,6 +114,7 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Milestone:** M-16
 **Estimate:** 2.5 days
 **Status:** done
+**Commit:** `dc7b44e`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.1 (cluster cosine ≥0.80; frequency ≥3 students or 25% roster; criticality LLM 0-10 threshold 7; cluster-level failure → DLQ)
