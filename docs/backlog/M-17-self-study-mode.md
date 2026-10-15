@@ -77,7 +77,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Milestone:** M-17
 **Estimate:** 2 days
 **Status:** done
-**Commit:** (pending)
+**Commit:** b514f34
 
 ### Spec source
 - `flow-8-self-study.md` §3.11 (reuses Flow 6 widget #57 / panel #59 / adaptation #61 / pipeline #60; tenant-tagged `mode=self_study`; RAG Pattern P + overlays), §3.8-ref / Q10 (surfaces "due flashcards"; scheduling is Flow 9)
