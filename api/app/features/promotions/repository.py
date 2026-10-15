@@ -37,3 +37,24 @@ class GradePromotionRequestRepository:
         await self._session.commit()
         await self._session.refresh(row)
         return row
+
+    async def update(self, row: GradePromotionRequest) -> GradePromotionRequest:
+        await self._session.commit()
+        await self._session.refresh(row)
+        return row
+
+    async def list_for_school(
+        self,
+        school_id: str,
+        *,
+        status: GradePromotionRequestStatus | None = None,
+    ) -> list[GradePromotionRequest]:
+        stmt = select(GradePromotionRequest).where(
+            GradePromotionRequest.school_id == school_id,
+            not_deleted(GradePromotionRequest),
+        )
+        if status is not None:
+            stmt = stmt.where(GradePromotionRequest.status == status)
+        stmt = stmt.order_by(GradePromotionRequest.requested_at.desc())
+        result = await self._session.execute(stmt)
+        return list(result.scalars().all())

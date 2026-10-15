@@ -171,3 +171,118 @@ class PromotionService:
             school_id=row.school_id,
             grade_id=row.initiating_grade_id,
         )
+
+    async def _enqueue_execute_promotion(self, request_id: str) -> None:
+        """Stub until T-253 ships ``execute_promotion`` Celery task."""
+        logger.info("promotion.execute_enqueued_stub", request_id=request_id)
+
+    def _assert_school_admin_or_higher(self, actor: User) -> None:
+        level = ROLE_HIERARCHY.get(actor.role.value, 0)
+        if level < ROLE_HIERARCHY["school_admin"]:
+            raise PermissionDeniedError()
+
+    async def _get_request_in_school(
+        self, request_id: str, school_id: str | None
+    ) -> GradePromotionRequest:
+        row = await self._requests.get_by_id(request_id)
+        if row is None or school_id is None or row.school_id != school_id:
+            raise NotFoundError("Promotion request not found")
+        return row
+
+    async def list_promotion_requests(
+        self,
+        claims: dict[str, object],
+        *,
+        actor_id: str,
+        status: GradePromotionRequestStatus | None = None,
+    ) -> list[GradePromotionRequestRead]:
+        actor = await self._resolve_actor(actor_id)
+        self._assert_school_admin_or_higher(actor)
+        if actor.school_id is None:
+            raise NotFoundError("Promotion request not found")
+        rows = await self._requests.list_for_school(actor.school_id, status=status)
+        return [GradePromotionRequestRead.model_validate(r) for r in rows]
+
+    async def get_promotion_request(
+        self,
+        request_id: str,
+        claims: dict[str, object],
+        *,
+        actor_id: str,
+    ) -> GradePromotionRequestRead:
+        actor = await self._resolve_actor(actor_id)
+        # Coordinator+ may view (§6.21); school scope enforced.
+        level = ROLE_HIERARCHY.get(actor.role.value, 0)
+        if level < ROLE_HIERARCHY["coordinator"]:
+            raise PermissionDeniedError()
+        row = await self._get_request_in_school(request_id, actor.school_id)
+        if actor.role == UserRole.COORDINATOR:
+            grade = await self._grades.get_by_id(row.initiating_grade_id)
+            if grade is None:
+                raise NotFoundError("Promotion request not found")
+            self._assert_coordinator_grade_scope(actor, grade)
+        return GradePromotionRequestRead.model_validate(row)
+
+    async def approve_promotion_request(
+        self,
+        request_id: str,
+        claims: dict[str, object],
+        *,
+        actor_id: str,
+    ) -> GradePromotionRequestRead:
+        actor = await self._resolve_actor(actor_id)
+        self._assert_school_admin_or_higher(actor)
+        row = await self._get_request_in_school(request_id, actor.school_id)
+        if row.status != GradePromotionRequestStatus.PENDING_APPROVAL:
+            raise PreconditionFailedError("Promotion request is not pending approval")
+
+        now = datetime.now(timezone.utc)
+        row.status = GradePromotionRequestStatus.APPROVED
+        row.approved_at = now
+        row.approved_by_user_id = actor.id
+        await self._requests.update(row)
+
+        await audit(
+            session=self._session,
+            action="promotion.approved",
+            actor_id=actor_id,
+            actor_role=actor.role.value,
+            target_type="grade_promotion_request",
+            target_id=row.id,
+            school_id=row.school_id,
+            metadata={"initiating_grade_id": row.initiating_grade_id},
+        )
+        await self._enqueue_execute_promotion(row.id)
+        return GradePromotionRequestRead.model_validate(row)
+
+    async def reject_promotion_request(
+        self,
+        request_id: str,
+        claims: dict[str, object],
+        *,
+        actor_id: str,
+        reason: str | None = None,
+    ) -> GradePromotionRequestRead:
+        actor = await self._resolve_actor(actor_id)
+        self._assert_school_admin_or_higher(actor)
+        row = await self._get_request_in_school(request_id, actor.school_id)
+        if row.status != GradePromotionRequestStatus.PENDING_APPROVAL:
+            raise PreconditionFailedError("Promotion request is not pending approval")
+
+        row.status = GradePromotionRequestStatus.REJECTED
+        row.rejection_reason = reason
+        row.approved_by_user_id = actor.id
+        row.approved_at = datetime.now(timezone.utc)
+        await self._requests.update(row)
+
+        await audit(
+            session=self._session,
+            action="promotion.rejected",
+            actor_id=actor_id,
+            actor_role=actor.role.value,
+            target_type="grade_promotion_request",
+            target_id=row.id,
+            school_id=row.school_id,
+            metadata={"reason": reason},
+        )
+        return GradePromotionRequestRead.model_validate(row)

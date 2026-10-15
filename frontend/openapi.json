@@ -2574,6 +2574,25 @@
         "title": "GradeCreate",
         "type": "object"
       },
+      "GradePromotionRejectBody": {
+        "description": "Optional reject reason \u2014 T-252.",
+        "properties": {
+          "reason": {
+            "anyOf": [
+              {
+                "maxLength": 2000,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reason"
+          }
+        },
+        "title": "GradePromotionRejectBody",
+        "type": "object"
+      },
       "GradePromotionRequestCreate": {
         "description": "Body intent for T-251 initiate \u2014 grade_id comes from the path.",
         "properties": {
@@ -10077,6 +10096,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[FrameworkStudyPlanRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_GradePromotionRequestRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/GradePromotionRequestRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[GradePromotionRequestRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_GradeRead__": {
@@ -17909,6 +17949,198 @@
         "summary": "Get a platform library book (read-only)",
         "tags": [
           "platform-library"
+        ]
+      }
+    },
+    "/api/v1/promotion-requests": {
+      "get": {
+        "operationId": "promotion_requests_list",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "status",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "$ref": "#/components/schemas/GradePromotionRequestStatus"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Status"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_GradePromotionRequestRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List promotion requests for the caller's school",
+        "tags": [
+          "promotions"
+        ]
+      }
+    },
+    "/api/v1/promotion-requests/{request_id}": {
+      "get": {
+        "operationId": "promotion_requests_get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradePromotionRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "View a promotion request (coordinator+ scoped)",
+        "tags": [
+          "promotions"
+        ]
+      }
+    },
+    "/api/v1/promotion-requests/{request_id}/approve": {
+      "post": {
+        "operationId": "promotion_requests_approve",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradePromotionRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Approve a pending promotion request",
+        "tags": [
+          "promotions"
+        ]
+      }
+    },
+    "/api/v1/promotion-requests/{request_id}/reject": {
+      "post": {
+        "operationId": "promotion_requests_reject",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "request_id",
+            "required": true,
+            "schema": {
+              "title": "Request Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "anyOf": [
+                  {
+                    "$ref": "#/components/schemas/GradePromotionRejectBody"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ],
+                "title": "Payload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradePromotionRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Reject a pending promotion request",
+        "tags": [
+          "promotions"
         ]
       }
     },

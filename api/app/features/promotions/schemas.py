@@ -46,3 +46,9 @@ class PromotionRosterStudentRead(BaseModel):
     email: str
     enrollment_id: str
     section_id: str
+
+
+class GradePromotionRejectBody(BaseModel):
+    """Optional reject reason — T-252."""
+
+    reason: str | None = Field(default=None, max_length=2000)

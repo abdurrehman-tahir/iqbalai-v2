@@ -74,6 +74,27 @@ class _FakePromotionRepo:
         self.store[row.id] = row
         return row
 
+    async def update(self, row: GradePromotionRequest) -> GradePromotionRequest:
+        self.store[row.id] = row
+        return row
+
+    async def get_by_id(self, request_id: str) -> GradePromotionRequest | None:
+        row = self.store.get(request_id)
+        if row is None or row.deleted_at is not None:
+            return None
+        return row
+
+    async def list_for_school(
+        self,
+        school_id: str,
+        *,
+        status: GradePromotionRequestStatus | None = None,
+    ) -> list[GradePromotionRequest]:
+        rows = [r for r in self.store.values() if r.school_id == school_id and r.deleted_at is None]
+        if status is not None:
+            rows = [r for r in rows if r.status == status]
+        return sorted(rows, key=lambda r: r.requested_at, reverse=True)
+
 
 class _FakeUserRepo:
     users: dict[str, User] = {}
@@ -101,6 +122,30 @@ def _coordinator(*, scope: str = "Grade 9", school_id: str = "school-1") -> User
         status=UserAccountStatus.ACTIVE,
         school_id=school_id,
         scoped_ids=scope,
+    )
+
+
+def _school_admin(*, school_id: str = "school-1") -> User:
+    return User(
+        id="admin-1",
+        authentik_id="admin-1",
+        email="admin@test.com",
+        display_name="Admin",
+        role=UserRole.SCHOOL_ADMIN,
+        status=UserAccountStatus.ACTIVE,
+        school_id=school_id,
+    )
+
+
+def _district_admin(*, school_id: str = "school-1") -> User:
+    return User(
+        id="dist-1",
+        authentik_id="dist-1",
+        email="dist@test.com",
+        display_name="District",
+        role=UserRole.DISTRICT_ADMIN,
+        status=UserAccountStatus.ACTIVE,
+        school_id=school_id,
     )
 
 
@@ -151,6 +196,8 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakePromotionRepo.store = {}
     _FakeUserRepo.users = {
         "coord-1": _coordinator(),
+        "admin-1": _school_admin(),
+        "dist-1": _district_admin(),
         "s1": _student("s1"),
         "s2": _student("s2"),
         "s3": _student("s3"),
@@ -165,6 +212,10 @@ def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     )
     monkeypatch.setattr("app.features.promotions.service.UserRepository", _FakeUserRepo)
     monkeypatch.setattr("app.features.promotions.service.audit", AsyncMock())
+    monkeypatch.setattr(
+        "app.features.promotions.service.PromotionService._enqueue_execute_promotion",
+        AsyncMock(),
+    )
 
 
 def _build_client(
@@ -283,3 +334,82 @@ async def test_roster_lists_active_students() -> None:
     assert resp.status_code == 200, resp.text
     data = resp.json()["data"]
     assert {row["student_user_id"] for row in data} == {"s1", "s2", "s3"}
+
+
+async def _seed_pending() -> str:
+    async with _build_client() as client:
+        resp = await client.post(
+            "/api/v1/grades/grade-9/promotion-requests/",
+            json={
+                "target_academic_session": "2026-2027",
+                "target_grade_name": "Grade 10",
+                "exclusion_list": ["s1"],
+            },
+        )
+    assert resp.status_code == 201, resp.text
+    return str(resp.json()["data"]["id"])
+
+
+@pytest.mark.asyncio
+async def test_school_admin_lists_and_approves() -> None:
+    request_id = await _seed_pending()
+    async with _build_client(role="school_admin", sub="admin-1") as client:
+        listed = await client.get(
+            "/api/v1/promotion-requests",
+            params={"status": "pending_approval"},
+        )
+        assert listed.status_code == 200, listed.text
+        assert len(listed.json()["data"]) == 1
+
+        approved = await client.post(f"/api/v1/promotion-requests/{request_id}/approve")
+    assert approved.status_code == 200, approved.text
+    assert approved.json()["data"]["status"] == "approved"
+
+
+@pytest.mark.asyncio
+async def test_district_admin_can_approve_via_inheritance() -> None:
+    request_id = await _seed_pending()
+    async with _build_client(role="district_admin", sub="dist-1") as client:
+        resp = await client.post(f"/api/v1/promotion-requests/{request_id}/approve")
+    assert resp.status_code == 200, resp.text
+    assert resp.json()["data"]["status"] == "approved"
+
+
+@pytest.mark.asyncio
+async def test_coordinator_cannot_approve() -> None:
+    request_id = await _seed_pending()
+    async with _build_client() as client:
+        resp = await client.post(f"/api/v1/promotion-requests/{request_id}/approve")
+    assert resp.status_code == 403
+
+
+@pytest.mark.asyncio
+async def test_reject_then_reinitiate() -> None:
+    request_id = await _seed_pending()
+    async with _build_client(role="school_admin", sub="admin-1") as client:
+        rejected = await client.post(
+            f"/api/v1/promotion-requests/{request_id}/reject",
+            json={"reason": "hold more students"},
+        )
+    assert rejected.status_code == 200, rejected.text
+    assert rejected.json()["data"]["status"] == "rejected"
+
+    async with _build_client() as client:
+        again = await client.post(
+            "/api/v1/grades/grade-9/promotion-requests/",
+            json={
+                "target_academic_session": "2026-2027",
+                "target_grade_name": "Grade 10",
+                "exclusion_list": [],
+            },
+        )
+    assert again.status_code == 201, again.text
+
+
+@pytest.mark.asyncio
+async def test_approve_wrong_school_404() -> None:
+    request_id = await _seed_pending()
+    _FakeUserRepo.users["admin-1"] = _school_admin(school_id="school-other")
+    async with _build_client(role="school_admin", sub="admin-1") as client:
+        resp = await client.post(f"/api/v1/promotion-requests/{request_id}/approve")
+    assert resp.status_code == 404
