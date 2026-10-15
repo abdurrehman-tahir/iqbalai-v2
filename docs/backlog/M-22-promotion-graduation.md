@@ -138,7 +138,7 @@ Built-or-not audit (2026-10-15) against `staging`. Cite these paths; extend / wi
 **Milestone:** M-22
 **Estimate:** 1 day
 **Status:** done
-**Commit:** (pending)
+**Commit:** be3c263
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.4 (approval gate), §4 (Approve promotion), §5.5 (re-initiate after reject)
