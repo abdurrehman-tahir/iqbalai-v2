@@ -43,7 +43,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Milestone:** M-17
 **Estimate:** 2.5 days
 **Status:** done
-**Commit:** (pending)
+**Commit:** 9f7bb99
 
 ### Spec source
 - `flow-8-self-study.md` §3.1 (entering mode; independent redirect; state persistence; subscription no-op placeholder), §10 (data model sketch)
