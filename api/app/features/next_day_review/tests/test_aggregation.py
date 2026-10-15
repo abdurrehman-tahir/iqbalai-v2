@@ -61,7 +61,7 @@ def test_aggregate_nightly_fans_out_one_task_per_school() -> None:
             "app.features.next_day_review.tasks.run_db",
             return_value=["sch-a", "sch-b", "sch-c"],
         ),
-        patch("app.features.next_day_review.tasks.aggregate_school.apply_async") as apply_async,
+        patch("app.features.next_day_review.tasks.classify_school.apply_async") as apply_async,
     ):
         count = aggregate_nightly(review_date="2026-10-15")
 
