@@ -1031,6 +1031,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/grades/{grade_id}/promotion-requests/": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Initiate a grade promotion request with exclusion list */
+        post: operations["promotion_requests_create"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/grades/{grade_id}/promotion-requests/roster": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List active grade roster for promotion exclusion checkboxes */
+        get: operations["promotion_requests_roster"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/grades/{grade_id}/sections/": {
         parameters: {
             query?: never;
@@ -4885,6 +4919,64 @@ export interface components {
             /** Name */
             name: string;
         };
+        /**
+         * GradePromotionRequestCreate
+         * @description Body intent for T-251 initiate — grade_id comes from the path.
+         */
+        GradePromotionRequestCreate: {
+            /** Exclusion List */
+            exclusion_list?: string[];
+            /** Target Academic Session */
+            target_academic_session: string;
+            /** Target Grade Name */
+            target_grade_name: string;
+        };
+        /** GradePromotionRequestRead */
+        GradePromotionRequestRead: {
+            /** Approved At */
+            approved_at?: string | null;
+            /** Approved By User Id */
+            approved_by_user_id?: string | null;
+            /** Exclusion List Jsonb */
+            exclusion_list_jsonb?: string[];
+            /** Executed At */
+            executed_at?: string | null;
+            /** Failure Reason */
+            failure_reason?: string | null;
+            /** Id */
+            id: string;
+            /** Initiated By Coordinator Id */
+            initiated_by_coordinator_id: string;
+            /** Initiating Grade Id */
+            initiating_grade_id: string;
+            /** Rejection Reason */
+            rejection_reason?: string | null;
+            /**
+             * Requested At
+             * Format: date-time
+             */
+            requested_at: string;
+            /**
+             * Retry Count
+             * @default 0
+             */
+            retry_count: number;
+            /** School Id */
+            school_id: string;
+            status: components["schemas"]["GradePromotionRequestStatus"];
+            /** Target Academic Session */
+            target_academic_session: string;
+            /** Target Grade Id */
+            target_grade_id?: string | null;
+            /** Target Grade Name */
+            target_grade_name: string;
+        };
+        /**
+         * GradePromotionRequestStatus
+         * @description §6.21 state machine values (stable → native Postgres enum).
+         * @enum {string}
+         */
+        GradePromotionRequestStatus: "pending_approval" | "approved" | "rejected" | "executing" | "executed" | "expired" | "failed";
         /** GradeRead */
         GradeRead: {
             /** Academic Session */
@@ -6205,6 +6297,22 @@ export interface components {
             user_id: string;
         };
         /**
+         * PromotionRosterStudentRead
+         * @description Active enrollment row for Coordinator exclusion checkboxes (T-251).
+         */
+        PromotionRosterStudentRead: {
+            /** Display Name */
+            display_name: string;
+            /** Email */
+            email: string;
+            /** Enrollment Id */
+            enrollment_id: string;
+            /** Section Id */
+            section_id: string;
+            /** Student User Id */
+            student_user_id: string;
+        };
+        /**
          * QuestionClassificationLiteral
          * @enum {string}
          */
@@ -7309,6 +7417,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[GradePromotionRequestRead] */
+        SuccessEnvelope_GradePromotionRequestRead_: {
+            data: components["schemas"]["GradePromotionRequestRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[GradeRead] */
         SuccessEnvelope_GradeRead_: {
             data: components["schemas"]["GradeRead"];
@@ -8116,6 +8233,16 @@ export interface components {
         SuccessEnvelope_list_PersonaRead__: {
             /** Data */
             data: components["schemas"]["PersonaRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[PromotionRosterStudentRead]] */
+        SuccessEnvelope_list_PromotionRosterStudentRead__: {
+            /** Data */
+            data: components["schemas"]["PromotionRosterStudentRead"][];
             /**
              * Message
              * @default ok
@@ -11371,6 +11498,72 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_OfferingRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    promotion_requests_create: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["GradePromotionRequestCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            201: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_GradePromotionRequestRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    promotion_requests_roster: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                grade_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_PromotionRosterStudentRead__"];
                 };
             };
             /** @description Validation Error */

@@ -2574,6 +2574,178 @@
         "title": "GradeCreate",
         "type": "object"
       },
+      "GradePromotionRequestCreate": {
+        "description": "Body intent for T-251 initiate \u2014 grade_id comes from the path.",
+        "properties": {
+          "exclusion_list": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclusion List",
+            "type": "array"
+          },
+          "target_academic_session": {
+            "maxLength": 50,
+            "minLength": 1,
+            "title": "Target Academic Session",
+            "type": "string"
+          },
+          "target_grade_name": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Target Grade Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "target_academic_session",
+          "target_grade_name"
+        ],
+        "title": "GradePromotionRequestCreate",
+        "type": "object"
+      },
+      "GradePromotionRequestRead": {
+        "properties": {
+          "approved_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "approved_by_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By User Id"
+          },
+          "exclusion_list_jsonb": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Exclusion List Jsonb",
+            "type": "array"
+          },
+          "executed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Executed At"
+          },
+          "failure_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Failure Reason"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "initiated_by_coordinator_id": {
+            "title": "Initiated By Coordinator Id",
+            "type": "string"
+          },
+          "initiating_grade_id": {
+            "title": "Initiating Grade Id",
+            "type": "string"
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          },
+          "requested_at": {
+            "format": "date-time",
+            "title": "Requested At",
+            "type": "string"
+          },
+          "retry_count": {
+            "default": 0,
+            "title": "Retry Count",
+            "type": "integer"
+          },
+          "school_id": {
+            "title": "School Id",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/GradePromotionRequestStatus"
+          },
+          "target_academic_session": {
+            "title": "Target Academic Session",
+            "type": "string"
+          },
+          "target_grade_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Target Grade Id"
+          },
+          "target_grade_name": {
+            "title": "Target Grade Name",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "school_id",
+          "initiating_grade_id",
+          "target_academic_session",
+          "target_grade_name",
+          "initiated_by_coordinator_id",
+          "status",
+          "requested_at"
+        ],
+        "title": "GradePromotionRequestRead",
+        "type": "object"
+      },
+      "GradePromotionRequestStatus": {
+        "description": "\u00a76.21 state machine values (stable \u2192 native Postgres enum).",
+        "enum": [
+          "pending_approval",
+          "approved",
+          "rejected",
+          "executing",
+          "executed",
+          "expired",
+          "failed"
+        ],
+        "title": "GradePromotionRequestStatus",
+        "type": "string"
+      },
       "GradeRead": {
         "properties": {
           "academic_session": {
@@ -5853,6 +6025,40 @@
         "title": "PostLoginResponse",
         "type": "object"
       },
+      "PromotionRosterStudentRead": {
+        "description": "Active enrollment row for Coordinator exclusion checkboxes (T-251).",
+        "properties": {
+          "display_name": {
+            "title": "Display Name",
+            "type": "string"
+          },
+          "email": {
+            "title": "Email",
+            "type": "string"
+          },
+          "enrollment_id": {
+            "title": "Enrollment Id",
+            "type": "string"
+          },
+          "section_id": {
+            "title": "Section Id",
+            "type": "string"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "student_user_id",
+          "display_name",
+          "email",
+          "enrollment_id",
+          "section_id"
+        ],
+        "title": "PromotionRosterStudentRead",
+        "type": "object"
+      },
       "QuestionClassificationLiteral": {
         "enum": [
           "misconception",
@@ -8452,6 +8658,23 @@
         "title": "SuccessEnvelope[FrameworkStudyPlanRead]",
         "type": "object"
       },
+      "SuccessEnvelope_GradePromotionRequestRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GradePromotionRequestRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[GradePromotionRequestRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_GradeRead_": {
         "properties": {
           "data": {
@@ -10022,6 +10245,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[PersonaRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_PromotionRosterStudentRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/PromotionRosterStudentRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[PromotionRosterStudentRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_SectionRead__": {
@@ -15255,6 +15499,100 @@
         "summary": "Unassign the teacher from an offering",
         "tags": [
           "offerings"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/promotion-requests/": {
+      "post": {
+        "operationId": "promotion_requests_create",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GradePromotionRequestCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "201": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GradePromotionRequestRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Initiate a grade promotion request with exclusion list",
+        "tags": [
+          "promotions"
+        ]
+      }
+    },
+    "/api/v1/grades/{grade_id}/promotion-requests/roster": {
+      "get": {
+        "operationId": "promotion_requests_roster",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "grade_id",
+            "required": true,
+            "schema": {
+              "title": "Grade Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_PromotionRosterStudentRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "List active grade roster for promotion exclusion checkboxes",
+        "tags": [
+          "promotions"
         ]
       }
     },

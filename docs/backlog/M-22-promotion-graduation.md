@@ -97,7 +97,8 @@ Built-or-not audit (2026-10-15) against `staging`. Cite these paths; extend / wi
 **Layer:** 6
 **Milestone:** M-22
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** (pending)
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.4 (per-grade initiation, exclusion list), §4 (permissions), §5.5 (scope / auto-create target preview)

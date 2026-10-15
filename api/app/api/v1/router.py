@@ -54,6 +54,7 @@ from app.features.parent_child_links.student_connections_router import (
 from app.features.parent_child_links.student_router import router as student_parent_links_router
 from app.features.parent_signup.router import router as parent_signup_router
 from app.features.personas.router import router as personas_router
+from app.features.promotions.router import router as promotions_router
 from app.features.quizzes.router import student_router as student_quizzes_router
 from app.features.quizzes.router import teacher_router as teacher_quiz_results_router
 from app.features.schools.router import router as districts_router
@@ -113,6 +114,7 @@ router.include_router(academic_sessions_router)
 router.include_router(admin_metrics_router)
 router.include_router(grades_router)
 router.include_router(sections_router)
+router.include_router(promotions_router)
 router.include_router(student_enrollments_router)
 router.include_router(student_onboarding_router)
 router.include_router(student_mode_router)

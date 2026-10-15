@@ -36,3 +36,13 @@ class GradePromotionRequestCreate(BaseModel):
     target_academic_session: str = Field(min_length=1, max_length=50)
     target_grade_name: str = Field(min_length=1, max_length=200)
     exclusion_list: list[str] = Field(default_factory=list)
+
+
+class PromotionRosterStudentRead(BaseModel):
+    """Active enrollment row for Coordinator exclusion checkboxes (T-251)."""
+
+    student_user_id: str
+    display_name: str
+    email: str
+    enrollment_id: str
+    section_id: str
