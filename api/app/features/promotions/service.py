@@ -1,4 +1,4 @@
-"""Promotion initiate service — T-251 (approve/execute later)."""
+"""Promotion service — initiate (T-251), approve (T-252), execute (T-253)."""
 
 from __future__ import annotations
 
@@ -7,6 +7,7 @@ from datetime import datetime, timezone
 import structlog
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.config import get_settings
 from app.core.dependencies import ROLE_HIERARCHY
 from app.core.exceptions import (
     NotFoundError,
@@ -14,9 +15,9 @@ from app.core.exceptions import (
     PreconditionFailedError,
     ValidationError,
 )
-from app.features.grades.models import Grade
+from app.features.grades.models import Grade, GradeStatus
 from app.features.grades.repository import GradeRepository
-from app.features.grades.scope import assert_grade_in_scope, parse_grade_scope
+from app.features.grades.scope import assert_grade_in_scope, derive_level_ordinal, parse_grade_scope
 from app.features.promotions.models import GradePromotionRequest, GradePromotionRequestStatus
 from app.features.promotions.repository import GradePromotionRequestRepository
 from app.features.promotions.schemas import (
@@ -24,12 +25,18 @@ from app.features.promotions.schemas import (
     GradePromotionRequestRead,
     PromotionRosterStudentRead,
 )
+from app.features.sections.models import DEFAULT_INTERNAL_NAME, Section, SectionStatus
+from app.features.sections.repository import SectionRepository
+from app.features.student_enrollments.models import StudentEnrollment, StudentEnrollmentStatus
 from app.features.student_enrollments.repository import StudentEnrollmentRepository
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
 from app.infrastructure.audit.log import audit
 
 logger = structlog.get_logger(__name__)
+
+# Matches Celery max_retries on execute_promotion (T-253 / ARCH §6.21).
+EXECUTE_MAX_RETRIES = 5
 
 
 class PromotionService:
@@ -38,6 +45,7 @@ class PromotionService:
         self._requests = GradePromotionRequestRepository(session)
         self._grades = GradeRepository(session)
         self._enrollments = StudentEnrollmentRepository(session)
+        self._sections = SectionRepository(session)
         self._users = UserRepository(session)
 
     async def _resolve_actor(self, actor_id: str) -> User:
@@ -172,9 +180,16 @@ class PromotionService:
             grade_id=row.initiating_grade_id,
         )
 
-    async def _enqueue_execute_promotion(self, request_id: str) -> None:
-        """Stub until T-253 ships ``execute_promotion`` Celery task."""
-        logger.info("promotion.execute_enqueued_stub", request_id=request_id)
+    async def _enqueue_execute_promotion(self, request_id: str, school_id: str) -> None:
+        """Enqueue Celery ``execute_promotion`` (T-253)."""
+        from app.features.promotions.tasks import execute_promotion
+
+        execute_promotion.delay(school_id=school_id, promotion_request_id=request_id)
+        logger.info(
+            "promotion.execute_enqueued",
+            request_id=request_id,
+            school_id=school_id,
+        )
 
     def _assert_school_admin_or_higher(self, actor: User) -> None:
         level = ROLE_HIERARCHY.get(actor.role.value, 0)
@@ -252,7 +267,7 @@ class PromotionService:
             school_id=row.school_id,
             metadata={"initiating_grade_id": row.initiating_grade_id},
         )
-        await self._enqueue_execute_promotion(row.id)
+        await self._enqueue_execute_promotion(row.id, row.school_id)
         return GradePromotionRequestRead.model_validate(row)
 
     async def reject_promotion_request(
@@ -286,3 +301,205 @@ class PromotionService:
             metadata={"reason": reason},
         )
         return GradePromotionRequestRead.model_validate(row)
+
+    # --- T-253 execute -----------------------------------------------------------
+
+    async def _default_section_id(self, grade_id: str) -> str:
+        rows = await self._sections.list_by_grade(grade_id)
+        default = next((s for s in rows if s.is_default_internal), None)
+        if default is None:
+            section = Section(
+                grade_id=grade_id,
+                name=DEFAULT_INTERNAL_NAME,
+                is_default_internal=True,
+                status=SectionStatus.ACTIVE,
+            )
+            self._session.add(section)
+            await self._session.flush()
+            return section.id
+        return default.id
+
+    async def _ensure_grade(
+        self,
+        *,
+        school_id: str,
+        name: str,
+        academic_session: str,
+        promoted_from_grade_id: str | None = None,
+    ) -> Grade:
+        existing = await self._grades.get_by_name_session(school_id, name, academic_session)
+        if existing is not None and existing.deleted_at is None:
+            if promoted_from_grade_id is not None and existing.promoted_from_grade_id is None:
+                existing.promoted_from_grade_id = promoted_from_grade_id
+                await self._session.flush()
+            return existing
+
+        grade = Grade(
+            school_id=school_id,
+            name=name,
+            academic_session=academic_session,
+            level_ordinal=derive_level_ordinal(name),
+            promoted_from_grade_id=promoted_from_grade_id,
+            status=GradeStatus.ACTIVE,
+        )
+        self._session.add(grade)
+        await self._session.flush()
+        await self._default_section_id(grade.id)
+        return grade
+
+    async def _repoint_enrollment(
+        self,
+        enrollment: StudentEnrollment,
+        *,
+        target_grade: Grade,
+    ) -> None:
+        """Withdraw old enrollment and create a fresh active one on the target grade."""
+        now = datetime.now(timezone.utc)
+        enrollment.status = StudentEnrollmentStatus.WITHDRAWN
+        section_id = await self._default_section_id(target_grade.id)
+        new_enrollment = StudentEnrollment(
+            school_id=enrollment.school_id,
+            student_user_id=enrollment.student_user_id,
+            grade_id=target_grade.id,
+            section_id=section_id,
+            academic_session=target_grade.academic_session,
+            status=StudentEnrollmentStatus.ACTIVE,
+            enrolled_at=now,
+        )
+        self._session.add(new_enrollment)
+        await self._session.flush()
+
+    async def execute_promotion_request(
+        self,
+        promotion_request_id: str,
+        *,
+        school_id: str,
+    ) -> dict[str, object]:
+        """Atomic mid-grade promotion execution (T-253). Final-grade → T-256."""
+        row = await self._requests.get_by_id(promotion_request_id)
+        if row is None or row.school_id != school_id:
+            raise NotFoundError("Promotion request not found")
+        if row.status not in {
+            GradePromotionRequestStatus.APPROVED,
+            GradePromotionRequestStatus.EXECUTING,
+        }:
+            raise PreconditionFailedError(
+                f"Promotion request status {row.status.value} is not executable"
+            )
+
+        source = await self._grades.get_by_id(row.initiating_grade_id)
+        if source is None or source.deleted_at is not None:
+            raise NotFoundError("Initiating grade not found")
+
+        settings = get_settings()
+        if source.level_ordinal >= settings.FINAL_GRADE_LEVEL_ORDINAL:
+            # Grade 12 / final cascade owned by T-256 — leave approved for that ticket.
+            logger.info(
+                "promotion.final_grade_deferred",
+                request_id=row.id,
+                level_ordinal=source.level_ordinal,
+            )
+            return {
+                "request_id": row.id,
+                "deferred_final_grade": True,
+                "promoted_count": 0,
+                "held_back_count": 0,
+            }
+
+        row.status = GradePromotionRequestStatus.EXECUTING
+        await self._session.flush()
+
+        try:
+            target = await self._ensure_grade(
+                school_id=school_id,
+                name=row.target_grade_name,
+                academic_session=row.target_academic_session,
+                promoted_from_grade_id=source.id,
+            )
+            held_back_grade = await self._ensure_grade(
+                school_id=school_id,
+                name=source.name,
+                academic_session=row.target_academic_session,
+                promoted_from_grade_id=None,
+            )
+
+            enrollments = await self._enrollments.list_active_for_grade(
+                source.id, source.academic_session
+            )
+            exclusion = set(row.exclusion_list_jsonb or [])
+            promoted_count = 0
+            held_back_count = 0
+            for enrollment in enrollments:
+                if enrollment.student_user_id in exclusion:
+                    await self._repoint_enrollment(enrollment, target_grade=held_back_grade)
+                    held_back_count += 1
+                else:
+                    await self._repoint_enrollment(enrollment, target_grade=target)
+                    promoted_count += 1
+
+            now = datetime.now(timezone.utc)
+            row.target_grade_id = target.id
+            row.status = GradePromotionRequestStatus.EXECUTED
+            row.executed_at = now
+            await self._session.commit()
+
+            await audit(
+                session=self._session,
+                action="promotion.executed",
+                actor_id=None,
+                actor_role="system",
+                target_type="grade_promotion_request",
+                target_id=row.id,
+                school_id=school_id,
+                metadata={
+                    "promoted_count": promoted_count,
+                    "held_back_count": held_back_count,
+                    "target_grade_id": target.id,
+                },
+            )
+            logger.info(
+                "promotion.executed",
+                request_id=row.id,
+                promoted_count=promoted_count,
+                held_back_count=held_back_count,
+            )
+            return {
+                "request_id": row.id,
+                "deferred_final_grade": False,
+                "promoted_count": promoted_count,
+                "held_back_count": held_back_count,
+                "target_grade_id": target.id,
+            }
+        except Exception as exc:
+            await self._session.rollback()
+            await self._record_execute_failure(promotion_request_id, school_id, exc)
+            raise
+
+    async def _record_execute_failure(
+        self,
+        promotion_request_id: str,
+        school_id: str,
+        exc: Exception,
+    ) -> None:
+        row = await self._requests.get_by_id(promotion_request_id)
+        if row is None or row.school_id != school_id:
+            return
+        row.retry_count = int(row.retry_count or 0) + 1
+        row.failure_reason = str(exc)[:2000]
+        if row.retry_count > EXECUTE_MAX_RETRIES:
+            row.status = GradePromotionRequestStatus.FAILED
+            await self._notify_execution_failed(row)
+        else:
+            # Stay / return to approved so a retry can re-enter executing.
+            row.status = GradePromotionRequestStatus.APPROVED
+        await self._session.commit()
+
+    async def _notify_execution_failed(self, row: GradePromotionRequest) -> None:
+        """Hook for T-255 (account.promotion_execution_failed)."""
+        logger.error(
+            "promotion.execution_failed_terminal",
+            request_id=row.id,
+            school_id=row.school_id,
+            retry_count=row.retry_count,
+            failure_reason=row.failure_reason,
+        )

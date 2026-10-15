@@ -40,6 +40,11 @@ except ImportError:
     pass
 
 try:
+    import app.features.promotions.tasks  # noqa: F401
+except ImportError:
+    pass
+
+try:
     import app.features.exam_frameworks.tasks  # noqa: F401
 except ImportError:
     pass
