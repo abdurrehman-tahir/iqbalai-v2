@@ -176,7 +176,7 @@ Built-or-not audit (2026-10-15) against `staging`. Cite these paths; extend / wi
 **Milestone:** M-22
 **Estimate:** 1.5 days
 **Status:** done
-**Commit:** (pending)
+**Commit:** 35b7a00
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.4 (atomic bulk migrate / held-back session reset), §5.5 (rollback, auto-create target Grade), soft_time_limit note
