@@ -47,6 +47,15 @@ async def test_allow_web_fallback_false_skips_searxng(monkeypatch: pytest.Monkey
         "app.features.teacher_coaching.service.get_generation_coaching_context_school",
         _fake_coaching,
     )
+    # Generation enqueues tips + scoring; CI has no Redis on :6379.
+    monkeypatch.setattr(
+        "app.features.lectures.tasks.generate_lecture_teacher_tips.apply_async",
+        MagicMock(),
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.tasks.score_lecture_version.apply_async",
+        MagicMock(),
+    )
 
     lecture = SchoolLecture(
         id="lec-mini",
