@@ -13,7 +13,7 @@ from datetime import date
 from typing import Any
 
 import structlog
-from celery import shared_task  # type: ignore[import-untyped]
+from celery import shared_task
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.celery_async import run_db

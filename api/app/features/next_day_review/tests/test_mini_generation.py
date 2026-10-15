@@ -128,8 +128,10 @@ async def test_generate_mini_sets_type_parent_disables_web_publishes_event() -> 
     lecture = created["lecture"]
     assert lecture.lecture_type == LectureType.MINI
     assert lecture.parent_lecture_id == "parent-1"
+    assert gen.await_args is not None
     assert gen.await_args.kwargs["allow_web_fallback"] is False
     pub.assert_awaited()
+    assert pub.await_args is not None
     assert pub.await_args.kwargs["event_type"] == MINI_LECTURE_GENERATED
 
 
