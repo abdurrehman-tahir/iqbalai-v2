@@ -2,4 +2,7 @@
 
 from __future__ import annotations
 
-__all__ = ["models"]
+from app.features.self_study import models as models
+from app.features.self_study import sessions as sessions
+
+__all__ = ["models", "sessions"]

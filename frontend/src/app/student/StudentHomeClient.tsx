@@ -141,6 +141,13 @@ export function StudentHomeClient() {
                 {t("self_study_resumed_state")}
               </p>
             )}
+          <a
+            href="/student/self-study"
+            className="inline-block text-sm text-blue-600 hover:underline"
+            data-testid="self-study-session-link"
+          >
+            {t("self_study_session_link")}
+          </a>
         </section>
       )}
 

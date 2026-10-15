@@ -566,7 +566,8 @@
       "mode_hint_self_study": "__TODO__ Self-Study mode is active.",
       "self_study_resumed_state": "__TODO__ Resumed last goal / material / plan view when available.",
       "self_study_loading_entry": "__TODO__ Loading self-study…",
-      "self_study_entry_error": "__TODO__ Could not load self-study state."
+      "self_study_entry_error": "__TODO__ Could not load self-study state.",
+      "self_study_session_link": "__TODO__ Open self-study session"
     },
     "quizzes": {
       "title": "ستاسو کوئزونه",
@@ -854,7 +855,8 @@
         "resumed_state_label": "__TODO__ Resumed from last session",
         "loading_entry": "__TODO__ Loading self-study…",
         "entry_error": "__TODO__ Could not load self-study. Try again.",
-        "subscription_gate_noop": "__TODO__ Plan limits are not enforced yet."
+        "subscription_gate_noop": "__TODO__ Plan limits are not enforced yet.",
+        "session_link": "__TODO__ Open self-study session"
       }
     }
   },
@@ -1112,6 +1114,25 @@
       "auto_send_countdown": "په {seconds} ثانیو کې لیږل کیږي — د لغوه کولو لپاره ټایپ کړئ",
       "voice_unavailable": "په {language} کې غږ لاهم شتون نلري",
       "voice_error": "ثبت متن ته بدل نه شو. بیا هڅه وکړئ."
+    }
+  },
+  "self_study": {
+    "session": {
+      "title": "__TODO__ Self-Study session",
+      "subtitle": "__TODO__ Ask questions with the same hybrid widget and live panel as Lecture Mode.",
+      "back_home": "__TODO__ Back to home",
+      "start": "__TODO__ Start session",
+      "end": "__TODO__ End session",
+      "start_error": "__TODO__ Could not start session.",
+      "widget_label": "__TODO__ Ask a question",
+      "ask_placeholder": "__TODO__ Ask about your materials…",
+      "submitted_voice_or_image": "__TODO__ (voice or image submitted)",
+      "last_submit": "__TODO__ You asked: {text}",
+      "due_title": "__TODO__ Due flashcards",
+      "due_schedule_note": "__TODO__ Scheduling is owned by Flow 9 — this list is read-only for now.",
+      "due_loading": "__TODO__ Loading flashcards…",
+      "due_error": "__TODO__ Could not load flashcards.",
+      "due_empty": "__TODO__ No flashcards yet."
     }
   }
 }

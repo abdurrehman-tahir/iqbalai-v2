@@ -95,6 +95,9 @@ import type {
   StudentModeUpdate,
   SelfStudyEntryRead,
   SelfStudyStateUpdate,
+  SelfStudySessionRead,
+  SelfStudySessionStart,
+  DueFlashcardsListRead,
   DiagnosticRead,
   DiagnosticResultRead,
   DiagnosticStartRequest,
@@ -1557,7 +1560,7 @@ export const studentModeApi = {
     ),
 };
 
-/** Self-study entry + persisted view state (T-209 / Flow 8 §3.1). */
+/** Self-study entry + session + due flashcards (T-209 / T-210). */
 export const selfStudyApi = {
   getEntry: (token: string) => request<SelfStudyEntryRead>("/self-study/me/entry", {}, token),
   patchState: (token: string, data: SelfStudyStateUpdate) =>
@@ -1566,6 +1569,20 @@ export const selfStudyApi = {
       { method: "PATCH", body: JSON.stringify(data) },
       token
     ),
+  startSession: (token: string, data: SelfStudySessionStart = {}) =>
+    request<SelfStudySessionRead>(
+      "/self-study/me/sessions",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  endSession: (token: string, sessionId: string) =>
+    request<SelfStudySessionRead>(
+      `/self-study/me/sessions/${sessionId}/end`,
+      { method: "POST", body: JSON.stringify({}) },
+      token
+    ),
+  listDueFlashcards: (token: string) =>
+    request<DueFlashcardsListRead>("/self-study/me/due-flashcards", {}, token),
 };
 
 /** #72 teacher-activity share (T-162) — default share; independent students 404. */

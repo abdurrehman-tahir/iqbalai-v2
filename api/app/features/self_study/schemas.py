@@ -46,3 +46,40 @@ class SelfStudyStateUpdate(BaseModel):
     last_goal_id: str | None = Field(default=None)
     last_material_id: str | None = Field(default=None)
     last_plan_view: str | None = Field(default=None)
+
+
+class SelfStudySessionStart(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    material_id: str | None = None
+    study_plan_id: str | None = None
+
+
+class SelfStudySessionRead(BaseModel):
+    id: str
+    tenant_type: Literal["school", "independent"]
+    mode: Literal["self_study"]
+    status: Literal["active", "ended"]
+    material_id: str | None = None
+    study_plan_id: str | None = None
+    # Retrieval plan summary (Pattern A + personal pool + overlays).
+    retrieval_primary: Literal["student_upload_chunks"]
+    retrieval_overlays: list[str]
+    reaches_flow7: bool
+
+
+class DueFlashcardRead(BaseModel):
+    """Read-only due card — schedule owned by Flow 9 (py-fsrs not computed here)."""
+
+    id: str
+    front_text: str
+    back_text: str
+    concept_tag: str | None = None
+    # Always null until M-18 owns scheduling (py-fsrs).
+    due_at: str | None = None
+
+
+class DueFlashcardsListRead(BaseModel):
+    items: list[DueFlashcardRead]
+    schedule_computed: bool = False
+    schedule_owner: Literal["flow_9"] = "flow_9"

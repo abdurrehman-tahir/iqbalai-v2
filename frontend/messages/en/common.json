@@ -495,6 +495,7 @@
       "self_study_resumed_state": "Resumed last goal / material / plan view when available.",
       "self_study_loading_entry": "Loading self-study…",
       "self_study_entry_error": "Could not load self-study state.",
+      "self_study_session_link": "Open self-study session",
       "exam_date_passed_prompt": "Your exam date has passed. Set a new exam date to keep pacing on track."
     },
     "quizzes": {
@@ -1975,7 +1976,8 @@
         "resumed_state_label": "Resumed from last session",
         "loading_entry": "Loading self-study…",
         "entry_error": "Could not load self-study. Try again.",
-        "subscription_gate_noop": "Plan limits are not enforced yet."
+        "subscription_gate_noop": "Plan limits are not enforced yet.",
+        "session_link": "Open self-study session"
       }
     }
   },
@@ -2083,6 +2085,25 @@
       "auto_send_countdown": "Sending in {seconds}s — tap to cancel",
       "voice_unavailable": "Voice not yet available in {language}",
       "voice_error": "Could not transcribe your recording. Please try again."
+    }
+  },
+  "self_study": {
+    "session": {
+      "title": "Self-Study session",
+      "subtitle": "Ask questions with the same hybrid widget and live panel as Lecture Mode.",
+      "back_home": "Back to home",
+      "start": "Start session",
+      "end": "End session",
+      "start_error": "Could not start session.",
+      "widget_label": "Ask a question",
+      "ask_placeholder": "Ask about your materials…",
+      "submitted_voice_or_image": "(voice or image submitted)",
+      "last_submit": "You asked: {text}",
+      "due_title": "Due flashcards",
+      "due_schedule_note": "Scheduling is owned by Flow 9 — this list is read-only for now.",
+      "due_loading": "Loading flashcards…",
+      "due_error": "Could not load flashcards.",
+      "due_empty": "No flashcards yet."
     }
   }
 }

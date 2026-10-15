@@ -1715,6 +1715,79 @@
         "title": "DistrictUpdate",
         "type": "object"
       },
+      "DueFlashcardRead": {
+        "description": "Read-only due card \u2014 schedule owned by Flow 9 (py-fsrs not computed here).",
+        "properties": {
+          "back_text": {
+            "title": "Back Text",
+            "type": "string"
+          },
+          "concept_tag": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Concept Tag"
+          },
+          "due_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Due At"
+          },
+          "front_text": {
+            "title": "Front Text",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "front_text",
+          "back_text"
+        ],
+        "title": "DueFlashcardRead",
+        "type": "object"
+      },
+      "DueFlashcardsListRead": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/DueFlashcardRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "schedule_computed": {
+            "default": false,
+            "title": "Schedule Computed",
+            "type": "boolean"
+          },
+          "schedule_owner": {
+            "const": "flow_9",
+            "default": "flow_9",
+            "title": "Schedule Owner",
+            "type": "string"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "DueFlashcardsListRead",
+        "type": "object"
+      },
       "EditSessionHeartbeatRequest": {
         "additionalProperties": false,
         "description": "Cumulative (not delta) totals for the session so far \u2014 a retried\nheartbeat overwrites with the same values instead of double-counting\n(ARCH \u00a75.9 doesn't require Idempotency-Key here since this isn't a\nresource-creating POST, but the values themselves must still be\nidempotent-safe against a client retry).",
@@ -6635,6 +6708,113 @@
         "title": "SelfStudyPersistedState",
         "type": "object"
       },
+      "SelfStudySessionRead": {
+        "properties": {
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "material_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material Id"
+          },
+          "mode": {
+            "const": "self_study",
+            "title": "Mode",
+            "type": "string"
+          },
+          "reaches_flow7": {
+            "title": "Reaches Flow7",
+            "type": "boolean"
+          },
+          "retrieval_overlays": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Retrieval Overlays",
+            "type": "array"
+          },
+          "retrieval_primary": {
+            "const": "student_upload_chunks",
+            "title": "Retrieval Primary",
+            "type": "string"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "ended"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "study_plan_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Study Plan Id"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_type",
+          "mode",
+          "status",
+          "retrieval_primary",
+          "retrieval_overlays",
+          "reaches_flow7"
+        ],
+        "title": "SelfStudySessionRead",
+        "type": "object"
+      },
+      "SelfStudySessionStart": {
+        "additionalProperties": false,
+        "properties": {
+          "material_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Material Id"
+          },
+          "study_plan_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Study Plan Id"
+          }
+        },
+        "title": "SelfStudySessionStart",
+        "type": "object"
+      },
       "SelfStudyStateUpdate": {
         "additionalProperties": false,
         "description": "Partial update of persisted self-study view keys.",
@@ -8539,6 +8719,23 @@
         "title": "SuccessEnvelope[DisclaimerVersionRead]",
         "type": "object"
       },
+      "SuccessEnvelope_DueFlashcardsListRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/DueFlashcardsListRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[DueFlashcardsListRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_EditSessionRead_": {
         "properties": {
           "data": {
@@ -9387,6 +9584,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[SelfStudyEntryRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SelfStudySessionRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SelfStudySessionRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SelfStudySessionRead]",
         "type": "object"
       },
       "SuccessEnvelope_SimulationProgressRead_": {
@@ -18505,6 +18719,27 @@
         ]
       }
     },
+    "/api/v1/self-study/me/due-flashcards": {
+      "get": {
+        "operationId": "self_study_list_due_flashcards",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_DueFlashcardsListRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Read-only due flashcards deck (schedule owned by Flow 9)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
     "/api/v1/self-study/me/entry": {
       "get": {
         "operationId": "self_study_get_entry",
@@ -18521,6 +18756,89 @@
           }
         },
         "summary": "Enter self-study mode (resume state; independent redirects)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/sessions": {
+      "post": {
+        "operationId": "self_study_start_session",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfStudySessionStart"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudySessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Start a self-study session (Flow 6 reuse; mode=self_study events)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/sessions/{session_id}/end": {
+      "post": {
+        "operationId": "self_study_end_session",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "session_id",
+            "required": true,
+            "schema": {
+              "title": "Session Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudySessionRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "End a self-study session",
         "tags": [
           "self-study"
         ]

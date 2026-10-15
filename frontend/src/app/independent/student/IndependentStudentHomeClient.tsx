@@ -120,9 +120,18 @@ export function IndependentStudentHomeClient() {
         </div>
       )}
 
-      <a href="/independent/student/diagnostics" className="text-sm text-blue-600 hover:underline">
-        {t("diagnostics_link")}
-      </a>
+      <p className="flex flex-wrap gap-4">
+        <a href="/independent/student/diagnostics" className="text-sm text-blue-600 hover:underline">
+          {t("diagnostics_link")}
+        </a>
+        <a
+          href="/independent/student/self-study"
+          className="text-sm text-blue-600 hover:underline"
+          data-testid="self-study-session-link"
+        >
+          {t("session_link")}
+        </a>
+      </p>
     </div>
   );
 }

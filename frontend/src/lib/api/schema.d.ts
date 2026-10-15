@@ -2094,6 +2094,23 @@ export interface paths {
         patch: operations["school_library_set_reference_visibility"];
         trace?: never;
     };
+    "/api/v1/self-study/me/due-flashcards": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Read-only due flashcards deck (schedule owned by Flow 9) */
+        get: operations["self_study_list_due_flashcards"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/self-study/me/entry": {
         parameters: {
             query?: never;
@@ -2105,6 +2122,40 @@ export interface paths {
         get: operations["self_study_get_entry"];
         put?: never;
         post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/sessions": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Start a self-study session (Flow 6 reuse; mode=self_study events) */
+        post: operations["self_study_start_session"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/sessions/{session_id}/end": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End a self-study session */
+        post: operations["self_study_end_session"];
         delete?: never;
         options?: never;
         head?: never;
@@ -4595,6 +4646,38 @@ export interface components {
             region?: string | null;
         };
         /**
+         * DueFlashcardRead
+         * @description Read-only due card — schedule owned by Flow 9 (py-fsrs not computed here).
+         */
+        DueFlashcardRead: {
+            /** Back Text */
+            back_text: string;
+            /** Concept Tag */
+            concept_tag?: string | null;
+            /** Due At */
+            due_at?: string | null;
+            /** Front Text */
+            front_text: string;
+            /** Id */
+            id: string;
+        };
+        /** DueFlashcardsListRead */
+        DueFlashcardsListRead: {
+            /** Items */
+            items: components["schemas"]["DueFlashcardRead"][];
+            /**
+             * Schedule Computed
+             * @default false
+             */
+            schedule_computed: boolean;
+            /**
+             * Schedule Owner
+             * @default flow_9
+             * @constant
+             */
+            schedule_owner: "flow_9";
+        };
+        /**
          * EditSessionHeartbeatRequest
          * @description Cumulative (not delta) totals for the session so far — a retried
          *     heartbeat overwrites with the same values instead of double-counting
@@ -6563,6 +6646,46 @@ export interface components {
             /** Last Plan View */
             last_plan_view?: string | null;
         };
+        /** SelfStudySessionRead */
+        SelfStudySessionRead: {
+            /** Id */
+            id: string;
+            /** Material Id */
+            material_id?: string | null;
+            /**
+             * Mode
+             * @constant
+             */
+            mode: "self_study";
+            /** Reaches Flow7 */
+            reaches_flow7: boolean;
+            /** Retrieval Overlays */
+            retrieval_overlays: string[];
+            /**
+             * Retrieval Primary
+             * @constant
+             */
+            retrieval_primary: "student_upload_chunks";
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "ended";
+            /** Study Plan Id */
+            study_plan_id?: string | null;
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
+        };
+        /** SelfStudySessionStart */
+        SelfStudySessionStart: {
+            /** Material Id */
+            material_id?: string | null;
+            /** Study Plan Id */
+            study_plan_id?: string | null;
+        };
         /**
          * SelfStudyStateUpdate
          * @description Partial update of persisted self-study view keys.
@@ -7364,6 +7487,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[DueFlashcardsListRead] */
+        SuccessEnvelope_DueFlashcardsListRead_: {
+            data: components["schemas"]["DueFlashcardsListRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[EditSessionRead] */
         SuccessEnvelope_EditSessionRead_: {
             data: components["schemas"]["EditSessionRead"];
@@ -7808,6 +7940,15 @@ export interface components {
         /** SuccessEnvelope[SelfStudyEntryRead] */
         SuccessEnvelope_SelfStudyEntryRead_: {
             data: components["schemas"]["SelfStudyEntryRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SelfStudySessionRead] */
+        SuccessEnvelope_SelfStudySessionRead_: {
+            data: components["schemas"]["SelfStudySessionRead"];
             /**
              * Message
              * @default ok
@@ -13519,6 +13660,26 @@ export interface operations {
             };
         };
     };
+    self_study_list_due_flashcards: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_DueFlashcardsListRead_"];
+                };
+            };
+        };
+    };
     self_study_get_entry: {
         parameters: {
             query?: never;
@@ -13535,6 +13696,70 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_SelfStudyEntryRead_"];
+                };
+            };
+        };
+    };
+    self_study_start_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelfStudySessionStart"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudySessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_end_session: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                session_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudySessionRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };
