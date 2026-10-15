@@ -1,8 +1,9 @@
-# Session state — M-11 Auto-quiz + Publish
+# Session state (live)
 
-- **Branch:** `milestone/M-11-auto-quiz-publish-m10` (based on M-10 tip `48b2a6f`)
-- **Status:** implementation complete; opening milestone PR → staging
-- **Tickets T-141–T-150:** Status:done in backlog (pending commit SHA fill after commit)
-- **Migrations live-verified:** school_0065 + independent_0018 on local Postgres
-- **Tests:** API 45 passed; FE Vitest 6 passed; Playwright blocked on Alpine/ENOENT in this env
-- **Note:** branch diverged from current origin/staging (staging has Next.js CVE hotfix not in M-10 tip)
+**Milestone:** M-16 Next-Day Review
+**Branch:** milestone/M-16-next-day-review
+**Done:** T-195
+**Current ticket:** T-195 complete — review models + school_0080 + tests
+**Next:** T-196 (overnight aggregation beat + per-school task)
+**Dossier sources:** flow-7 §3.1/§3.6/§3.8; ARCH §0/§3.16/§4/§4.12
+**Out of scope reminder:** pipeline (T-196+); DNA consumer (M-18)

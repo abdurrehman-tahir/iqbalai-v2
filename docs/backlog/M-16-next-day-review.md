@@ -42,7 +42,7 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.1, §3.6, §3.8 (tables: `lecture_reviews`, `review_replies`, `skipped_clusters`, `review_classification_failures` DLQ)

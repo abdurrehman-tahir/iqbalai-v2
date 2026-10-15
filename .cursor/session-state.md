@@ -1,8 +1,9 @@
 # Session state (live)
 
-**Milestone:** M-09 Lecture Wizard + AI Generation
-**Branch:** milestone/M-09-lecture-wizard-generation
-**Done:** T-113 … T-128 (all)
-**Current ticket:** T-128 complete — PR open for Abd. review
-**Next:** live demo + address review + merge to staging (human)
-**Out of scope reminder:** Edit+versions → M-10; quiz/publish → M-11; viewer → M-12
+**Milestone:** M-16 Next-Day Review
+**Branch:** milestone/M-16-next-day-review
+**Done:** T-195
+**Current ticket:** T-195 complete — review models + school_0080 + tests
+**Next:** T-196 (overnight aggregation beat + per-school task)
+**Dossier sources:** flow-7 §3.1/§3.6/§3.8; ARCH §0/§3.16/§4/§4.12
+**Out of scope reminder:** pipeline (T-196+); DNA consumer (M-18)
