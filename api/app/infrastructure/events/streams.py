@@ -37,7 +37,13 @@ _STREAM_SPECS: tuple[dict[str, Any], ...] = (
     },
     {
         "name": CONTENT_EVENTS_STREAM,
-        "subjects": ["lecture.>", "lesson.>", "curriculum.>", "teacher.>"],
+        "subjects": [
+            "lecture.>",
+            "lesson.>",
+            "curriculum.>",
+            "teacher.>",
+            "mini_lecture.>",  # A-004 / T-198
+        ],
         "max_age": CONTENT_MAX_AGE_SECONDS,
         "max_bytes": CONTENT_MAX_BYTES,
     },

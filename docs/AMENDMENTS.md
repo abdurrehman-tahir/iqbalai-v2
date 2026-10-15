@@ -75,6 +75,39 @@ Copy this block for every new amendment:
 
 (Append below this line. Newest at the top.)
 
+## A-004 — Append `mini_lecture.generated` to NATS subject taxonomy (Flow 7 / M-16)
+
+- **Date:** 2026-10-15
+- **Author:** @hamza5588
+- **Affects:** `ARCHITECTURE.md` §9.3, §9.4
+- **Status:** drafted (pending Abd. sign-off with M-16 PR)
+
+### What changed
+
+§9.3 locked subject list gains `mini_lecture.generated`. §9.4 `content-events` stream subject filter gains `mini_lecture.>`.
+
+### Why
+
+Flow 7 §3.4 / M-16 T-198 requires publishing `mini_lecture.generated` when a corrective mini-lecture is produced from a qualifying review cluster. The launch taxonomy (§9.3) listed lecture lifecycle subjects but not this Flow 7 event. Subjects are append-only — adding the name (and binding it to `content-events`) is the locked process.
+
+### What we considered before deciding
+
+(1) Alias as `lecture.mini_generated` under the existing `lecture.>` wildcard — would avoid a stream-filter change but diverges from the Flow 7 spec name teachers/ops will search for. (2) Append `mini_lecture.generated` + `mini_lecture.>` on `content-events` — matches the spec literally and keeps content lifecycle events together. Chose (2).
+
+### Migration
+
+No data migration. Ops must recreate/update the `content-events` stream subject filter to include `mini_lecture.>` (or add a mirror consumer) before the event is durably retained in JetStream. Publishers already emit the subject from T-198 code.
+
+### What this DOES NOT change
+
+Lecture generation Pattern S, scoring (T-199), distribution (T-204), or any other §9.3 subject. Web-search remains disabled for mini-lectures (Flow 7 §3.4) independently of this event name.
+
+### Related
+
+- `ARCHITECTURE.md` §9.3, §9.4; Flow 7 §3.4; M-16 T-198
+
+---
+
 ## A-003 — WebSocket auth via HttpOnly cookie, not Sec-WebSocket-Protocol
 
 - **Date:** 2026-07-31

@@ -1199,7 +1199,7 @@ Examples (the full ~40-subject list is in §9.3):
 
 **Streams (locked names):**
 - `student-events` — captures all `student.>`
-- `content-events` — captures all `lecture.>`, `lesson.>`, `curriculum.>`, `teacher.>`
+- `content-events` — captures all `lecture.>`, `lesson.>`, `curriculum.>`, `teacher.>`, `mini_lecture.>`
 - `system-events` — captures all `system.>`, `prediction.>`, `parent.>`, `va.>`
 
 **Rules:**
@@ -5395,6 +5395,7 @@ lecture.created
 lecture.published
 lecture.assigned
 lecture.scored
+mini_lecture.generated
 
 # Curriculum / content lifecycle
 curriculum.ingestion.requested
@@ -5512,7 +5513,7 @@ NATS streams group related subjects. We use **three streams** (locked at §16.8,
 | Stream | Subjects captured | Retention | Max age | Max bytes | Storage |
 |---|---|---|---|---|---|
 | `student-events` | `student.>` | by age | 30 days | 50 GB | file |
-| `content-events` | `lecture.>`, `lesson.>`, `curriculum.>`, `teacher.>` | by age | 90 days | 50 GB | file |
+| `content-events` | `lecture.>`, `lesson.>`, `curriculum.>`, `teacher.>`, `mini_lecture.>` | by age | 90 days | 50 GB | file |
 | `system-events` | `system.>`, `prediction.>`, `parent.>`, `va.>` | by age | 90 days | 20 GB | file |
 
 **Locked params:**

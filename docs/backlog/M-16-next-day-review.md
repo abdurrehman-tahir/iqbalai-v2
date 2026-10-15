@@ -42,7 +42,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `12b803a`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.1, §3.6, §3.8 (tables: `lecture_reviews`, `review_replies`, `skipped_clusters`, `review_classification_failures` DLQ)
@@ -78,7 +79,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `e105d75`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.1 (23:00 Karachi beat; one isolated task per active school; reads day's questions; privacy #72 filter)
@@ -111,7 +113,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2.5 days
-**Status:** todo
+**Status:** done
+**Commit:** `dc7b44e`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.1 (cluster cosine ≥0.80; frequency ≥3 students or 25% roster; criticality LLM 0-10 threshold 7; cluster-level failure → DLQ)
@@ -144,7 +147,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `b04e209`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.4 (reuse Flow 5 pipeline; `lecture_type=mini`; web-fallback DISABLED; 800-1200 words; $0.50 ceiling; `mini_lecture.generated` event)
