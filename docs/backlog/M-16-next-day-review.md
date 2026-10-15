@@ -79,7 +79,7 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.1 (23:00 Karachi beat; one isolated task per active school; reads day's questions; privacy #72 filter)

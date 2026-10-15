@@ -82,4 +82,10 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "student_questions.purge_expired_question_images",
         "schedule": crontab(hour=3, minute=30),
     },
+    # M-16 next-day review overnight aggregation (T-196, Flow 7 §3.1):
+    # 23:00 Asia/Karachi = 18:00 UTC. Fans out one isolated task per active school.
+    "review-aggregate-nightly": {
+        "task": "review.aggregate_nightly",
+        "schedule": crontab(hour=18, minute=0),  # 23:00 PKT
+    },
 }
