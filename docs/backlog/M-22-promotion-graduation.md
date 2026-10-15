@@ -59,7 +59,8 @@ Built-or-not audit (2026-10-15) against `staging`. Cite these paths; extend / wi
 **Layer:** 6
 **Milestone:** M-22
 **Estimate:** 0.5 day
-**Status:** todo
+**Status:** done
+**Commit:** (pending — filled after commit)
 
 ### Spec source
 - `flow-2-admin-coordinator-setup.md` §3.4 (state machine), §10 (data-model sketch if present)
