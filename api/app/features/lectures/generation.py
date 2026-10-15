@@ -325,8 +325,14 @@ async def run_lecture_generation(
     teaching_mode: str,
     teacher_user_id: str,
     target_language: str = "en",
+    allow_web_fallback: bool = True,
 ) -> str:
-    """Execute Pattern S dual-RAG generation and persist v1. Returns version id."""
+    """Execute Pattern S dual-RAG generation and persist v1. Returns version id.
+
+    ``allow_web_fallback`` gates T-119 SearXNG escalation. Mini-lectures (T-198 /
+    Flow 7 §3.4) pass ``False`` so generation stays anchored to curriculum +
+    in-scope references only.
+    """
     lecture = await session.get(SchoolLecture, lecture_id)
     if lecture is None or lecture.school_id != school_id:
         raise ValueError(f"lecture not found: {lecture_id}")
@@ -436,17 +442,26 @@ async def run_lecture_generation(
     # T-119 (#27): tier 1 (curriculum) and tier 2 (reference) both came back
     # empty for this topic — escalate to tier 3 (SearXNG web search) before
     # falling back to the honest "no information" tier 4.
+    # T-198: mini-lectures disable web escalation (Flow 7 §3.4).
     web_refs: list[ChunkRef] = []
     no_coverage = False
     if not curr_refs and not ref_refs:
-        web_refs = await _fetch_web_fallback_chunks(topic)
-        no_coverage = not web_refs
-        logger.info(
-            "lecture_fallback_tier_used",
-            lecture_id=lecture_id,
-            tier="web" if web_refs else "no_coverage",
-            web_hits=len(web_refs),
-        )
+        if allow_web_fallback:
+            web_refs = await _fetch_web_fallback_chunks(topic)
+            no_coverage = not web_refs
+            logger.info(
+                "lecture_fallback_tier_used",
+                lecture_id=lecture_id,
+                tier="web" if web_refs else "no_coverage",
+                web_hits=len(web_refs),
+            )
+        else:
+            no_coverage = True
+            logger.info(
+                "lecture_web_fallback_disabled",
+                lecture_id=lecture_id,
+                reason="allow_web_fallback=false",
+            )
 
     # T-120 (Flow 4 v3 §3.5.4): additive exam-readiness context — never
     # injected for Custom Persona (that's per-student, not class-wide; §3.2).

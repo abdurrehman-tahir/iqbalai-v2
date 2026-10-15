@@ -147,7 +147,7 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.4 (reuse Flow 5 pipeline; `lecture_type=mini`; web-fallback DISABLED; 800-1200 words; $0.50 ceiling; `mini_lecture.generated` event)

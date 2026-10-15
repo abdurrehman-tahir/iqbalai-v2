@@ -24,6 +24,7 @@ from app.features.next_day_review.aggregation import (
 )
 from app.features.next_day_review.classification import classify_clusters
 from app.features.next_day_review.clustering import cluster_all_buckets
+from app.features.next_day_review.mini_generation import generate_minis_for_qualifying
 from app.tasks.base import tenant_task
 
 logger = structlog.get_logger(__name__)
@@ -98,6 +99,10 @@ def classify_school(school_id: str, review_date: str) -> dict[str, Any]:
         buckets = await aggregate_school_day(session, school_id, day)
         clusters = await cluster_all_buckets(buckets)
         classified = await classify_clusters(session, school_id=school_id, clusters=clusters)
+        # T-198: one mini-lecture per qualifying cluster (web fallback off).
+        minis = await generate_minis_for_qualifying(
+            session, school_id=school_id, clusters=classified.qualifying
+        )
         return {
             "school_id": school_id,
             "review_date": day.isoformat(),
@@ -105,6 +110,8 @@ def classify_school(school_id: str, review_date: str) -> dict[str, Any]:
             "cluster_count": len(classified.clusters),
             "qualifying_count": len(classified.qualifying),
             "dlq_written": classified.dlq_written,
+            "mini_lecture_count": len(minis),
+            "mini_lectures": minis,
             "clusters": [c.to_dict() for c in classified.clusters],
             "qualifying_cluster_refs": [c.cluster_ref for c in classified.qualifying],
         }
