@@ -104,6 +104,40 @@ STUDENT_QUESTION_IMAGE = UploadProfile(
     retention_days=365,
 )
 
+# Flow 8 / T-212 — personal-pool material (PDF + full-page doc photos).
+# Image byte cap (5 MB) is enforced in the self-study materials service; profile
+# max covers PDF document uploads (100 MB, same as other document profiles).
+STUDENT_MATERIAL = UploadProfile(
+    name="student_material",
+    bucket="student-materials",
+    key_prefix="student-material",
+    allowed_mime_types=frozenset(
+        {
+            "application/pdf",
+            "image/jpeg",
+            "image/png",
+            "image/webp",
+        }
+    ),
+    magic_bytes=[
+        b"%PDF",
+        b"\xff\xd8\xff",
+        b"\x89PNG\r\n\x1a\n",
+        _WEBP_MAGIC_SENTINEL,
+    ],
+    max_size_bytes=100 * 1024 * 1024,
+    description=(
+        "Self-study personal material (Flow 8 §3.3 / T-212). "
+        "PDF or camera/gallery photo; EXIF stripped for images; "
+        "MinIO scoped per tenant + user; indefinite while account active."
+    ),
+    strip_exif=True,
+    retention_days=None,
+)
+
+# Soft image size for student_material camera/gallery paths (ARCH §11.19 image row).
+STUDENT_MATERIAL_IMAGE_MAX_BYTES = 5 * 1024 * 1024
+
 BULK_IMPORT = UploadProfile(
     name="bulk_import",
     bucket="imports",
@@ -128,6 +162,7 @@ _REGISTRY: dict[str, UploadProfile] = {
     INDEPENDENT_PERSONAL_CONTENT.name: INDEPENDENT_PERSONAL_CONTENT,
     LECTURE_IMAGE.name: LECTURE_IMAGE,
     STUDENT_QUESTION_IMAGE.name: STUDENT_QUESTION_IMAGE,
+    STUDENT_MATERIAL.name: STUDENT_MATERIAL,
     BULK_IMPORT.name: BULK_IMPORT,
 }
 

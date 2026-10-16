@@ -15,6 +15,10 @@
     "gen:api": "cd ../api && uv run python -m app.openapi_export > ../frontend/openapi.json && cd ../frontend && openapi-typescript ./openapi.json -o src/lib/api/schema.d.ts"
   },
   "dependencies": {
+    "@fullcalendar/core": "^6.1.15",
+    "@fullcalendar/daygrid": "^6.1.15",
+    "@fullcalendar/react": "^6.1.15",
+    "@fullcalendar/timegrid": "^6.1.15",
     "@hookform/resolvers": "^5.4.0",
     "@tanstack/react-query": "^5.62.9",
     "@tiptap/extension-image": "^3.31.3",

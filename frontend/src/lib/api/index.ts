@@ -93,6 +93,30 @@ import type {
   StudentModeSelect,
   StudentModeRead,
   StudentModeUpdate,
+  SelfStudyEntryRead,
+  SelfStudyStateUpdate,
+  SelfStudySessionRead,
+  SelfStudySessionStart,
+  DueFlashcardsListRead,
+  SelfStudyGoalRead,
+  SelfStudyGoalTodayRead,
+  SelfStudyGoalSet,
+  SelfStudyGoalAchieve,
+  SelfStudyMaterialListRead,
+  SelfStudyMaterialRead,
+  SelfStudyMaterialTypedCreate,
+  SelfStudyMaterialUploadResult,
+  SelfStudyBookType,
+  PrepBookGateRead,
+  StudyPlanConversationAnswer,
+  StudyPlanConversationRead,
+  StudyPlanActiveRead,
+  StudyPlanRead,
+  StudyPlanRefineRequest,
+  ReminderPreferencesRead,
+  ReminderPreferencesUpdate,
+  GoogleCalendarConfigRead,
+  AdherenceSummaryRead,
   DiagnosticRead,
   DiagnosticResultRead,
   DiagnosticStartRequest,
@@ -217,6 +241,17 @@ export type {
   TosVersion,
   TeacherBenchmarkRead,
   TeacherMetricsRead,
+  SelfStudyMaterialUploadResult,
+  SelfStudyMaterialRead,
+  SelfStudyMaterialListRead,
+  SelfStudyBookType,
+  PrepBookGateRead,
+  StudyPlanConversationRead,
+  StudyPlanRead,
+  StudyPlanActiveRead,
+  ReminderPreferencesRead,
+  GoogleCalendarConfigRead,
+  AdherenceSummaryRead,
 } from "./types";
 
 export class ApiError extends Error {
@@ -1552,6 +1587,132 @@ export const studentModeApi = {
       "/students/me/mode",
       { method: "PUT", body: JSON.stringify(data) },
       token
+    ),
+};
+
+/** Self-study entry + session + due flashcards + daily goal (T-209 / T-210 / T-211). */
+export const selfStudyApi = {
+  getEntry: (token: string) => request<SelfStudyEntryRead>("/self-study/me/entry", {}, token),
+  patchState: (token: string, data: SelfStudyStateUpdate) =>
+    request<SelfStudyEntryRead>(
+      "/self-study/me/state",
+      { method: "PATCH", body: JSON.stringify(data) },
+      token
+    ),
+  startSession: (token: string, data: SelfStudySessionStart = {}) =>
+    request<SelfStudySessionRead>(
+      "/self-study/me/sessions",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  endSession: (token: string, sessionId: string) =>
+    request<SelfStudySessionRead>(
+      `/self-study/me/sessions/${sessionId}/end`,
+      { method: "POST", body: JSON.stringify({}) },
+      token
+    ),
+  listDueFlashcards: (token: string) =>
+    request<DueFlashcardsListRead>("/self-study/me/due-flashcards", {}, token),
+  getTodayGoal: (token: string) =>
+    request<SelfStudyGoalTodayRead>("/self-study/me/goal", {}, token),
+  setGoal: (token: string, data: SelfStudyGoalSet) =>
+    request<SelfStudyGoalRead>(
+      "/self-study/me/goal",
+      { method: "PUT", body: JSON.stringify(data) },
+      token
+    ),
+  respondGoalAchievement: (token: string, data: SelfStudyGoalAchieve) =>
+    request<SelfStudyGoalRead>(
+      "/self-study/me/goal/achievement",
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  listMaterials: (token: string) =>
+    request<SelfStudyMaterialListRead>("/self-study/me/materials", {}, token),
+  uploadMaterial: (
+    token: string,
+    args: {
+      file: Blob;
+      filename: string;
+      source_type: "pdf" | "camera" | "gallery";
+      disposition: "instant_answer" | "add_to_library";
+      title?: string;
+    },
+  ) => {
+    const formData = new FormData();
+    formData.append("file", args.file, args.filename);
+    formData.append("source_type", args.source_type);
+    formData.append("disposition", args.disposition);
+    formData.append("title", args.title ?? args.filename);
+    return requestFormData<SelfStudyMaterialUploadResult>(
+      "/self-study/me/materials/upload",
+      formData,
+      token,
+    );
+  },
+  typedMaterial: (token: string, data: SelfStudyMaterialTypedCreate) =>
+    request<SelfStudyMaterialUploadResult>(
+      "/self-study/me/materials/typed",
+      { method: "POST", body: JSON.stringify(data) },
+      token,
+    ),
+  categoriseMaterial: (token: string, materialId: string, book_type: SelfStudyBookType) =>
+    request<SelfStudyMaterialRead>(
+      `/self-study/me/materials/${materialId}/book-type`,
+      { method: "PATCH", body: JSON.stringify({ book_type }) },
+      token,
+    ),
+  prepBookGate: (token: string) =>
+    request<PrepBookGateRead>("/self-study/me/plans/gate", {}, token),
+  planConversationState: (token: string) =>
+    request<StudyPlanConversationRead>("/self-study/me/plans/conversation", {}, token),
+  planConversationAnswer: (token: string, data: StudyPlanConversationAnswer) =>
+    request<StudyPlanConversationRead>(
+      "/self-study/me/plans/conversation",
+      { method: "POST", body: JSON.stringify(data) },
+      token,
+    ),
+  generatePlan: (token: string) =>
+    request<StudyPlanRead>("/self-study/me/plans/generate", { method: "POST", body: "{}" }, token),
+  getActivePlan: (token: string) =>
+    request<StudyPlanActiveRead>("/self-study/me/plans/active", {}, token),
+  refinePlan: (token: string, planId: string, data: StudyPlanRefineRequest) =>
+    request<StudyPlanRead>(
+      `/self-study/me/plans/${planId}/refine`,
+      { method: "POST", body: JSON.stringify(data) },
+      token,
+    ),
+  googleCalendarConfig: (token: string) =>
+    request<GoogleCalendarConfigRead>("/self-study/me/calendar/google-config", {}, token),
+  downloadPlanIcs: async (token: string, planId: string): Promise<void> => {
+    void token;
+    const res = await fetch(`${API_BASE}/self-study/me/plans/${planId}/calendar.ics`, {
+      credentials: "include",
+    });
+    if (!res.ok) {
+      throw new ApiError(res.status, "ICS_EXPORT_FAILED", `ICS export failed (${res.status})`);
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `study-plan-${planId}.ics`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+  getReminderPreferences: (token: string) =>
+    request<ReminderPreferencesRead>("/self-study/me/reminder-preferences", {}, token),
+  putReminderPreferences: (token: string, data: ReminderPreferencesUpdate) =>
+    request<ReminderPreferencesRead>(
+      "/self-study/me/reminder-preferences",
+      { method: "PUT", body: JSON.stringify(data) },
+      token,
+    ),
+  checkAdherence: (token: string, planId: string) =>
+    request<AdherenceSummaryRead>(
+      `/self-study/me/plans/${planId}/adherence/check`,
+      { method: "POST", body: "{}" },
+      token,
     ),
 };
 

@@ -179,6 +179,10 @@ class Settings(BaseSettings):
     # cost (T-190; observability, not billing-grade — cf. FRAMEWORK_RESEARCH_*).
     CONCEPT_ENRICHMENT_USD_PER_1K_TOKENS: float = Field(default=0.001, ge=0)
 
+    # M-17 self-study (T-217 / T-219) — Google Calendar OAuth is env-gated; hidden when false.
+    GOOGLE_CALENDAR_SYNC_ENABLED: bool = False
+    ADHERENCE_CHECK_HOUR_KARACHI: int = Field(default=22, ge=0, le=23)
+
     @property
     def cors_allowed_origins(self) -> list[str]:
         return [o.strip() for o in self.CORS_ALLOWED_ORIGINS.split(",") if o.strip()]

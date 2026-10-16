@@ -124,6 +124,15 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 
 ---
 
+## M-17 Self-Study Mode
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `GOOGLE_CALENDAR_SYNC_ENABLED` | `false` | When true, show "Add to Google Calendar" (student OAuth). When false, only `.ics` export (T-217). |
+| `ADHERENCE_CHECK_HOUR_KARACHI` | `22` | Hour (0–23) for nightly adherence beat in Asia/Karachi (T-219). |
+
+---
+
 ## Change log
 
 | Date | Change | Author |
@@ -131,3 +140,4 @@ These were introduced during Flows 1-6 + Flow 13 review rounds. Each entry inclu
 | 2026-05-14 | Initial file created during T0 batch. Lists 9 spec-set additions (Custom Persona, Exam Framework engine, Graduation, AI adaptation, Vision-LLM, Stripe placeholders). | @abdurrehman (with Claude) |
 | 2026-10-03 | Added `CONCEPT_ENRICHMENT_CACHE_DAYS` (M-15 T-189). | M-15 (with Claude) |
 | 2026-10-03 | Added `CONCEPT_ENRICHMENT_USD_PER_1K_TOKENS` (M-15 T-190). | M-15 (with Claude) |
+| 2026-10-16 | Added `GOOGLE_CALENDAR_SYNC_ENABLED`, `ADHERENCE_CHECK_HOUR_KARACHI` (M-17 T-217/T-219). | M-17 |

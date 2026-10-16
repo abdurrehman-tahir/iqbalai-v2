@@ -46,6 +46,91 @@ export type StudentModeSelect = Schemas["StudentModeSelect"];
 export type StudentModeRead = Schemas["StudentModeRead"];
 export type StudentModeUpdate = Schemas["StudentModeUpdate"];
 export type StudyModeLiteral = StudentModeRead["active_mode"];
+export type SelfStudyEntryRead = Schemas["SelfStudyEntryRead"];
+export type SelfStudyStateUpdate = Schemas["SelfStudyStateUpdate"];
+export type SelfStudyPersistedState = Schemas["SelfStudyPersistedState"];
+export type SelfStudySubscriptionGateRead = Schemas["SelfStudySubscriptionGateRead"];
+export type SelfStudySessionRead = Schemas["SelfStudySessionRead"];
+export type SelfStudySessionStart = Schemas["SelfStudySessionStart"];
+export type DueFlashcardsListRead = Schemas["DueFlashcardsListRead"];
+export type DueFlashcardRead = Schemas["DueFlashcardRead"];
+export type SelfStudyGoalRead = Schemas["SelfStudyGoalRead"];
+export type SelfStudyGoalTodayRead = Schemas["SelfStudyGoalTodayRead"];
+export type SelfStudyGoalSet = Schemas["SelfStudyGoalSet"];
+export type SelfStudyGoalAchieve = Schemas["SelfStudyGoalAchieve"];
+export type SelfStudyMaterialRead = Schemas["SelfStudyMaterialRead"];
+export type SelfStudyMaterialListRead = Schemas["SelfStudyMaterialListRead"];
+export type SelfStudyMaterialTypedCreate = Schemas["SelfStudyMaterialTypedCreate"];
+export type SelfStudyMaterialUploadResult = Schemas["SelfStudyMaterialUploadResult"];
+
+/** M-17 plan / reminders / gate — hand types until next gen:api refresh. */
+export type SelfStudyBookType = "prep_questions" | "reference_content";
+export interface PrepBookGateRead {
+  has_prep_book: boolean;
+  allowed: boolean;
+  error_message: string | null;
+}
+export interface StudyPlanConversationAnswer {
+  answer: string;
+}
+export interface StudyPlanConversationRead {
+  step: number;
+  total_steps: number;
+  question: string | null;
+  answers: Record<string, string>;
+  complete: boolean;
+  gate_passed: boolean;
+}
+export interface StudyPlanItemRead {
+  id: string;
+  granularity: "day" | "3day" | "week";
+  start_date: string;
+  end_date: string;
+  est_minutes: number;
+  subject_color: string;
+  tasks: object[];
+}
+export interface StudyPlanRead {
+  id: string;
+  tenant_type: "school" | "independent";
+  status: "active" | "archived";
+  exam_date: string | null;
+  daily_hours: number;
+  strong_topics: string[];
+  granularity_current: "day" | "3day" | "week";
+  items: StudyPlanItemRead[];
+}
+export interface StudyPlanActiveRead {
+  plan: StudyPlanRead | null;
+}
+export interface StudyPlanRefineRequest {
+  refinement_request: string;
+}
+export interface ReminderPreferencesRead {
+  push_enabled: boolean;
+  email_enabled: boolean;
+  sms_enabled: boolean;
+  timezone: string;
+}
+export interface ReminderPreferencesUpdate {
+  push_enabled?: boolean | null;
+  email_enabled?: boolean | null;
+  sms_enabled?: boolean | null;
+  timezone?: string | null;
+}
+export interface GoogleCalendarConfigRead {
+  enabled: boolean;
+}
+export interface AdherenceSummaryRead {
+  plan_id: string;
+  days: Array<{
+    day_date: string;
+    adherence_pct: number;
+    consecutive_miss_count: number;
+    alerted: boolean;
+  }>;
+  alert_fired: boolean;
+}
 export type DiagnosticRead = Schemas["DiagnosticRead"];
 export type DiagnosticResultRead = Schemas["DiagnosticResultRead"];
 export type DiagnosticStartRequest = Schemas["DiagnosticStartRequest"];

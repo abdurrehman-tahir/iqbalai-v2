@@ -563,7 +563,11 @@
       "diagnostics_link": "__TODO__ Take a diagnostic",
       "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date to keep pacing on track.",
       "mode_hint_lecture": "__TODO__ Lecture mode is active.",
-      "mode_hint_self_study": "__TODO__ Self-Study mode is active."
+      "mode_hint_self_study": "__TODO__ Self-Study mode is active.",
+      "self_study_resumed_state": "__TODO__ Resumed last goal / material / plan view when available.",
+      "self_study_loading_entry": "__TODO__ Loading self-study…",
+      "self_study_entry_error": "__TODO__ Could not load self-study state.",
+      "self_study_session_link": "__TODO__ Open self-study session"
     },
     "quizzes": {
       "title": "ستاسو کوئزونه",
@@ -636,7 +640,8 @@
         "collapse": "ټول کړئ",
         "expand": "پراخ کړئ",
         "time_on_topic": "په موضوع وخت",
-        "questions_asked": "د دې ناستې پوښتنې"
+        "questions_asked": "د دې ناستې پوښتنې",
+        "daily_goal": "__TODO__ Today's goal"
       },
       "stuck_nudge": {
         "message": "۱۰ دقیقې دلته یاست — مرستې ته اړتیا لرئ؟",
@@ -732,6 +737,17 @@
       "error": "ستاسو درجه بندي خوندي نشوه. مهرباني وکړئ بیا هڅه وکړئ.",
       "thanks_title": "د درجه بندۍ مننه!",
       "thanks_body": "ستاسو نظر د دې لیکچر په ښه کولو کې مرسته کوي."
+    },
+    "header_title": "زده کوونکی",
+    "logout": "وتل",
+    "mode": {
+      "label": "Study mode",
+      "lecture": "Lecture",
+      "self_study": "Self-Study",
+      "loading": "Loading study mode…",
+      "error": "Could not load study mode. Try again.",
+      "retry": "Retry",
+      "switch_error": "Could not switch mode. Please try again."
     }
   },
   "independent": {
@@ -838,6 +854,21 @@
       }
     },
     "student": {
+      "header_title": "__TODO__ Independent Student",
+      "logout": "__TODO__ Sign out",
+      "nav": {
+        "aria_label": "__TODO__ Independent student navigation",
+        "dashboard": "__TODO__ Self-Study"
+      },
+      "onboarding": {
+        "header_title": "__TODO__ Complete your profile",
+        "title": "__TODO__ Set your exam date",
+        "subtitle": "__TODO__ Confirm when you plan to take your exam.",
+        "exam_date_label": "__TODO__ Exam date",
+        "diagnostic_deferred": "__TODO__ Diagnostic assessment will be available in a future update (M-08).",
+        "submit": "__TODO__ Save and continue",
+        "error_generic": "__TODO__ Could not save profile. Please try again."
+      },
       "home": {
         "diagnostics_link": "__TODO__ Take a diagnostic",
         "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date.",
@@ -846,7 +877,16 @@
         "exam_date_error": "__TODO__ Could not save exam date.",
         "exam_date_future_warning": "__TODO__ Exam date is more than 5 years away.",
         "self_study_section_title": "__TODO__ Self-Study",
-        "self_study_section_body": "__TODO__ Self-Study is your only mode."
+        "self_study_section_body": "__TODO__ Self-Study is your only mode.",
+        "redirecting_to_self_study": "__TODO__ Redirecting to Self-Study…",
+        "resumed_state_label": "__TODO__ Resumed from last session",
+        "loading_entry": "__TODO__ Loading self-study…",
+        "entry_error": "__TODO__ Could not load self-study. Try again.",
+        "subscription_gate_noop": "__TODO__ Plan limits are not enforced yet.",
+        "session_link": "__TODO__ Open self-study session",
+        "ready_banner": "__TODO__ You are ready to study.",
+        "self_study_only": "__TODO__ Self-Study Mode is your only mode — no lecture mode switcher.",
+        "diagnostic_deferred": "__TODO__ Diagnostic: coming soon (M-08 hook present)."
       }
     }
   },
@@ -1104,6 +1144,102 @@
       "auto_send_countdown": "په {seconds} ثانیو کې لیږل کیږي — د لغوه کولو لپاره ټایپ کړئ",
       "voice_unavailable": "په {language} کې غږ لاهم شتون نلري",
       "voice_error": "ثبت متن ته بدل نه شو. بیا هڅه وکړئ."
+    }
+  },
+  "self_study": {
+    "materials": {
+      "title": "د مطالعې مواد اپلوډ کړئ",
+      "help": "PDF، کیمره، ګالري یا ټایپ — بیا فوري ځواب یا د مطالعې کتابتون ته اضافه کړئ.",
+      "tabs_label": "د اپلوډ طریقه",
+      "tab_pdf": "PDF",
+      "tab_camera": "کیمره",
+      "tab_gallery": "ګالري",
+      "tab_typed": "ټایپ",
+      "disposition_label": "د اپلوډ وروسته",
+      "disposition_instant": "فوري ځواب (نه ساتل کیږي)",
+      "disposition_library": "د مطالعې کتابتون ته اضافه کړئ",
+      "typed_placeholder": "پوښتنه یا یادښت ولیکئ…",
+      "typed_title": "ټایپ شوی یادښت",
+      "hint_pdf": "PDF تر ۱۰۰ MB پورې.",
+      "hint_camera": "د پاڼې عکس واخلئ (JPEG/PNG/WEBP، تر ۵ MB).",
+      "hint_gallery": "له وسیله عکس غوره کړئ (تر ۵ MB).",
+      "uploading": "اپلوډ کیږي…",
+      "error": "مواد اپلوډ نشو.",
+      "saved": "ستاسو په شخصي کتابتون کې خوندي شو: {title}",
+      "library_title": "ستاسو د مطالعې کتابتون",
+      "library_loading": "کتابتون لوډ کیږي…",
+      "library_error": "کتابتون لوډ نشو.",
+      "library_empty": "تر اوسه په کتابتون کې مواد نشته.",
+      "categorise_label": "د کتاب ډول",
+      "categorise_unset": "ډول وټاکئ…",
+      "categorise_prep": "د چمتووالي پوښتنې",
+      "categorise_reference": "مراجع مواد"
+    },
+    "plan": {
+      "title": "د مطالعې پلان",
+      "help": "پنځو پوښتنو ته ځواب ورکړئ، بیا د چمتووالي کتابونو څخه کیلنډر پلان جوړ کړئ.",
+      "loading": "د مطالعې پلان لوډ کیږي…",
+      "error": "پلان لوډ یا تازه نشو.",
+      "empty": "د پلان جوړولو لپاره خبرې پیل کړئ.",
+      "gate_blocked": "د مطالعې پلان جوړولو لپاره د چمتووالي پوښتنو کتاب اپلوډ کړئ.",
+      "step": "پوښتنه {step} له {total}",
+      "answer_placeholder": "ځواب ولیکئ یا ووایاست…",
+      "generate": "پلان جوړ کړئ",
+      "active_label": "فعال پلان · {granularity} بلاکونه · {hours} ساعته/ورځ",
+      "export_ics": ".ics ډاونلوډ",
+      "google_calendar": "ګوګل کیلنډر ته اضافه کړئ",
+      "refine": "پلان ښه کړئ",
+      "refine_placeholder": "لکه دوشنبې سپک وساتئ…",
+      "no_plan": "د ښه کولو لپاره فعال پلان نشته.",
+      "task_fallback": "د مطالعې دنده"
+    },
+    "reminders": {
+      "title": "د مطالعې یادونې",
+      "help": "د هر ټاکل شوي ناستې ۳۰ دقیقې مخکې یادونه. پرته له اسنادو چینلونه چوپ پاتې کیږي.",
+      "loading": "د یادونې غوره توبونه لوډ کیږي…",
+      "error": "د یادونې غوره توبونه لوډ نشول.",
+      "push": "پش خبرتیاوې",
+      "email": "برېښنالیک",
+      "sms": "SMS"
+    },
+    "privacy": {
+      "title": "له ښوونکي سره شریکول",
+      "help": "کله چې بند وي، هیڅ ښوونکی رول ستاسو د ځان مطالعې پوښتنې نشي لیدلی.",
+      "aggregate_note": "بې نومه مجموعي سیګنالونه لا هم پلیټفارم ښه کوي.",
+      "share_label": "د ځان مطالعې فعالیت له ښوونکي سره شریک کړئ",
+      "loading": "د محرمیت ترتیب لوډ کیږي…",
+      "error": "د محرمیت ترتیب لوډ نشو."
+    },
+    "session": {
+      "title": "د ځان مطالعې ناسته",
+      "subtitle": "د لیکچر حالت په څیر هایبرډ ویجټ او ژوندی پینل.",
+      "back_home": "کور ته بیرته",
+      "start": "ناسته پیل کړئ",
+      "end": "ناسته پای ته ورسوئ",
+      "start_error": "ناسته پیل نشوه.",
+      "widget_label": "پوښتنه وکړئ",
+      "ask_placeholder": "د خپلو موادو په اړه وپوښتئ…",
+      "submitted_voice_or_image": "(غږ یا انځور ولېږل شو)",
+      "last_submit": "تاسو وپوښتل: {text}",
+      "goal_title": "ورځنی هدف",
+      "goal_help": "د نن هدف په خپلو خبرو ووایاست یا ولیکئ — په ورځ کې یو، تر ماښام ترمیم وړ.",
+      "goal_placeholder": "نن تاسو څه ترلاسه کول غواړئ؟",
+      "goal_loading": "د نن هدف لوډ کیږي…",
+      "goal_error": "هدف لوډ یا خوندي نشو.",
+      "goal_empty": "نن تر اوسه هدف نشته.",
+      "goal_current": "نن: {text}",
+      "goal_replace_confirm": "د نن هدف په نوي متن بدل کړئ؟",
+      "goal_replace_yes": "بدل کړئ",
+      "goal_replace_no": "اوسنی وساتئ",
+      "goal_achieve_prompt": "ایا تاسو خپل ورځنی هدف ترلاسه کړ؟",
+      "goal_achieve_yes": "هو",
+      "goal_achieve_no": "تر اوسه نه",
+      "goal_achieve_skip": "پریږدئ",
+      "due_title": "واجب فلش کارتونه",
+      "due_schedule_note": "شیډول کول د Flow 9 دي — دا لیست اوس یوازې لوستلو لپاره دی.",
+      "due_loading": "فلش کارتونه لوډ کیږي…",
+      "due_error": "فلش کارتونه لوډ نشول.",
+      "due_empty": "تر اوسه فلش کارت نشته."
     }
   }
 }

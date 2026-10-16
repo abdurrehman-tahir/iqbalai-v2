@@ -563,7 +563,11 @@
       "diagnostics_link": "__TODO__ Take a diagnostic",
       "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date to keep pacing on track.",
       "mode_hint_lecture": "__TODO__ Lecture mode is active.",
-      "mode_hint_self_study": "__TODO__ Self-Study mode is active."
+      "mode_hint_self_study": "__TODO__ Self-Study mode is active.",
+      "self_study_resumed_state": "__TODO__ Resumed last goal / material / plan view when available.",
+      "self_study_loading_entry": "__TODO__ Loading self-study…",
+      "self_study_entry_error": "__TODO__ Could not load self-study state.",
+      "self_study_session_link": "__TODO__ Open self-study session"
     },
     "quizzes": {
       "title": "آپ کے کوئز",
@@ -636,7 +640,8 @@
         "collapse": "سکیڑیں",
         "expand": "کھولیں",
         "time_on_topic": "موضوع پر وقت",
-        "questions_asked": "اس سیشن کے سوالات"
+        "questions_asked": "اس سیشن کے سوالات",
+        "daily_goal": "__TODO__ Today's goal"
       },
       "stuck_nudge": {
         "message": "۱۰ منٹ سے یہاں ہیں — مدد چاہیے؟",
@@ -732,6 +737,17 @@
       "error": "آپ کی درجہ بندی محفوظ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
       "thanks_title": "درجہ بندی کا شکریہ!",
       "thanks_body": "آپ کی رائے اس لیکچر کو بہتر بنانے میں مدد دیتی ہے۔"
+    },
+    "header_title": "طالب علم",
+    "logout": "لاگ آؤٹ",
+    "mode": {
+      "label": "Study mode",
+      "lecture": "Lecture",
+      "self_study": "Self-Study",
+      "loading": "Loading study mode…",
+      "error": "Could not load study mode. Try again.",
+      "retry": "Retry",
+      "switch_error": "Could not switch mode. Please try again."
     }
   },
   "independent": {
@@ -838,6 +854,21 @@
       }
     },
     "student": {
+      "header_title": "__TODO__ Independent Student",
+      "logout": "__TODO__ Sign out",
+      "nav": {
+        "aria_label": "__TODO__ Independent student navigation",
+        "dashboard": "__TODO__ Self-Study"
+      },
+      "onboarding": {
+        "header_title": "__TODO__ Complete your profile",
+        "title": "__TODO__ Set your exam date",
+        "subtitle": "__TODO__ Confirm when you plan to take your exam.",
+        "exam_date_label": "__TODO__ Exam date",
+        "diagnostic_deferred": "__TODO__ Diagnostic assessment will be available in a future update (M-08).",
+        "submit": "__TODO__ Save and continue",
+        "error_generic": "__TODO__ Could not save profile. Please try again."
+      },
       "home": {
         "diagnostics_link": "__TODO__ Take a diagnostic",
         "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date.",
@@ -846,7 +877,16 @@
         "exam_date_error": "__TODO__ Could not save exam date.",
         "exam_date_future_warning": "__TODO__ Exam date is more than 5 years away.",
         "self_study_section_title": "__TODO__ Self-Study",
-        "self_study_section_body": "__TODO__ Self-Study is your only mode."
+        "self_study_section_body": "__TODO__ Self-Study is your only mode.",
+        "redirecting_to_self_study": "__TODO__ Redirecting to Self-Study…",
+        "resumed_state_label": "__TODO__ Resumed from last session",
+        "loading_entry": "__TODO__ Loading self-study…",
+        "entry_error": "__TODO__ Could not load self-study. Try again.",
+        "subscription_gate_noop": "__TODO__ Plan limits are not enforced yet.",
+        "session_link": "__TODO__ Open self-study session",
+        "ready_banner": "__TODO__ You are ready to study.",
+        "self_study_only": "__TODO__ Self-Study Mode is your only mode — no lecture mode switcher.",
+        "diagnostic_deferred": "__TODO__ Diagnostic: coming soon (M-08 hook present)."
       }
     }
   },
@@ -1104,6 +1144,102 @@
       "auto_send_countdown": "{seconds} سیکنڈ میں بھیجا جائے گا — منسوخ کرنے کے لیے چھوئیں",
       "voice_unavailable": "{language} میں آواز ابھی دستیاب نہیں",
       "voice_error": "ریکارڈنگ کو متن میں تبدیل نہیں کیا جا سکا۔ دوبارہ کوشش کریں۔"
+    }
+  },
+  "self_study": {
+    "materials": {
+      "title": "مطالعہ کا مواد اپلوڈ کریں",
+      "help": "PDF، کیمرہ، گیلری یا ٹائپ — پھر فوری جواب یا مطالعہ لائبریری میں شامل کریں۔",
+      "tabs_label": "اپلوڈ کا طریقہ",
+      "tab_pdf": "PDF",
+      "tab_camera": "کیمرہ",
+      "tab_gallery": "گیلری",
+      "tab_typed": "ٹائپ",
+      "disposition_label": "اپلوڈ کے بعد",
+      "disposition_instant": "فوری جواب (محفوظ نہیں)",
+      "disposition_library": "مطالعہ لائبریری میں شامل کریں",
+      "typed_placeholder": "سوال یا نوٹ لکھیں…",
+      "typed_title": "ٹائپ شدہ نوٹ",
+      "hint_pdf": "PDF زیادہ سے زیادہ ۱۰۰ ایم بی۔",
+      "hint_camera": "صفحے کی تصویر لیں (JPEG/PNG/WEBP، زیادہ سے زیادہ ۵ ایم بی)۔",
+      "hint_gallery": "ڈیوائس سے تصویر چنیں (زیادہ سے زیادہ ۵ ایم بی)۔",
+      "uploading": "اپلوڈ ہو رہا ہے…",
+      "error": "مواد اپلوڈ نہیں ہو سکا۔",
+      "saved": "آپ کی نجی لائبریری میں محفوظ: {title}",
+      "library_title": "آپ کی مطالعہ لائبریری",
+      "library_loading": "لائبریری لوڈ ہو رہی ہے…",
+      "library_error": "لائبریری لوڈ نہیں ہو سکی۔",
+      "library_empty": "ابھی لائبریری میں کوئی مواد نہیں۔",
+      "categorise_label": "کتاب کی قسم",
+      "categorise_unset": "قسم چنیں…",
+      "categorise_prep": "تیاری کے سوالات",
+      "categorise_reference": "حوالہ مواد"
+    },
+    "plan": {
+      "title": "مطالعہ منصوبہ",
+      "help": "پانچ سوالات کے جواب دیں، پھر اپنی تیاری کی کتابوں سے کیلنڈر منصوبہ بنائیں۔",
+      "loading": "مطالعہ منصوبہ لوڈ ہو رہا ہے…",
+      "error": "منصوبہ لوڈ یا اپڈیٹ نہیں ہو سکا۔",
+      "empty": "منصوبہ بنانے کے لیے گفتگو شروع کریں۔",
+      "gate_blocked": "مطالعہ منصوبہ بنانے کے لیے تیاری کے سوالات کی کتاب اپلوڈ کریں۔",
+      "step": "سوال {step} از {total}",
+      "answer_placeholder": "جواب لکھیں یا بولیں…",
+      "generate": "منصوبہ بنائیں",
+      "active_label": "فعال منصوبہ · {granularity} بلاکس · {hours} گھنٹے/دن",
+      "export_ics": ".ics ڈاؤن لوڈ",
+      "google_calendar": "گوگل کیلنڈر میں شامل کریں",
+      "refine": "منصوبہ بہتر کریں",
+      "refine_placeholder": "مثلاً پیر ہلکا رکھیں…",
+      "no_plan": "بہتر کرنے کے لیے کوئی فعال منصوبہ نہیں۔",
+      "task_fallback": "مطالعہ کا کام"
+    },
+    "reminders": {
+      "title": "مطالعہ یاددہانیاں",
+      "help": "ہر طے شدہ سیشن سے ۳۰ منٹ پہلے یاددہانی۔ بغیر اسناد چینل خاموش رہتے ہیں۔",
+      "loading": "یاددہانی ترجیحات لوڈ ہو رہی ہیں…",
+      "error": "یاددہانی ترجیحات لوڈ نہیں ہو سکیں۔",
+      "push": "پش نوٹیفکیشنز",
+      "email": "ای میل",
+      "sms": "SMS"
+    },
+    "privacy": {
+      "title": "استاد کے ساتھ شیئر",
+      "help": "بند ہونے پر کوئی استاد والا کردار آپ کے خود مطالعہ سوالات نہیں دیکھ سکتا۔",
+      "aggregate_note": "گمنام مجموعی سگنل پھر بھی پلیٹ فارم بہتر بناتے ہیں۔",
+      "share_label": "خود مطالعہ سرگرمی استاد کے ساتھ شیئر کریں",
+      "loading": "رازداری کی ترتیب لوڈ ہو رہی ہے…",
+      "error": "رازداری کی ترتیب لوڈ نہیں ہو سکی۔"
+    },
+    "session": {
+      "title": "خود مطالعہ سیشن",
+      "subtitle": "لیکچر موڈ جیسا ہائبرڈ ویجیٹ اور لائیو پینل۔",
+      "back_home": "واپس گھر",
+      "start": "سیشن شروع کریں",
+      "end": "سیشن ختم کریں",
+      "start_error": "سیشن شروع نہیں ہو سکا۔",
+      "widget_label": "سوال پوچھیں",
+      "ask_placeholder": "اپنے مواد کے بارے میں پوچھیں…",
+      "submitted_voice_or_image": "(آواز یا تصویر بھیجی گئی)",
+      "last_submit": "آپ نے پوچھا: {text}",
+      "goal_title": "روزانہ ہدف",
+      "goal_help": "آج کا ہدف اپنے الفاظ میں کہیں یا لکھیں — دن میں ایک، شام تک قابلِ ترمیم۔",
+      "goal_placeholder": "آج آپ کیا حاصل کرنا چاہتے ہیں؟",
+      "goal_loading": "آج کا ہدف لوڈ ہو رہا ہے…",
+      "goal_error": "ہدف لوڈ یا محفوظ نہیں ہو سکا۔",
+      "goal_empty": "آج ابھی کوئی ہدف نہیں۔",
+      "goal_current": "آج: {text}",
+      "goal_replace_confirm": "آج کا ہدف نئے متن سے بدلیں؟",
+      "goal_replace_yes": "بدلیں",
+      "goal_replace_no": "موجودہ رکھیں",
+      "goal_achieve_prompt": "کیا آپ نے اپنا روزانہ ہدف حاصل کیا؟",
+      "goal_achieve_yes": "ہاں",
+      "goal_achieve_no": "ابھی نہیں",
+      "goal_achieve_skip": "چھوڑیں",
+      "due_title": "واجب فلش کارڈز",
+      "due_schedule_note": "شیڈولنگ Flow 9 کی ہے — یہ فہرست ابھی صرف پڑھنے کے لیے ہے۔",
+      "due_loading": "فلش کارڈز لوڈ ہو رہے ہیں…",
+      "due_error": "فلش کارڈز لوڈ نہیں ہو سکے۔",
+      "due_empty": "ابھی کوئی فلش کارڈ نہیں۔"
     }
   }
 }

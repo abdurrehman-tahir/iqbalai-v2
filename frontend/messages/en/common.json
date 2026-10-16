@@ -492,6 +492,10 @@
       "self_study_section_body": "Your self-study plan and diagnostic focus areas guide this mode. Full planning arrives in a later milestone — coaching focus from your diagnostic already seeds Cognitive DNA for AI personalization.",
       "mode_hint_lecture": "Lecture mode is active — Self-Study tools are hidden until you switch.",
       "mode_hint_self_study": "Self-Study mode is active — Lecture materials are hidden until you switch.",
+      "self_study_resumed_state": "Resumed last goal / material / plan view when available.",
+      "self_study_loading_entry": "Loading self-study…",
+      "self_study_entry_error": "Could not load self-study state.",
+      "self_study_session_link": "Open self-study session",
       "exam_date_passed_prompt": "Your exam date has passed. Set a new exam date to keep pacing on track."
     },
     "quizzes": {
@@ -565,7 +569,8 @@
         "collapse": "Collapse",
         "expand": "Expand",
         "time_on_topic": "Time on topic",
-        "questions_asked": "Questions this session"
+        "questions_asked": "Questions this session",
+        "daily_goal": "Today's goal"
       },
       "stuck_nudge": {
         "message": "Been here 10 min — need help?",
@@ -1967,7 +1972,13 @@
         "exam_date_error": "Could not save exam date. Please try again.",
         "exam_date_future_warning": "Exam date is more than 5 years away — you can update it anytime before your exam.",
         "self_study_section_title": "Self-Study",
-        "self_study_section_body": "Self-Study is your only mode. Diagnostic focus areas seed Cognitive DNA for future AI personalization — full planning comes later."
+        "self_study_section_body": "Self-Study is your only mode. Diagnostic focus areas seed Cognitive DNA for future AI personalization — full planning comes later.",
+        "redirecting_to_self_study": "Redirecting to Self-Study…",
+        "resumed_state_label": "Resumed from last session",
+        "loading_entry": "Loading self-study…",
+        "entry_error": "Could not load self-study. Try again.",
+        "subscription_gate_noop": "Plan limits are not enforced yet.",
+        "session_link": "Open self-study session"
       }
     }
   },
@@ -2075,6 +2086,102 @@
       "auto_send_countdown": "Sending in {seconds}s — tap to cancel",
       "voice_unavailable": "Voice not yet available in {language}",
       "voice_error": "Could not transcribe your recording. Please try again."
+    }
+  },
+  "self_study": {
+    "materials": {
+      "title": "Upload study material",
+      "help": "PDF, camera, gallery, or typed — then Instant Answer or Add to Study Library.",
+      "tabs_label": "Upload method",
+      "tab_pdf": "PDF",
+      "tab_camera": "Camera",
+      "tab_gallery": "Gallery",
+      "tab_typed": "Type",
+      "disposition_label": "After upload",
+      "disposition_instant": "Instant Answer (not saved)",
+      "disposition_library": "Add to Study Library",
+      "typed_placeholder": "Type a question or note…",
+      "typed_title": "Typed note",
+      "hint_pdf": "PDF up to 100 MB.",
+      "hint_camera": "Take a photo of a page (JPEG/PNG/WEBP, max 5 MB).",
+      "hint_gallery": "Pick a photo from your device (max 5 MB).",
+      "uploading": "Uploading…",
+      "error": "Could not upload material.",
+      "saved": "Saved to your private library: {title}",
+      "library_title": "Your Study Library",
+      "library_loading": "Loading library…",
+      "library_error": "Could not load library.",
+      "library_empty": "No materials in your library yet.",
+      "categorise_label": "Book type",
+      "categorise_unset": "Choose type…",
+      "categorise_prep": "Prep questions",
+      "categorise_reference": "Reference content"
+    },
+    "plan": {
+      "title": "Study plan",
+      "help": "Answer five questions conversationally, then generate a calendar plan from your prep books.",
+      "loading": "Loading study plan…",
+      "error": "Could not load or update your study plan.",
+      "empty": "Start the conversation to build your plan.",
+      "gate_blocked": "Please upload a prep question book to generate a study plan.",
+      "step": "Question {step} of {total}",
+      "answer_placeholder": "Type or speak your answer…",
+      "generate": "Generate plan",
+      "active_label": "Active plan · {granularity} blocks · {hours}h/day",
+      "export_ics": "Download .ics",
+      "google_calendar": "Add to Google Calendar",
+      "refine": "Refine plan",
+      "refine_placeholder": "e.g. Make Mondays lighter…",
+      "no_plan": "No active plan to refine.",
+      "task_fallback": "Study task"
+    },
+    "reminders": {
+      "title": "Study reminders",
+      "help": "Get a nudge 30 minutes before each scheduled session. Channels without credentials stay quiet.",
+      "loading": "Loading reminder preferences…",
+      "error": "Could not load reminder preferences.",
+      "push": "Push notifications",
+      "email": "Email",
+      "sms": "SMS"
+    },
+    "privacy": {
+      "title": "Share with teacher",
+      "help": "When off, no teacher-facing role can see your self-study questions.",
+      "aggregate_note": "Anonymous aggregate signals still help improve the platform.",
+      "share_label": "Share self-study activity with my teacher",
+      "loading": "Loading privacy setting…",
+      "error": "Could not load privacy setting."
+    },
+    "session": {
+      "title": "Self-Study session",
+      "subtitle": "Ask questions with the same hybrid widget and live panel as Lecture Mode.",
+      "back_home": "Back to home",
+      "start": "Start session",
+      "end": "End session",
+      "start_error": "Could not start session.",
+      "widget_label": "Ask a question",
+      "ask_placeholder": "Ask about your materials…",
+      "submitted_voice_or_image": "(voice or image submitted)",
+      "last_submit": "You asked: {text}",
+      "goal_title": "Daily goal",
+      "goal_help": "Say or type today's goal in your own words — one per day, editable until end of day.",
+      "goal_placeholder": "What do you want to achieve today?",
+      "goal_loading": "Loading today's goal…",
+      "goal_error": "Could not load or save your goal.",
+      "goal_empty": "No goal set for today yet.",
+      "goal_current": "Today: {text}",
+      "goal_replace_confirm": "Replace today's goal with the new text?",
+      "goal_replace_yes": "Replace",
+      "goal_replace_no": "Keep current",
+      "goal_achieve_prompt": "Did you achieve your daily goal?",
+      "goal_achieve_yes": "Yes",
+      "goal_achieve_no": "Not yet",
+      "goal_achieve_skip": "Skip",
+      "due_title": "Due flashcards",
+      "due_schedule_note": "Scheduling is owned by Flow 9 — this list is read-only for now.",
+      "due_loading": "Loading flashcards…",
+      "due_error": "Could not load flashcards.",
+      "due_empty": "No flashcards yet."
     }
   }
 }

@@ -3,7 +3,12 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
-import { studentOnboardingApi, parentChildLinksApi, studentModeApi } from "@/lib/api";
+import {
+  studentOnboardingApi,
+  parentChildLinksApi,
+  studentModeApi,
+  selfStudyApi,
+} from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -30,6 +35,12 @@ export function StudentHomeClient() {
     queryKey: ["student", "mode"],
     queryFn: () => studentModeApi.getMode(token!),
     enabled: mounted && !!token,
+  });
+
+  const { data: selfStudyEntry, isLoading: selfStudyLoading } = useQuery({
+    queryKey: ["self-study", "entry"],
+    queryFn: () => selfStudyApi.getEntry(token!),
+    enabled: mounted && !!token && mode?.active_mode === "self_study",
   });
 
   const { data: linkRequests } = useQuery({
@@ -117,6 +128,26 @@ export function StudentHomeClient() {
           <h3 className="text-lg font-medium text-gray-900">{t("self_study_section_title")}</h3>
           <p className="text-sm text-gray-600">{t("self_study_section_body")}</p>
           <p className="text-xs text-gray-500">{t("mode_hint_self_study")}</p>
+          {selfStudyLoading && (
+            <p className="text-xs text-gray-500" data-testid="self-study-entry-loading">
+              {t("self_study_loading_entry")}
+            </p>
+          )}
+          {selfStudyEntry &&
+            (selfStudyEntry.state.last_goal_id ||
+              selfStudyEntry.state.last_material_id ||
+              selfStudyEntry.state.last_plan_view) && (
+              <p className="text-xs text-gray-500" data-testid="self-study-resumed-state">
+                {t("self_study_resumed_state")}
+              </p>
+            )}
+          <a
+            href="/student/self-study"
+            className="inline-block text-sm text-blue-600 hover:underline"
+            data-testid="self-study-session-link"
+          >
+            {t("self_study_session_link")}
+          </a>
         </section>
       )}
 

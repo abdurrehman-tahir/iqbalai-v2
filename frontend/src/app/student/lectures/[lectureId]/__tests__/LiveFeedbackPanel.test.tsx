@@ -49,6 +49,27 @@ describe("LiveFeedbackPanel", () => {
     expect(screen.queryByText(/mastery/i)).toBeNull();
   });
 
+  it("displays daily goal text when provided (T-211)", () => {
+    render(
+      wrap(
+        <LiveFeedbackPanel
+          sessionId="s1"
+          metrics={{
+            panel_visible: true,
+            time_on_topic_seconds: 60,
+            questions_asked_this_session: 0,
+            daily_goal_text: "Master chapter 5",
+          }}
+          collapsed={false}
+          onToggleCollapsed={() => undefined}
+        />,
+      ),
+    );
+    expect(screen.getByTestId("live-feedback-daily-goal")).toHaveTextContent(
+      "Master chapter 5",
+    );
+  });
+
   it("collapses on toggle", () => {
     const onToggle = vi.fn();
     render(

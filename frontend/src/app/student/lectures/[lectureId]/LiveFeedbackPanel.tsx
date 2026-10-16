@@ -9,6 +9,8 @@ export type LiveFeedbackMetrics = {
   questions_asked_this_session?: number;
   mastery_estimate?: number | null;
   daily_goal_status?: string | null;
+  /** T-211 — active self-study daily goal text for panel display. */
+  daily_goal_text?: string | null;
   panel_visible?: boolean;
   stuck_nudge?: {
     should_show?: boolean;
@@ -77,7 +79,18 @@ export function LiveFeedbackPanel({
             <dt>{t("questions_asked")}</dt>
             <dd data-testid="live-feedback-questions">{questions}</dd>
           </div>
-          {/* mastery / daily_goal remain hidden until Flow 9 / Flow 8 ship */}
+          {metrics.daily_goal_text ? (
+            <div className="space-y-1">
+              <dt className="text-xs font-medium text-gray-500">{t("daily_goal")}</dt>
+              <dd
+                className="text-sm text-gray-900"
+                data-testid="live-feedback-daily-goal"
+              >
+                {metrics.daily_goal_text}
+              </dd>
+            </div>
+          ) : null}
+          {/* mastery remains Flow 9 */}
         </dl>
       ) : null}
     </aside>

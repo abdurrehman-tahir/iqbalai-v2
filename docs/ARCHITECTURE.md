@@ -1198,7 +1198,7 @@ Examples (the full ~40-subject list is in §9.3):
 - `parent.alert.sent`
 
 **Streams (locked names):**
-- `student-events` — captures all `student.>`
+- `student-events` — captures all `student.>`, `self_study.>`
 - `content-events` — captures all `lecture.>`, `lesson.>`, `curriculum.>`, `teacher.>`, `mini_lecture.>`
 - `system-events` — captures all `system.>`, `prediction.>`, `parent.>`, `va.>`
 
@@ -5498,6 +5498,14 @@ promotion.failed
 
 # Mode selection (Flow 4 v3 §3.4)
 mode.changed
+
+# Self-study (Flow 8 / M-17 — A-005 / A-006 / A-007)
+self_study.goal_set
+self_study.goal_achieved
+self_study.material_uploaded
+self_study.plan_generated
+self_study.adherence_updated
+self_study.adherence_alert
 ```
 
 **Locked rules:**
@@ -5512,7 +5520,7 @@ NATS streams group related subjects. We use **three streams** (locked at §16.8,
 
 | Stream | Subjects captured | Retention | Max age | Max bytes | Storage |
 |---|---|---|---|---|---|
-| `student-events` | `student.>` | by age | 30 days | 50 GB | file |
+| `student-events` | `student.>`, `self_study.>` | by age | 30 days | 50 GB | file |
 | `content-events` | `lecture.>`, `lesson.>`, `curriculum.>`, `teacher.>`, `mini_lecture.>` | by age | 90 days | 50 GB | file |
 | `system-events` | `system.>`, `prediction.>`, `parent.>`, `va.>` | by age | 90 days | 20 GB | file |
 
