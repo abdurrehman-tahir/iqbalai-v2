@@ -130,6 +130,67 @@ SELF_STUDY_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    # M-17 T-218 / T-219 reminder + adherence (Flow 8 §7).
+    "self_study.session_reminder": {
+        "default": {
+            "en": {
+                "title": "Study session in 30 minutes",
+                "body": "Your self-study session starts soon{missed_suffix}.",
+            },
+            "ur": {
+                "title": "۳۰ منٹ میں مطالعہ کا سیشن",
+                "body": "آپ کا خود مطالعہ سیشن جلد شروع ہوگا{missed_suffix}۔",
+            },
+            "sd": {
+                "title": "۳۰ منٽن ۾ مطالعو سيشن",
+                "body": "توهان جو خود مطالعي جو سيشن جلد شروع ٿيندو{missed_suffix}.",
+            },
+            "ps": {
+                "title": "په ۳۰ دقیقو کې د مطالعې ناسته",
+                "body": "ستاسو د ځان مطالعې ناسته ډېر ژر پیلېږي{missed_suffix}.",
+            },
+        }
+    },
+    "self_study.adherence_alert_student": {
+        "default": {
+            "en": {
+                "title": "Two days missed on your plan",
+                "body": "You've missed two scheduled study days in a row. Open Self-Study to catch up.",
+            },
+            "ur": {
+                "title": "منصوبے کے دو دن چھوٹ گئے",
+                "body": "آپ نے لگاتار دو طے شدہ مطالعہ کے دن چھوڑے ہیں۔ خود مطالعہ کھولیں اور پورا کریں۔",
+            },
+            "sd": {
+                "title": "منصوبي جا ٻه ڏينهن ويا",
+                "body": "توهان لڳاتار ٻه مقرر مطالعو ڏينهن وڃائي ڇڏيا. خود مطالعو کوليو ۽ پورو ڪريو.",
+            },
+            "ps": {
+                "title": "په پلان کې دوه ورځې له لاسه تللې",
+                "body": "تاسو پرله پسې دوه ټاکل شوې د مطالعې ورځې له لاسه ورکړې. ځان مطالعه خلاصه کړئ او پوره یې کړئ.",
+            },
+        }
+    },
+    "self_study.plan_ready": {
+        "default": {
+            "en": {
+                "title": "Your study plan is ready",
+                "body": "Open Self-Study to review your calendar and start today's tasks.",
+            },
+            "ur": {
+                "title": "آپ کا مطالعہ منصوبہ تیار ہے",
+                "body": "کیلنڈر دیکھنے اور آج کے کام شروع کرنے کے لیے خود مطالعہ کھولیں۔",
+            },
+            "sd": {
+                "title": "توهان جو مطالعي جو منصوبو تيار آهي",
+                "body": "ڪئلينڊر ڏسڻ ۽ اڄ جا ڪم شروع ڪرڻ لاءِ خود مطالعو کوليو.",
+            },
+            "ps": {
+                "title": "ستاسو د مطالعې پلان چمتو دی",
+                "body": "کیلنډر کتلو او د نن ورځې دندې پیلولو لپاره ځان مطالعه خلاصه کړئ.",
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
@@ -140,6 +201,9 @@ TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {
     "self_study.diagnostic_available": frozenset({"in_app"}),
     "self_study.diagnostic_completed": frozenset({"in_app"}),
     "self_study.diagnostic_retake_available": frozenset({"in_app"}),
+    "self_study.session_reminder": frozenset({"in_app", "push", "email", "sms"}),
+    "self_study.adherence_alert_student": frozenset({"in_app", "push", "email"}),
+    "self_study.plan_ready": frozenset({"in_app"}),
 }
 
 

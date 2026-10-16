@@ -189,6 +189,60 @@
         "title": "ActiveSessionRead",
         "type": "object"
       },
+      "AdherenceDayRead": {
+        "properties": {
+          "adherence_pct": {
+            "title": "Adherence Pct",
+            "type": "number"
+          },
+          "alerted": {
+            "title": "Alerted",
+            "type": "boolean"
+          },
+          "consecutive_miss_count": {
+            "title": "Consecutive Miss Count",
+            "type": "integer"
+          },
+          "day_date": {
+            "title": "Day Date",
+            "type": "string"
+          }
+        },
+        "required": [
+          "day_date",
+          "adherence_pct",
+          "consecutive_miss_count",
+          "alerted"
+        ],
+        "title": "AdherenceDayRead",
+        "type": "object"
+      },
+      "AdherenceSummaryRead": {
+        "properties": {
+          "alert_fired": {
+            "default": false,
+            "title": "Alert Fired",
+            "type": "boolean"
+          },
+          "days": {
+            "items": {
+              "$ref": "#/components/schemas/AdherenceDayRead"
+            },
+            "title": "Days",
+            "type": "array"
+          },
+          "plan_id": {
+            "title": "Plan Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "plan_id",
+          "days"
+        ],
+        "title": "AdherenceSummaryRead",
+        "type": "object"
+      },
       "AdminUserInviteCreate": {
         "description": "Payload for POST /admin/users \u2014 invite a next-level admin.",
         "properties": {
@@ -613,6 +667,44 @@
           "file"
         ],
         "title": "Body_school_library_upload",
+        "type": "object"
+      },
+      "Body_self_study_upload_material": {
+        "properties": {
+          "disposition": {
+            "enum": [
+              "instant_answer",
+              "add_to_library"
+            ],
+            "title": "Disposition",
+            "type": "string"
+          },
+          "file": {
+            "contentMediaType": "application/octet-stream",
+            "title": "File",
+            "type": "string"
+          },
+          "source_type": {
+            "enum": [
+              "pdf",
+              "camera",
+              "gallery"
+            ],
+            "title": "Source Type",
+            "type": "string"
+          },
+          "title": {
+            "default": "Untitled material",
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "file",
+          "source_type",
+          "disposition"
+        ],
+        "title": "Body_self_study_upload_material",
         "type": "object"
       },
       "Body_student_transcribe_voice": {
@@ -2630,6 +2722,20 @@
           "created_at"
         ],
         "title": "FrameworkStudyPlanRead",
+        "type": "object"
+      },
+      "GoogleCalendarConfigRead": {
+        "description": "Env-gated Google Calendar OAuth \u2014 hidden when unconfigured (T-217).",
+        "properties": {
+          "enabled": {
+            "title": "Enabled",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "enabled"
+        ],
+        "title": "GoogleCalendarConfigRead",
         "type": "object"
       },
       "GradeCreate": {
@@ -5926,6 +6032,116 @@
         "title": "PostLoginResponse",
         "type": "object"
       },
+      "PrepBookGateRead": {
+        "properties": {
+          "allowed": {
+            "title": "Allowed",
+            "type": "boolean"
+          },
+          "error_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Error Message"
+          },
+          "has_prep_book": {
+            "title": "Has Prep Book",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "has_prep_book",
+          "allowed"
+        ],
+        "title": "PrepBookGateRead",
+        "type": "object"
+      },
+      "PrepBookTopicListRead": {
+        "properties": {
+          "banner": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Banner"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/PrepBookTopicRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "material_id": {
+            "title": "Material Id",
+            "type": "string"
+          },
+          "overflow_flagged": {
+            "default": false,
+            "title": "Overflow Flagged",
+            "type": "boolean"
+          },
+          "partial_parse": {
+            "default": false,
+            "title": "Partial Parse",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "material_id",
+          "items"
+        ],
+        "title": "PrepBookTopicListRead",
+        "type": "object"
+      },
+      "PrepBookTopicRead": {
+        "properties": {
+          "curriculum_topic_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Curriculum Topic Id"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "question_count": {
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "topic_label": {
+            "title": "Topic Label",
+            "type": "string"
+          },
+          "weight": {
+            "title": "Weight",
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "topic_label",
+          "question_count",
+          "weight"
+        ],
+        "title": "PrepBookTopicRead",
+        "type": "object"
+      },
       "QuestionClassificationLiteral": {
         "enum": [
           "misconception",
@@ -6156,6 +6372,86 @@
           "description"
         ],
         "title": "RealWorldUseRead",
+        "type": "object"
+      },
+      "ReminderPreferencesRead": {
+        "properties": {
+          "email_enabled": {
+            "title": "Email Enabled",
+            "type": "boolean"
+          },
+          "push_enabled": {
+            "title": "Push Enabled",
+            "type": "boolean"
+          },
+          "sms_enabled": {
+            "title": "Sms Enabled",
+            "type": "boolean"
+          },
+          "timezone": {
+            "title": "Timezone",
+            "type": "string"
+          }
+        },
+        "required": [
+          "push_enabled",
+          "email_enabled",
+          "sms_enabled",
+          "timezone"
+        ],
+        "title": "ReminderPreferencesRead",
+        "type": "object"
+      },
+      "ReminderPreferencesUpdate": {
+        "additionalProperties": false,
+        "properties": {
+          "email_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email Enabled"
+          },
+          "push_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Push Enabled"
+          },
+          "sms_enabled": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sms Enabled"
+          },
+          "timezone": {
+            "anyOf": [
+              {
+                "maxLength": 64,
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Timezone"
+          }
+        },
+        "title": "ReminderPreferencesUpdate",
         "type": "object"
       },
       "ResearchJobStatus": {
@@ -6665,6 +6961,347 @@
           "subscription_gate"
         ],
         "title": "SelfStudyEntryRead",
+        "type": "object"
+      },
+      "SelfStudyGoalAchieve": {
+        "additionalProperties": false,
+        "description": "End-of-session achievement check (skippable).",
+        "properties": {
+          "achieved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Achieved"
+          },
+          "session_duration_seconds": {
+            "default": 0,
+            "minimum": 0.0,
+            "title": "Session Duration Seconds",
+            "type": "integer"
+          },
+          "skip": {
+            "default": false,
+            "title": "Skip",
+            "type": "boolean"
+          }
+        },
+        "title": "SelfStudyGoalAchieve",
+        "type": "object"
+      },
+      "SelfStudyGoalRead": {
+        "properties": {
+          "achieved": {
+            "anyOf": [
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Achieved"
+          },
+          "achievement_check_pending": {
+            "default": true,
+            "title": "Achievement Check Pending",
+            "type": "boolean"
+          },
+          "goal_date": {
+            "title": "Goal Date",
+            "type": "string"
+          },
+          "goal_text": {
+            "title": "Goal Text",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_type",
+          "goal_date",
+          "goal_text"
+        ],
+        "title": "SelfStudyGoalRead",
+        "type": "object"
+      },
+      "SelfStudyGoalSet": {
+        "additionalProperties": false,
+        "description": "Free-text daily goal via hybrid widget (no templates).",
+        "properties": {
+          "confirm_replace": {
+            "default": false,
+            "title": "Confirm Replace",
+            "type": "boolean"
+          },
+          "goal_text": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Goal Text",
+            "type": "string"
+          }
+        },
+        "required": [
+          "goal_text"
+        ],
+        "title": "SelfStudyGoalSet",
+        "type": "object"
+      },
+      "SelfStudyGoalTodayRead": {
+        "description": "Wrapper so OpenAPI stays accurate when no goal is set.",
+        "properties": {
+          "goal": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SelfStudyGoalRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "SelfStudyGoalTodayRead",
+        "type": "object"
+      },
+      "SelfStudyMaterialCategorise": {
+        "additionalProperties": false,
+        "properties": {
+          "book_type": {
+            "enum": [
+              "prep_questions",
+              "reference_content"
+            ],
+            "title": "Book Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "book_type"
+        ],
+        "title": "SelfStudyMaterialCategorise",
+        "type": "object"
+      },
+      "SelfStudyMaterialListRead": {
+        "properties": {
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/SelfStudyMaterialRead"
+            },
+            "title": "Items",
+            "type": "array"
+          }
+        },
+        "required": [
+          "items"
+        ],
+        "title": "SelfStudyMaterialListRead",
+        "type": "object"
+      },
+      "SelfStudyMaterialRead": {
+        "properties": {
+          "added_to_library": {
+            "title": "Added To Library",
+            "type": "boolean"
+          },
+          "book_type": {
+            "anyOf": [
+              {
+                "enum": [
+                  "prep_questions",
+                  "reference_content"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Book Type"
+          },
+          "has_ocr_text": {
+            "default": false,
+            "title": "Has Ocr Text",
+            "type": "boolean"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "source_type": {
+            "enum": [
+              "pdf",
+              "camera",
+              "gallery",
+              "typed"
+            ],
+            "title": "Source Type",
+            "type": "string"
+          },
+          "storage_key": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Storage Key"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          },
+          "title": {
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_type",
+          "title",
+          "source_type",
+          "added_to_library"
+        ],
+        "title": "SelfStudyMaterialRead",
+        "type": "object"
+      },
+      "SelfStudyMaterialTypedCreate": {
+        "additionalProperties": false,
+        "description": "Typed path \u2014 hybrid widget #57 text, no file.",
+        "properties": {
+          "disposition": {
+            "enum": [
+              "instant_answer",
+              "add_to_library"
+            ],
+            "title": "Disposition",
+            "type": "string"
+          },
+          "text": {
+            "maxLength": 20000,
+            "minLength": 1,
+            "title": "Text",
+            "type": "string"
+          },
+          "title": {
+            "default": "Typed note",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Title",
+            "type": "string"
+          }
+        },
+        "required": [
+          "text",
+          "disposition"
+        ],
+        "title": "SelfStudyMaterialTypedCreate",
+        "type": "object"
+      },
+      "SelfStudyMaterialUploadResult": {
+        "description": "Post-upload Instant Answer or Add-to-Library result.",
+        "properties": {
+          "disposition": {
+            "enum": [
+              "instant_answer",
+              "add_to_library"
+            ],
+            "title": "Disposition",
+            "type": "string"
+          },
+          "event_emitted": {
+            "default": true,
+            "title": "Event Emitted",
+            "type": "boolean"
+          },
+          "extracted_text_preview": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extracted Text Preview"
+          },
+          "extraction_method": {
+            "anyOf": [
+              {
+                "enum": [
+                  "pdfplumber",
+                  "paddleocr",
+                  "tesseract",
+                  "typed"
+                ],
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Extraction Method"
+          },
+          "instant_answer_text": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instant Answer Text"
+          },
+          "material": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SelfStudyMaterialRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "source_type": {
+            "enum": [
+              "pdf",
+              "camera",
+              "gallery",
+              "typed"
+            ],
+            "title": "Source Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "disposition",
+          "source_type"
+        ],
+        "title": "SelfStudyMaterialUploadResult",
         "type": "object"
       },
       "SelfStudyPersistedState": {
@@ -8209,6 +8846,223 @@
         "title": "StudentStudyPlanRead",
         "type": "object"
       },
+      "StudyPlanActiveRead": {
+        "properties": {
+          "plan": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/StudyPlanRead"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "title": "StudyPlanActiveRead",
+        "type": "object"
+      },
+      "StudyPlanConversationAnswer": {
+        "additionalProperties": false,
+        "properties": {
+          "answer": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Answer",
+            "type": "string"
+          }
+        },
+        "required": [
+          "answer"
+        ],
+        "title": "StudyPlanConversationAnswer",
+        "type": "object"
+      },
+      "StudyPlanConversationRead": {
+        "properties": {
+          "answers": {
+            "additionalProperties": {
+              "type": "string"
+            },
+            "title": "Answers",
+            "type": "object"
+          },
+          "complete": {
+            "title": "Complete",
+            "type": "boolean"
+          },
+          "gate_passed": {
+            "default": true,
+            "title": "Gate Passed",
+            "type": "boolean"
+          },
+          "question": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Question"
+          },
+          "step": {
+            "title": "Step",
+            "type": "integer"
+          },
+          "total_steps": {
+            "title": "Total Steps",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "step",
+          "total_steps",
+          "answers",
+          "complete"
+        ],
+        "title": "StudyPlanConversationRead",
+        "type": "object"
+      },
+      "StudyPlanItemRead": {
+        "properties": {
+          "end_date": {
+            "title": "End Date",
+            "type": "string"
+          },
+          "est_minutes": {
+            "title": "Est Minutes",
+            "type": "integer"
+          },
+          "granularity": {
+            "enum": [
+              "day",
+              "3day",
+              "week"
+            ],
+            "title": "Granularity",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "start_date": {
+            "title": "Start Date",
+            "type": "string"
+          },
+          "subject_color": {
+            "title": "Subject Color",
+            "type": "string"
+          },
+          "tasks": {
+            "items": {},
+            "title": "Tasks",
+            "type": "array"
+          }
+        },
+        "required": [
+          "id",
+          "granularity",
+          "start_date",
+          "end_date",
+          "est_minutes",
+          "subject_color",
+          "tasks"
+        ],
+        "title": "StudyPlanItemRead",
+        "type": "object"
+      },
+      "StudyPlanRead": {
+        "properties": {
+          "daily_hours": {
+            "title": "Daily Hours",
+            "type": "integer"
+          },
+          "exam_date": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Exam Date"
+          },
+          "granularity_current": {
+            "enum": [
+              "day",
+              "3day",
+              "week"
+            ],
+            "title": "Granularity Current",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/StudyPlanItemRead"
+            },
+            "title": "Items",
+            "type": "array"
+          },
+          "status": {
+            "enum": [
+              "active",
+              "archived"
+            ],
+            "title": "Status",
+            "type": "string"
+          },
+          "strong_topics": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Strong Topics",
+            "type": "array"
+          },
+          "tenant_type": {
+            "enum": [
+              "school",
+              "independent"
+            ],
+            "title": "Tenant Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "tenant_type",
+          "status",
+          "daily_hours",
+          "strong_topics",
+          "granularity_current",
+          "items"
+        ],
+        "title": "StudyPlanRead",
+        "type": "object"
+      },
+      "StudyPlanRefineRequest": {
+        "additionalProperties": false,
+        "properties": {
+          "refinement_request": {
+            "maxLength": 2000,
+            "minLength": 1,
+            "title": "Refinement Request",
+            "type": "string"
+          }
+        },
+        "required": [
+          "refinement_request"
+        ],
+        "title": "StudyPlanRefineRequest",
+        "type": "object"
+      },
       "StudyPlanStatus": {
         "description": "Per-version study-plan lifecycle. Independent view exposes ``approved`` only.",
         "enum": [
@@ -8549,6 +9403,23 @@
         "title": "SuccessEnvelope[ActiveSessionRead]",
         "type": "object"
       },
+      "SuccessEnvelope_AdherenceSummaryRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/AdherenceSummaryRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[AdherenceSummaryRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_BulkImportRead_": {
         "properties": {
           "data": {
@@ -8819,6 +9690,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[FrameworkStudyPlanRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_GoogleCalendarConfigRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/GoogleCalendarConfigRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[GoogleCalendarConfigRead]",
         "type": "object"
       },
       "SuccessEnvelope_GradeRead_": {
@@ -9450,6 +10338,40 @@
         "title": "SuccessEnvelope[PostLoginResponse]",
         "type": "object"
       },
+      "SuccessEnvelope_PrepBookGateRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PrepBookGateRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[PrepBookGateRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_PrepBookTopicListRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/PrepBookTopicListRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[PrepBookTopicListRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_QuizAttemptResultRead_": {
         "properties": {
           "data": {
@@ -9482,6 +10404,23 @@
           "data"
         ],
         "title": "SuccessEnvelope[QuizOfferingAggregateRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_ReminderPreferencesRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReminderPreferencesRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ReminderPreferencesRead]",
         "type": "object"
       },
       "SuccessEnvelope_SchoolLibraryItemRead_": {
@@ -9584,6 +10523,91 @@
           "data"
         ],
         "title": "SuccessEnvelope[SelfStudyEntryRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SelfStudyGoalRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SelfStudyGoalRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SelfStudyGoalRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SelfStudyGoalTodayRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SelfStudyGoalTodayRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SelfStudyGoalTodayRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SelfStudyMaterialListRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SelfStudyMaterialListRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SelfStudyMaterialListRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SelfStudyMaterialRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SelfStudyMaterialRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SelfStudyMaterialRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_SelfStudyMaterialUploadResult_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/SelfStudyMaterialUploadResult"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[SelfStudyMaterialUploadResult]",
         "type": "object"
       },
       "SuccessEnvelope_SelfStudySessionRead_": {
@@ -9822,6 +10846,57 @@
           "data"
         ],
         "title": "SuccessEnvelope[StudentStudyPlanRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudyPlanActiveRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudyPlanActiveRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudyPlanActiveRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudyPlanConversationRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudyPlanConversationRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudyPlanConversationRead]",
+        "type": "object"
+      },
+      "SuccessEnvelope_StudyPlanRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/StudyPlanRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[StudyPlanRead]",
         "type": "object"
       },
       "SuccessEnvelope_SubjectRead_": {
@@ -18719,6 +19794,27 @@
         ]
       }
     },
+    "/api/v1/self-study/me/calendar/google-config": {
+      "get": {
+        "operationId": "self_study_google_calendar_config",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_GoogleCalendarConfigRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Whether Google Calendar OAuth button is enabled",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
     "/api/v1/self-study/me/due-flashcards": {
       "get": {
         "operationId": "self_study_list_due_flashcards",
@@ -18756,6 +19852,621 @@
           }
         },
         "summary": "Enter self-study mode (resume state; independent redirects)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/goal": {
+      "get": {
+        "operationId": "self_study_get_today_goal",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudyGoalTodayRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get today's self-study goal (Asia/Karachi)",
+        "tags": [
+          "self-study"
+        ]
+      },
+      "put": {
+        "operationId": "self_study_set_goal",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfStudyGoalSet"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudyGoalRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Set or replace today's free-text daily goal",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/goal/achievement": {
+      "post": {
+        "operationId": "self_study_goal_achievement",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfStudyGoalAchieve"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudyGoalRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "End-of-session goal check (once/day, skippable, >5 min)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/materials": {
+      "get": {
+        "operationId": "self_study_list_materials",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudyMaterialListRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "List own Study Library materials (private personal pool)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/materials/typed": {
+      "post": {
+        "operationId": "self_study_typed_material",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfStudyMaterialTypedCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudyMaterialUploadResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Typed material via hybrid widget (Instant Answer or Add to Library)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/materials/upload": {
+      "post": {
+        "operationId": "self_study_upload_material",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_self_study_upload_material"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudyMaterialUploadResult_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Upload PDF/camera/gallery material (Instant Answer or Add to Library)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/materials/{material_id}/book-type": {
+      "patch": {
+        "operationId": "self_study_categorise_material",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "material_id",
+            "required": true,
+            "schema": {
+              "title": "Material Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SelfStudyMaterialCategorise"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_SelfStudyMaterialRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Categorise library material (prep_questions | reference_content)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/materials/{material_id}/extract-topics": {
+      "post": {
+        "operationId": "self_study_extract_topics",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "material_id",
+            "required": true,
+            "schema": {
+              "title": "Material Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_PrepBookTopicListRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Extract weighted topics from a prep book (sync path for tests)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/plans/active": {
+      "get": {
+        "operationId": "self_study_get_active_plan",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudyPlanActiveRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get the student's active study plan",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/plans/conversation": {
+      "get": {
+        "operationId": "self_study_plan_conversation_state",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudyPlanConversationRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Conversational plan wizard state (5 questions)",
+        "tags": [
+          "self-study"
+        ]
+      },
+      "post": {
+        "operationId": "self_study_plan_conversation_answer",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudyPlanConversationAnswer"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudyPlanConversationRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Answer the next conversational plan question",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/plans/gate": {
+      "get": {
+        "operationId": "self_study_prep_book_gate",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_PrepBookGateRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Check prep-book hard gate for plan generation",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/plans/generate": {
+      "post": {
+        "operationId": "self_study_generate_plan",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudyPlanRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Generate study plan from conversation + weighted topics",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/plans/{plan_id}/adherence/check": {
+      "post": {
+        "operationId": "self_study_check_adherence",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_AdherenceSummaryRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Run adherence check for a plan day (activity-inferred)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/plans/{plan_id}/calendar.ics": {
+      "get": {
+        "operationId": "self_study_export_ics",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Export study plan as .ics (always available)",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/plans/{plan_id}/refine": {
+      "post": {
+        "operationId": "self_study_refine_plan",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "plan_id",
+            "required": true,
+            "schema": {
+              "title": "Plan Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/StudyPlanRefineRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_StudyPlanRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Natural-language refine of affected plan items",
+        "tags": [
+          "self-study"
+        ]
+      }
+    },
+    "/api/v1/self-study/me/reminder-preferences": {
+      "get": {
+        "operationId": "self_study_get_reminder_preferences",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReminderPreferencesRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Get reminder channel preferences",
+        "tags": [
+          "self-study"
+        ]
+      },
+      "put": {
+        "operationId": "self_study_put_reminder_preferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReminderPreferencesUpdate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReminderPreferencesRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Update reminder channel preferences",
         "tags": [
           "self-study"
         ]

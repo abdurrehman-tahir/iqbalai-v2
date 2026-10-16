@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
-from typing import Literal
+from typing import Literal, cast
 
 import structlog
 from sqlalchemy import select
@@ -78,7 +78,7 @@ class SelfStudySessionService:
             id=session_id,
             tenant_type=tenant_type,
             mode="self_study",
-            status=status.value,  # type: ignore[arg-type]
+            status=cast(Literal["active", "ended"], status.value),
             material_id=material_id,
             study_plan_id=study_plan_id,
             retrieval_primary=plan.primary_collection,
@@ -98,60 +98,70 @@ class SelfStudySessionService:
         tenant = get_tenant_type(claims)
         now = datetime.now(timezone.utc)
         if tenant == "independent":
-            user = await self._require_independent_student(claims)
-            row = IndependentSelfStudySession(
-                student_user_id=user.id,
+            ind_user = await self._require_independent_student(claims)
+            ind_row = IndependentSelfStudySession(
+                student_user_id=ind_user.id,
                 started_at=now,
                 material_id=payload.material_id,
                 study_plan_id=payload.study_plan_id,
             )
-            self._session.add(row)
+            self._session.add(ind_row)
             await self._session.commit()
-            await self._session.refresh(row)
+            await self._session.refresh(ind_row)
             event_payload = {
-                "student_user_id": user.id,
-                "session_id": row.id,
+                "student_user_id": ind_user.id,
+                "session_id": ind_row.id,
                 "tenant_type": "independent",
                 "mode": "self_study",
                 "school_id": "",
             }
             await publish_self_study_session_started(payload=event_payload)
             assert not should_forward_to_flow7(event_payload)
-            logger.info("self_study_session_started", tenant="independent", session_id=row.id)
+            logger.info(
+                "self_study_session_started",
+                tenant="independent",
+                session_id=ind_row.id,
+            )
             return self._to_read(
-                session_id=row.id,
+                session_id=ind_row.id,
                 tenant_type="independent",
-                status=row.status,
-                material_id=row.material_id,
-                study_plan_id=row.study_plan_id,
+                status=ind_row.status,
+                material_id=ind_row.material_id,
+                study_plan_id=ind_row.study_plan_id,
             )
 
-        user = await self._require_school_student(claims)
-        row = SchoolSelfStudySession(
-            student_user_id=user.id,
+        school_user = await self._require_school_student(claims)
+        # T-220 — stamp current #72 preference (canonical owner: Flow 8 / user_settings).
+        from app.features.student_privacy.service import student_allows_teacher_share
+
+        allows_share = await student_allows_teacher_share(self._session, school_user.id)
+        teacher_share = "share" if allows_share else "private"
+        school_row = SchoolSelfStudySession(
+            student_user_id=school_user.id,
             started_at=now,
             material_id=payload.material_id,
             study_plan_id=payload.study_plan_id,
         )
-        self._session.add(row)
+        self._session.add(school_row)
         await self._session.commit()
-        await self._session.refresh(row)
+        await self._session.refresh(school_row)
         event_payload = {
-            "student_user_id": user.id,
-            "session_id": row.id,
+            "student_user_id": school_user.id,
+            "session_id": school_row.id,
             "tenant_type": "school",
             "mode": "self_study",
-            "school_id": user.school_id or "",
-            "teacher_activity_share": "share",
+            "school_id": school_user.school_id or "",
+            "teacher_activity_share": teacher_share,
         }
         await publish_self_study_session_started(payload=event_payload)
-        logger.info("self_study_session_started", tenant="school", session_id=row.id)
+        logger.info("self_study_session_started", tenant="school", session_id=school_row.id)
         return self._to_read(
-            session_id=row.id,
+            session_id=school_row.id,
             tenant_type="school",
-            status=row.status,
-            material_id=row.material_id,
-            study_plan_id=row.study_plan_id,
+            status=school_row.status,
+            material_id=school_row.material_id,
+            study_plan_id=school_row.study_plan_id,
+            teacher_share=teacher_share,
         )
 
     async def end_session(
@@ -162,66 +172,66 @@ class SelfStudySessionService:
         tenant = get_tenant_type(claims)
         now = datetime.now(timezone.utc)
         if tenant == "independent":
-            user = await self._require_independent_student(claims)
+            ind_user = await self._require_independent_student(claims)
             result = await self._session.execute(
                 select(IndependentSelfStudySession).where(
                     IndependentSelfStudySession.id == session_id,
-                    IndependentSelfStudySession.student_user_id == user.id,
+                    IndependentSelfStudySession.student_user_id == ind_user.id,
                 )
             )
-            row = result.scalar_one_or_none()
-            if row is None:
+            ind_row = result.scalar_one_or_none()
+            if ind_row is None:
                 raise NotFoundError("Self-study session not found")
-            row.status = SelfStudySessionStatus.ENDED
-            row.ended_at = now
+            ind_row.status = SelfStudySessionStatus.ENDED
+            ind_row.ended_at = now
             await self._session.commit()
-            await self._session.refresh(row)
+            await self._session.refresh(ind_row)
             await publish_self_study_session_ended(
                 payload={
-                    "student_user_id": user.id,
-                    "session_id": row.id,
+                    "student_user_id": ind_user.id,
+                    "session_id": ind_row.id,
                     "tenant_type": "independent",
                     "mode": "self_study",
                     "school_id": "",
                 }
             )
             return self._to_read(
-                session_id=row.id,
+                session_id=ind_row.id,
                 tenant_type="independent",
-                status=row.status,
-                material_id=row.material_id,
-                study_plan_id=row.study_plan_id,
+                status=ind_row.status,
+                material_id=ind_row.material_id,
+                study_plan_id=ind_row.study_plan_id,
             )
 
-        user = await self._require_school_student(claims)
+        school_user = await self._require_school_student(claims)
         result = await self._session.execute(
             select(SchoolSelfStudySession).where(
                 SchoolSelfStudySession.id == session_id,
-                SchoolSelfStudySession.student_user_id == user.id,
+                SchoolSelfStudySession.student_user_id == school_user.id,
             )
         )
-        row = result.scalar_one_or_none()
-        if row is None:
+        school_row = result.scalar_one_or_none()
+        if school_row is None:
             raise NotFoundError("Self-study session not found")
-        row.status = SelfStudySessionStatus.ENDED
-        row.ended_at = now
+        school_row.status = SelfStudySessionStatus.ENDED
+        school_row.ended_at = now
         await self._session.commit()
-        await self._session.refresh(row)
+        await self._session.refresh(school_row)
         await publish_self_study_session_ended(
             payload={
-                "student_user_id": user.id,
-                "session_id": row.id,
+                "student_user_id": school_user.id,
+                "session_id": school_row.id,
                 "tenant_type": "school",
                 "mode": "self_study",
-                "school_id": user.school_id or "",
+                "school_id": school_user.school_id or "",
             }
         )
         return self._to_read(
-            session_id=row.id,
+            session_id=school_row.id,
             tenant_type="school",
-            status=row.status,
-            material_id=row.material_id,
-            study_plan_id=row.study_plan_id,
+            status=school_row.status,
+            material_id=school_row.material_id,
+            study_plan_id=school_row.study_plan_id,
         )
 
     async def list_due_flashcards(self, claims: dict[str, object]) -> DueFlashcardsListRead:

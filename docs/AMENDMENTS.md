@@ -75,6 +75,93 @@ Copy this block for every new amendment:
 
 (Append below this line. Newest at the top.)
 
+## A-007 — Append plan/adherence `self_study.*` subjects (Flow 8 / M-17)
+
+- **Date:** 2026-10-16
+- **Author:** @shahabkhalid253-dev
+- **Affects:** `ARCHITECTURE.md` §9.3
+- **Status:** drafted (pending Abd. sign-off with M-17 PR)
+
+### What changed
+
+§9.3 gains `self_study.plan_generated`, `self_study.adherence_updated`, `self_study.adherence_alert`.
+
+### Why
+
+T-215 / T-219 emit plan + adherence signals for Flow 9; A-003 deferred these subjects to later M-17 tickets.
+
+### Migration
+
+Relies on A-005 `self_study.>` stream filter.
+
+### Related
+
+- A-005, A-006; M-17 T-215 / T-219
+
+---
+
+## A-006 — Append `self_study.material_uploaded` to NATS subject taxonomy (Flow 8 / M-17)
+
+- **Date:** 2026-10-15
+- **Author:** @shahabkhalid253-dev
+- **Affects:** `ARCHITECTURE.md` §9.3
+- **Status:** drafted (pending Abd. sign-off with M-17 PR)
+
+### What changed
+
+§9.3 locked subject list gains `self_study.material_uploaded` (Instant Answer and Add-to-Library both emit it).
+
+### Why
+
+Flow 8 §3.3 / M-17 T-212 requires a NATS interaction event even for ephemeral Instant Answer uploads (Cognitive DNA signal). Stream filter `self_study.>` was already added in A-005.
+
+### What we considered before deciding
+
+Reuse `student.upload.completed` under `student.>` — rejected; Flow 8 names materials under `self_study.*`.
+
+### Migration
+
+No data migration. Relies on A-005's `self_study.>` stream filter.
+
+### Related
+
+- A-005; Flow 8 §3.3; M-17 T-212
+
+---
+
+## A-005 — Append `self_study.goal_*` to NATS subject taxonomy (Flow 8 / M-17)
+
+- **Date:** 2026-10-15
+- **Author:** @shahabkhalid253-dev
+- **Affects:** `ARCHITECTURE.md` §9.3, §9.4 (and §16.8 stream summary)
+- **Status:** drafted (pending Abd. sign-off with M-17 PR)
+
+### What changed
+
+§9.3 locked subject list gains `self_study.goal_set` and `self_study.goal_achieved`. §9.4 `student-events` stream subject filter gains `self_study.>`.
+
+### Why
+
+Flow 8 §3.2 / M-17 T-211 requires publishing goal set / achievement events for Cognitive DNA (Flow 9) to consume later. The launch taxonomy had no `self_study.*` subjects. Subjects are append-only — adding the names and binding them to `student-events` (student learning firehose) is the locked process.
+
+### What we considered before deciding
+
+(1) Alias under `student.goal.set` to reuse the existing `student.>` wildcard — would avoid a stream-filter change but diverges from Flow 8's `self_study.*` naming (also the locked notification namespace). (2) Append `self_study.goal_set` / `self_study.goal_achieved` + `self_study.>` on `student-events`. Chose (2).
+
+### Migration
+
+No data migration. Ops must update the `student-events` stream subject filter to include `self_study.>` before the events are durably retained in JetStream.
+
+### What this DOES NOT change
+
+Cognitive DNA consumption (Flow 9 / M-18), reminder/adherence subjects (later M-17 tickets), or any other §9.3 subject.
+
+### Related
+
+- `ARCHITECTURE.md` §9.3, §9.4; Flow 8 §3.2 / §10; M-17 T-211
+
+---
+
 ## A-004 — Append `mini_lecture.generated` to NATS subject taxonomy (Flow 7 / M-16)
 
 - **Date:** 2026-10-15

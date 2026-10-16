@@ -265,6 +265,10 @@ class SchoolStudentGoal(AuditMixin, Base):
     achieved_response_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    # Set when end-of-session check fires or is skipped (once/day, Flow 8 §3.2).
+    achievement_check_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
 
     def __init__(self, **kwargs: object) -> None:
         if "id" not in kwargs:
@@ -303,6 +307,9 @@ class IndependentStudentGoal(AuditMixin, Base):
     goal_text: Mapped[str] = mapped_column(Text, nullable=False)
     achieved: Mapped[bool | None] = mapped_column(Boolean, nullable=True)
     achieved_response_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
+    achievement_check_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
 

@@ -153,7 +153,7 @@ async def test_start_session_independent_api(monkeypatch: pytest.MonkeyPatch) ->
 
     async def _refresh(row: object) -> None:
         if getattr(row, "id", None) is None:
-            object.__setattr__(row, "id", "sess-1")  # type: ignore[attr-defined]
+            object.__setattr__(row, "id", "sess-1")
 
     session.refresh = _refresh
 

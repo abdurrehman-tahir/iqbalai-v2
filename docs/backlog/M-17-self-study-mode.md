@@ -113,7 +113,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.2 (free-text via #57; injected into session AI context; live panel displays; one/day editable; end-of-session check; feeds Cognitive DNA)
@@ -149,7 +149,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.3 (PDF / camera / gallery / typed; PaddleOCR; `student_material` + `student_question_image` profiles; Instant Answer vs Add-to-Library; private personal pool; MinIO per tenant+user)
@@ -182,7 +182,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.4 (`book_type` ENUM; HARD BLOCK plan-gen without a prep book; exact error; re-categorisation re-triggers gate)
@@ -215,7 +215,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.5 (Celery `self_study.extract_topics` on prep-book add; LLM batch classify; weighted topic list; $0.25/book, 500q cap; school curriculum mapping)
@@ -248,7 +248,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 2.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.6 (AI 5-question chat via #57; pre-fill; weighted list → `study_plans` + `study_plan_items`; NL refinement; one active plan/exam; $0.50 gen / $0.10 refine; retry 3)
@@ -281,7 +281,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.7 (auto granularity by duration: ≤14d day / 15-90d 3-day / >90d weekly; nightly auto-refine)
@@ -314,7 +314,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.8 (FullCalendar primary; `.ics` always; "Add to Google Calendar" env-gated OAuth; no Apple API)
@@ -347,7 +347,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.9 (Celery per-session 30-min-before; FCM / Brevo / Jazz+Telenor; degrade silently; channel prefs; missed-task catch-up)
@@ -380,7 +380,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.10 (Celery beat `self_study.check_adherence` ~22:00 Karachi; activity-inferred completion; 2-miss alert student + parent; adherence% → Flow 9 pass probability)
@@ -417,7 +417,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.12 (#72 canonical owner; default share; INVIOLATE when No; aggregate-anonymous regardless; hidden for independent; mid-session toggle)
@@ -450,7 +450,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §4 (permissions matrix), §3.13 (tenant differences), §7 (notifications)
@@ -483,7 +483,7 @@ Self-study mode — the student-driven study loop, and the **primary surface for
 **Layer:** 6
 **Milestone:** M-17
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
 
 ### Spec source
 - `flow-8-self-study.md` §3.1-§3.13

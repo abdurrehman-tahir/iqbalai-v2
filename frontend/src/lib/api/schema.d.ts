@@ -2094,6 +2094,23 @@ export interface paths {
         patch: operations["school_library_set_reference_visibility"];
         trace?: never;
     };
+    "/api/v1/self-study/me/calendar/google-config": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Whether Google Calendar OAuth button is enabled */
+        get: operations["self_study_google_calendar_config"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/self-study/me/due-flashcards": {
         parameters: {
             query?: never;
@@ -2121,6 +2138,264 @@ export interface paths {
         /** Enter self-study mode (resume state; independent redirects) */
         get: operations["self_study_get_entry"];
         put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/goal": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get today's self-study goal (Asia/Karachi) */
+        get: operations["self_study_get_today_goal"];
+        /** Set or replace today's free-text daily goal */
+        put: operations["self_study_set_goal"];
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/goal/achievement": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** End-of-session goal check (once/day, skippable, >5 min) */
+        post: operations["self_study_goal_achievement"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/materials": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** List own Study Library materials (private personal pool) */
+        get: operations["self_study_list_materials"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/materials/typed": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Typed material via hybrid widget (Instant Answer or Add to Library) */
+        post: operations["self_study_typed_material"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/materials/upload": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Upload PDF/camera/gallery material (Instant Answer or Add to Library) */
+        post: operations["self_study_upload_material"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/materials/{material_id}/book-type": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        /** Categorise library material (prep_questions | reference_content) */
+        patch: operations["self_study_categorise_material"];
+        trace?: never;
+    };
+    "/api/v1/self-study/me/materials/{material_id}/extract-topics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Extract weighted topics from a prep book (sync path for tests) */
+        post: operations["self_study_extract_topics"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/plans/active": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get the student's active study plan */
+        get: operations["self_study_get_active_plan"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/plans/conversation": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Conversational plan wizard state (5 questions) */
+        get: operations["self_study_plan_conversation_state"];
+        put?: never;
+        /** Answer the next conversational plan question */
+        post: operations["self_study_plan_conversation_answer"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/plans/gate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Check prep-book hard gate for plan generation */
+        get: operations["self_study_prep_book_gate"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/plans/generate": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Generate study plan from conversation + weighted topics */
+        post: operations["self_study_generate_plan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/plans/{plan_id}/adherence/check": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Run adherence check for a plan day (activity-inferred) */
+        post: operations["self_study_check_adherence"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/plans/{plan_id}/calendar.ics": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Export study plan as .ics (always available) */
+        get: operations["self_study_export_ics"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/plans/{plan_id}/refine": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Natural-language refine of affected plan items */
+        post: operations["self_study_refine_plan"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/self-study/me/reminder-preferences": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Get reminder channel preferences */
+        get: operations["self_study_get_reminder_preferences"];
+        /** Update reminder channel preferences */
+        put: operations["self_study_put_reminder_preferences"];
         post?: never;
         delete?: never;
         options?: never;
@@ -4046,6 +4321,29 @@ export interface components {
             label: string | null;
             session: components["schemas"]["AcademicSessionRead"] | null;
         };
+        /** AdherenceDayRead */
+        AdherenceDayRead: {
+            /** Adherence Pct */
+            adherence_pct: number;
+            /** Alerted */
+            alerted: boolean;
+            /** Consecutive Miss Count */
+            consecutive_miss_count: number;
+            /** Day Date */
+            day_date: string;
+        };
+        /** AdherenceSummaryRead */
+        AdherenceSummaryRead: {
+            /**
+             * Alert Fired
+             * @default false
+             */
+            alert_fired: boolean;
+            /** Days */
+            days: components["schemas"]["AdherenceDayRead"][];
+            /** Plan Id */
+            plan_id: string;
+        };
         /**
          * AdminUserInviteCreate
          * @description Payload for POST /admin/users — invite a next-level admin.
@@ -4188,6 +4486,26 @@ export interface components {
         Body_school_library_upload: {
             /** File */
             file: string;
+        };
+        /** Body_self_study_upload_material */
+        Body_self_study_upload_material: {
+            /**
+             * Disposition
+             * @enum {string}
+             */
+            disposition: "instant_answer" | "add_to_library";
+            /** File */
+            file: string;
+            /**
+             * Source Type
+             * @enum {string}
+             */
+            source_type: "pdf" | "camera" | "gallery";
+            /**
+             * Title
+             * @default Untitled material
+             */
+            title: string;
         };
         /** Body_student_transcribe_voice */
         Body_student_transcribe_voice: {
@@ -4996,6 +5314,14 @@ export interface components {
             status: components["schemas"]["StudyPlanStatus"];
             /** Version */
             version: number;
+        };
+        /**
+         * GoogleCalendarConfigRead
+         * @description Env-gated Google Calendar OAuth — hidden when unconfigured (T-217).
+         */
+        GoogleCalendarConfigRead: {
+            /** Enabled */
+            enabled: boolean;
         };
         /** GradeCreate */
         GradeCreate: {
@@ -6321,6 +6647,47 @@ export interface components {
             /** User Id */
             user_id: string;
         };
+        /** PrepBookGateRead */
+        PrepBookGateRead: {
+            /** Allowed */
+            allowed: boolean;
+            /** Error Message */
+            error_message?: string | null;
+            /** Has Prep Book */
+            has_prep_book: boolean;
+        };
+        /** PrepBookTopicListRead */
+        PrepBookTopicListRead: {
+            /** Banner */
+            banner?: string | null;
+            /** Items */
+            items: components["schemas"]["PrepBookTopicRead"][];
+            /** Material Id */
+            material_id: string;
+            /**
+             * Overflow Flagged
+             * @default false
+             */
+            overflow_flagged: boolean;
+            /**
+             * Partial Parse
+             * @default false
+             */
+            partial_parse: boolean;
+        };
+        /** PrepBookTopicRead */
+        PrepBookTopicRead: {
+            /** Curriculum Topic Id */
+            curriculum_topic_id?: string | null;
+            /** Id */
+            id: string;
+            /** Question Count */
+            question_count: number;
+            /** Topic Label */
+            topic_label: string;
+            /** Weight */
+            weight: number;
+        };
         /**
          * QuestionClassificationLiteral
          * @enum {string}
@@ -6404,6 +6771,28 @@ export interface components {
             description: string;
             /** Title */
             title: string;
+        };
+        /** ReminderPreferencesRead */
+        ReminderPreferencesRead: {
+            /** Email Enabled */
+            email_enabled: boolean;
+            /** Push Enabled */
+            push_enabled: boolean;
+            /** Sms Enabled */
+            sms_enabled: boolean;
+            /** Timezone */
+            timezone: string;
+        };
+        /** ReminderPreferencesUpdate */
+        ReminderPreferencesUpdate: {
+            /** Email Enabled */
+            email_enabled?: boolean | null;
+            /** Push Enabled */
+            push_enabled?: boolean | null;
+            /** Sms Enabled */
+            sms_enabled?: boolean | null;
+            /** Timezone */
+            timezone?: string | null;
         };
         /**
          * ResearchJobStatus
@@ -6633,6 +7022,152 @@ export interface components {
              * @enum {string}
              */
             tenant_type: "school" | "independent";
+        };
+        /**
+         * SelfStudyGoalAchieve
+         * @description End-of-session achievement check (skippable).
+         */
+        SelfStudyGoalAchieve: {
+            /** Achieved */
+            achieved?: boolean | null;
+            /**
+             * Session Duration Seconds
+             * @default 0
+             */
+            session_duration_seconds: number;
+            /**
+             * Skip
+             * @default false
+             */
+            skip: boolean;
+        };
+        /** SelfStudyGoalRead */
+        SelfStudyGoalRead: {
+            /** Achieved */
+            achieved?: boolean | null;
+            /**
+             * Achievement Check Pending
+             * @default true
+             */
+            achievement_check_pending: boolean;
+            /** Goal Date */
+            goal_date: string;
+            /** Goal Text */
+            goal_text: string;
+            /** Id */
+            id: string;
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
+        };
+        /**
+         * SelfStudyGoalSet
+         * @description Free-text daily goal via hybrid widget (no templates).
+         */
+        SelfStudyGoalSet: {
+            /**
+             * Confirm Replace
+             * @default false
+             */
+            confirm_replace: boolean;
+            /** Goal Text */
+            goal_text: string;
+        };
+        /**
+         * SelfStudyGoalTodayRead
+         * @description Wrapper so OpenAPI stays accurate when no goal is set.
+         */
+        SelfStudyGoalTodayRead: {
+            goal?: components["schemas"]["SelfStudyGoalRead"] | null;
+        };
+        /** SelfStudyMaterialCategorise */
+        SelfStudyMaterialCategorise: {
+            /**
+             * Book Type
+             * @enum {string}
+             */
+            book_type: "prep_questions" | "reference_content";
+        };
+        /** SelfStudyMaterialListRead */
+        SelfStudyMaterialListRead: {
+            /** Items */
+            items: components["schemas"]["SelfStudyMaterialRead"][];
+        };
+        /** SelfStudyMaterialRead */
+        SelfStudyMaterialRead: {
+            /** Added To Library */
+            added_to_library: boolean;
+            /** Book Type */
+            book_type?: ("prep_questions" | "reference_content") | null;
+            /**
+             * Has Ocr Text
+             * @default false
+             */
+            has_ocr_text: boolean;
+            /** Id */
+            id: string;
+            /**
+             * Source Type
+             * @enum {string}
+             */
+            source_type: "pdf" | "camera" | "gallery" | "typed";
+            /** Storage Key */
+            storage_key?: string | null;
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
+            /** Title */
+            title: string;
+        };
+        /**
+         * SelfStudyMaterialTypedCreate
+         * @description Typed path — hybrid widget #57 text, no file.
+         */
+        SelfStudyMaterialTypedCreate: {
+            /**
+             * Disposition
+             * @enum {string}
+             */
+            disposition: "instant_answer" | "add_to_library";
+            /** Text */
+            text: string;
+            /**
+             * Title
+             * @default Typed note
+             */
+            title: string;
+        };
+        /**
+         * SelfStudyMaterialUploadResult
+         * @description Post-upload Instant Answer or Add-to-Library result.
+         */
+        SelfStudyMaterialUploadResult: {
+            /**
+             * Disposition
+             * @enum {string}
+             */
+            disposition: "instant_answer" | "add_to_library";
+            /**
+             * Event Emitted
+             * @default true
+             */
+            event_emitted: boolean;
+            /** Extracted Text Preview */
+            extracted_text_preview?: string | null;
+            /** Extraction Method */
+            extraction_method?: ("pdfplumber" | "paddleocr" | "tesseract" | "typed") | null;
+            /** Instant Answer Text */
+            instant_answer_text?: string | null;
+            material?: components["schemas"]["SelfStudyMaterialRead"] | null;
+            /**
+             * Source Type
+             * @enum {string}
+             */
+            source_type: "pdf" | "camera" | "gallery" | "typed";
         };
         /**
          * SelfStudyPersistedState
@@ -7254,6 +7789,88 @@ export interface components {
             /** Version */
             version: number;
         };
+        /** StudyPlanActiveRead */
+        StudyPlanActiveRead: {
+            plan?: components["schemas"]["StudyPlanRead"] | null;
+        };
+        /** StudyPlanConversationAnswer */
+        StudyPlanConversationAnswer: {
+            /** Answer */
+            answer: string;
+        };
+        /** StudyPlanConversationRead */
+        StudyPlanConversationRead: {
+            /** Answers */
+            answers: {
+                [key: string]: string;
+            };
+            /** Complete */
+            complete: boolean;
+            /**
+             * Gate Passed
+             * @default true
+             */
+            gate_passed: boolean;
+            /** Question */
+            question?: string | null;
+            /** Step */
+            step: number;
+            /** Total Steps */
+            total_steps: number;
+        };
+        /** StudyPlanItemRead */
+        StudyPlanItemRead: {
+            /** End Date */
+            end_date: string;
+            /** Est Minutes */
+            est_minutes: number;
+            /**
+             * Granularity
+             * @enum {string}
+             */
+            granularity: "day" | "3day" | "week";
+            /** Id */
+            id: string;
+            /** Start Date */
+            start_date: string;
+            /** Subject Color */
+            subject_color: string;
+            /** Tasks */
+            tasks: unknown[];
+        };
+        /** StudyPlanRead */
+        StudyPlanRead: {
+            /** Daily Hours */
+            daily_hours: number;
+            /** Exam Date */
+            exam_date?: string | null;
+            /**
+             * Granularity Current
+             * @enum {string}
+             */
+            granularity_current: "day" | "3day" | "week";
+            /** Id */
+            id: string;
+            /** Items */
+            items: components["schemas"]["StudyPlanItemRead"][];
+            /**
+             * Status
+             * @enum {string}
+             */
+            status: "active" | "archived";
+            /** Strong Topics */
+            strong_topics: string[];
+            /**
+             * Tenant Type
+             * @enum {string}
+             */
+            tenant_type: "school" | "independent";
+        };
+        /** StudyPlanRefineRequest */
+        StudyPlanRefineRequest: {
+            /** Refinement Request */
+            refinement_request: string;
+        };
         /**
          * StudyPlanStatus
          * @description Per-version study-plan lifecycle. Independent view exposes ``approved`` only.
@@ -7391,6 +8008,15 @@ export interface components {
         /** SuccessEnvelope[ActiveSessionRead] */
         SuccessEnvelope_ActiveSessionRead_: {
             data: components["schemas"]["ActiveSessionRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[AdherenceSummaryRead] */
+        SuccessEnvelope_AdherenceSummaryRead_: {
+            data: components["schemas"]["AdherenceSummaryRead"];
             /**
              * Message
              * @default ok
@@ -7535,6 +8161,15 @@ export interface components {
         /** SuccessEnvelope[FrameworkStudyPlanRead] */
         SuccessEnvelope_FrameworkStudyPlanRead_: {
             data: components["schemas"]["FrameworkStudyPlanRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[GoogleCalendarConfigRead] */
+        SuccessEnvelope_GoogleCalendarConfigRead_: {
+            data: components["schemas"]["GoogleCalendarConfigRead"];
             /**
              * Message
              * @default ok
@@ -7874,6 +8509,24 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[PrepBookGateRead] */
+        SuccessEnvelope_PrepBookGateRead_: {
+            data: components["schemas"]["PrepBookGateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[PrepBookTopicListRead] */
+        SuccessEnvelope_PrepBookTopicListRead_: {
+            data: components["schemas"]["PrepBookTopicListRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[QuizAttemptResultRead] */
         SuccessEnvelope_QuizAttemptResultRead_: {
             data: components["schemas"]["QuizAttemptResultRead"];
@@ -7886,6 +8539,15 @@ export interface components {
         /** SuccessEnvelope[QuizOfferingAggregateRead] */
         SuccessEnvelope_QuizOfferingAggregateRead_: {
             data: components["schemas"]["QuizOfferingAggregateRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[ReminderPreferencesRead] */
+        SuccessEnvelope_ReminderPreferencesRead_: {
+            data: components["schemas"]["ReminderPreferencesRead"];
             /**
              * Message
              * @default ok
@@ -7940,6 +8602,51 @@ export interface components {
         /** SuccessEnvelope[SelfStudyEntryRead] */
         SuccessEnvelope_SelfStudyEntryRead_: {
             data: components["schemas"]["SelfStudyEntryRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SelfStudyGoalRead] */
+        SuccessEnvelope_SelfStudyGoalRead_: {
+            data: components["schemas"]["SelfStudyGoalRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SelfStudyGoalTodayRead] */
+        SuccessEnvelope_SelfStudyGoalTodayRead_: {
+            data: components["schemas"]["SelfStudyGoalTodayRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SelfStudyMaterialListRead] */
+        SuccessEnvelope_SelfStudyMaterialListRead_: {
+            data: components["schemas"]["SelfStudyMaterialListRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SelfStudyMaterialRead] */
+        SuccessEnvelope_SelfStudyMaterialRead_: {
+            data: components["schemas"]["SelfStudyMaterialRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[SelfStudyMaterialUploadResult] */
+        SuccessEnvelope_SelfStudyMaterialUploadResult_: {
+            data: components["schemas"]["SelfStudyMaterialUploadResult"];
             /**
              * Message
              * @default ok
@@ -8066,6 +8773,33 @@ export interface components {
         /** SuccessEnvelope[StudentStudyPlanRead] */
         SuccessEnvelope_StudentStudyPlanRead_: {
             data: components["schemas"]["StudentStudyPlanRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudyPlanActiveRead] */
+        SuccessEnvelope_StudyPlanActiveRead_: {
+            data: components["schemas"]["StudyPlanActiveRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudyPlanConversationRead] */
+        SuccessEnvelope_StudyPlanConversationRead_: {
+            data: components["schemas"]["StudyPlanConversationRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[StudyPlanRead] */
+        SuccessEnvelope_StudyPlanRead_: {
+            data: components["schemas"]["StudyPlanRead"];
             /**
              * Message
              * @default ok
@@ -13660,6 +14394,26 @@ export interface operations {
             };
         };
     };
+    self_study_google_calendar_config: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_GoogleCalendarConfigRead_"];
+                };
+            };
+        };
+    };
     self_study_list_due_flashcards: {
         parameters: {
             query?: never;
@@ -13696,6 +14450,507 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_SelfStudyEntryRead_"];
+                };
+            };
+        };
+    };
+    self_study_get_today_goal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudyGoalTodayRead_"];
+                };
+            };
+        };
+    };
+    self_study_set_goal: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelfStudyGoalSet"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudyGoalRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_goal_achievement: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelfStudyGoalAchieve"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudyGoalRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_list_materials: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudyMaterialListRead_"];
+                };
+            };
+        };
+    };
+    self_study_typed_material: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelfStudyMaterialTypedCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudyMaterialUploadResult_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_upload_material: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "multipart/form-data": components["schemas"]["Body_self_study_upload_material"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudyMaterialUploadResult_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_categorise_material: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["SelfStudyMaterialCategorise"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_SelfStudyMaterialRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_extract_topics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                material_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_PrepBookTopicListRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_get_active_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudyPlanActiveRead_"];
+                };
+            };
+        };
+    };
+    self_study_plan_conversation_state: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudyPlanConversationRead_"];
+                };
+            };
+        };
+    };
+    self_study_plan_conversation_answer: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudyPlanConversationAnswer"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudyPlanConversationRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_prep_book_gate: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_PrepBookGateRead_"];
+                };
+            };
+        };
+    };
+    self_study_generate_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudyPlanRead_"];
+                };
+            };
+        };
+    };
+    self_study_check_adherence: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_AdherenceSummaryRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_export_ics: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": unknown;
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_refine_plan: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                plan_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["StudyPlanRefineRequest"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_StudyPlanRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    self_study_get_reminder_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ReminderPreferencesRead_"];
+                };
+            };
+        };
+    };
+    self_study_put_reminder_preferences: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReminderPreferencesUpdate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ReminderPreferencesRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
                 };
             };
         };

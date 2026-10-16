@@ -88,4 +88,20 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "review.aggregate_nightly",
         "schedule": crontab(hour=18, minute=0),  # 23:00 PKT
     },
+    # M-17 self-study granularity refine (T-216) — nightly.
+    "self-study-refine-granularity": {
+        "task": "self_study.refine_granularity_sweep",
+        "schedule": crontab(hour=19, minute=0),  # 00:00 PKT
+    },
+    # M-17 session reminders (T-218) — every 5 min rolling window.
+    "self-study-send-session-reminders": {
+        "task": "self_study.send_session_reminders",
+        "schedule": crontab(minute="*/5"),
+        "kwargs": {"school_id": "system"},
+    },
+    # M-17 adherence check (T-219) — ~22:00 Asia/Karachi = 17:00 UTC.
+    "self-study-check-adherence": {
+        "task": "self_study.check_adherence_sweep",
+        "schedule": crontab(hour=17, minute=0),  # 22:00 PKT
+    },
 }

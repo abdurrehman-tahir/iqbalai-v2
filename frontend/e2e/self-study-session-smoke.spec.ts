@@ -1,5 +1,5 @@
 /**
- * T-210 — Self-study session + due flashcards smoke (@smoke @mock).
+ * T-210 / T-211 — Self-study session + due flashcards + daily goal smoke (@smoke @mock).
  */
 import { test, expect, type Page, type Route } from "@playwright/test";
 
@@ -37,6 +37,49 @@ async function installMocks(page: Page) {
         status: 200,
         contentType: "application/json",
         body: envelope({ ready_to_study: true, exam_date_passed: false, profile: null }),
+      });
+      return;
+    }
+
+    if (path === "/self-study/me/goal" && method === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({
+          goal: {
+            id: "goal-1",
+            tenant_type: "independent",
+            goal_date: "2026-10-15",
+            goal_text: "Understand Newton's Laws",
+            achieved: null,
+            achievement_check_pending: true,
+          },
+        }),
+      });
+      return;
+    }
+
+    if (path === "/self-study/me/goal" && method === "PUT") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({
+          id: "goal-1",
+          tenant_type: "independent",
+          goal_date: "2026-10-15",
+          goal_text: "Understand Newton's Laws",
+          achieved: null,
+          achievement_check_pending: true,
+        }),
+      });
+      return;
+    }
+
+    if (path === "/self-study/me/materials" && method === "GET") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({ items: [] }),
       });
       return;
     }
@@ -82,12 +125,17 @@ async function installMocks(page: Page) {
 }
 
 test.describe("Self-study session @smoke @mock", () => {
-  test("independent student opens session UI with due flashcards surface", async ({ page }) => {
+  test("independent student opens session UI with goal + due flashcards", async ({ page }) => {
     await installMocks(page);
     await page.goto("/independent/student/self-study");
     await expect(page.getByTestId("self-study-session")).toBeVisible();
+    await expect(page.getByTestId("self-study-goal-section")).toBeVisible();
+    await expect(page.getByTestId("self-study-goal-text")).toContainText("Newton");
     await expect(page.getByTestId("due-flashcards-section")).toBeVisible();
+    await expect(page.getByTestId("self-study-materials")).toBeVisible();
+    await expect(page.getByTestId("material-tab-pdf")).toBeVisible();
     await page.getByTestId("self-study-start-session").click();
     await expect(page.getByTestId("self-study-hybrid-widget")).toBeVisible();
+    await expect(page.getByTestId("live-feedback-daily-goal")).toContainText("Newton");
   });
 });

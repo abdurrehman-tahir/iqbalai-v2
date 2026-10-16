@@ -31,7 +31,10 @@ SYSTEM_MAX_BYTES = 20_000_000_000
 _STREAM_SPECS: tuple[dict[str, Any], ...] = (
     {
         "name": STUDENT_EVENTS_STREAM,
-        "subjects": ["student.>"],
+        "subjects": [
+            "student.>",
+            "self_study.>",  # A-005 / T-211
+        ],
         "max_age": STUDENT_MAX_AGE_SECONDS,
         "max_bytes": STUDENT_MAX_BYTES,
     },
