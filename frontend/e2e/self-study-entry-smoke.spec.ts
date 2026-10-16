@@ -40,6 +40,7 @@ async function installIndependentMocks(page: Page) {
         status: 200,
         contentType: "application/json",
         body: envelope({
+          profile_complete: true,
           ready_to_study: true,
           exam_date_passed: false,
           show_complete_profile_banner: false,

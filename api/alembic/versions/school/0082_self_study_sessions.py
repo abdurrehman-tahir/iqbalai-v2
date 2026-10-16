@@ -3,6 +3,10 @@
 Revision ID: school_0082
 Revises: school_0081
 Create Date: 2026-10-15
+
+Purpose: self_study_sessions table for school-tenant Flow 8 sessions.
+Risk: low — additive table + status enum.
+Reversible: yes
 """
 
 from __future__ import annotations

@@ -3,6 +3,10 @@
 Revision ID: independent_0022
 Revises: independent_0021
 Create Date: 2026-10-15
+
+Purpose: self_study_sessions table for independent-tenant Flow 8 sessions.
+Risk: low — additive table + status enum.
+Reversible: yes
 """
 
 from __future__ import annotations

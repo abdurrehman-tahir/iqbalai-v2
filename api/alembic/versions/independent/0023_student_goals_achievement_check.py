@@ -2,6 +2,10 @@
 
 Revision ID: independent_0023
 Revises: independent_0022
+
+Purpose: add student_goals.achievement_check_at for once/day EOD goal check.
+Risk: low — additive nullable column.
+Reversible: yes
 """
 
 from __future__ import annotations

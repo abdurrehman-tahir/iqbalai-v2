@@ -737,6 +737,17 @@
       "error": "آپ کی درجہ بندی محفوظ نہیں ہو سکی۔ براہ کرم دوبارہ کوشش کریں۔",
       "thanks_title": "درجہ بندی کا شکریہ!",
       "thanks_body": "آپ کی رائے اس لیکچر کو بہتر بنانے میں مدد دیتی ہے۔"
+    },
+    "header_title": "طالب علم",
+    "logout": "لاگ آؤٹ",
+    "mode": {
+      "label": "Study mode",
+      "lecture": "Lecture",
+      "self_study": "Self-Study",
+      "loading": "Loading study mode…",
+      "error": "Could not load study mode. Try again.",
+      "retry": "Retry",
+      "switch_error": "Could not switch mode. Please try again."
     }
   },
   "independent": {
@@ -843,6 +854,21 @@
       }
     },
     "student": {
+      "header_title": "__TODO__ Independent Student",
+      "logout": "__TODO__ Sign out",
+      "nav": {
+        "aria_label": "__TODO__ Independent student navigation",
+        "dashboard": "__TODO__ Self-Study"
+      },
+      "onboarding": {
+        "header_title": "__TODO__ Complete your profile",
+        "title": "__TODO__ Set your exam date",
+        "subtitle": "__TODO__ Confirm when you plan to take your exam.",
+        "exam_date_label": "__TODO__ Exam date",
+        "diagnostic_deferred": "__TODO__ Diagnostic assessment will be available in a future update (M-08).",
+        "submit": "__TODO__ Save and continue",
+        "error_generic": "__TODO__ Could not save profile. Please try again."
+      },
       "home": {
         "diagnostics_link": "__TODO__ Take a diagnostic",
         "exam_date_passed_prompt": "__TODO__ Your exam date has passed. Set a new exam date.",
@@ -857,7 +883,10 @@
         "loading_entry": "__TODO__ Loading self-study…",
         "entry_error": "__TODO__ Could not load self-study. Try again.",
         "subscription_gate_noop": "__TODO__ Plan limits are not enforced yet.",
-        "session_link": "__TODO__ Open self-study session"
+        "session_link": "__TODO__ Open self-study session",
+        "ready_banner": "__TODO__ You are ready to study.",
+        "self_study_only": "__TODO__ Self-Study Mode is your only mode — no lecture mode switcher.",
+        "diagnostic_deferred": "__TODO__ Diagnostic: coming soon (M-08 hook present)."
       }
     }
   },

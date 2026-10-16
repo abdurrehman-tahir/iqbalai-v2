@@ -37,7 +37,12 @@ async function installMocks(page: Page) {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: envelope({ ready_to_study: true, exam_date_passed: false, profile: null }),
+        body: envelope({
+          profile_complete: true,
+          ready_to_study: true,
+          exam_date_passed: false,
+          profile: null,
+        }),
       });
       return;
     }

@@ -41,11 +41,9 @@ vi.mock("@/components/shared/HybridInputWidget", () => ({
   ),
 }));
 
-vi.mock("@fullcalendar/react", () => ({
-  default: () => <div data-testid="mock-fullcalendar" />,
+vi.mock("next/dynamic", () => ({
+  default: () => () => <div data-testid="mock-fullcalendar" />,
 }));
-vi.mock("@fullcalendar/daygrid", () => ({ default: {} }));
-vi.mock("@fullcalendar/timegrid", () => ({ default: {} }));
 
 vi.mock("@/lib/api", async () => {
   const actual = await vi.importActual<typeof import("@/lib/api")>("@/lib/api");

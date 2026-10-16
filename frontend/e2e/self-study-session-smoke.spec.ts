@@ -36,7 +36,12 @@ async function installMocks(page: Page) {
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: envelope({ ready_to_study: true, exam_date_passed: false, profile: null }),
+        body: envelope({
+          profile_complete: true,
+          ready_to_study: true,
+          exam_date_passed: false,
+          profile: null,
+        }),
       });
       return;
     }
@@ -111,6 +116,72 @@ async function installMocks(page: Page) {
           retrieval_primary: "student_upload_chunks",
           retrieval_overlays: ["ai_knowledge"],
           reaches_flow7: false,
+        }),
+      });
+      return;
+    }
+
+    if (path === "/self-study/me/plans/gate") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({
+          has_prep_book: false,
+          allowed: false,
+          error_message: "Please upload a prep question book to generate a study plan.",
+        }),
+      });
+      return;
+    }
+
+    if (path === "/self-study/me/plans/active") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({ plan: null }),
+      });
+      return;
+    }
+
+    if (path === "/self-study/me/calendar/google-config") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({ enabled: false }),
+      });
+      return;
+    }
+
+    if (path === "/self-study/me/reminder-preferences") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({
+          push_enabled: true,
+          email_enabled: true,
+          sms_enabled: true,
+          timezone: "Asia/Karachi",
+        }),
+      });
+      return;
+    }
+
+    if (path === "/self-study/me/entry") {
+      await route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: envelope({
+          tenant_type: "independent",
+          locked_to_self_study: true,
+          active_mode: "self_study",
+          state: {},
+          subscription_gate: {
+            enforced: false,
+            allowed: true,
+            max_active_plans: null,
+            max_monthly_uploads: null,
+          },
+          lecture_mode_redirect_to: null,
         }),
       });
       return;

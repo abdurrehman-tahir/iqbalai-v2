@@ -16,11 +16,16 @@ vi.mock("@/hooks/use-client-auth", () => ({
   useClientAuth: () => ({ mounted: true, token: "tok" }),
 }));
 
-vi.mock("@fullcalendar/react", () => ({
-  default: () => <div data-testid="mock-fullcalendar" />,
+vi.mock("@/components/self-study/StudyPlanCalendar", () => ({
+  StudyPlanCalendar: () => <div data-testid="mock-fullcalendar" />,
 }));
-vi.mock("@fullcalendar/daygrid", () => ({ default: {} }));
-vi.mock("@fullcalendar/timegrid", () => ({ default: {} }));
+vi.mock("next/dynamic", () => ({
+  default: (loader: () => Promise<{ StudyPlanCalendar: React.ComponentType }>) => {
+    const Comp = () => <div data-testid="mock-fullcalendar" />;
+    void loader;
+    return Comp;
+  },
+}));
 
 vi.mock("@/components/shared/HybridInputWidget", () => ({
   HybridInputWidget: () => <div data-testid="mock-hybrid" />,

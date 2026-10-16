@@ -5,15 +5,26 @@
  */
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import FullCalendar from "@fullcalendar/react";
-import dayGridPlugin from "@fullcalendar/daygrid";
-import timeGridPlugin from "@fullcalendar/timegrid";
+import dynamic from "next/dynamic";
 import { useTranslations } from "next-intl";
 import { useMemo, useState } from "react";
 import { HybridInputWidget, type SubmitPayload } from "@/components/shared/HybridInputWidget";
 import { Button } from "@/components/ui/button";
 import { selfStudyApi } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
+
+const StudyPlanCalendar = dynamic(
+  () =>
+    import("@/components/self-study/StudyPlanCalendar").then((m) => m.StudyPlanCalendar),
+  {
+    ssr: false,
+    loading: () => (
+      <p className="text-sm text-gray-500" data-testid="study-plan-calendar-loading">
+        …
+      </p>
+    ),
+  },
+);
 
 export function StudyPlanPanel() {
   const t = useTranslations("self_study.plan");
@@ -102,9 +113,10 @@ export function StudyPlanPanel() {
     if (!plan) return [];
     return plan.items.map((item) => ({
       id: item.id,
-      title: Array.isArray(item.tasks) && item.tasks[0] && typeof item.tasks[0] === "object"
-        ? String((item.tasks[0] as { title?: string }).title ?? t("task_fallback"))
-        : t("task_fallback"),
+      title:
+        Array.isArray(item.tasks) && item.tasks[0] && typeof item.tasks[0] === "object"
+          ? String((item.tasks[0] as { title?: string }).title ?? t("task_fallback"))
+          : t("task_fallback"),
       start: item.start_date,
       end: item.end_date,
       backgroundColor: item.subject_color,
@@ -203,19 +215,7 @@ export function StudyPlanPanel() {
               hours: plan.daily_hours,
             })}
           </p>
-          <div className="overflow-x-auto" data-testid="fullcalendar-root">
-            <FullCalendar
-              plugins={[dayGridPlugin, timeGridPlugin]}
-              initialView="dayGridMonth"
-              headerToolbar={{
-                left: "prev,next today",
-                center: "title",
-                right: "dayGridMonth,timeGridWeek",
-              }}
-              events={events}
-              height="auto"
-            />
-          </div>
+          <StudyPlanCalendar events={events} />
           <div className="flex flex-wrap gap-2">
             <Button
               type="button"
