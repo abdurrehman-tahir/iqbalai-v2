@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** in-progress
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-209 through T-222
 **Spec source:** `flow-8-self-study.md` v1 §3.1-§3.13, features #62, #63, #64, #65, #66, #67, #68, #69, #70, #72

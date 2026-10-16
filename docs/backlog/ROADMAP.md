@@ -33,7 +33,7 @@
 | M-22 | Promotion Workflow + Graduation Lifecycle (Flow 2 §3.4 + Flow 4 §3.9) | 6 | TBD (numbered at draft time) | ~2-3 days | drafted-spec | Coordinator initiates promotion; School Admin approves; Grade 12 student migrates. **Largely built already** (graduation + migration to independent shipped in M-06; promotion fields exist in grades) — draft ONLY what the code is missing; mark done if nothing is |
 | M-23 | Subscriptions schema-only + Platform Admin CRUD (Flow 13 §3.1) | 6 | TBD (numbered at draft time) | ~1-2 days | drafted-spec | Platform Admin creates tier definitions; District/School see "Coming soon". **Largely built already** (tier schema + Platform Admin CRUD shipped in M-01) — draft ONLY what the code is missing; mark done if nothing is |
 | M-16 | Next-Day Review (Flow 7) | 6 | T-195 to T-208 | ~3-4 days | in-progress | Teacher gets next-day review; publishes targeted mini-lecture |
-| M-17 | Self-Study Mode (Flow 8) | 6 | T-209 to T-222 | ~3-4 days | in-progress | Student builds study plan from prep book; adherence tracked |
+| M-17 | Self-Study Mode (Flow 8) | 6 | T-209 to T-222 | ~3-4 days | done | Student builds study plan from prep book; adherence tracked |
 | M-18a | AI Intelligence — Question Bank + Collection (Flow 9: #42,#43,#74-#76) | 6 | TBD (numbered at draft time) | ~1 week | drafted-spec | Build-first foundation: bank, Bloom tags, unified queue |
 | M-18b | AI Intelligence — Cognitive DNA engine (Flow 9: #77-#84) | 6 | TBD | ~1 week | drafted-spec | Signals, mistake tracking, DNA profile + role visibility |
 | M-18c | AI Intelligence — Prediction + recommendations (Flow 9: #85-#93) | 6 | TBD | ~1 week | drafted-spec | Pass-prob, nightly recalc, 2-future, recovery (heuristic-first) |
