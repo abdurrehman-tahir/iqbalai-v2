@@ -241,6 +241,17 @@ export type {
   TosVersion,
   TeacherBenchmarkRead,
   TeacherMetricsRead,
+  SelfStudyMaterialUploadResult,
+  SelfStudyMaterialRead,
+  SelfStudyMaterialListRead,
+  SelfStudyBookType,
+  PrepBookGateRead,
+  StudyPlanConversationRead,
+  StudyPlanRead,
+  StudyPlanActiveRead,
+  ReminderPreferencesRead,
+  GoogleCalendarConfigRead,
+  AdherenceSummaryRead,
 } from "./types";
 
 export class ApiError extends Error {
