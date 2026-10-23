@@ -8,7 +8,7 @@
 > The per-ticket fields (API contract / Tests / UX acceptance) are added just-in-time when each ticket is implemented; their absence here does **not** waive the gates.
 
 
-**Status:** todo
+**Status:** done
 **Estimated duration:** 2-3 weeks
 **Tickets:** T-195 through T-208
 **Spec source:** `flow-7-next-day-review.md` v1 §3.1-§3.8, features #39, #40, #44, #45, #46, #47, #48, #49
@@ -215,7 +215,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `8535e31`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.1 (assemble per-GSO card; 05:00 SLA breach → admin alert; 06:00 notify never earlier)
@@ -248,7 +249,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `15efcc8`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.2, §3.3 (locked card layout)
@@ -281,7 +283,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** `48b5b3f`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.3 + #49 (LLM coaching question about the teacher's own practice; never grading; voice/text response → `teacher_ai_memory` reflective_response_pattern)
@@ -314,7 +317,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `e5a213f`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.6 (per-cluster modal: aggregated + per-student exact wording, teacher-only names; reply via hybrid widget → `review_replies`; skip → `skipped_clusters`)
@@ -347,7 +351,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `2ee48a8`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.7 (recipients = union of triggering students; `lecture_assignments` per recipient; `lectures.mini_lecture_assigned`; no auto-quiz; cross-grade blocked; all-unenrolled → `PRECONDITION_FAILED`; parents per Flow 10)
@@ -383,7 +388,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** `b57bb87`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.6 (Publish Mini-Lecture → §3.7; Edit Main Lecture → Flow 5 edit + banner; Schedule Group Study → Flow 11 (disabled); Dismiss → recoverable; `acted_actions[]`)
@@ -419,7 +425,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** `67bf97a`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.8 (review = child record of lecture; Reviews tab chronological all-time; never expire; feeds #38 admin metrics)
@@ -452,7 +459,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 1 day
-**Status:** todo
+**Status:** done
+**Commit:** `7a9e53a`
 
 ### Spec source
 - `flow-7-next-day-review.md` §4 (permissions matrix), §7 (notifications)
@@ -485,7 +493,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 2 days
-**Status:** todo
+**Status:** done
+**Commit:** `595ab99`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.1-§3.8
