@@ -3,7 +3,15 @@
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, Library, LogOut, Upload, BookOpen, Sparkles } from "lucide-react";
+import {
+  BookOpen,
+  ClipboardList,
+  LayoutDashboard,
+  Library,
+  LogOut,
+  Sparkles,
+  Upload,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { performLogout } from "@/lib/auth";
@@ -13,6 +21,7 @@ import { TeacherOnboardingGate } from "./TeacherOnboardingGate";
 const NAV = [
   { key: "dashboard", href: "/teacher", icon: LayoutDashboard },
   { key: "lectures", href: "/teacher/lectures/new", icon: Sparkles },
+  { key: "reviews", href: "/teacher/reviews", icon: ClipboardList },
   { key: "library", href: "/teacher/library", icon: BookOpen },
   { key: "curriculum_upload", href: "/teacher/library/curriculum/upload", icon: Library },
   { key: "library_upload", href: "/teacher/library/reference/upload", icon: Upload },
@@ -45,6 +54,7 @@ export function TeacherShell({ children }: { children: React.ReactNode }) {
                       "flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium",
                     pathname === href ||
                       (key === "lectures" && pathname.startsWith("/teacher/lectures")) ||
+                      (key === "reviews" && pathname.startsWith("/teacher/reviews")) ||
                       (key === "library" &&
                         pathname.startsWith("/teacher/library") &&
                         !pathname.includes("/upload")) ||

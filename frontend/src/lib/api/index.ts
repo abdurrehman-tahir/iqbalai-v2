@@ -138,6 +138,8 @@ import type {
   LectureRatingSubmit,
   MyLectureRatingRead,
   LectureRatingSummaryRead,
+  ReviewSummaryRead,
+  ReviewDetailRead,
 } from "./types";
 
 // Re-export M-15 generated types (A-002).
@@ -180,6 +182,13 @@ export type {
   QuestionClassification,
 } from "./types";
 export type { AttachedImageRef } from "./types";
+export type {
+  ReviewSummaryRead,
+  ReviewDetailRead,
+  ReviewClusterView,
+  ReviewQuestionView,
+  ReviewReplyRead,
+} from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -2058,4 +2067,16 @@ export const studentEnrollmentsApi = {
       },
       token
     ),
+};
+
+// ── M-16 next-day review cards (Flow 7) ───────────────────────────────────────
+export const nextDayReviewApi = {
+  list: (token: string, lectureId?: string) =>
+    request<ReviewSummaryRead[]>(
+      `/reviews${lectureId ? `?lecture_id=${encodeURIComponent(lectureId)}` : ""}`,
+      {},
+      token
+    ),
+  get: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(`/reviews/${encodeURIComponent(reviewId)}`, {}, token),
 };

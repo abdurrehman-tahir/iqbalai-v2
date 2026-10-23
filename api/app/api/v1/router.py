@@ -45,6 +45,7 @@ from app.features.library.platform_library_router import router as platform_libr
 from app.features.library.router import router as library_router
 from app.features.library.school_library_router import router as school_library_router
 from app.features.live_feedback.interaction_router import router as lecture_interaction_router
+from app.features.next_day_review.router import router as next_day_review_router
 from app.features.notifications.router import router as notifications_router
 from app.features.offerings.router import router as offerings_router
 from app.features.parent_child_links.parent_router import router as parent_links_router
@@ -153,3 +154,4 @@ router.include_router(school_library_router)
 router.include_router(notifications_router)
 router.include_router(audit_router)
 router.include_router(school_audit_router)
+router.include_router(next_day_review_router)

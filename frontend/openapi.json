@@ -4299,6 +4299,16 @@
         "title": "LectureRatingSummaryRead",
         "type": "object"
       },
+      "LectureReviewStatus": {
+        "description": "Lifecycle of a teacher review card (ARCH \u00a74.9 \u2014 stable native enum).",
+        "enum": [
+          "pending",
+          "completed",
+          "dismissed"
+        ],
+        "title": "LectureReviewStatus",
+        "type": "string"
+      },
       "LectureRosterRead": {
         "description": "The lecture's grade roster, for building the access-restriction picker.",
         "properties": {
@@ -6095,6 +6105,448 @@
         ],
         "title": "ResearchJobStatus",
         "type": "string"
+      },
+      "ReviewClusterView": {
+        "properties": {
+          "cluster_ref": {
+            "title": "Cluster Ref",
+            "type": "string"
+          },
+          "column": {
+            "enum": [
+              "critical",
+              "high_frequency"
+            ],
+            "title": "Column",
+            "type": "string"
+          },
+          "criticality": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Criticality"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "mini_lecture_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mini Lecture Id"
+          },
+          "question_count": {
+            "title": "Question Count",
+            "type": "integer"
+          },
+          "questions": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewQuestionView"
+            },
+            "title": "Questions",
+            "type": "array"
+          },
+          "representative_question": {
+            "title": "Representative Question",
+            "type": "string"
+          },
+          "skipped": {
+            "default": false,
+            "title": "Skipped",
+            "type": "boolean"
+          },
+          "unique_student_count": {
+            "title": "Unique Student Count",
+            "type": "integer"
+          }
+        },
+        "required": [
+          "cluster_ref",
+          "lecture_id",
+          "column",
+          "question_count",
+          "unique_student_count",
+          "representative_question"
+        ],
+        "title": "ReviewClusterView",
+        "type": "object"
+      },
+      "ReviewDetailRead": {
+        "description": "The full review card (Flow 7 \u00a73.3 locked layout).",
+        "properties": {
+          "acted_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Acted Actions",
+            "type": "array"
+          },
+          "ai_summary": {
+            "title": "Ai Summary",
+            "type": "string"
+          },
+          "can_act": {
+            "title": "Can Act",
+            "type": "boolean"
+          },
+          "critical": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewClusterView"
+            },
+            "title": "Critical",
+            "type": "array"
+          },
+          "critical_count": {
+            "title": "Critical Count",
+            "type": "integer"
+          },
+          "dismissed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dismissed At"
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "high_frequency": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewClusterView"
+            },
+            "title": "High Frequency",
+            "type": "array"
+          },
+          "high_frequency_count": {
+            "title": "High Frequency Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "is_owner": {
+            "title": "Is Owner",
+            "type": "boolean"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_title": {
+            "title": "Lecture Title",
+            "type": "string"
+          },
+          "mini_lecture_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mini Lecture Id"
+          },
+          "mini_preview": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Mini Preview"
+          },
+          "mini_published": {
+            "default": false,
+            "title": "Mini Published",
+            "type": "boolean"
+          },
+          "offering_label": {
+            "title": "Offering Label",
+            "type": "string"
+          },
+          "pending_action": {
+            "title": "Pending Action",
+            "type": "boolean"
+          },
+          "read_only": {
+            "title": "Read Only",
+            "type": "boolean"
+          },
+          "reflected": {
+            "title": "Reflected",
+            "type": "boolean"
+          },
+          "reflective_prompt": {
+            "title": "Reflective Prompt",
+            "type": "string"
+          },
+          "replies": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewReplyRead"
+            },
+            "title": "Replies",
+            "type": "array"
+          },
+          "review_date": {
+            "format": "date",
+            "title": "Review Date",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LectureReviewStatus"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "lecture_title",
+          "offering_label",
+          "review_date",
+          "status",
+          "pending_action",
+          "critical_count",
+          "high_frequency_count",
+          "read_only",
+          "ai_summary",
+          "reflective_prompt",
+          "reflected",
+          "is_owner",
+          "can_act"
+        ],
+        "title": "ReviewDetailRead",
+        "type": "object"
+      },
+      "ReviewQuestionView": {
+        "description": "A student's exact question as the viewer may see it.\n\n``student_user_id`` / ``student_name`` are populated for the owning teacher\nonly \u2014 Coordinator/Admin get the wording without identities (\u00a76.19).",
+        "properties": {
+          "occurred_at": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Occurred At"
+          },
+          "paragraph_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Paragraph Id"
+          },
+          "question_id": {
+            "title": "Question Id",
+            "type": "string"
+          },
+          "question_text": {
+            "title": "Question Text",
+            "type": "string"
+          },
+          "source_chunk_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Source Chunk Id"
+          },
+          "student_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student Name"
+          },
+          "student_user_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Student User Id"
+          }
+        },
+        "required": [
+          "question_id",
+          "question_text"
+        ],
+        "title": "ReviewQuestionView",
+        "type": "object"
+      },
+      "ReviewReplyRead": {
+        "properties": {
+          "body": {
+            "title": "Body",
+            "type": "string"
+          },
+          "cluster_id": {
+            "title": "Cluster Id",
+            "type": "string"
+          },
+          "created_at": {
+            "format": "date-time",
+            "title": "Created At",
+            "type": "string"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "review_id": {
+            "title": "Review Id",
+            "type": "string"
+          },
+          "student_user_id": {
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "id",
+          "review_id",
+          "cluster_id",
+          "student_user_id",
+          "body",
+          "created_at"
+        ],
+        "title": "ReviewReplyRead",
+        "type": "object"
+      },
+      "ReviewSummaryRead": {
+        "description": "One row of the teacher's Reviews list / a lecture's Reviews tab.",
+        "properties": {
+          "acted_actions": {
+            "items": {
+              "type": "string"
+            },
+            "title": "Acted Actions",
+            "type": "array"
+          },
+          "critical_count": {
+            "title": "Critical Count",
+            "type": "integer"
+          },
+          "dismissed_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Dismissed At"
+          },
+          "generated_at": {
+            "anyOf": [
+              {
+                "format": "date-time",
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Generated At"
+          },
+          "high_frequency_count": {
+            "title": "High Frequency Count",
+            "type": "integer"
+          },
+          "id": {
+            "title": "Id",
+            "type": "string"
+          },
+          "lecture_id": {
+            "title": "Lecture Id",
+            "type": "string"
+          },
+          "lecture_title": {
+            "title": "Lecture Title",
+            "type": "string"
+          },
+          "offering_label": {
+            "title": "Offering Label",
+            "type": "string"
+          },
+          "pending_action": {
+            "title": "Pending Action",
+            "type": "boolean"
+          },
+          "read_only": {
+            "title": "Read Only",
+            "type": "boolean"
+          },
+          "review_date": {
+            "format": "date",
+            "title": "Review Date",
+            "type": "string"
+          },
+          "status": {
+            "$ref": "#/components/schemas/LectureReviewStatus"
+          }
+        },
+        "required": [
+          "id",
+          "lecture_id",
+          "lecture_title",
+          "offering_label",
+          "review_date",
+          "status",
+          "pending_action",
+          "critical_count",
+          "high_frequency_count",
+          "read_only"
+        ],
+        "title": "ReviewSummaryRead",
+        "type": "object"
       },
       "RosterSectionRead": {
         "description": "A section option for the access-restriction picker (T-123, #21).",
@@ -9115,6 +9567,23 @@
         "title": "SuccessEnvelope[QuizOfferingAggregateRead]",
         "type": "object"
       },
+      "SuccessEnvelope_ReviewDetailRead_": {
+        "properties": {
+          "data": {
+            "$ref": "#/components/schemas/ReviewDetailRead"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[ReviewDetailRead]",
+        "type": "object"
+      },
       "SuccessEnvelope_SchoolLibraryItemRead_": {
         "properties": {
           "data": {
@@ -10022,6 +10491,27 @@
           "data"
         ],
         "title": "SuccessEnvelope[list[PersonaRead]]",
+        "type": "object"
+      },
+      "SuccessEnvelope_list_ReviewSummaryRead__": {
+        "properties": {
+          "data": {
+            "items": {
+              "$ref": "#/components/schemas/ReviewSummaryRead"
+            },
+            "title": "Data",
+            "type": "array"
+          },
+          "message": {
+            "default": "ok",
+            "title": "Message",
+            "type": "string"
+          }
+        },
+        "required": [
+          "data"
+        ],
+        "title": "SuccessEnvelope[list[ReviewSummaryRead]]",
         "type": "object"
       },
       "SuccessEnvelope_list_SectionRead__": {
@@ -17587,6 +18077,98 @@
         "summary": "Get a platform library book (read-only)",
         "tags": [
           "platform-library"
+        ]
+      }
+    },
+    "/api/v1/reviews": {
+      "get": {
+        "operationId": "list_next_day_reviews",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "lecture_id",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "maxLength": 36,
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Lecture Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_list_ReviewSummaryRead__"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Next-day review cards in the caller's scope, newest first (T-201 / T-206)",
+        "tags": [
+          "next-day-review"
+        ]
+      }
+    },
+    "/api/v1/reviews/{review_id}": {
+      "get": {
+        "operationId": "get_next_day_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReviewDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "One review card with clusters, mini-lecture preview and replies (T-201 / T-203)",
+        "tags": [
+          "next-day-review"
         ]
       }
     },

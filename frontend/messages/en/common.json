@@ -731,7 +731,8 @@
       "lectures": "Create lecture",
       "library": "Content Library",
       "library_upload": "Upload reference book",
-      "curriculum_upload": "Upload curriculum"
+      "curriculum_upload": "Upload curriculum",
+      "reviews": "Daily reviews"
     },
     "lectures": {
       "wizard": {
@@ -981,6 +982,44 @@
       "ratings_hidden": "{count, plural, one {# student rating} other {# student ratings}} — the average appears once {min} students have rated, to keep ratings anonymous.",
       "rating_line": "Student rating: {average} / 5 ({count, plural, one {# rating} other {# ratings}})",
       "weighting_note": "Students' anonymous ratings count for {weight}% of the score; the AI score counts for the rest."
+    },
+    "reviews": {
+      "list": {
+        "title": "Daily reviews",
+        "subtitle": "Each morning, yesterday's student questions are grouped into a review card for every class you teach.",
+        "empty_title": "No review today",
+        "empty_description": "When students ask questions about your lectures, a review card appears here the next morning.",
+        "error": "We couldn't load your reviews.",
+        "retry": "Try again",
+        "open": "Open review",
+        "critical_count": "{count, plural, =0 {No critical clusters} one {1 critical cluster} other {# critical clusters}}",
+        "frequent_count": "{count, plural, =0 {No frequent clusters} one {1 frequent cluster} other {# frequent clusters}}"
+      },
+      "status": {
+        "pending": "Needs action",
+        "completed": "Done",
+        "dismissed": "Dismissed",
+        "read_only": "Read-only"
+      },
+      "card": {
+        "heading": "Daily Review — {label}",
+        "topic": "Lecture: {title}",
+        "generated": "Generated 06:00, {date}",
+        "back": "Back to reviews",
+        "error": "We couldn't load this review.",
+        "retry": "Try again",
+        "summary_title": "AI summary",
+        "summary_empty": "No summary was generated for this review — the clusters below are still complete.",
+        "critical_title": "Critical",
+        "frequent_title": "High frequency",
+        "mini_title": "Mini-lecture preview",
+        "mini_none": "No mini-lecture was generated for this review.",
+        "mini_open": "Open full draft",
+        "mini_published": "Published to the students who asked",
+        "cluster_meta": "{questions, plural, one {1 question} other {# questions}} · {students, plural, one {1 student} other {# students}}",
+        "more": "and {count} more",
+        "column_empty": "Nothing in this column today."
+      }
     }
   },
   "coordinator": {

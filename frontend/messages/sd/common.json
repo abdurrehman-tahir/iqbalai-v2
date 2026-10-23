@@ -879,7 +879,8 @@
       "lectures": "__TODO__ Create lecture",
       "library": "__TODO__ Content Library",
       "library_upload": "__TODO__ Upload reference book",
-      "curriculum_upload": "__TODO__ Upload curriculum"
+      "curriculum_upload": "__TODO__ Upload curriculum",
+      "reviews": "روزانا جائزا"
     },
     "lectures": {
       "wizard": {
@@ -1074,6 +1075,44 @@
       "ratings_hidden": "{count, plural, one {شاگرد جي # درجه بندي} other {شاگردن جون # درجه بنديون}} — درجه بندي گمنام رکڻ لاءِ سراسري تڏهن ڏيکاري ويندي جڏهن {min} شاگرد درجو ڏين.",
       "rating_line": "شاگردن جي درجه بندي: {average} / 5 ({count, plural, one {# درجه بندي} other {# درجه بنديون}})",
       "weighting_note": "شاگردن جي گمنام درجه بندي اسڪور جو {weight}% آهي؛ باقي اي آءِ اسڪور آهي."
+    },
+    "reviews": {
+      "list": {
+        "title": "روزانا جائزا",
+        "subtitle": "هر صبح، ڪالهه جي شاگردن جا سوال توهان جي هر ڪلاس لاءِ هڪ جائزي ڪارڊ ۾ گڏ ڪيا ويندا آهن۔",
+        "empty_title": "اڄ ڪو جائزو ناهي",
+        "empty_description": "جڏهن شاگرد توهان جي ليڪچرن بابت سوال پڇندا ته ٻئي صبح هتي جائزي ڪارڊ ظاهر ٿيندو۔",
+        "error": "اسان توهان جا جائزا لوڊ نه ڪري سگهياسين۔",
+        "retry": "ٻيهر ڪوشش ڪريو",
+        "open": "جائزو کوليو",
+        "critical_count": "{count, plural, =0 {ڪو اهم ڪلسٽر ناهي} one {1 اهم ڪلسٽر} other {# اهم ڪلسٽر}}",
+        "frequent_count": "{count, plural, =0 {ڪو عام ڪلسٽر ناهي} one {1 عام ڪلسٽر} other {# عام ڪلسٽر}}"
+      },
+      "status": {
+        "pending": "عمل گهربل",
+        "completed": "مڪمل",
+        "dismissed": "رد ٿيل",
+        "read_only": "صرف پڙهڻ لاءِ"
+      },
+      "card": {
+        "heading": "روزانو جائزو — {label}",
+        "topic": "ليڪچر: {title}",
+        "generated": "06:00 تي تيار، {date}",
+        "back": "جائزن ڏانهن واپس",
+        "error": "اسان هي جائزو لوڊ نه ڪري سگهياسين۔",
+        "retry": "ٻيهر ڪوشش ڪريو",
+        "summary_title": "اي آءِ خلاصو",
+        "summary_empty": "هن جائزي جو خلاصو تيار نه ٿيو — هيٺيان ڪلسٽر مڪمل آهن۔",
+        "critical_title": "اهم",
+        "frequent_title": "گهڻا پڇيل",
+        "mini_title": "مختصر ليڪچر جو جائزو",
+        "mini_none": "هن جائزي لاءِ ڪو مختصر ليڪچر تيار نه ٿيو۔",
+        "mini_open": "مڪمل مسودو کوليو",
+        "mini_published": "سوال پڇندڙ شاگردن کي شايع ڪيو ويو",
+        "cluster_meta": "{questions, plural, one {1 سوال} other {# سوال}} · {students, plural, one {1 شاگرد} other {# شاگرد}}",
+        "more": "۽ {count} وڌيڪ",
+        "column_empty": "اڄ هن ڪالم ۾ ڪجهه ناهي۔"
+      }
     }
   },
   "district_admin": {

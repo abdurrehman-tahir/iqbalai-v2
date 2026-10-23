@@ -1861,6 +1861,40 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reviews": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** Next-day review cards in the caller's scope, newest first (T-201 / T-206) */
+        get: operations["list_next_day_reviews"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reviews/{review_id}": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        /** One review card with clusters, mini-lecture preview and replies (T-201 / T-203) */
+        get: operations["get_next_day_review"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/school/admin/audit-log/": {
         parameters: {
             query?: never;
@@ -5567,6 +5601,12 @@ export interface components {
             rating_weight: number;
         };
         /**
+         * LectureReviewStatus
+         * @description Lifecycle of a teacher review card (ARCH §4.9 — stable native enum).
+         * @enum {string}
+         */
+        LectureReviewStatus: "pending" | "completed" | "dismissed";
+        /**
          * LectureRosterRead
          * @description The lecture's grade roster, for building the access-restriction picker.
          */
@@ -6299,6 +6339,169 @@ export interface components {
          * @enum {string}
          */
         ResearchJobStatus: "running" | "succeeded" | "partial" | "research_failed";
+        /** ReviewClusterView */
+        ReviewClusterView: {
+            /** Cluster Ref */
+            cluster_ref: string;
+            /**
+             * Column
+             * @enum {string}
+             */
+            column: "critical" | "high_frequency";
+            /** Criticality */
+            criticality?: number | null;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Mini Lecture Id */
+            mini_lecture_id?: string | null;
+            /** Question Count */
+            question_count: number;
+            /** Questions */
+            questions?: components["schemas"]["ReviewQuestionView"][];
+            /** Representative Question */
+            representative_question: string;
+            /**
+             * Skipped
+             * @default false
+             */
+            skipped: boolean;
+            /** Unique Student Count */
+            unique_student_count: number;
+        };
+        /**
+         * ReviewDetailRead
+         * @description The full review card (Flow 7 §3.3 locked layout).
+         */
+        ReviewDetailRead: {
+            /** Acted Actions */
+            acted_actions?: string[];
+            /** Ai Summary */
+            ai_summary: string;
+            /** Can Act */
+            can_act: boolean;
+            /** Critical */
+            critical?: components["schemas"]["ReviewClusterView"][];
+            /** Critical Count */
+            critical_count: number;
+            /** Dismissed At */
+            dismissed_at?: string | null;
+            /** Generated At */
+            generated_at?: string | null;
+            /** High Frequency */
+            high_frequency?: components["schemas"]["ReviewClusterView"][];
+            /** High Frequency Count */
+            high_frequency_count: number;
+            /** Id */
+            id: string;
+            /** Is Owner */
+            is_owner: boolean;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Lecture Title */
+            lecture_title: string;
+            /** Mini Lecture Id */
+            mini_lecture_id?: string | null;
+            /** Mini Preview */
+            mini_preview?: string | null;
+            /**
+             * Mini Published
+             * @default false
+             */
+            mini_published: boolean;
+            /** Offering Label */
+            offering_label: string;
+            /** Pending Action */
+            pending_action: boolean;
+            /** Read Only */
+            read_only: boolean;
+            /** Reflected */
+            reflected: boolean;
+            /** Reflective Prompt */
+            reflective_prompt: string;
+            /** Replies */
+            replies?: components["schemas"]["ReviewReplyRead"][];
+            /**
+             * Review Date
+             * Format: date
+             */
+            review_date: string;
+            status: components["schemas"]["LectureReviewStatus"];
+        };
+        /**
+         * ReviewQuestionView
+         * @description A student's exact question as the viewer may see it.
+         *
+         *     ``student_user_id`` / ``student_name`` are populated for the owning teacher
+         *     only — Coordinator/Admin get the wording without identities (§6.19).
+         */
+        ReviewQuestionView: {
+            /** Occurred At */
+            occurred_at?: string | null;
+            /** Paragraph Id */
+            paragraph_id?: string | null;
+            /** Question Id */
+            question_id: string;
+            /** Question Text */
+            question_text: string;
+            /** Source Chunk Id */
+            source_chunk_id?: string | null;
+            /** Student Name */
+            student_name?: string | null;
+            /** Student User Id */
+            student_user_id?: string | null;
+        };
+        /** ReviewReplyRead */
+        ReviewReplyRead: {
+            /** Body */
+            body: string;
+            /** Cluster Id */
+            cluster_id: string;
+            /**
+             * Created At
+             * Format: date-time
+             */
+            created_at: string;
+            /** Id */
+            id: string;
+            /** Review Id */
+            review_id: string;
+            /** Student User Id */
+            student_user_id: string;
+        };
+        /**
+         * ReviewSummaryRead
+         * @description One row of the teacher's Reviews list / a lecture's Reviews tab.
+         */
+        ReviewSummaryRead: {
+            /** Acted Actions */
+            acted_actions?: string[];
+            /** Critical Count */
+            critical_count: number;
+            /** Dismissed At */
+            dismissed_at?: string | null;
+            /** Generated At */
+            generated_at?: string | null;
+            /** High Frequency Count */
+            high_frequency_count: number;
+            /** Id */
+            id: string;
+            /** Lecture Id */
+            lecture_id: string;
+            /** Lecture Title */
+            lecture_title: string;
+            /** Offering Label */
+            offering_label: string;
+            /** Pending Action */
+            pending_action: boolean;
+            /** Read Only */
+            read_only: boolean;
+            /**
+             * Review Date
+             * Format: date
+             */
+            review_date: string;
+            status: components["schemas"]["LectureReviewStatus"];
+        };
         /**
          * RosterSectionRead
          * @description A section option for the access-restriction picker (T-123, #21).
@@ -7660,6 +7863,15 @@ export interface components {
              */
             message: string;
         };
+        /** SuccessEnvelope[ReviewDetailRead] */
+        SuccessEnvelope_ReviewDetailRead_: {
+            data: components["schemas"]["ReviewDetailRead"];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
         /** SuccessEnvelope[SchoolLibraryItemRead] */
         SuccessEnvelope_SchoolLibraryItemRead_: {
             data: components["schemas"]["SchoolLibraryItemRead"];
@@ -8116,6 +8328,16 @@ export interface components {
         SuccessEnvelope_list_PersonaRead__: {
             /** Data */
             data: components["schemas"]["PersonaRead"][];
+            /**
+             * Message
+             * @default ok
+             */
+            message: string;
+        };
+        /** SuccessEnvelope[list[ReviewSummaryRead]] */
+        SuccessEnvelope_list_ReviewSummaryRead__: {
+            /** Data */
+            data: components["schemas"]["ReviewSummaryRead"][];
             /**
              * Message
              * @default ok
@@ -12980,6 +13202,68 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["SuccessEnvelope_LibraryBookRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    list_next_day_reviews: {
+        parameters: {
+            query?: {
+                lecture_id?: string | null;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_list_ReviewSummaryRead__"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    get_next_day_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ReviewDetailRead_"];
                 };
             };
             /** @description Validation Error */
