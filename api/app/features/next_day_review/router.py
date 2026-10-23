@@ -138,3 +138,51 @@ async def publish_mini(
 ) -> dict[str, Any]:
     detail = await NextDayReviewService(session).publish_mini(claims, review_id)
     return success(detail.model_dump(mode="json"))
+
+
+@router.post(
+    "/{review_id}/edit-main",
+    response_model=SuccessEnvelope[ReviewDetailRead],
+    operation_id="edit_main_from_next_day_review",
+    summary="Record Edit Main Lecture before opening Flow 5 edit mode (T-205)",
+    dependencies=[require_role("teacher")],
+)
+async def edit_main(
+    review_id: str,
+    claims: dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    detail = await NextDayReviewService(session).edit_main(claims, review_id)
+    return success(detail.model_dump(mode="json"))
+
+
+@router.post(
+    "/{review_id}/dismiss",
+    response_model=SuccessEnvelope[ReviewDetailRead],
+    operation_id="dismiss_next_day_review",
+    summary="Dismiss a review without action — recoverable (T-205)",
+    dependencies=[require_role("teacher")],
+)
+async def dismiss(
+    review_id: str,
+    claims: dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    detail = await NextDayReviewService(session).dismiss(claims, review_id)
+    return success(detail.model_dump(mode="json"))
+
+
+@router.post(
+    "/{review_id}/reopen",
+    response_model=SuccessEnvelope[ReviewDetailRead],
+    operation_id="reopen_next_day_review",
+    summary="Re-open a dismissed review (T-205)",
+    dependencies=[require_role("teacher")],
+)
+async def reopen(
+    review_id: str,
+    claims: dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    detail = await NextDayReviewService(session).reopen(claims, review_id)
+    return success(detail.model_dump(mode="json"))

@@ -2109,4 +2109,28 @@ export const nextDayReviewApi = {
       { method: "POST" },
       token
     ),
+  publishMini: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/publish-mini`,
+      { method: "POST" },
+      token
+    ),
+  editMain: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/edit-main`,
+      { method: "POST" },
+      token
+    ),
+  dismiss: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/dismiss`,
+      { method: "POST" },
+      token
+    ),
+  reopen: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/reopen`,
+      { method: "POST" },
+      token
+    ),
 };

@@ -64,6 +64,19 @@ function cluster(ref: string, column: "critical" | "high_frequency") {
   };
 }
 
+const LECTURE_VERSION = {
+  id: "v-1",
+  lecture_id: "lec-1",
+  version: 1,
+  content_jsonb: { type: "doc", content: [] },
+  body: "Newton's third law: forces come in pairs.",
+  scores_jsonb: null,
+  topic_relevance_pct: null,
+  originality_score: null,
+  edit_summary: [],
+  created_at: "2026-10-20T08:00:00Z",
+};
+
 export function reviewDetail(overrides: Record<string, unknown> = {}) {
   return {
     ...REVIEW_SUMMARY,
@@ -140,7 +153,23 @@ export async function installReviewMocks(
       return json(reviewDetail());
     }
     if (path === "/reviews/rev-1/regenerate-mini") return json(reviewDetail());
+    if (path === "/reviews/rev-1/publish-mini") {
+      return json(reviewDetail({ mini_published: true, status: "completed" }));
+    }
+    if (path === "/reviews/rev-1/dismiss") return json(reviewDetail({ status: "dismissed" }));
+    if (path === "/reviews/rev-1/reopen" || path === "/reviews/rev-1/edit-main") {
+      return json(reviewDetail());
+    }
     if (path.startsWith("/notifications")) return json([]);
+    // Flow 5 edit mode on /teacher/lectures/[id] (T-205 Edit Main Lecture).
+    if (/^\/teachers\/me\/lectures\/[^/]+\/versions\/current$/.test(path)) {
+      return json(LECTURE_VERSION);
+    }
+    if (/^\/teachers\/me\/lectures\/[^/]+\/versions$/.test(path)) {
+      return json({ items: [LECTURE_VERSION], total: 1, page: 1, page_size: 6, pages: 1 });
+    }
+    if (path.endsWith("/paragraphs")) return json([]);
+    if (path.endsWith("/diagram-suggestions")) return json({ suggestions: [] });
     return json({});
   });
   return recorded;

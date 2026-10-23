@@ -22,6 +22,7 @@ import { ErrorState } from "@/components/error-state";
 import { reviewStatusKey } from "@/components/reviews/ReviewsList";
 import { ReflectivePrompt } from "@/components/reviews/ReflectivePrompt";
 import { ClusterDrillDown } from "@/components/reviews/ClusterDrillDown";
+import { ReviewActions } from "@/components/reviews/ReviewActions";
 
 /** Flow 7 §6: top 10 clusters per column, overflow behind "and N more". */
 export const COLUMN_LIMIT = 10;
@@ -248,6 +249,8 @@ export function ReviewCardClient({ reviewId }: { reviewId: string }) {
         />
         <MiniPreview review={review} />
       </div>
+
+      <ReviewActions review={review} />
 
       {openCluster && (
         <ClusterDrillDown

@@ -7,6 +7,7 @@ import { COLUMN_LIMIT, ReviewCardClient } from "../ReviewCardClient";
 import { DETAIL, cluster } from "@/components/reviews/__tests__/review-fixtures";
 
 vi.mock("next-intl", () => import("@/test/mocks/next-intl"));
+vi.mock("next/navigation", () => ({ useRouter: () => ({ push: vi.fn() }) }));
 vi.mock("@/hooks/use-client-auth", () => ({
   useClientAuth: () => ({ mounted: true, token: "test-token" }),
 }));
@@ -19,6 +20,7 @@ vi.mock("@/lib/api", () => ({
     regenerateMini: (...a: unknown[]) => regenerateMini(...a),
   },
   lectureWizardApi: { transcribeVoice: vi.fn() },
+  ApiError: class ApiError extends Error {},
 }));
 
 function renderWithClient(ui: ReactElement) {

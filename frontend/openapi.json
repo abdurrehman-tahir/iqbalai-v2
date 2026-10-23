@@ -18234,6 +18234,90 @@
         ]
       }
     },
+    "/api/v1/reviews/{review_id}/dismiss": {
+      "post": {
+        "operationId": "dismiss_next_day_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReviewDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Dismiss a review without action \u2014 recoverable (T-205)",
+        "tags": [
+          "next-day-review"
+        ]
+      }
+    },
+    "/api/v1/reviews/{review_id}/edit-main": {
+      "post": {
+        "operationId": "edit_main_from_next_day_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReviewDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Record Edit Main Lecture before opening Flow 5 edit mode (T-205)",
+        "tags": [
+          "next-day-review"
+        ]
+      }
+    },
     "/api/v1/reviews/{review_id}/publish-mini": {
       "post": {
         "operationId": "publish_next_day_review_mini",
@@ -18365,6 +18449,48 @@
           }
         },
         "summary": "Queue a new mini-lecture for the top non-skipped cluster (T-203)",
+        "tags": [
+          "next-day-review"
+        ]
+      }
+    },
+    "/api/v1/reviews/{review_id}/reopen": {
+      "post": {
+        "operationId": "reopen_next_day_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReviewDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Re-open a dismissed review (T-205)",
         "tags": [
           "next-day-review"
         ]

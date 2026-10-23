@@ -80,4 +80,31 @@ test.describe("M-16 next-day review @smoke @mock", () => {
       .poll(() => recorded.find((r) => r.path === "/reviews/rev-1/skips")?.body)
       .toEqual({ cluster_ref: "a" });
   });
+
+  test("publish, dismiss/reopen and Edit Main Lecture actions (T-205)", async ({ page }) => {
+    const recorded = await installReviewMocks(page);
+    await page.goto("/teacher/reviews/rev-1");
+    const actions = page.getByTestId("review-actions");
+    await expect(actions).toBeVisible({ timeout: 15_000 });
+    await expect(actions.getByRole("button", { name: "Schedule Group Study" })).toBeDisabled();
+
+    await actions.getByRole("button", { name: "Publish Mini-Lecture" }).click();
+    await expect(actions.getByRole("button", { name: "Mini-lecture published" })).toBeDisabled();
+
+    await actions.getByRole("button", { name: "Dismiss without action" }).click();
+    await actions.getByRole("button", { name: "Reopen review" }).click();
+    await expect(actions.getByRole("button", { name: "Dismiss without action" })).toBeVisible();
+
+    await actions.getByRole("button", { name: "Edit Main Lecture" }).click();
+    await expect(page).toHaveURL(/\/teacher\/lectures\/lec-1\?from_review=rev-1/);
+    await expect(page.getByTestId("from-review-banner")).toBeVisible({ timeout: 15_000 });
+
+    // Only the review writes — the editor's own edit-session calls are out of scope here.
+    expect(recorded.map((r) => r.path).filter((p) => p.startsWith("/reviews/"))).toEqual([
+      "/reviews/rev-1/publish-mini",
+      "/reviews/rev-1/dismiss",
+      "/reviews/rev-1/reopen",
+      "/reviews/rev-1/edit-main",
+    ]);
+  });
 });

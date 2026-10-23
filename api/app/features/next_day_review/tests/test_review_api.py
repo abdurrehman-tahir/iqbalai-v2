@@ -154,3 +154,15 @@ async def test_publish_mini_route() -> None:
         resp = await client.post("/api/v1/reviews/rev-1/publish-mini")
     assert resp.status_code == 200
     assert FakeService.calls[-1][0] == "publish_mini"
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize(
+    ("path", "method"),
+    [("edit-main", "edit_main"), ("dismiss", "dismiss"), ("reopen", "reopen")],
+)
+async def test_action_routes(path: str, method: str) -> None:
+    async with _client("teacher") as client:
+        resp = await client.post(f"/api/v1/reviews/rev-1/{path}")
+    assert resp.status_code == 200
+    assert FakeService.calls[-1][0] == method

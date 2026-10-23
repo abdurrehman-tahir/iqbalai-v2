@@ -19,6 +19,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
 from app.features.audit.actions import (
     REVIEW_CLUSTER_SKIPPED,
+    REVIEW_DISMISSED,
     REVIEW_MINI_PUBLISHED,
     REVIEW_OVERRIDE_ACTION,
 )
@@ -445,6 +446,48 @@ class NextDayReviewService:
             },
         )
         await notify_recipients(self._session, mini=mini, recipients=recipients)
+        return await self._detail(access)
+
+    # --- card actions (T-205) -----------------------------------------------------------
+
+    async def edit_main(self, claims: dict[str, object], review_id: str) -> ReviewDetailRead:
+        """Record "Edit Main Lecture"; the client then opens Flow 5 edit mode."""
+        access = await self._require_actor(claims, review_id, action=ACTION_EDIT_MAIN)
+        self._record_action(access.review, ACTION_EDIT_MAIN)
+        access.review.status = LectureReviewStatus.COMPLETED
+        await self._session.commit()
+        return await self._detail(access)
+
+    async def dismiss(self, claims: dict[str, object], review_id: str) -> ReviewDetailRead:
+        """Dismiss without action — recoverable via ``reopen`` (Flow 7 §3.6)."""
+        access = await self._require_actor(claims, review_id, action=ACTION_DISMISS)
+        review = access.review
+        review.dismissed_at = self._now()
+        review.status = LectureReviewStatus.DISMISSED
+        self._record_action(review, ACTION_DISMISS)
+        await audit(
+            session=self._session,
+            action=REVIEW_DISMISSED,
+            actor_id=access.user.id,
+            actor_role=access.user.role.value,
+            target_type="lecture_review",
+            target_id=review.id,
+            school_id=access.lecture.school_id,
+            metadata={"override": not access.is_owner},
+        )
+        await self._session.commit()
+        return await self._detail(access)
+
+    async def reopen(self, claims: dict[str, object], review_id: str) -> ReviewDetailRead:
+        """Undo a dismissal; the card is pending again (earlier actions are kept)."""
+        access = await self._require_actor(claims, review_id, action="reopen")
+        review = access.review
+        if review.status != LectureReviewStatus.DISMISSED:
+            raise ValidationError("Only a dismissed review can be reopened")
+        review.dismissed_at = None
+        review.status = LectureReviewStatus.PENDING
+        review.pending_action = True
+        await self._session.commit()
         return await self._detail(access)
 
     # --- shared mutation helpers ---------------------------------------------------------

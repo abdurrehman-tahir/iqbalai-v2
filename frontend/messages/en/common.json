@@ -1042,7 +1042,28 @@
         "reply_placeholder": "Write a reply to this student…",
         "skip": "Skip this cluster",
         "error": "That didn't go through. Please try again."
+      },
+      "actions": {
+        "aria_label": "Review actions",
+        "publish": "Publish Mini-Lecture",
+        "published": "Mini-lecture published",
+        "edit_main": "Edit Main Lecture",
+        "group_study": "Schedule Group Study",
+        "group_study_soon": "Group study scheduling arrives with the group study feature.",
+        "dismiss": "Dismiss without action",
+        "reopen": "Reopen review",
+        "publish_no_recipients": "None of the students who asked are still enrolled, so there is no one to send this to.",
+        "error": "That action didn't go through. Please try again."
       }
+    },
+    "lecture_detail": {
+      "title": "Lecture",
+      "back": "Back to reviews",
+      "tabs_label": "Lecture sections",
+      "tab_edit": "Edit",
+      "tab_reviews": "Reviews",
+      "from_review": "You opened this lecture from a daily review — use the questions students asked to guide your edits.",
+      "back_to_review": "Back to the review"
     }
   },
   "coordinator": {
