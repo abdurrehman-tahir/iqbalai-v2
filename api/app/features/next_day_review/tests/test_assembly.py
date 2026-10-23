@@ -27,6 +27,14 @@ from app.tasks.beat_schedule import BEAT_SCHEDULE
 REVIEW_DATE = date(2026, 10, 22)
 
 
+@pytest.fixture(autouse=True)
+def _no_reflective_llm(monkeypatch: pytest.MonkeyPatch) -> AsyncMock:
+    """The reflective prompt (T-202) is its own LLM call — never reach the network."""
+    mock = AsyncMock(return_value="Would a worked example help?")
+    monkeypatch.setattr(assembly, "generate_reflective_prompt", mock)
+    return mock
+
+
 def _cluster(
     ref: str,
     *,
@@ -160,6 +168,7 @@ async def test_assembles_one_review_per_gso_with_summary_clusters_and_mini(
     assert review.gso_id == "gso-1"
     assert review.lecture_id == "lec-1"
     assert review.ai_summary == "Students mixed up forces."
+    assert review.reflective_prompt == "Would a worked example help?"
     assert review.mini_lecture_id == "mini-1"
     assert review.pending_action is True
     assert review.status == LectureReviewStatus.PENDING

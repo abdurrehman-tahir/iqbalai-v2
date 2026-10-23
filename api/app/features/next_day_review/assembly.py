@@ -34,6 +34,7 @@ from app.features.next_day_review.aggregation import (
 )
 from app.features.next_day_review.classification import ClassifiedCluster
 from app.features.next_day_review.models import LectureReview, LectureReviewStatus
+from app.features.next_day_review.reflection import generate_reflective_prompt
 from app.features.next_day_review.schemas import ReviewClusterQuestion, ReviewClusterSnapshot
 from app.features.offerings.models import GradeSubjectOffering
 from app.features.student_events.models import SchoolStudentEvent, StudentEventTenantType
@@ -245,11 +246,15 @@ async def assemble_reviews(
             reviews.append(existing)
             continue
 
+        label = await _offering_label(session, gso_id)
+        topic = lecture.topic or lecture.title
+        language = await _teacher_language(session, lecture.teacher_user_id)
         summary = await generate_summary(
-            snaps,
-            offering_label=await _offering_label(session, gso_id),
-            lecture_topic=lecture.topic or lecture.title,
-            target_language=await _teacher_language(session, lecture.teacher_user_id),
+            snaps, offering_label=label, lecture_topic=topic, target_language=language
+        )
+        # T-202: coaching question about the teacher's own practice (optional).
+        reflective = await generate_reflective_prompt(
+            snaps, offering_label=label, lecture_topic=topic, target_language=language
         )
         mini_id = next((s.mini_lecture_id for s in snaps if s.mini_lecture_id), None)
         payload = [s.model_dump(mode="json") for s in snaps]
@@ -258,6 +263,7 @@ async def assemble_reviews(
             lecture_id=lecture.id, gso_id=gso_id, review_date=review_date
         )
         review.ai_summary = summary
+        review.reflective_prompt = reflective
         review.clusters_jsonb = payload
         review.mini_lecture_id = mini_id
         review.generated_at = now

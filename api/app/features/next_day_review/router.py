@@ -13,7 +13,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.responses import SuccessEnvelope, success
-from app.features.next_day_review.schemas import ReviewDetailRead, ReviewSummaryRead
+from app.features.next_day_review.schemas import (
+    ReflectionCreate,
+    ReviewDetailRead,
+    ReviewSummaryRead,
+)
 from app.features.next_day_review.service import NextDayReviewService
 
 router = APIRouter(prefix="/reviews", tags=["next-day-review"])
@@ -48,4 +52,21 @@ async def get_review(
     session: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     detail = await NextDayReviewService(session).get_review(claims, review_id)
+    return success(detail.model_dump(mode="json"))
+
+
+@router.post(
+    "/{review_id}/reflection",
+    response_model=SuccessEnvelope[ReviewDetailRead],
+    operation_id="reflect_on_next_day_review",
+    summary="Teacher answers the reflective coaching question (T-202, #49)",
+    dependencies=[require_role("teacher")],
+)
+async def reflect(
+    review_id: str,
+    payload: ReflectionCreate,
+    claims: dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    detail = await NextDayReviewService(session).reflect(claims, review_id, payload.response)
     return success(detail.model_dump(mode="json"))

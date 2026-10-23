@@ -140,6 +140,7 @@ import type {
   LectureRatingSummaryRead,
   ReviewSummaryRead,
   ReviewDetailRead,
+  ReflectionCreate,
 } from "./types";
 
 // Re-export M-15 generated types (A-002).
@@ -188,6 +189,7 @@ export type {
   ReviewClusterView,
   ReviewQuestionView,
   ReviewReplyRead,
+  ReflectionCreate,
 } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -2079,4 +2081,10 @@ export const nextDayReviewApi = {
     ),
   get: (token: string, reviewId: string) =>
     request<ReviewDetailRead>(`/reviews/${encodeURIComponent(reviewId)}`, {}, token),
+  reflect: (token: string, reviewId: string, data: ReflectionCreate) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/reflection`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
 };

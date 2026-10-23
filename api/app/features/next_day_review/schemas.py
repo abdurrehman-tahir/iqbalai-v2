@@ -155,3 +155,9 @@ class ReviewDetailRead(ReviewSummaryRead):
     is_owner: bool
     # Owner, or an admin allowed to override (audit-logged).
     can_act: bool
+
+
+class ReflectionCreate(BaseModel):
+    """Teacher's answer to the reflective question (typed, or a voice transcript)."""
+
+    response: str = Field(min_length=1, max_length=4000)

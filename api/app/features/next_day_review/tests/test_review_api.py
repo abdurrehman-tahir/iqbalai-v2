@@ -105,3 +105,19 @@ async def test_student_role_is_forbidden() -> None:
         resp = await client.get("/api/v1/reviews")
     assert resp.status_code == 403
     assert FakeService.calls == []
+
+
+@pytest.mark.asyncio
+async def test_reflection_posts_response() -> None:
+    async with _client("teacher") as client:
+        resp = await client.post("/api/v1/reviews/rev-1/reflection", json={"response": "Demo."})
+    assert resp.status_code == 200
+    assert FakeService.calls[-1][0] == "reflect"
+    assert FakeService.calls[-1][1][1:] == ("rev-1", "Demo.")
+
+
+@pytest.mark.asyncio
+async def test_reflection_rejects_empty_response() -> None:
+    async with _client("teacher") as client:
+        resp = await client.post("/api/v1/reviews/rev-1/reflection", json={"response": ""})
+    assert resp.status_code == 422

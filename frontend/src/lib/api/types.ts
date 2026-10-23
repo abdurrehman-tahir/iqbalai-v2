@@ -235,3 +235,4 @@ export type ReviewDetailRead = Schemas["ReviewDetailRead"];
 export type ReviewClusterView = Schemas["ReviewClusterView"];
 export type ReviewQuestionView = Schemas["ReviewQuestionView"];
 export type ReviewReplyRead = Schemas["ReviewReplyRead"];
+export type ReflectionCreate = Schemas["ReflectionCreate"];

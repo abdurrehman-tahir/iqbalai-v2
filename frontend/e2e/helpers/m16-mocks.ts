@@ -135,6 +135,7 @@ export async function installReviewMocks(
     }
     if (path === "/reviews" && method === "GET") return json([REVIEW_SUMMARY]);
     if (path === "/reviews/rev-1" && method === "GET") return json(reviewDetail());
+    if (path === "/reviews/rev-1/reflection") return json(reviewDetail({ reflected: true }));
     if (path.startsWith("/notifications")) return json([]);
     return json({});
   });

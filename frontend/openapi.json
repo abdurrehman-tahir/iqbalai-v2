@@ -6095,6 +6095,22 @@
         "title": "RealWorldUseRead",
         "type": "object"
       },
+      "ReflectionCreate": {
+        "description": "Teacher's answer to the reflective question (typed, or a voice transcript).",
+        "properties": {
+          "response": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Response",
+            "type": "string"
+          }
+        },
+        "required": [
+          "response"
+        ],
+        "title": "ReflectionCreate",
+        "type": "object"
+      },
       "ResearchJobStatus": {
         "description": "Pattern-A research-run lifecycle (Flow 4 \u00a73.5.1, ARCH \u00a78.21, T-093).\n\nrunning -> succeeded (plan produced, pending approval)\n        -> partial   (cost ceiling hit; partial result preserved + flagged)\n        -> research_failed (retries exhausted; framework reverts to draft).\nAdditive-only per ARCH \u00a74.9.",
         "enum": [
@@ -18167,6 +18183,58 @@
           }
         },
         "summary": "One review card with clusters, mini-lecture preview and replies (T-201 / T-203)",
+        "tags": [
+          "next-day-review"
+        ]
+      }
+    },
+    "/api/v1/reviews/{review_id}/reflection": {
+      "post": {
+        "operationId": "reflect_on_next_day_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReflectionCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReviewDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Teacher answers the reflective coaching question (T-202, #49)",
         "tags": [
           "next-day-review"
         ]

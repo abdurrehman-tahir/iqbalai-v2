@@ -16,7 +16,7 @@ import structlog
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import NotFoundError, PermissionDeniedError
+from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
 from app.features.lectures.models import (
     LectureStatus,
     SchoolLecture,
@@ -24,6 +24,7 @@ from app.features.lectures.models import (
 )
 from app.features.next_day_review.assembly import _offering_label
 from app.features.next_day_review.models import LectureReview, ReviewReply, SkippedCluster
+from app.features.next_day_review.reflection import record_reflection
 from app.features.next_day_review.schemas import (
     ReviewClusterSnapshot,
     ReviewClusterView,
@@ -268,7 +269,35 @@ class NextDayReviewService:
             can_act=access.can_act,
         )
 
+    # --- reflective prompt (T-202) ------------------------------------------------------
+
+    async def reflect(
+        self, claims: dict[str, object], review_id: str, response: str
+    ) -> ReviewDetailRead:
+        """Store the owning teacher's reflection; nobody else may answer (Flow 7 §4)."""
+        access = await self._load(claims, review_id)
+        self._require_owner(access)
+        if not access.review.reflective_prompt:
+            raise ValidationError("This review has no reflective question")
+        await record_reflection(
+            self._session,
+            teacher_user_id=access.user.id,
+            prompt=access.review.reflective_prompt,
+            response=response.strip(),
+        )
+        self._record_action(access.review, ACTION_REFLECT)
+        await self._session.commit()
+        return await self._detail(access)
+
     # --- shared mutation helpers ---------------------------------------------------------
+
+    @staticmethod
+    def _require_owner(access: ReviewAccess) -> None:
+        """Teacher-only actions (reflect, reply, skip) — no admin override (Flow 7 §4)."""
+        if not access.is_owner:
+            raise PermissionDeniedError("Only the lecture's teacher can do this")
+        if access.read_only:
+            raise ValidationError("This review is read-only")
 
     @staticmethod
     def _record_action(review: LectureReview, action: str) -> None:

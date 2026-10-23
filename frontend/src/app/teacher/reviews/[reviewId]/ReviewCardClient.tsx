@@ -20,6 +20,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/error-state";
 import { reviewStatusKey } from "@/components/reviews/ReviewsList";
+import { ReflectivePrompt } from "@/components/reviews/ReflectivePrompt";
 
 /** Flow 7 §6: top 10 clusters per column, overflow behind "and N more". */
 export const COLUMN_LIMIT = 10;
@@ -185,6 +186,8 @@ export function ReviewCardClient({ reviewId }: { reviewId: string }) {
           </p>
         </CardContent>
       </Card>
+
+      <ReflectivePrompt review={review} />
 
       <div className="grid grid-cols-1 gap-6 md:grid-cols-3">
         <ClusterColumn

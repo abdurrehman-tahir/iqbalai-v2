@@ -35,4 +35,21 @@ test.describe("M-16 next-day review @smoke @mock", () => {
     await page.goto("/teacher/reviews/rev-1");
     await expect(page.getByTestId("review-card")).toBeVisible({ timeout: 15_000 });
   });
+
+  test("teacher answers the reflective question by text (T-202)", async ({ page }) => {
+    const recorded = await installReviewMocks(page);
+    await page.goto("/teacher/reviews/rev-1");
+    const reflection = page.getByTestId("review-reflection");
+    await expect(reflection).toContainText("worked example with everyday objects", {
+      timeout: 15_000,
+    });
+    await reflection.getByRole("textbox").fill("I'll bring two spring scales tomorrow.");
+    await reflection.getByRole("textbox").press("Enter");
+    await expect(reflection.getByRole("status")).toBeVisible();
+    expect(recorded).toContainEqual({
+      method: "POST",
+      path: "/reviews/rev-1/reflection",
+      body: { response: "I'll bring two spring scales tomorrow." },
+    });
+  });
 });

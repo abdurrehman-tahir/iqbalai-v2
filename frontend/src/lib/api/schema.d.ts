@@ -1895,6 +1895,23 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reviews/{review_id}/reflection": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Teacher answers the reflective coaching question (T-202, #49) */
+        post: operations["reflect_on_next_day_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/school/admin/audit-log/": {
         parameters: {
             query?: never;
@@ -6327,6 +6344,14 @@ export interface components {
             description: string;
             /** Title */
             title: string;
+        };
+        /**
+         * ReflectionCreate
+         * @description Teacher's answer to the reflective question (typed, or a voice transcript).
+         */
+        ReflectionCreate: {
+            /** Response */
+            response: string;
         };
         /**
          * ResearchJobStatus
@@ -13256,6 +13281,41 @@ export interface operations {
             cookie?: never;
         };
         requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ReviewDetailRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reflect_on_next_day_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReflectionCreate"];
+            };
+        };
         responses: {
             /** @description Successful Response */
             200: {
