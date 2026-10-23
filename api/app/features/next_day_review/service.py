@@ -17,14 +17,31 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
-from app.features.audit.actions import REVIEW_CLUSTER_SKIPPED, REVIEW_OVERRIDE_ACTION
+from app.features.audit.actions import (
+    REVIEW_CLUSTER_SKIPPED,
+    REVIEW_MINI_PUBLISHED,
+    REVIEW_OVERRIDE_ACTION,
+)
+from app.features.lectures.events import publish_lecture_event
 from app.features.lectures.models import (
     LectureStatus,
+    LectureType,
     SchoolLecture,
     SchoolLectureVersion,
 )
 from app.features.next_day_review.assembly import _offering_label
-from app.features.next_day_review.models import LectureReview, ReviewReply, SkippedCluster
+from app.features.next_day_review.distribution import (
+    MINI_LECTURE_ASSIGNED_EVENT,
+    assign_recipients,
+    notify_recipients,
+    triggering_students,
+)
+from app.features.next_day_review.models import (
+    LectureReview,
+    LectureReviewStatus,
+    ReviewReply,
+    SkippedCluster,
+)
 from app.features.next_day_review.reflection import record_reflection
 from app.features.next_day_review.regeneration import pick_cluster, skipped_refs
 from app.features.next_day_review.schemas import (
@@ -54,6 +71,10 @@ ACTION_DISMISS = "dismiss"
 
 _OVERRIDE_ROLES = frozenset(
     {UserRole.SCHOOL_ADMIN, UserRole.DISTRICT_ADMIN, UserRole.PLATFORM_ADMIN}
+)
+# A mini from T-198 lands in READY_FOR_EDIT; PUBLISHED allows a re-publish (§5.4).
+_PUBLISHABLE = frozenset(
+    {LectureStatus.READY_FOR_EDIT, LectureStatus.READY_FOR_PUBLISH, LectureStatus.PUBLISHED}
 )
 _TAG_RE = re.compile(r"<[^>]+>")
 _MD_RE = re.compile(r"[#*_`>\[\]]")
@@ -361,6 +382,69 @@ class NextDayReviewService:
             kwargs={"school_id": access.lecture.school_id, "review_id": access.review.id}
         )
         await self._session.commit()
+        return await self._detail(access)
+
+    # --- targeted distribution (T-204) --------------------------------------------------
+
+    async def publish_mini(self, claims: dict[str, object], review_id: str) -> ReviewDetailRead:
+        """Publish the card's mini-lecture to the students who triggered it."""
+        access = await self._require_actor(claims, review_id, action=ACTION_PUBLISH_MINI)
+        review = access.review
+        if not review.mini_lecture_id:
+            raise ValidationError("This review has no mini-lecture to publish")
+        mini = await self._session.get(SchoolLecture, review.mini_lecture_id)
+        if mini is None or mini.lecture_type != LectureType.MINI:
+            raise NotFoundError("Mini-lecture not found")
+        if mini.status not in _PUBLISHABLE or mini.current_version_id is None:
+            raise ValidationError("The mini-lecture is not ready to publish yet")
+
+        candidates = triggering_students(
+            self._snapshots(review),
+            mini_lecture_id=mini.id,
+            skipped=await skipped_refs(self._session, review.id),
+        )
+        recipients = await assign_recipients(
+            self._session,
+            mini=mini,
+            gso_id=review.gso_id,
+            candidates=candidates,
+            actor_user_id=access.user.id,
+        )
+        was_published = mini.status == LectureStatus.PUBLISHED
+        mini.status = LectureStatus.PUBLISHED
+        self._record_action(review, ACTION_PUBLISH_MINI)
+        review.status = LectureReviewStatus.COMPLETED
+        await audit(
+            session=self._session,
+            action=REVIEW_MINI_PUBLISHED,
+            actor_id=access.user.id,
+            actor_role=access.user.role.value,
+            target_type="lecture",
+            target_id=mini.id,
+            school_id=access.lecture.school_id,
+            metadata={
+                "review_id": review.id,
+                "recipient_count": len(recipients),
+                "republish": was_published,
+                "override": not access.is_owner,
+            },
+        )
+        await self._session.commit()
+
+        await publish_lecture_event(
+            event_type=MINI_LECTURE_ASSIGNED_EVENT,
+            payload={
+                "lecture_id": mini.id,
+                "parent_lecture_id": mini.parent_lecture_id,
+                "review_id": review.id,
+                "school_id": mini.school_id,
+                "teacher_user_id": mini.teacher_user_id,
+                "tenant_type": "school",
+                "lecture_type": LectureType.MINI.value,
+                "recipient_user_ids": recipients,
+            },
+        )
+        await notify_recipients(self._session, mini=mini, recipients=recipients)
         return await self._detail(access)
 
     # --- shared mutation helpers ---------------------------------------------------------

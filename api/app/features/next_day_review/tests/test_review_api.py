@@ -146,3 +146,11 @@ async def test_reply_requires_body() -> None:
             json={"cluster_ref": "a", "student_user_id": "stu-0", "body": ""},
         )
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_publish_mini_route() -> None:
+    async with _client("teacher") as client:
+        resp = await client.post("/api/v1/reviews/rev-1/publish-mini")
+    assert resp.status_code == 200
+    assert FakeService.calls[-1][0] == "publish_mini"

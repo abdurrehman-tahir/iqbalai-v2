@@ -122,3 +122,19 @@ async def regenerate_mini(
 ) -> dict[str, Any]:
     detail = await NextDayReviewService(session).regenerate_mini(claims, review_id)
     return success(detail.model_dump(mode="json"))
+
+
+@router.post(
+    "/{review_id}/publish-mini",
+    response_model=SuccessEnvelope[ReviewDetailRead],
+    operation_id="publish_next_day_review_mini",
+    summary="Publish the mini-lecture to the students who asked (T-204, #47)",
+    dependencies=[require_role("teacher")],
+)
+async def publish_mini(
+    review_id: str,
+    claims: dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    detail = await NextDayReviewService(session).publish_mini(claims, review_id)
+    return success(detail.model_dump(mode="json"))

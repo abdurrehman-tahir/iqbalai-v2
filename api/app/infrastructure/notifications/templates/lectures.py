@@ -228,7 +228,8 @@ LECTURE_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
         },
     },
     "lectures.mini_lecture_assigned": {
-        "student": {
+        # Recipients are always the triggering students, so default = student copy.
+        "default": {
             "en": {
                 "title": "A short follow-up lecture for you",
                 "body": 'Your teacher shared a mini-lecture on "{topic}" to help with your question.',

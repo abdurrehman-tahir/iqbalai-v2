@@ -18234,6 +18234,48 @@
         ]
       }
     },
+    "/api/v1/reviews/{review_id}/publish-mini": {
+      "post": {
+        "operationId": "publish_next_day_review_mini",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReviewDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Publish the mini-lecture to the students who asked (T-204, #47)",
+        "tags": [
+          "next-day-review"
+        ]
+      }
+    },
     "/api/v1/reviews/{review_id}/reflection": {
       "post": {
         "operationId": "reflect_on_next_day_review",

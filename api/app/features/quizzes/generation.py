@@ -14,6 +14,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.features.lectures.models import (
     LectureAssignmentScope,
     LectureStatus,
+    LectureType,
     SchoolLecture,
     SchoolLectureParagraph,
     SchoolLectureVersion,
@@ -228,6 +229,9 @@ async def enqueue_quiz_generation_for_lecture(
     lecture: SchoolLecture,
 ) -> int:
     """Enqueue one Celery quiz task per enrolled student (parallel). Returns task count."""
+    # Flow 7 §3.7 (T-204): mini-lectures skip Flow 5 #23b auto-quiz entirely.
+    if lecture.lecture_type == LectureType.MINI:
+        return 0
     if lecture.school_id is None or lecture.grade_subject_offering_id is None:
         return 0
     if lecture.current_version_id is None:
