@@ -14,7 +14,7 @@ Journey (numbers match the T-208 acceptance list):
  4  card assembled; 05:00 SLA met; nothing sent at 05:59, one notify at 06:00;
     student names teacher-only; reply + skip; targeted publish to the triggering,
     still-enrolled students only (no auto-quiz, cross-grade link blocked);
-    the review sits on the lecture's Reviews tab
+    other-school staff get 404 (§3.13); the review sits on the lecture's Reviews tab
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ import pytest
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.core.exceptions import ValidationError
+from app.core.exceptions import NotFoundError, ValidationError
 from app.features.grades.models import Grade
 from app.features.lectures import scoring
 from app.features.lectures.models import (
@@ -385,6 +385,17 @@ async def test_m16_full_flow(pg: AsyncSession, boundaries: dict[str, Any]) -> No
             published_mini.id,
             LectureLinkCreate(target_grade_subject_offering_id=seed["gso"].id),
         )
+
+    # --- §3.13 cross-tenant denial: another school's staff gets 404, list is empty ---
+    other_school = School(name="M16 Other School", district_id=school.district_id)
+    pg.add(other_school)
+    await pg.flush()
+    outsider_admin = await make_user(pg, role=UserRole.SCHOOL_ADMIN, school_id=other_school.id)
+    outsider_teacher = await make_user(pg, role=UserRole.TEACHER, school_id=other_school.id)
+    for outsider in (outsider_admin, outsider_teacher):
+        with pytest.raises(NotFoundError):
+            await svc.get_review(_claims(outsider), review.id)
+        assert await svc.list_reviews(_claims(outsider)) == []
 
     # --- the review is a child record on the lecture's Reviews tab ---
     tab = await svc.list_reviews(_claims(teacher), lecture_id=lecture.id)
