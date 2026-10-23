@@ -533,7 +533,9 @@
         "lecture_count": "__TODO__ Lectures",
         "avg_total": "__TODO__ Avg. total",
         "avg_topic_relevance": "__TODO__ Avg. topic relevance",
-        "na": "__TODO__ N/A"
+        "na": "__TODO__ N/A",
+        "pending_reviews": "پاتې بیاکتنې",
+        "days_to_act": "تر اقدام پورې ورځې"
       }
     }
   },
@@ -879,7 +881,8 @@
       "lectures": "__TODO__ Create lecture",
       "library": "__TODO__ Content Library",
       "library_upload": "__TODO__ Upload reference book",
-      "curriculum_upload": "__TODO__ Upload curriculum"
+      "curriculum_upload": "__TODO__ Upload curriculum",
+      "reviews": "ورځنۍ بیاکتنې"
     },
     "lectures": {
       "wizard": {
@@ -1074,6 +1077,88 @@
       "ratings_hidden": "{count, plural, one {د زده کوونکي # درجه بندي} other {د زده کوونکو # درجه بندۍ}} — د بې نومۍ لپاره اوسط هغه وخت ښکاري چې {min} زده کوونکي درجه ورکړي.",
       "rating_line": "د زده کوونکو درجه بندي: {average} / 5 ({count, plural, one {# درجه بندي} other {# درجه بندۍ}})",
       "weighting_note": "د زده کوونکو بې نومه درجه بندي د نمرې {weight}% ده؛ پاتې د AI نمره ده."
+    },
+    "reviews": {
+      "list": {
+        "title": "ورځنۍ بیاکتنې",
+        "subtitle": "هر سهار، د پرون د زده کوونکو پوښتنې ستاسو د هر ټولګي لپاره په یوه بیاکتنې کارت کې راټولېږي۔",
+        "empty_title": "نن کومه بیاکتنه نشته",
+        "empty_description": "کله چې زده کوونکي ستاسو د لیکچرونو په اړه پوښتنې وکړي، بل سهار به دلته د بیاکتنې کارت ښکاره شي۔",
+        "error": "موږ ستاسو بیاکتنې نشو بارولی۔",
+        "retry": "بیا هڅه وکړئ",
+        "open": "بیاکتنه پرانیزئ",
+        "critical_count": "{count, plural, =0 {هیڅ مهم کلسټر نشته} one {1 مهم کلسټر} other {# مهم کلسټرونه}}",
+        "frequent_count": "{count, plural, =0 {هیڅ عام کلسټر نشته} one {1 عام کلسټر} other {# عام کلسټرونه}}"
+      },
+      "status": {
+        "pending": "اقدام ته اړتیا ده",
+        "completed": "بشپړ",
+        "dismissed": "رد شوی",
+        "read_only": "یوازې د لوستلو لپاره"
+      },
+      "card": {
+        "heading": "ورځنۍ بیاکتنه — {label}",
+        "topic": "لیکچر: {title}",
+        "generated": "په 06:00 چمتو شو، {date}",
+        "back": "بیاکتنو ته بېرته",
+        "error": "موږ دا بیاکتنه نشو بارولی۔",
+        "retry": "بیا هڅه وکړئ",
+        "summary_title": "د AI لنډیز",
+        "summary_empty": "د دې بیاکتنې لنډیز جوړ نه شو — لاندې کلسټرونه بشپړ دي۔",
+        "critical_title": "مهم",
+        "frequent_title": "ډېر پوښتل شوي",
+        "mini_title": "د لنډ لیکچر مخکتنه",
+        "mini_none": "د دې بیاکتنې لپاره کوم لنډ لیکچر جوړ نه شو۔",
+        "mini_open": "بشپړ مسوده پرانیزئ",
+        "mini_published": "هغو زده کوونکو ته خپور شو چې پوښتنه یې کړې وه",
+        "cluster_meta": "{questions, plural, one {1 پوښتنه} other {# پوښتنې}} · {students, plural, one {1 زده کوونکی} other {# زده کوونکي}}",
+        "more": "او {count} نور",
+        "column_empty": "نن په دې ستون کې هیڅ نشته۔",
+        "view_details": "جزئيات وګورئ",
+        "skipped": "پرېښودل شوی",
+        "mini_regenerate": "بیا جوړ کړئ",
+        "mini_regenerating": "نوې مسوده لیکل کېږي — ژر به دلته ښکاره شي۔",
+        "mini_regenerate_error": "موږ نوې مسوده پیل نشوه کړای۔ بیا هڅه وکړئ۔"
+      },
+      "reflection": {
+        "title": "د فکر کولو پوښتنه",
+        "hint": "اختیاري — لنډ ځواب ولیکئ یا ثبت یې کړئ۔ دا ستاسو راتلونکې روزنیزې لارښوونې ښه کوي۔",
+        "placeholder": "ستاسو فکرونه…",
+        "saved": "مننه — ستاسو ځواب خوندي شو۔",
+        "error": "موږ ستاسو ځواب خوندي نشو کړای۔ بیا هڅه وکړئ۔"
+      },
+      "drilldown": {
+        "title": "د کلسټر جزئيات",
+        "close": "بند کړئ",
+        "meta": "{questions, plural, one {1 پوښتنه} other {# پوښتنې}} · {students, plural, one {1 زده کوونکی} other {# زده کوونکي}}",
+        "skipped": "پرېښودل شوی — په بیا جوړولو کې نه کارول کېږي",
+        "open_content": "په لیکچر کې پرانیزئ",
+        "reply": "ځواب ورکړئ",
+        "reply_placeholder": "دې زده کوونکي ته ځواب ولیکئ…",
+        "skip": "دا کلسټر پرېږدئ",
+        "error": "دا بشپړ نه شو۔ بیا هڅه وکړئ۔"
+      },
+      "actions": {
+        "aria_label": "د بیاکتنې کړنې",
+        "publish": "لنډ لیکچر خپور کړئ",
+        "published": "لنډ لیکچر خپور شو",
+        "edit_main": "اصلي لیکچر سم کړئ",
+        "group_study": "ګروپي مطالعه مهالویش کړئ",
+        "group_study_soon": "د ګروپي مطالعې مهالویش به د ګروپي مطالعې ځانګړنې سره راشي۔",
+        "dismiss": "پرته له اقدام رد کړئ",
+        "reopen": "بیاکتنه بیا پرانیزئ",
+        "publish_no_recipients": "د پوښتونکو زده کوونکو څخه هیڅوک اوس نوم لیکلی نه دی، نو دا چا ته نشي لیږل کېدای۔",
+        "error": "دا کړنه بشپړه نه شوه۔ بیا هڅه وکړئ۔"
+      }
+    },
+    "lecture_detail": {
+      "title": "لیکچر",
+      "back": "بیاکتنو ته بېرته",
+      "tabs_label": "د لیکچر برخې",
+      "tab_edit": "سمون",
+      "tab_reviews": "بیاکتنې",
+      "from_review": "تاسو دا لیکچر د ورځنۍ بیاکتنې څخه پرانیستی — د سمون لپاره د زده کوونکو پوښتنو ته پام وکړئ۔",
+      "back_to_review": "بیاکتنې ته بېرته"
     }
   },
   "district_admin": {

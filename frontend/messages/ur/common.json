@@ -533,7 +533,9 @@
         "lecture_count": "__TODO__ Lectures",
         "avg_total": "__TODO__ Avg. total",
         "avg_topic_relevance": "__TODO__ Avg. topic relevance",
-        "na": "__TODO__ N/A"
+        "na": "__TODO__ N/A",
+        "pending_reviews": "زیر التوا جائزے",
+        "days_to_act": "کارروائی میں دن"
       }
     }
   },
@@ -879,7 +881,8 @@
       "lectures": "__TODO__ Create lecture",
       "library": "__TODO__ Content Library",
       "library_upload": "__TODO__ Upload reference book",
-      "curriculum_upload": "__TODO__ Upload curriculum"
+      "curriculum_upload": "__TODO__ Upload curriculum",
+      "reviews": "روزانہ جائزے"
     },
     "lectures": {
       "wizard": {
@@ -1074,6 +1077,88 @@
       "ratings_hidden": "{count, plural, one {طالب علم کی # درجہ بندی} other {طلبہ کی # درجہ بندیاں}} — درجہ بندی گمنام رکھنے کے لیے اوسط تب دکھائی جائے گی جب {min} طلبہ درجہ دے دیں۔",
       "rating_line": "طلبہ کی درجہ بندی: {average} / 5 ({count, plural, one {# درجہ بندی} other {# درجہ بندیاں}})",
       "weighting_note": "طلبہ کی گمنام درجہ بندی اسکور کا {weight}% ہے؛ باقی اے آئی اسکور ہے۔"
+    },
+    "reviews": {
+      "list": {
+        "title": "روزانہ جائزے",
+        "subtitle": "ہر صبح، کل کے طلبہ کے سوالات آپ کی ہر جماعت کے لیے ایک جائزہ کارڈ میں جمع کیے جاتے ہیں۔",
+        "empty_title": "آج کوئی جائزہ نہیں",
+        "empty_description": "جب طلبہ آپ کے لیکچرز کے بارے میں سوال پوچھیں گے تو اگلی صبح یہاں جائزہ کارڈ ظاہر ہوگا۔",
+        "error": "ہم آپ کے جائزے لوڈ نہیں کر سکے۔",
+        "retry": "دوبارہ کوشش کریں",
+        "open": "جائزہ کھولیں",
+        "critical_count": "{count, plural, =0 {کوئی اہم کلسٹر نہیں} one {1 اہم کلسٹر} other {# اہم کلسٹرز}}",
+        "frequent_count": "{count, plural, =0 {کوئی عام کلسٹر نہیں} one {1 عام کلسٹر} other {# عام کلسٹرز}}"
+      },
+      "status": {
+        "pending": "کارروائی درکار",
+        "completed": "مکمل",
+        "dismissed": "مسترد",
+        "read_only": "صرف پڑھنے کے لیے"
+      },
+      "card": {
+        "heading": "روزانہ جائزہ — {label}",
+        "topic": "لیکچر: {title}",
+        "generated": "06:00 پر تیار، {date}",
+        "back": "جائزوں پر واپس",
+        "error": "ہم یہ جائزہ لوڈ نہیں کر سکے۔",
+        "retry": "دوبارہ کوشش کریں",
+        "summary_title": "اے آئی خلاصہ",
+        "summary_empty": "اس جائزے کا خلاصہ تیار نہیں ہوا — نیچے دیے گئے کلسٹرز مکمل ہیں۔",
+        "critical_title": "اہم",
+        "frequent_title": "زیادہ پوچھے گئے",
+        "mini_title": "مختصر لیکچر کا جائزہ",
+        "mini_none": "اس جائزے کے لیے کوئی مختصر لیکچر تیار نہیں ہوا۔",
+        "mini_open": "مکمل مسودہ کھولیں",
+        "mini_published": "سوال پوچھنے والے طلبہ کو شائع کر دیا گیا",
+        "cluster_meta": "{questions, plural, one {1 سوال} other {# سوالات}} · {students, plural, one {1 طالب علم} other {# طلبہ}}",
+        "more": "اور {count} مزید",
+        "column_empty": "آج اس کالم میں کچھ نہیں۔",
+        "view_details": "تفصیل دیکھیں",
+        "skipped": "نظر انداز",
+        "mini_regenerate": "دوبارہ تیار کریں",
+        "mini_regenerating": "نیا مسودہ لکھا جا رہا ہے — جلد یہاں نظر آئے گا۔",
+        "mini_regenerate_error": "ہم نیا مسودہ شروع نہیں کر سکے۔ دوبارہ کوشش کریں۔"
+      },
+      "reflection": {
+        "title": "غور طلب سوال",
+        "hint": "اختیاری — مختصر جواب لکھیں یا ریکارڈ کریں۔ اس سے آپ کی آئندہ کوچنگ تجاویز بہتر ہوں گی۔",
+        "placeholder": "آپ کے خیالات…",
+        "saved": "شکریہ — آپ کا جواب محفوظ ہو گیا۔",
+        "error": "ہم آپ کا جواب محفوظ نہیں کر سکے۔ دوبارہ کوشش کریں۔"
+      },
+      "drilldown": {
+        "title": "کلسٹر کی تفصیل",
+        "close": "بند کریں",
+        "meta": "{questions, plural, one {1 سوال} other {# سوالات}} · {students, plural, one {1 طالب علم} other {# طلبہ}}",
+        "skipped": "نظر انداز — دوبارہ تیاری میں شامل نہیں",
+        "open_content": "لیکچر میں کھولیں",
+        "reply": "جواب دیں",
+        "reply_placeholder": "اس طالب علم کو جواب لکھیں…",
+        "skip": "یہ کلسٹر نظر انداز کریں",
+        "error": "یہ مکمل نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
+      },
+      "actions": {
+        "aria_label": "جائزے کی کارروائیاں",
+        "publish": "مختصر لیکچر شائع کریں",
+        "published": "مختصر لیکچر شائع ہو گیا",
+        "edit_main": "مرکزی لیکچر میں ترمیم کریں",
+        "group_study": "گروپ اسٹڈی شیڈول کریں",
+        "group_study_soon": "گروپ اسٹڈی کی شیڈولنگ گروپ اسٹڈی فیچر کے ساتھ آئے گی۔",
+        "dismiss": "بغیر کارروائی کے مسترد کریں",
+        "reopen": "جائزہ دوبارہ کھولیں",
+        "publish_no_recipients": "سوال پوچھنے والوں میں سے کوئی طالب علم اب داخل نہیں، اس لیے یہ کسی کو نہیں بھیجا جا سکتا۔",
+        "error": "یہ کارروائی مکمل نہیں ہو سکی۔ دوبارہ کوشش کریں۔"
+      }
+    },
+    "lecture_detail": {
+      "title": "لیکچر",
+      "back": "جائزوں پر واپس",
+      "tabs_label": "لیکچر کے حصے",
+      "tab_edit": "ترمیم",
+      "tab_reviews": "جائزے",
+      "from_review": "آپ نے یہ لیکچر روزانہ جائزے سے کھولا ہے — ترمیم کے لیے طلبہ کے سوالات سے رہنمائی لیں۔",
+      "back_to_review": "جائزے پر واپس"
     }
   },
   "district_admin": {

@@ -228,3 +228,13 @@ export interface TosVersion {
   content: string;
   effective_at: string;
 }
+
+// ── M-16 next-day review (Flow 7, A-002 generated) ─────────────────────────────
+export type ReviewSummaryRead = Schemas["ReviewSummaryRead"];
+export type ReviewDetailRead = Schemas["ReviewDetailRead"];
+export type ReviewClusterView = Schemas["ReviewClusterView"];
+export type ReviewQuestionView = Schemas["ReviewQuestionView"];
+export type ReviewReplyRead = Schemas["ReviewReplyRead"];
+export type ReflectionCreate = Schemas["ReflectionCreate"];
+export type ReviewReplyCreate = Schemas["ReviewReplyCreate"];
+export type ClusterSkipCreate = Schemas["ClusterSkipCreate"];

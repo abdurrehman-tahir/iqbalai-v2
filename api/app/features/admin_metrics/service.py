@@ -23,8 +23,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.dependencies import ROLE_HIERARCHY
 from app.core.exceptions import PermissionDeniedError
-from app.features.admin_metrics.repository import AdminTeacherMetricsRepository, TeacherMetricsRow
+from app.features.admin_metrics.repository import (
+    AdminTeacherMetricsRepository,
+    ReviewStatsRow,
+    TeacherMetricsRow,
+)
 from app.features.admin_metrics.schemas import TeacherMetricsRead
+from app.features.lectures.models import LectureType
 from app.infrastructure.cache.client import get_redis
 
 logger = structlog.get_logger(__name__)
@@ -69,7 +74,34 @@ async def _resolve_scope_school_ids(
     return [str(school_id)]
 
 
-def _aggregate(rows: list[TeacherMetricsRow]) -> list[TeacherMetricsRead]:
+_SECONDS_PER_DAY = 86_400
+
+
+def _review_stats(
+    rows: list[ReviewStatsRow],
+) -> dict[tuple[str, str, str], tuple[int, float | None]]:
+    """(teacher, subject, grade) -> (pending review count, avg days generated->first action)."""
+    pending: dict[tuple[str, str, str], int] = defaultdict(int)
+    days: dict[tuple[str, str, str], list[float]] = defaultdict(list)
+    for r in rows:
+        key = (r.teacher_user_id, r.subject_id, r.grade_level_ordinal)
+        if r.pending_action:
+            pending[key] += 1
+        if r.generated_at is not None and r.acted_at is not None:
+            delta = (r.acted_at - r.generated_at).total_seconds() / _SECONDS_PER_DAY
+            days[key].append(max(delta, 0.0))
+    keys = set(pending) | set(days)
+    return {
+        k: (pending.get(k, 0), round(statistics.mean(days[k]), 1) if days.get(k) else None)
+        for k in keys
+    }
+
+
+def _aggregate(
+    rows: list[TeacherMetricsRow],
+    review_stats: dict[tuple[str, str, str], tuple[int, float | None]] | None = None,
+) -> list[TeacherMetricsRead]:
+    stats = review_stats or {}
     groups: dict[tuple[str, str, str], list[TeacherMetricsRow]] = defaultdict(list)
     for row in rows:
         key = (row.teacher_user_id, row.subject_id, row.grade_level_ordinal)
@@ -84,8 +116,12 @@ def _aggregate(rows: list[TeacherMetricsRow]) -> list[TeacherMetricsRead]:
         return round(statistics.mean(values), 1) if values else None
 
     out: list[TeacherMetricsRead] = []
-    for (teacher_user_id, subject_id, grade_range), group in groups.items():
-        first = group[0]
+    for (teacher_user_id, subject_id, grade_range), all_rows in groups.items():
+        first = all_rows[0]
+        # T-199: minis are /60 with 1.5× Depth/Alignment — keep them out of the
+        # main-lecture dimension averages and report them on their own.
+        group = [r for r in all_rows if r.lecture_type != LectureType.MINI]
+        minis = [r for r in all_rows if r.lecture_type == LectureType.MINI]
         topic_values = [r.topic_relevance_pct for r in group if r.topic_relevance_pct is not None]
         out.append(
             TeacherMetricsRead(
@@ -108,6 +144,12 @@ def _aggregate(rows: list[TeacherMetricsRow]) -> list[TeacherMetricsRead]:
                 avg_topic_relevance_pct=(
                     round(statistics.mean(topic_values), 1) if topic_values else None
                 ),
+                mini_lecture_count=len({r.lecture_id for r in minis}),
+                avg_mini_total=_dim_avg(minis, "total"),
+                pending_review_count=stats.get(
+                    (teacher_user_id, subject_id, grade_range), (0, None)
+                )[0],
+                avg_days_to_act=stats.get((teacher_user_id, subject_id, grade_range), (0, None))[1],
             )
         )
     out.sort(key=lambda r: r.avg_total, reverse=True)
@@ -147,7 +189,12 @@ async def get_teacher_metrics(
     if filters.grade_range is not None:
         rows = [r for r in rows if r.grade_level_ordinal == filters.grade_range]
 
-    result = _aggregate(rows)
+    review_rows = await repo.list_review_stats(school_ids=effective_school_ids)
+    if filters.subject_id is not None:
+        review_rows = [r for r in review_rows if r.subject_id == filters.subject_id]
+    if filters.grade_range is not None:
+        review_rows = [r for r in review_rows if r.grade_level_ordinal == filters.grade_range]
+    result = _aggregate(rows, _review_stats(review_rows))
     await redis.set(
         cache_key,
         json.dumps([item.model_dump(mode="json") for item in result]),

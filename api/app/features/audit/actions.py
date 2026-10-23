@@ -258,6 +258,28 @@ LECTURE_RATING_SUBMITTED = "lecture_rating.submitted"
 
 M15_AUDIT_ACTIONS = frozenset({LECTURE_RATING_SUBMITTED})
 
+# M-16 — next-day review (Flow 7 §11 audit, ARCH §14.10). Teacher actions on
+# their own review are logged because publish/skip change what students see and
+# what the AI regenerates; admin overrides are elevated.
+REVIEW_SLA_BREACHED = "review.sla_breached"
+REVIEW_DISMISSED = "review.dismissed"
+REVIEW_MINI_PUBLISHED = "review.mini_published"
+REVIEW_CLUSTER_SKIPPED = "review.cluster_skipped"
+REVIEW_OVERRIDE_ACTION = "review.override_action"
+
+M16_AUDIT_ACTIONS = frozenset(
+    {
+        REVIEW_SLA_BREACHED,
+        REVIEW_DISMISSED,
+        REVIEW_MINI_PUBLISHED,
+        REVIEW_CLUSTER_SKIPPED,
+        REVIEW_OVERRIDE_ACTION,
+    }
+)
+
+# Coordinator/Admin acting on a teacher's review card (Flow 7 §4 overrides).
+ELEVATED_AUDIT_ACTIONS = ELEVATED_AUDIT_ACTIONS | {REVIEW_OVERRIDE_ACTION}
+
 REGISTERED_AUDIT_ACTIONS = (
     M04_AUDIT_ACTIONS
     | M06_AUDIT_ACTIONS
@@ -270,4 +292,5 @@ REGISTERED_AUDIT_ACTIONS = (
     | M13_AUDIT_ACTIONS
     | M14_AUDIT_ACTIONS
     | M15_AUDIT_ACTIONS
+    | M16_AUDIT_ACTIONS
 )

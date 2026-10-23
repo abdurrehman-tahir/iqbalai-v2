@@ -1126,6 +1126,12 @@ class LectureWizardService:
         """
         teacher = await self._require_school_teacher(claims)
         lecture = await self._require_owned_lecture(teacher, lecture_id)
+        if lecture.lecture_type == LectureType.MINI:
+            # Flow 7 §3.7 (T-204): a mini-lecture targets the students whose
+            # questions triggered it — linking it to another grade is blocked.
+            raise ValidationError(
+                "Mini-lectures cannot be linked to another Grade-Subject offering"
+            )
         if lecture.grade_subject_offering_id is None:
             raise ValidationError("Lecture has no source Grade-Subject offering to link from")
 
@@ -1430,6 +1436,10 @@ class LectureWizardService:
         actor, lecture, elevated = await self._require_lecture_for_access_management(
             claims, lecture_id
         )
+        if lecture.lecture_type == LectureType.MINI:
+            # Grade-wide publish would broadcast a targeted mini-lecture; minis go
+            # out only via their review card's targeted distribution (T-204).
+            raise ValidationError("Mini-lectures are published from their review card")
         if lecture.status not in (
             LectureStatus.READY_FOR_EDIT,
             LectureStatus.READY_FOR_PUBLISH,

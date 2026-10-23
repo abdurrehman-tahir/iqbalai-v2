@@ -123,4 +123,18 @@ describe("TeacherMetricsClient", () => {
 
     await waitFor(() => expect(exportTeacherMetricsCsv).toHaveBeenCalledWith("test-token"));
   });
+
+  it("shows next-day review follow-through columns (T-206)", async () => {
+    listTeacherMetrics.mockResolvedValue([
+      { ...ROW_A, pending_review_count: 3, avg_days_to_act: 1.5 },
+      { ...ROW_B, pending_review_count: 0, avg_days_to_act: null },
+    ]);
+    renderWithClient(<TeacherMetricsClient />);
+    const row = (await screen.findByText("Ayesha Khan")).closest("tr");
+    if (!row) throw new Error("row not found");
+    expect(row).toHaveTextContent("3");
+    expect(row).toHaveTextContent("1.5");
+    expect(screen.getByText(/col\.pending_reviews/)).toBeInTheDocument();
+    expect(screen.getByText(/col\.days_to_act/)).toBeInTheDocument();
+  });
 });

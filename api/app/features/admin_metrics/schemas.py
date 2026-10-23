@@ -27,3 +27,12 @@ class TeacherMetricsRead(BaseModel):
     avg_ai_learning: float
     avg_total: float
     avg_topic_relevance_pct: float | None
+    # T-199 (Flow 7 §3.5): mini-lectures score /60 with weighted Depth +
+    # Alignment, so they are reported separately and never mixed into the
+    # main-lecture dimension averages above.
+    mini_lecture_count: int = 0
+    avg_mini_total: float | None = None
+    # T-206 (Flow 7 §3.8): next-day review follow-through for the same
+    # (teacher, subject, grade). Reviews never expire, so this is all-time.
+    pending_review_count: int = 0
+    avg_days_to_act: float | None = None

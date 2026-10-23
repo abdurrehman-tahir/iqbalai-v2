@@ -138,6 +138,11 @@ import type {
   LectureRatingSubmit,
   MyLectureRatingRead,
   LectureRatingSummaryRead,
+  ReviewSummaryRead,
+  ReviewDetailRead,
+  ReflectionCreate,
+  ReviewReplyCreate,
+  ClusterSkipCreate,
 } from "./types";
 
 // Re-export M-15 generated types (A-002).
@@ -180,6 +185,16 @@ export type {
   QuestionClassification,
 } from "./types";
 export type { AttachedImageRef } from "./types";
+export type {
+  ReviewSummaryRead,
+  ReviewDetailRead,
+  ReviewClusterView,
+  ReviewQuestionView,
+  ReviewReplyRead,
+  ReflectionCreate,
+  ReviewReplyCreate,
+  ClusterSkipCreate,
+} from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
 
@@ -2056,6 +2071,66 @@ export const studentEnrollmentsApi = {
         body: JSON.stringify(data),
         headers: { "Idempotency-Key": crypto.randomUUID() },
       },
+      token
+    ),
+};
+
+// ── M-16 next-day review cards (Flow 7) ───────────────────────────────────────
+export const nextDayReviewApi = {
+  list: (token: string, lectureId?: string) =>
+    request<ReviewSummaryRead[]>(
+      `/reviews${lectureId ? `?lecture_id=${encodeURIComponent(lectureId)}` : ""}`,
+      {},
+      token
+    ),
+  get: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(`/reviews/${encodeURIComponent(reviewId)}`, {}, token),
+  reflect: (token: string, reviewId: string, data: ReflectionCreate) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/reflection`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  reply: (token: string, reviewId: string, data: ReviewReplyCreate) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/replies`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  skipCluster: (token: string, reviewId: string, data: ClusterSkipCreate) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/skips`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  regenerateMini: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/regenerate-mini`,
+      { method: "POST" },
+      token
+    ),
+  publishMini: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/publish-mini`,
+      { method: "POST" },
+      token
+    ),
+  editMain: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/edit-main`,
+      { method: "POST" },
+      token
+    ),
+  dismiss: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/dismiss`,
+      { method: "POST" },
+      token
+    ),
+  reopen: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/reopen`,
+      { method: "POST" },
       token
     ),
 };

@@ -26,7 +26,9 @@ type SortKey =
   | "school_name"
   | "lecture_count"
   | "avg_total"
-  | "avg_topic_relevance_pct";
+  | "avg_topic_relevance_pct"
+  | "pending_review_count"
+  | "avg_days_to_act";
 
 const DEFAULT_SORT: SortKey = "avg_total";
 
@@ -125,6 +127,8 @@ export function TeacherMetricsClient() {
     { key: "lecture_count", label: t("col.lecture_count") },
     { key: "avg_total", label: t("col.avg_total") },
     { key: "avg_topic_relevance_pct", label: t("col.avg_topic_relevance") },
+    { key: "pending_review_count", label: t("col.pending_reviews") },
+    { key: "avg_days_to_act", label: t("col.days_to_act") },
   ];
 
   return (
@@ -190,6 +194,10 @@ export function TeacherMetricsClient() {
                     {row.avg_topic_relevance_pct != null
                       ? `${row.avg_topic_relevance_pct}%`
                       : t("col.na")}
+                  </td>
+                  <td className="px-4 py-3 text-gray-600">{row.pending_review_count ?? 0}</td>
+                  <td className="px-4 py-3 text-gray-600">
+                    {row.avg_days_to_act != null ? row.avg_days_to_act : t("col.na")}
                   </td>
                 </tr>
               ))}

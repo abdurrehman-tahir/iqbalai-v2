@@ -14,7 +14,7 @@ from app.api.v1.router import router as v1_router
 from app.core.dependencies import get_current_user, get_db
 from app.core.exceptions import setup_exception_handlers
 from app.core.tests.test_idempotency import FakeRedis
-from app.features.admin_metrics.repository import TeacherMetricsRow
+from app.features.admin_metrics.repository import ReviewStatsRow, TeacherMetricsRow
 from app.features.audit.actions import ADMIN_METRICS_ACCESSED, ADMIN_METRICS_EXPORTED
 
 ROW = TeacherMetricsRow(
@@ -42,6 +42,7 @@ ROW = TeacherMetricsRow(
 
 class _FakeRepo:
     rows: list[TeacherMetricsRow] = []
+    review_rows: list[ReviewStatsRow] = []
 
     def __init__(self, session: Any) -> None:
         pass
@@ -52,6 +53,9 @@ class _FakeRepo:
         if school_ids is None:
             return list(self.rows)
         return [r for r in self.rows if r.school_id in school_ids]
+
+    async def list_review_stats(self, *, school_ids: list[str] | None) -> list[ReviewStatsRow]:
+        return list(self.review_rows)
 
     async def list_school_ids_for_district(self, district_id: str) -> list[str]:
         return []

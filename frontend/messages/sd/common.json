@@ -533,7 +533,9 @@
         "lecture_count": "__TODO__ Lectures",
         "avg_total": "__TODO__ Avg. total",
         "avg_topic_relevance": "__TODO__ Avg. topic relevance",
-        "na": "__TODO__ N/A"
+        "na": "__TODO__ N/A",
+        "pending_reviews": "باقي جائزا",
+        "days_to_act": "عمل ۾ ڏينهن"
       }
     }
   },
@@ -879,7 +881,8 @@
       "lectures": "__TODO__ Create lecture",
       "library": "__TODO__ Content Library",
       "library_upload": "__TODO__ Upload reference book",
-      "curriculum_upload": "__TODO__ Upload curriculum"
+      "curriculum_upload": "__TODO__ Upload curriculum",
+      "reviews": "روزانا جائزا"
     },
     "lectures": {
       "wizard": {
@@ -1074,6 +1077,88 @@
       "ratings_hidden": "{count, plural, one {شاگرد جي # درجه بندي} other {شاگردن جون # درجه بنديون}} — درجه بندي گمنام رکڻ لاءِ سراسري تڏهن ڏيکاري ويندي جڏهن {min} شاگرد درجو ڏين.",
       "rating_line": "شاگردن جي درجه بندي: {average} / 5 ({count, plural, one {# درجه بندي} other {# درجه بنديون}})",
       "weighting_note": "شاگردن جي گمنام درجه بندي اسڪور جو {weight}% آهي؛ باقي اي آءِ اسڪور آهي."
+    },
+    "reviews": {
+      "list": {
+        "title": "روزانا جائزا",
+        "subtitle": "هر صبح، ڪالهه جي شاگردن جا سوال توهان جي هر ڪلاس لاءِ هڪ جائزي ڪارڊ ۾ گڏ ڪيا ويندا آهن۔",
+        "empty_title": "اڄ ڪو جائزو ناهي",
+        "empty_description": "جڏهن شاگرد توهان جي ليڪچرن بابت سوال پڇندا ته ٻئي صبح هتي جائزي ڪارڊ ظاهر ٿيندو۔",
+        "error": "اسان توهان جا جائزا لوڊ نه ڪري سگهياسين۔",
+        "retry": "ٻيهر ڪوشش ڪريو",
+        "open": "جائزو کوليو",
+        "critical_count": "{count, plural, =0 {ڪو اهم ڪلسٽر ناهي} one {1 اهم ڪلسٽر} other {# اهم ڪلسٽر}}",
+        "frequent_count": "{count, plural, =0 {ڪو عام ڪلسٽر ناهي} one {1 عام ڪلسٽر} other {# عام ڪلسٽر}}"
+      },
+      "status": {
+        "pending": "عمل گهربل",
+        "completed": "مڪمل",
+        "dismissed": "رد ٿيل",
+        "read_only": "صرف پڙهڻ لاءِ"
+      },
+      "card": {
+        "heading": "روزانو جائزو — {label}",
+        "topic": "ليڪچر: {title}",
+        "generated": "06:00 تي تيار، {date}",
+        "back": "جائزن ڏانهن واپس",
+        "error": "اسان هي جائزو لوڊ نه ڪري سگهياسين۔",
+        "retry": "ٻيهر ڪوشش ڪريو",
+        "summary_title": "اي آءِ خلاصو",
+        "summary_empty": "هن جائزي جو خلاصو تيار نه ٿيو — هيٺيان ڪلسٽر مڪمل آهن۔",
+        "critical_title": "اهم",
+        "frequent_title": "گهڻا پڇيل",
+        "mini_title": "مختصر ليڪچر جو جائزو",
+        "mini_none": "هن جائزي لاءِ ڪو مختصر ليڪچر تيار نه ٿيو۔",
+        "mini_open": "مڪمل مسودو کوليو",
+        "mini_published": "سوال پڇندڙ شاگردن کي شايع ڪيو ويو",
+        "cluster_meta": "{questions, plural, one {1 سوال} other {# سوال}} · {students, plural, one {1 شاگرد} other {# شاگرد}}",
+        "more": "۽ {count} وڌيڪ",
+        "column_empty": "اڄ هن ڪالم ۾ ڪجهه ناهي۔",
+        "view_details": "تفصيل ڏسو",
+        "skipped": "نظرانداز",
+        "mini_regenerate": "ٻيهر تيار ڪريو",
+        "mini_regenerating": "نئون مسودو لکيو پيو وڃي — جلد هتي نظر ايندو۔",
+        "mini_regenerate_error": "اسان نئون مسودو شروع نه ڪري سگهياسين۔ ٻيهر ڪوشش ڪريو۔"
+      },
+      "reflection": {
+        "title": "غور طلب سوال",
+        "hint": "اختياري — مختصر جواب لکو يا رڪارڊ ڪريو۔ ان سان توهان جون ايندڙ ڪوچنگ تجويزون بهتر ٿينديون۔",
+        "placeholder": "توهان جا خيال…",
+        "saved": "مهرباني — توهان جو جواب محفوظ ٿي ويو۔",
+        "error": "اسان توهان جو جواب محفوظ نه ڪري سگهياسين۔ ٻيهر ڪوشش ڪريو۔"
+      },
+      "drilldown": {
+        "title": "ڪلسٽر جي تفصيل",
+        "close": "بند ڪريو",
+        "meta": "{questions, plural, one {1 سوال} other {# سوال}} · {students, plural, one {1 شاگرد} other {# شاگرد}}",
+        "skipped": "نظرانداز — ٻيهر تياري ۾ شامل ناهي",
+        "open_content": "ليڪچر ۾ کوليو",
+        "reply": "جواب ڏيو",
+        "reply_placeholder": "هن شاگرد کي جواب لکو…",
+        "skip": "هي ڪلسٽر نظرانداز ڪريو",
+        "error": "اهو مڪمل نه ٿي سگهيو۔ ٻيهر ڪوشش ڪريو۔"
+      },
+      "actions": {
+        "aria_label": "جائزي جا عمل",
+        "publish": "مختصر ليڪچر شايع ڪريو",
+        "published": "مختصر ليڪچر شايع ٿي ويو",
+        "edit_main": "مکيه ليڪچر ۾ ترميم ڪريو",
+        "group_study": "گروپ اسٽڊي شيڊول ڪريو",
+        "group_study_soon": "گروپ اسٽڊي جي شيڊولنگ گروپ اسٽڊي فيچر سان ايندي۔",
+        "dismiss": "بنا عمل جي رد ڪريو",
+        "reopen": "جائزو ٻيهر کوليو",
+        "publish_no_recipients": "سوال پڇندڙن مان ڪو به شاگرد هاڻي داخل ناهي، تنهن ڪري اهو ڪنهن کي موڪلي نٿو سگهجي۔",
+        "error": "اهو عمل مڪمل نه ٿي سگهيو۔ ٻيهر ڪوشش ڪريو۔"
+      }
+    },
+    "lecture_detail": {
+      "title": "ليڪچر",
+      "back": "جائزن ڏانهن واپس",
+      "tabs_label": "ليڪچر جا حصا",
+      "tab_edit": "ترميم",
+      "tab_reviews": "جائزا",
+      "from_review": "توهان هي ليڪچر روزاني جائزي مان کوليو آهي — ترميم لاءِ شاگردن جي سوالن مان رهنمائي وٺو۔",
+      "back_to_review": "جائزي ڏانهن واپس"
     }
   },
   "district_admin": {

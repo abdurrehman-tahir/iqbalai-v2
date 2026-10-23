@@ -40,6 +40,7 @@ from app.features.lectures.lecture_notifications import notify_scoring_complete
 from app.features.lectures.models import (
     IndependentLecture,
     IndependentLectureVersion,
+    LectureType,
     SchoolLecture,
     SchoolLecturePlagiarismFlag,
     SchoolLectureVersion,
@@ -90,6 +91,37 @@ _DIMENSION_CAPS: dict[str, int] = {
 }
 MAX_TOTAL_SCORE = sum(_DIMENSION_CAPS.values())
 
+# T-199 (Flow 7 §3.5 #39): mini-lectures reuse this exact pipeline with Depth +
+# Alignment weighted 1.5×. Minis are always AI-generated text, so voice_quality
+# never applies — hence 55 − 5 (voice) + 5 + 5 (weighting) = the locked max 60.
+MINI_DIMENSION_WEIGHTS: dict[str, float] = {"depth": 1.5, "alignment": 1.5}
+MINI_MAX_TOTAL_SCORE = 60
+
+
+def max_score_for(lecture_type: LectureType) -> int:
+    return MINI_MAX_TOTAL_SCORE if lecture_type == LectureType.MINI else MAX_TOTAL_SCORE
+
+
+def apply_mini_weighting(scores: dict[str, object]) -> dict[str, object]:
+    """Weighted copy of a raw 7-dim score dict for a mini-lecture.
+
+    ``lecture_type`` + ``max`` are stamped in so readers of ``scores_jsonb``
+    (admin dashboard, rating summary) can tell a /60 mini from a /55 main.
+    """
+    weighted: dict[str, object] = dict(scores)
+    for dim, weight in MINI_DIMENSION_WEIGHTS.items():
+        raw = scores.get(dim)
+        if isinstance(raw, int):
+            # Half-up rounding keeps dimensions as ints like the main pipeline.
+            weighted[dim] = int(raw * weight + 0.5)
+    weighted["voice_quality"] = None
+    total = sum(v for k, v in weighted.items() if k != "total" and isinstance(v, int))
+    weighted["total"] = min(total, MINI_MAX_TOTAL_SCORE)
+    weighted["max"] = MINI_MAX_TOTAL_SCORE
+    weighted["lecture_type"] = LectureType.MINI.value
+    return weighted
+
+
 # M-15 T-192 (flow-6 §3.11): the displayed lecture quality score blends the
 # AI score above (95%) with the students' anonymous 1–5 rating average (5%).
 # No separate pipeline — the AI score is still exactly what this module writes.
@@ -97,16 +129,20 @@ STUDENT_RATING_WEIGHT = 0.05
 AI_SCORE_WEIGHT = 1 - STUDENT_RATING_WEIGHT
 
 
-def blended_quality_score(ai_total: int | None, rating_average: float | None) -> float | None:
+def blended_quality_score(
+    ai_total: int | None,
+    rating_average: float | None,
+    max_score: int = MAX_TOTAL_SCORE,
+) -> float | None:
     """Displayed quality score on a 0–100 scale.
 
-    ``ai_total`` is the version's 7-dimension total (0–MAX_TOTAL_SCORE);
+    ``ai_total`` is the version's 7-dimension total (0–``max_score``; 60 for minis);
     ``rating_average`` is 1–5 (normalised so 1 → 0, 5 → 100). Without an
     (anonymity-eligible) rating average the score is the AI score alone.
     """
     if ai_total is None:
         return None
-    ai_pct = max(0.0, min(100.0, ai_total / MAX_TOTAL_SCORE * 100))
+    ai_pct = max(0.0, min(100.0, ai_total / max_score * 100))
     if rating_average is None:
         return round(ai_pct, 1)
     rating_pct = (max(1.0, min(5.0, rating_average)) - 1) / 4 * 100
@@ -311,6 +347,11 @@ async def score_school_lecture_version(
         )
         return
 
+    # T-199: coaching (T-138) keeps reading the raw 0–10 dims so its weakness
+    # thresholds stay comparable; only the persisted/displayed scores are weighted.
+    raw_scores = scores
+    if lecture.lecture_type == LectureType.MINI:
+        scores = apply_mini_weighting(raw_scores)
     version.scores_jsonb = scores
 
     # T-135: originality is a separate, embedding-based check (no LLM) — its
@@ -366,7 +407,7 @@ async def score_school_lecture_version(
         await detect_and_track_weakness_school(
             session,
             teacher_user_id=lecture.teacher_user_id or "",
-            scores=scores,
+            scores=raw_scores,
             region=teacher_region,
         )
     except Exception as exc:
@@ -390,7 +431,7 @@ async def score_school_lecture_version(
         session,
         lecture=lecture,
         total=cast(int, scores["total"]),
-        max_score=MAX_TOTAL_SCORE,
+        max_score=max_score_for(lecture.lecture_type),
     )
 
 
