@@ -98,6 +98,10 @@ class _FakeAdminMetricsRepo:
             return list(self.rows)
         return [r for r in self.rows if r.school_id in school_ids]
 
+    async def list_review_stats(self, *, school_ids: list[str] | None) -> list[Any]:
+        # M-16 T-206 review follow-through — this M-10 flow has no reviews.
+        return []
+
     async def list_school_ids_for_district(self, district_id: str) -> list[str]:
         return []
 
