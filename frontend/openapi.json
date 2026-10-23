@@ -844,6 +844,22 @@
         "title": "CareerRead",
         "type": "object"
       },
+      "ClusterSkipCreate": {
+        "description": "Exclude a cluster from mini-lecture regeneration (Flow 7 \u00a73.6).",
+        "properties": {
+          "cluster_ref": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Cluster Ref",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cluster_ref"
+        ],
+        "title": "ClusterSkipCreate",
+        "type": "object"
+      },
       "CoachingResponseRequest": {
         "properties": {
           "response": {
@@ -6433,6 +6449,36 @@
           "question_text"
         ],
         "title": "ReviewQuestionView",
+        "type": "object"
+      },
+      "ReviewReplyCreate": {
+        "description": "Teacher reply to one student whose question is in a cluster (Flow 7 \u00a73.6).",
+        "properties": {
+          "body": {
+            "maxLength": 4000,
+            "minLength": 1,
+            "title": "Body",
+            "type": "string"
+          },
+          "cluster_ref": {
+            "maxLength": 200,
+            "minLength": 1,
+            "title": "Cluster Ref",
+            "type": "string"
+          },
+          "student_user_id": {
+            "maxLength": 36,
+            "minLength": 1,
+            "title": "Student User Id",
+            "type": "string"
+          }
+        },
+        "required": [
+          "cluster_ref",
+          "student_user_id",
+          "body"
+        ],
+        "title": "ReviewReplyCreate",
         "type": "object"
       },
       "ReviewReplyRead": {
@@ -18235,6 +18281,152 @@
           }
         },
         "summary": "Teacher answers the reflective coaching question (T-202, #49)",
+        "tags": [
+          "next-day-review"
+        ]
+      }
+    },
+    "/api/v1/reviews/{review_id}/regenerate-mini": {
+      "post": {
+        "operationId": "regenerate_next_day_review_mini",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReviewDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Queue a new mini-lecture for the top non-skipped cluster (T-203)",
+        "tags": [
+          "next-day-review"
+        ]
+      }
+    },
+    "/api/v1/reviews/{review_id}/replies": {
+      "post": {
+        "operationId": "reply_in_next_day_review",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReviewReplyCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReviewDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Teacher replies to a student from a cluster drill-down (T-203, #45/#46)",
+        "tags": [
+          "next-day-review"
+        ]
+      }
+    },
+    "/api/v1/reviews/{review_id}/skips": {
+      "post": {
+        "operationId": "skip_next_day_review_cluster",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "review_id",
+            "required": true,
+            "schema": {
+              "title": "Review Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ClusterSkipCreate"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessEnvelope_ReviewDetailRead_"
+                }
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Exclude a cluster from mini-lecture regeneration (T-203)",
         "tags": [
           "next-day-review"
         ]

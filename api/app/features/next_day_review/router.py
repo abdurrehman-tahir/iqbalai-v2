@@ -14,8 +14,10 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.dependencies import get_current_user, get_db, require_role
 from app.core.responses import SuccessEnvelope, success
 from app.features.next_day_review.schemas import (
+    ClusterSkipCreate,
     ReflectionCreate,
     ReviewDetailRead,
+    ReviewReplyCreate,
     ReviewSummaryRead,
 )
 from app.features.next_day_review.service import NextDayReviewService
@@ -69,4 +71,54 @@ async def reflect(
     session: AsyncSession = Depends(get_db),
 ) -> dict[str, Any]:
     detail = await NextDayReviewService(session).reflect(claims, review_id, payload.response)
+    return success(detail.model_dump(mode="json"))
+
+
+@router.post(
+    "/{review_id}/replies",
+    response_model=SuccessEnvelope[ReviewDetailRead],
+    operation_id="reply_in_next_day_review",
+    summary="Teacher replies to a student from a cluster drill-down (T-203, #45/#46)",
+    dependencies=[require_role("teacher")],
+)
+async def reply(
+    review_id: str,
+    payload: ReviewReplyCreate,
+    claims: dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    detail = await NextDayReviewService(session).reply(claims, review_id, payload)
+    return success(detail.model_dump(mode="json"))
+
+
+@router.post(
+    "/{review_id}/skips",
+    response_model=SuccessEnvelope[ReviewDetailRead],
+    operation_id="skip_next_day_review_cluster",
+    summary="Exclude a cluster from mini-lecture regeneration (T-203)",
+    dependencies=[require_role("teacher")],
+)
+async def skip_cluster(
+    review_id: str,
+    payload: ClusterSkipCreate,
+    claims: dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    detail = await NextDayReviewService(session).skip(claims, review_id, payload.cluster_ref)
+    return success(detail.model_dump(mode="json"))
+
+
+@router.post(
+    "/{review_id}/regenerate-mini",
+    response_model=SuccessEnvelope[ReviewDetailRead],
+    operation_id="regenerate_next_day_review_mini",
+    summary="Queue a new mini-lecture for the top non-skipped cluster (T-203)",
+    dependencies=[require_role("teacher")],
+)
+async def regenerate_mini(
+    review_id: str,
+    claims: dict[str, Any] = Depends(get_current_user),
+    session: AsyncSession = Depends(get_db),
+) -> dict[str, Any]:
+    detail = await NextDayReviewService(session).regenerate_mini(claims, review_id)
     return success(detail.model_dump(mode="json"))

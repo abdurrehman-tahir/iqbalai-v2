@@ -141,6 +141,8 @@ import type {
   ReviewSummaryRead,
   ReviewDetailRead,
   ReflectionCreate,
+  ReviewReplyCreate,
+  ClusterSkipCreate,
 } from "./types";
 
 // Re-export M-15 generated types (A-002).
@@ -190,6 +192,8 @@ export type {
   ReviewQuestionView,
   ReviewReplyRead,
   ReflectionCreate,
+  ReviewReplyCreate,
+  ClusterSkipCreate,
 } from "./types";
 
 export const API_BASE = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:8000/api/v1";
@@ -2085,6 +2089,24 @@ export const nextDayReviewApi = {
     request<ReviewDetailRead>(
       `/reviews/${encodeURIComponent(reviewId)}/reflection`,
       { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  reply: (token: string, reviewId: string, data: ReviewReplyCreate) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/replies`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  skipCluster: (token: string, reviewId: string, data: ClusterSkipCreate) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/skips`,
+      { method: "POST", body: JSON.stringify(data) },
+      token
+    ),
+  regenerateMini: (token: string, reviewId: string) =>
+    request<ReviewDetailRead>(
+      `/reviews/${encodeURIComponent(reviewId)}/regenerate-mini`,
+      { method: "POST" },
       token
     ),
 };

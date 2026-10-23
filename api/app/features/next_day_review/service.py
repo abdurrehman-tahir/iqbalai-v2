@@ -17,6 +17,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.exceptions import NotFoundError, PermissionDeniedError, ValidationError
+from app.features.audit.actions import REVIEW_CLUSTER_SKIPPED, REVIEW_OVERRIDE_ACTION
 from app.features.lectures.models import (
     LectureStatus,
     SchoolLecture,
@@ -25,17 +26,20 @@ from app.features.lectures.models import (
 from app.features.next_day_review.assembly import _offering_label
 from app.features.next_day_review.models import LectureReview, ReviewReply, SkippedCluster
 from app.features.next_day_review.reflection import record_reflection
+from app.features.next_day_review.regeneration import pick_cluster, skipped_refs
 from app.features.next_day_review.schemas import (
     ReviewClusterSnapshot,
     ReviewClusterView,
     ReviewDetailRead,
     ReviewQuestionView,
+    ReviewReplyCreate,
     ReviewReplyRead,
     ReviewSummaryRead,
 )
 from app.features.schools.models import School
 from app.features.users.models import User, UserRole
 from app.features.users.repository import UserRepository
+from app.infrastructure.audit.log import audit
 
 logger = structlog.get_logger(__name__)
 
@@ -289,7 +293,99 @@ class NextDayReviewService:
         await self._session.commit()
         return await self._detail(access)
 
+    # --- drill-down: reply / skip / regenerate (T-203) ----------------------------------
+
+    def _cluster(self, review: LectureReview, cluster_ref: str) -> ReviewClusterSnapshot:
+        for snap in self._snapshots(review):
+            if snap.cluster_ref == cluster_ref:
+                return snap
+        raise NotFoundError("Cluster not found on this review")
+
+    async def reply(
+        self, claims: dict[str, object], review_id: str, payload: ReviewReplyCreate
+    ) -> ReviewDetailRead:
+        """Teacher replies to one student whose question is in the cluster."""
+        access = await self._load(claims, review_id)
+        self._require_owner(access)
+        snap = self._cluster(access.review, payload.cluster_ref)
+        if payload.student_user_id not in {q.student_user_id for q in snap.questions}:
+            raise ValidationError("That student did not ask a question in this cluster")
+        self._session.add(
+            ReviewReply(
+                review_id=access.review.id,
+                cluster_id=payload.cluster_ref,
+                student_user_id=payload.student_user_id,
+                body=payload.body.strip(),
+            )
+        )
+        self._record_action(access.review, ACTION_REPLY)
+        await self._session.commit()
+        return await self._detail(access)
+
+    async def skip(
+        self, claims: dict[str, object], review_id: str, cluster_ref: str
+    ) -> ReviewDetailRead:
+        """Exclude a cluster from mini-lecture regeneration (idempotent)."""
+        access = await self._load(claims, review_id)
+        self._require_owner(access)
+        self._cluster(access.review, cluster_ref)
+        if cluster_ref not in await skipped_refs(self._session, access.review.id):
+            self._session.add(
+                SkippedCluster(
+                    review_id=access.review.id, cluster_ref=cluster_ref, skipped_at=self._now()
+                )
+            )
+            self._record_action(access.review, ACTION_SKIP)
+            await audit(
+                session=self._session,
+                action=REVIEW_CLUSTER_SKIPPED,
+                actor_id=access.user.id,
+                actor_role=access.user.role.value,
+                target_type="lecture_review",
+                target_id=access.review.id,
+                school_id=access.lecture.school_id,
+                metadata={"cluster_ref": cluster_ref},
+            )
+            await self._session.commit()
+        return await self._detail(access)
+
+    async def regenerate_mini(self, claims: dict[str, object], review_id: str) -> ReviewDetailRead:
+        """Queue a fresh mini-lecture for the top non-skipped cluster."""
+        access = await self._require_actor(claims, review_id, action="regenerate_mini")
+        skipped = await skipped_refs(self._session, access.review.id)
+        if pick_cluster(self._snapshots(access.review), skipped) is None:
+            raise ValidationError("Every cluster on this review is skipped")
+        from app.features.next_day_review.tasks import regenerate_mini
+
+        regenerate_mini.apply_async(
+            kwargs={"school_id": access.lecture.school_id, "review_id": access.review.id}
+        )
+        await self._session.commit()
+        return await self._detail(access)
+
     # --- shared mutation helpers ---------------------------------------------------------
+
+    async def _require_actor(
+        self, claims: dict[str, object], review_id: str, *, action: str
+    ) -> ReviewAccess:
+        """Owner, or an admin override (School/District/Platform) — audited as elevated."""
+        access = await self._load(claims, review_id)
+        if access.read_only:
+            raise ValidationError("This review is read-only")
+        if not access.can_act:
+            raise PermissionDeniedError("Only the lecture's teacher or an admin can do this")
+        if not access.is_owner:
+            await audit(
+                session=self._session,
+                action=REVIEW_OVERRIDE_ACTION,
+                actor_id=access.user.id,
+                actor_role=access.user.role.value,
+                target_type="lecture_review",
+                target_id=access.review.id,
+                school_id=access.lecture.school_id,
+                metadata={"action": action},
+            )
+        return access
 
     @staticmethod
     def _require_owner(access: ReviewAccess) -> None:

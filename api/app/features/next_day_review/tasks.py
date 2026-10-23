@@ -32,6 +32,7 @@ from app.features.next_day_review.assembly import (
 from app.features.next_day_review.classification import classify_clusters
 from app.features.next_day_review.clustering import cluster_all_buckets
 from app.features.next_day_review.mini_generation import generate_minis_for_qualifying
+from app.features.next_day_review.regeneration import regenerate_review_mini
 from app.tasks.base import tenant_task
 
 logger = structlog.get_logger(__name__)
@@ -40,6 +41,7 @@ AGGREGATE_NIGHTLY_TASK = "review.aggregate_nightly"
 AGGREGATE_SCHOOL_TASK = "review.aggregate_school"
 CLASSIFY_SCHOOL_TASK = "review.classify_school"
 CHECK_SLA_TASK = "review.check_sla"
+REGENERATE_MINI_TASK = "review.regenerate_mini"
 NOTIFY_READY_TASK = "review.notify_ready"
 
 
@@ -167,5 +169,22 @@ def notify_ready(review_date: str | None = None) -> int:
 
     async def _run(session: AsyncSession) -> int:
         return await notify_ready_reviews(session, review_date=day)
+
+    return run_db(_run)
+
+
+@tenant_task(
+    name=REGENERATE_MINI_TASK,
+    queue="ml",
+    acks_late=True,
+    reject_on_worker_lost=True,
+    soft_time_limit=600,
+    time_limit=720,
+)
+def regenerate_mini(school_id: str, review_id: str) -> dict[str, Any] | None:
+    """Teacher-triggered mini-lecture regeneration, skipping excluded clusters (T-203)."""
+
+    async def _run(session: AsyncSession) -> dict[str, Any] | None:
+        return await regenerate_review_mini(session, review_id=review_id)
 
     return run_db(_run)

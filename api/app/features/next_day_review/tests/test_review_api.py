@@ -121,3 +121,28 @@ async def test_reflection_rejects_empty_response() -> None:
     async with _client("teacher") as client:
         resp = await client.post("/api/v1/reviews/rev-1/reflection", json={"response": ""})
     assert resp.status_code == 422
+
+
+@pytest.mark.asyncio
+async def test_reply_skip_and_regenerate_routes() -> None:
+    async with _client("teacher") as client:
+        r1 = await client.post(
+            "/api/v1/reviews/rev-1/replies",
+            json={"cluster_ref": "lec-1|p1|c1#c0", "student_user_id": "stu-0", "body": "Hi"},
+        )
+        r2 = await client.post("/api/v1/reviews/rev-1/skips", json={"cluster_ref": "a"})
+        r3 = await client.post("/api/v1/reviews/rev-1/regenerate-mini")
+    assert (r1.status_code, r2.status_code, r3.status_code) == (200, 200, 200)
+    assert [c[0] for c in FakeService.calls] == ["reply", "skip", "regenerate_mini"]
+    assert FakeService.calls[0][1][2].cluster_ref == "lec-1|p1|c1#c0"
+    assert FakeService.calls[1][1][1:] == ("rev-1", "a")
+
+
+@pytest.mark.asyncio
+async def test_reply_requires_body() -> None:
+    async with _client("teacher") as client:
+        resp = await client.post(
+            "/api/v1/reviews/rev-1/replies",
+            json={"cluster_ref": "a", "student_user_id": "stu-0", "body": ""},
+        )
+    assert resp.status_code == 422

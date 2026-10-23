@@ -9,9 +9,9 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useFormatter, useTranslations } from "next-intl";
-import { AlertTriangle, ArrowLeft, FileText, TrendingUp } from "lucide-react";
+import { AlertTriangle, ArrowLeft, FileText, RefreshCw, TrendingUp } from "lucide-react";
 import { nextDayReviewApi, type ReviewClusterView, type ReviewDetailRead } from "@/lib/api";
 import { useClientAuth } from "@/hooks/use-client-auth";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +21,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ErrorState } from "@/components/error-state";
 import { reviewStatusKey } from "@/components/reviews/ReviewsList";
 import { ReflectivePrompt } from "@/components/reviews/ReflectivePrompt";
+import { ClusterDrillDown } from "@/components/reviews/ClusterDrillDown";
 
 /** Flow 7 §6: top 10 clusters per column, overflow behind "and N more". */
 export const COLUMN_LIMIT = 10;
@@ -34,11 +35,13 @@ function ClusterColumn({
   icon: Icon,
   clusters,
   testId,
+  onOpen,
 }: {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   clusters: ReviewClusterView[];
   testId: string;
+  onOpen: (cluster: ReviewClusterView) => void;
 }) {
   const t = useTranslations("teacher.reviews.card");
   const [expanded, setExpanded] = useState(false);
@@ -69,6 +72,12 @@ function ClusterColumn({
                   students: cluster.unique_student_count,
                 })}
               </p>
+              <div className="mt-2 flex flex-wrap items-center gap-2">
+                <Button variant="ghost" size="sm" onClick={() => onOpen(cluster)}>
+                  {t("view_details")}
+                </Button>
+                {cluster.skipped && <Badge variant="secondary">{t("skipped")}</Badge>}
+              </div>
             </li>
           ))}
         </ul>
@@ -84,6 +93,12 @@ function ClusterColumn({
 
 function MiniPreview({ review }: { review: ReviewDetailRead }) {
   const t = useTranslations("teacher.reviews.card");
+  const { token } = useClientAuth();
+  const qc = useQueryClient();
+  const regenerate = useMutation({
+    mutationFn: () => nextDayReviewApi.regenerateMini(token!, review.id),
+    onSuccess: (updated) => qc.setQueryData(reviewQueryKey(review.id), updated),
+  });
   return (
     <section aria-labelledby="mini-title" data-testid="review-mini" className="space-y-3">
       <h3 id="mini-title" className="flex items-center gap-2 font-semibold text-gray-900">
@@ -104,6 +119,28 @@ function MiniPreview({ review }: { review: ReviewDetailRead }) {
       ) : (
         <p className="text-sm text-gray-500">{t("mini_none")}</p>
       )}
+      {review.can_act && !review.mini_published && (
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => regenerate.mutate()}
+          loading={regenerate.isPending}
+          disabled={regenerate.isSuccess}
+        >
+          <RefreshCw className="me-1 size-4" aria-hidden="true" />
+          {t("mini_regenerate")}
+        </Button>
+      )}
+      {regenerate.isSuccess && (
+        <p className="text-sm text-gray-600" role="status">
+          {t("mini_regenerating")}
+        </p>
+      )}
+      {regenerate.isError && (
+        <p className="text-sm text-red-700" role="alert">
+          {t("mini_regenerate_error")}
+        </p>
+      )}
     </section>
   );
 }
@@ -112,6 +149,7 @@ export function ReviewCardClient({ reviewId }: { reviewId: string }) {
   const t = useTranslations("teacher.reviews");
   const format = useFormatter();
   const { mounted, token } = useClientAuth();
+  const [openRef, setOpenRef] = useState<string | null>(null);
 
   const { data: review, isLoading, isError, refetch } = useQuery({
     queryKey: reviewQueryKey(reviewId),
@@ -146,6 +184,10 @@ export function ReviewCardClient({ reviewId }: { reviewId: string }) {
   }
 
   const statusKey = reviewStatusKey(review);
+  const allClusters = [...(review.critical ?? []), ...(review.high_frequency ?? [])];
+  // Look the open cluster up on every render so replies/skips refresh in the modal.
+  const openCluster = allClusters.find((c) => c.cluster_ref === openRef) ?? null;
+  const openDrillDown = (c: ReviewClusterView) => setOpenRef(c.cluster_ref);
 
   return (
     <main className="mx-auto w-full max-w-6xl space-y-6 px-4 py-8" data-testid="review-card">
@@ -195,15 +237,25 @@ export function ReviewCardClient({ reviewId }: { reviewId: string }) {
           icon={AlertTriangle}
           clusters={review.critical ?? []}
           testId="review-critical"
+          onOpen={openDrillDown}
         />
         <ClusterColumn
           title={t("card.frequent_title")}
           icon={TrendingUp}
           clusters={review.high_frequency ?? []}
           testId="review-frequent"
+          onOpen={openDrillDown}
         />
         <MiniPreview review={review} />
       </div>
+
+      {openCluster && (
+        <ClusterDrillDown
+          review={review}
+          cluster={openCluster}
+          onClose={() => setOpenRef(null)}
+        />
+      )}
     </main>
   );
 }

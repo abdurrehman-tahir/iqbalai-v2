@@ -52,4 +52,32 @@ test.describe("M-16 next-day review @smoke @mock", () => {
       body: { response: "I'll bring two spring scales tomorrow." },
     });
   });
+
+  test("drill-down shows names, replies to a student and skips (T-203)", async ({ page }) => {
+    const recorded = await installReviewMocks(page);
+    await page.goto("/teacher/reviews/rev-1");
+    const critical = page.getByTestId("review-critical");
+    await critical.getByRole("button", { name: "View details" }).click({ timeout: 15_000 });
+
+    const modal = page.getByTestId("cluster-drilldown");
+    await expect(modal).toContainText("Ali Raza");
+    await expect(modal).toContainText("Why don't the forces cancel? (a)");
+
+    await modal.getByRole("button", { name: "Reply" }).first().click();
+    await modal.getByRole("textbox").fill("Look at the free-body diagram on page 12.");
+    await modal.getByRole("textbox").press("Enter");
+    await expect
+      .poll(() => recorded.some((r) => r.path === "/reviews/rev-1/replies"))
+      .toBe(true);
+    expect(recorded.find((r) => r.path === "/reviews/rev-1/replies")?.body).toEqual({
+      cluster_ref: "a",
+      student_user_id: "stu-0",
+      body: "Look at the free-body diagram on page 12.",
+    });
+
+    await modal.getByRole("button", { name: "Skip this cluster" }).click();
+    await expect
+      .poll(() => recorded.find((r) => r.path === "/reviews/rev-1/skips")?.body)
+      .toEqual({ cluster_ref: "a" });
+  });
 });

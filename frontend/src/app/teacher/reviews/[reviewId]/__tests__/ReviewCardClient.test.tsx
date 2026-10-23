@@ -12,8 +12,13 @@ vi.mock("@/hooks/use-client-auth", () => ({
 }));
 
 const get = vi.fn();
+const regenerateMini = vi.fn();
 vi.mock("@/lib/api", () => ({
-  nextDayReviewApi: { get: (...a: unknown[]) => get(...a) },
+  nextDayReviewApi: {
+    get: (...a: unknown[]) => get(...a),
+    regenerateMini: (...a: unknown[]) => regenerateMini(...a),
+  },
+  lectureWizardApi: { transcribeVoice: vi.fn() },
 }));
 
 function renderWithClient(ui: ReactElement) {
@@ -76,5 +81,23 @@ describe("ReviewCardClient", () => {
     expect(within(column).getAllByTestId("review-cluster")).toHaveLength(COLUMN_LIMIT);
     await userEvent.click(within(column).getByRole("button", { name: "more" }));
     expect(within(column).getAllByTestId("review-cluster")).toHaveLength(COLUMN_LIMIT + 2);
+  });
+
+  it("opens the drill-down from a cluster's View details", async () => {
+    get.mockResolvedValue(DETAIL);
+    renderWithClient(<ReviewCardClient reviewId="rev-1" />);
+    const critical = await screen.findByTestId("review-critical");
+    await userEvent.click(within(critical).getByRole("button", { name: "view_details" }));
+    expect(screen.getByTestId("cluster-drilldown")).toBeInTheDocument();
+  });
+
+  it("regenerate queues a new mini draft", async () => {
+    get.mockResolvedValue(DETAIL);
+    regenerateMini.mockResolvedValue(DETAIL);
+    renderWithClient(<ReviewCardClient reviewId="rev-1" />);
+    const mini = await screen.findByTestId("review-mini");
+    await userEvent.click(within(mini).getByRole("button", { name: "mini_regenerate" }));
+    expect(regenerateMini).toHaveBeenCalledWith("test-token", "rev-1");
+    expect(await within(mini).findByRole("status")).toHaveTextContent("mini_regenerating");
   });
 });

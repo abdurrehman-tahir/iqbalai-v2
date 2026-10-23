@@ -1018,7 +1018,12 @@
         "mini_published": "Published to the students who asked",
         "cluster_meta": "{questions, plural, one {1 question} other {# questions}} · {students, plural, one {1 student} other {# students}}",
         "more": "and {count} more",
-        "column_empty": "Nothing in this column today."
+        "column_empty": "Nothing in this column today.",
+        "view_details": "View details",
+        "skipped": "Skipped",
+        "mini_regenerate": "Regenerate",
+        "mini_regenerating": "A new draft is being written — it will appear here shortly.",
+        "mini_regenerate_error": "We couldn't start a new draft. Please try again."
       },
       "reflection": {
         "title": "Reflective question",
@@ -1026,6 +1031,17 @@
         "placeholder": "Your thoughts…",
         "saved": "Thanks — your reflection is saved.",
         "error": "We couldn't save your reflection. Please try again."
+      },
+      "drilldown": {
+        "title": "Cluster details",
+        "close": "Close",
+        "meta": "{questions, plural, one {1 question} other {# questions}} · {students, plural, one {1 student} other {# students}}",
+        "skipped": "Skipped — not used for regeneration",
+        "open_content": "Open in lecture",
+        "reply": "Reply",
+        "reply_placeholder": "Write a reply to this student…",
+        "skip": "Skip this cluster",
+        "error": "That didn't go through. Please try again."
       }
     }
   },

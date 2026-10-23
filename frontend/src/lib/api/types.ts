@@ -236,3 +236,5 @@ export type ReviewClusterView = Schemas["ReviewClusterView"];
 export type ReviewQuestionView = Schemas["ReviewQuestionView"];
 export type ReviewReplyRead = Schemas["ReviewReplyRead"];
 export type ReflectionCreate = Schemas["ReflectionCreate"];
+export type ReviewReplyCreate = Schemas["ReviewReplyCreate"];
+export type ClusterSkipCreate = Schemas["ClusterSkipCreate"];

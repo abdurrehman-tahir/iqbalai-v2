@@ -1111,7 +1111,12 @@
         "mini_published": "هغو زده کوونکو ته خپور شو چې پوښتنه یې کړې وه",
         "cluster_meta": "{questions, plural, one {1 پوښتنه} other {# پوښتنې}} · {students, plural, one {1 زده کوونکی} other {# زده کوونکي}}",
         "more": "او {count} نور",
-        "column_empty": "نن په دې ستون کې هیڅ نشته۔"
+        "column_empty": "نن په دې ستون کې هیڅ نشته۔",
+        "view_details": "جزئيات وګورئ",
+        "skipped": "پرېښودل شوی",
+        "mini_regenerate": "بیا جوړ کړئ",
+        "mini_regenerating": "نوې مسوده لیکل کېږي — ژر به دلته ښکاره شي۔",
+        "mini_regenerate_error": "موږ نوې مسوده پیل نشوه کړای۔ بیا هڅه وکړئ۔"
       },
       "reflection": {
         "title": "د فکر کولو پوښتنه",
@@ -1119,6 +1124,17 @@
         "placeholder": "ستاسو فکرونه…",
         "saved": "مننه — ستاسو ځواب خوندي شو۔",
         "error": "موږ ستاسو ځواب خوندي نشو کړای۔ بیا هڅه وکړئ۔"
+      },
+      "drilldown": {
+        "title": "د کلسټر جزئيات",
+        "close": "بند کړئ",
+        "meta": "{questions, plural, one {1 پوښتنه} other {# پوښتنې}} · {students, plural, one {1 زده کوونکی} other {# زده کوونکي}}",
+        "skipped": "پرېښودل شوی — په بیا جوړولو کې نه کارول کېږي",
+        "open_content": "په لیکچر کې پرانیزئ",
+        "reply": "ځواب ورکړئ",
+        "reply_placeholder": "دې زده کوونکي ته ځواب ولیکئ…",
+        "skip": "دا کلسټر پرېږدئ",
+        "error": "دا بشپړ نه شو۔ بیا هڅه وکړئ۔"
       }
     }
   },

@@ -1912,6 +1912,57 @@ export interface paths {
         patch?: never;
         trace?: never;
     };
+    "/api/v1/reviews/{review_id}/regenerate-mini": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Queue a new mini-lecture for the top non-skipped cluster (T-203) */
+        post: operations["regenerate_next_day_review_mini"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reviews/{review_id}/replies": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Teacher replies to a student from a cluster drill-down (T-203, #45/#46) */
+        post: operations["reply_in_next_day_review"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/api/v1/reviews/{review_id}/skips": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get?: never;
+        put?: never;
+        /** Exclude a cluster from mini-lecture regeneration (T-203) */
+        post: operations["skip_next_day_review_cluster"];
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
     "/api/v1/school/admin/audit-log/": {
         parameters: {
             query?: never;
@@ -4244,6 +4295,14 @@ export interface components {
             /** Sector */
             sector: string;
         };
+        /**
+         * ClusterSkipCreate
+         * @description Exclude a cluster from mini-lecture regeneration (Flow 7 §3.6).
+         */
+        ClusterSkipCreate: {
+            /** Cluster Ref */
+            cluster_ref: string;
+        };
         /** CoachingResponseRequest */
         CoachingResponseRequest: {
             /**
@@ -6474,6 +6533,18 @@ export interface components {
             student_name?: string | null;
             /** Student User Id */
             student_user_id?: string | null;
+        };
+        /**
+         * ReviewReplyCreate
+         * @description Teacher reply to one student whose question is in a cluster (Flow 7 §3.6).
+         */
+        ReviewReplyCreate: {
+            /** Body */
+            body: string;
+            /** Cluster Ref */
+            cluster_ref: string;
+            /** Student User Id */
+            student_user_id: string;
         };
         /** ReviewReplyRead */
         ReviewReplyRead: {
@@ -13314,6 +13385,107 @@ export interface operations {
         requestBody: {
             content: {
                 "application/json": components["schemas"]["ReflectionCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ReviewDetailRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    regenerate_next_day_review_mini: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ReviewDetailRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    reply_in_next_day_review: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ReviewReplyCreate"];
+            };
+        };
+        responses: {
+            /** @description Successful Response */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["SuccessEnvelope_ReviewDetailRead_"];
+                };
+            };
+            /** @description Validation Error */
+            422: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["HTTPValidationError"];
+                };
+            };
+        };
+    };
+    skip_next_day_review_cluster: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path: {
+                review_id: string;
+            };
+            cookie?: never;
+        };
+        requestBody: {
+            content: {
+                "application/json": components["schemas"]["ClusterSkipCreate"];
             };
         };
         responses: {

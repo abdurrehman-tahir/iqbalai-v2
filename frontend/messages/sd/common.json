@@ -1111,7 +1111,12 @@
         "mini_published": "سوال پڇندڙ شاگردن کي شايع ڪيو ويو",
         "cluster_meta": "{questions, plural, one {1 سوال} other {# سوال}} · {students, plural, one {1 شاگرد} other {# شاگرد}}",
         "more": "۽ {count} وڌيڪ",
-        "column_empty": "اڄ هن ڪالم ۾ ڪجهه ناهي۔"
+        "column_empty": "اڄ هن ڪالم ۾ ڪجهه ناهي۔",
+        "view_details": "تفصيل ڏسو",
+        "skipped": "نظرانداز",
+        "mini_regenerate": "ٻيهر تيار ڪريو",
+        "mini_regenerating": "نئون مسودو لکيو پيو وڃي — جلد هتي نظر ايندو۔",
+        "mini_regenerate_error": "اسان نئون مسودو شروع نه ڪري سگهياسين۔ ٻيهر ڪوشش ڪريو۔"
       },
       "reflection": {
         "title": "غور طلب سوال",
@@ -1119,6 +1124,17 @@
         "placeholder": "توهان جا خيال…",
         "saved": "مهرباني — توهان جو جواب محفوظ ٿي ويو۔",
         "error": "اسان توهان جو جواب محفوظ نه ڪري سگهياسين۔ ٻيهر ڪوشش ڪريو۔"
+      },
+      "drilldown": {
+        "title": "ڪلسٽر جي تفصيل",
+        "close": "بند ڪريو",
+        "meta": "{questions, plural, one {1 سوال} other {# سوال}} · {students, plural, one {1 شاگرد} other {# شاگرد}}",
+        "skipped": "نظرانداز — ٻيهر تياري ۾ شامل ناهي",
+        "open_content": "ليڪچر ۾ کوليو",
+        "reply": "جواب ڏيو",
+        "reply_placeholder": "هن شاگرد کي جواب لکو…",
+        "skip": "هي ڪلسٽر نظرانداز ڪريو",
+        "error": "اهو مڪمل نه ٿي سگهيو۔ ٻيهر ڪوشش ڪريو۔"
       }
     }
   },

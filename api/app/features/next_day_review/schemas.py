@@ -161,3 +161,17 @@ class ReflectionCreate(BaseModel):
     """Teacher's answer to the reflective question (typed, or a voice transcript)."""
 
     response: str = Field(min_length=1, max_length=4000)
+
+
+class ReviewReplyCreate(BaseModel):
+    """Teacher reply to one student whose question is in a cluster (Flow 7 §3.6)."""
+
+    cluster_ref: str = Field(min_length=1, max_length=200)
+    student_user_id: str = Field(min_length=1, max_length=36)
+    body: str = Field(min_length=1, max_length=4000)
+
+
+class ClusterSkipCreate(BaseModel):
+    """Exclude a cluster from mini-lecture regeneration (Flow 7 §3.6)."""
+
+    cluster_ref: str = Field(min_length=1, max_length=200)

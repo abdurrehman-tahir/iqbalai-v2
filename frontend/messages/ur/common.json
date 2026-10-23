@@ -1111,7 +1111,12 @@
         "mini_published": "سوال پوچھنے والے طلبہ کو شائع کر دیا گیا",
         "cluster_meta": "{questions, plural, one {1 سوال} other {# سوالات}} · {students, plural, one {1 طالب علم} other {# طلبہ}}",
         "more": "اور {count} مزید",
-        "column_empty": "آج اس کالم میں کچھ نہیں۔"
+        "column_empty": "آج اس کالم میں کچھ نہیں۔",
+        "view_details": "تفصیل دیکھیں",
+        "skipped": "نظر انداز",
+        "mini_regenerate": "دوبارہ تیار کریں",
+        "mini_regenerating": "نیا مسودہ لکھا جا رہا ہے — جلد یہاں نظر آئے گا۔",
+        "mini_regenerate_error": "ہم نیا مسودہ شروع نہیں کر سکے۔ دوبارہ کوشش کریں۔"
       },
       "reflection": {
         "title": "غور طلب سوال",
@@ -1119,6 +1124,17 @@
         "placeholder": "آپ کے خیالات…",
         "saved": "شکریہ — آپ کا جواب محفوظ ہو گیا۔",
         "error": "ہم آپ کا جواب محفوظ نہیں کر سکے۔ دوبارہ کوشش کریں۔"
+      },
+      "drilldown": {
+        "title": "کلسٹر کی تفصیل",
+        "close": "بند کریں",
+        "meta": "{questions, plural, one {1 سوال} other {# سوالات}} · {students, plural, one {1 طالب علم} other {# طلبہ}}",
+        "skipped": "نظر انداز — دوبارہ تیاری میں شامل نہیں",
+        "open_content": "لیکچر میں کھولیں",
+        "reply": "جواب دیں",
+        "reply_placeholder": "اس طالب علم کو جواب لکھیں…",
+        "skip": "یہ کلسٹر نظر انداز کریں",
+        "error": "یہ مکمل نہیں ہو سکا۔ دوبارہ کوشش کریں۔"
       }
     }
   },
