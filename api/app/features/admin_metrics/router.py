@@ -38,6 +38,8 @@ _CSV_COLUMNS = [
     "avg_ai_learning",
     "avg_total",
     "avg_topic_relevance_pct",
+    "pending_review_count",
+    "avg_days_to_act",
 ]
 
 

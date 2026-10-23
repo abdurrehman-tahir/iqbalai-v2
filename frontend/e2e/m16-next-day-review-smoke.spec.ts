@@ -4,7 +4,7 @@
  * Flow 7 §3.3 layout. Backend answered by e2e/helpers/m16-mocks.ts.
  */
 import { expect, test } from "@playwright/test";
-import { installReviewMocks } from "./helpers/m16-mocks";
+import { REVIEW_SUMMARY, installReviewMocks } from "./helpers/m16-mocks";
 
 test.describe("M-16 next-day review @smoke @mock", () => {
   test("teacher reaches Daily reviews from the nav and opens a card (T-201)", async ({
@@ -106,5 +106,18 @@ test.describe("M-16 next-day review @smoke @mock", () => {
       "/reviews/rev-1/reopen",
       "/reviews/rev-1/edit-main",
     ]);
+  });
+
+  test("lecture Reviews tab lists the lecture's review history (T-206)", async ({ page }) => {
+    await installReviewMocks(page, ({ method, path }) =>
+      method === "GET" && path === "/reviews" ? [REVIEW_SUMMARY] : undefined,
+    );
+    await page.goto("/teacher/lectures/lec-1?tab=reviews");
+    await expect(page.getByRole("tab", { name: "Reviews" })).toHaveAttribute(
+      "aria-selected",
+      "true",
+      { timeout: 15_000 },
+    );
+    await expect(page.getByTestId("reviews-list")).toContainText("Grade 9 Physics");
   });
 });

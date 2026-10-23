@@ -8781,6 +8781,8 @@ export interface components {
             avg_alignment: number;
             /** Avg Cultural Relevance */
             avg_cultural_relevance: number;
+            /** Avg Days To Act */
+            avg_days_to_act?: number | null;
             /** Avg Depth */
             avg_depth: number;
             /** Avg Engagement */
@@ -8804,6 +8806,11 @@ export interface components {
              * @default 0
              */
             mini_lecture_count: number;
+            /**
+             * Pending Review Count
+             * @default 0
+             */
+            pending_review_count: number;
             /** School Id */
             school_id: string;
             /** School Name */

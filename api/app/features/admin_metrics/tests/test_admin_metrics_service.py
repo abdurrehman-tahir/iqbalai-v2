@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import replace
+from datetime import datetime, timezone
 from typing import Any
 
 import pytest
@@ -10,13 +11,14 @@ import pytest
 from app.core.exceptions import PermissionDeniedError
 from app.core.tests.test_idempotency import FakeRedis
 from app.features.admin_metrics import service
-from app.features.admin_metrics.repository import TeacherMetricsRow
+from app.features.admin_metrics.repository import ReviewStatsRow, TeacherMetricsRow
 from app.features.admin_metrics.service import MetricsFilters
 from app.features.lectures.models import LectureType
 
 
 class _FakeRepo:
     scored_versions: list[TeacherMetricsRow] = []
+    review_rows: list[ReviewStatsRow] = []
     school_ids_by_district: dict[str, list[str]] = {}
 
     def __init__(self, session: Any) -> None:
@@ -29,6 +31,9 @@ class _FakeRepo:
             return list(self.scored_versions)
         return [r for r in self.scored_versions if r.school_id in school_ids]
 
+    async def list_review_stats(self, *, school_ids: list[str] | None) -> list[ReviewStatsRow]:
+        return list(self.review_rows)
+
     async def list_school_ids_for_district(self, district_id: str) -> list[str]:
         return list(self.school_ids_by_district.get(district_id, []))
 
@@ -36,6 +41,7 @@ class _FakeRepo:
 @pytest.fixture(autouse=True)
 def _patch_backend(monkeypatch: pytest.MonkeyPatch) -> None:
     _FakeRepo.scored_versions = []
+    _FakeRepo.review_rows = []
     _FakeRepo.school_ids_by_district = {}
     monkeypatch.setattr(
         "app.features.admin_metrics.service.AdminTeacherMetricsRepository", _FakeRepo
@@ -254,3 +260,27 @@ async def test_mini_lectures_reported_separately_from_main_averages() -> None:
     assert rows[0].avg_depth == 7.0
     assert rows[0].mini_lecture_count == 1
     assert rows[0].avg_mini_total == 54.0
+
+
+@pytest.mark.asyncio
+async def test_pending_reviews_and_days_to_act_per_teacher_subject_grade() -> None:
+    """T-206 (Flow 7 §3.8): review follow-through feeds the #38 dashboard."""
+    gen = datetime(2026, 10, 22, 23, 0, tzinfo=timezone.utc)
+    _FakeRepo.scored_versions = [_row("t-1", 40.0)]
+    _FakeRepo.review_rows = [
+        ReviewStatsRow("t-1", "subj-1", "9", True, gen, None),
+        ReviewStatsRow("t-1", "subj-1", "9", False, gen, gen.replace(day=23)),
+        ReviewStatsRow("t-1", "subj-1", "9", False, gen, gen.replace(day=25)),
+        # Different grade — must not leak into the grade-9 row.
+        ReviewStatsRow("t-1", "subj-1", "10", True, gen, None),
+    ]
+
+    rows = await service.get_teacher_metrics(
+        None,  # type: ignore[arg-type]
+        claims={},
+        caller_role="platform_admin",
+        filters=MetricsFilters(),
+    )
+
+    assert rows[0].pending_review_count == 1
+    assert rows[0].avg_days_to_act == 2.0  # mean of 1 and 3 days

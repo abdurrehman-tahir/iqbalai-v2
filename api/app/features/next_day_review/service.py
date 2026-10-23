@@ -531,6 +531,8 @@ class NextDayReviewService:
         # Reassign so SQLAlchemy sees the JSONB change.
         review.acted_actions = actions
         review.pending_action = False
+        if review.acted_at is None:
+            review.acted_at = datetime.now(timezone.utc)
 
     @staticmethod
     def _now() -> datetime:

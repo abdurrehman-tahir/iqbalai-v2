@@ -11125,6 +11125,17 @@
             "title": "Avg Cultural Relevance",
             "type": "number"
           },
+          "avg_days_to_act": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Days To Act"
+          },
           "avg_depth": {
             "title": "Avg Depth",
             "type": "number"
@@ -11185,6 +11196,11 @@
           "mini_lecture_count": {
             "default": 0,
             "title": "Mini Lecture Count",
+            "type": "integer"
+          },
+          "pending_review_count": {
+            "default": 0,
+            "title": "Pending Review Count",
             "type": "integer"
           },
           "school_id": {

@@ -88,3 +88,15 @@ async def test_admin_dismiss_is_audited_override(
     await _service(world).dismiss(as_user(make_user(UserRole.SCHOOL_ADMIN, "a-1")), "rev-1")
     actions = [c.kwargs["action"] for c in audit.await_args_list]
     assert actions == [REVIEW_OVERRIDE_ACTION, REVIEW_DISMISSED]
+
+
+@pytest.mark.asyncio
+async def test_first_action_stamps_acted_at_once(world: World, as_user: Any) -> None:
+    """T-206: acted_at = first action — later actions must not move it ("days to act")."""
+    claims = as_user(world.teacher)
+    service = _service(world)
+    await service.edit_main(claims, "rev-1")
+    first = world.review.acted_at
+    assert first is not None
+    await service.dismiss(claims, "rev-1")
+    assert world.review.acted_at == first

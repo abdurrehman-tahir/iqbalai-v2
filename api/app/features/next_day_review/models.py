@@ -116,6 +116,10 @@ class LectureReview(AuditMixin, Base):
     notified_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True, default=None
     )
+    # First teacher/admin action on the card — "days to act" on the #38 dashboard (T-206).
+    acted_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     # Optional mini-lecture published from this review; SET NULL if mini deleted.
     mini_lecture_id: Mapped[str | None] = mapped_column(
         String(36),

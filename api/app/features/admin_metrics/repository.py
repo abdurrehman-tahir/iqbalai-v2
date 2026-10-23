@@ -8,12 +8,14 @@ names/schools — scope is enforced by the caller (service layer), not here.
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.grades.models import Grade
 from app.features.lectures.models import LectureType, SchoolLecture, SchoolLectureVersion
+from app.features.next_day_review.models import LectureReview
 from app.features.offerings.models import GradeSubjectOffering
 from app.features.schools.models import School
 from app.features.subjects.models import Subject
@@ -36,6 +38,18 @@ class TeacherMetricsRow:
     scores_jsonb: dict[str, object]
     topic_relevance_pct: float | None
     lecture_type: LectureType = LectureType.MAIN
+
+
+@dataclass(frozen=True)
+class ReviewStatsRow:
+    """One assembled next-day review, keyed like ``TeacherMetricsRow`` (T-206)."""
+
+    teacher_user_id: str
+    subject_id: str
+    grade_level_ordinal: str
+    pending_action: bool
+    generated_at: datetime | None
+    acted_at: datetime | None
 
 
 class AdminTeacherMetricsRepository:
@@ -108,6 +122,42 @@ class AdminTeacherMetricsRepository:
                         float(topic_relevance_pct) if topic_relevance_pct is not None else None
                     ),
                     lecture_type=lecture_type,
+                )
+            )
+        return rows
+
+    async def list_review_stats(self, *, school_ids: list[str] | None) -> list[ReviewStatsRow]:
+        """Every assembled review in scope (school tenant only — reviews live there)."""
+        stmt = (
+            select(
+                SchoolLecture.teacher_user_id,
+                GradeSubjectOffering.subject_id,
+                Grade.level_ordinal,
+                LectureReview.pending_action,
+                LectureReview.generated_at,
+                LectureReview.acted_at,
+            )
+            .select_from(LectureReview)
+            .join(SchoolLecture, SchoolLecture.id == LectureReview.lecture_id)
+            .join(GradeSubjectOffering, GradeSubjectOffering.id == LectureReview.gso_id)
+            .join(Grade, Grade.id == GradeSubjectOffering.grade_id)
+            .where(LectureReview.generated_at.is_not(None), SchoolLecture.deleted_at.is_(None))
+        )
+        if school_ids is not None:
+            stmt = stmt.where(SchoolLecture.school_id.in_(school_ids))
+        result = await self._session.execute(stmt)
+        rows: list[ReviewStatsRow] = []
+        for teacher_id, subject_id, ordinal, pending, generated_at, acted_at in result.all():
+            if teacher_id is None:
+                continue
+            rows.append(
+                ReviewStatsRow(
+                    teacher_user_id=teacher_id,
+                    subject_id=subject_id,
+                    grade_level_ordinal=str(ordinal),
+                    pending_action=bool(pending),
+                    generated_at=generated_at,
+                    acted_at=acted_at,
                 )
             )
         return rows

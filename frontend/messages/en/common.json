@@ -1434,7 +1434,9 @@
         "lecture_count": "Lectures",
         "avg_total": "Avg. total",
         "avg_topic_relevance": "Avg. topic relevance",
-        "na": "N/A"
+        "na": "N/A",
+        "pending_reviews": "Pending reviews",
+        "days_to_act": "Days to act"
       }
     },
     "notifications": {

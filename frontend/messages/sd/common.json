@@ -533,7 +533,9 @@
         "lecture_count": "__TODO__ Lectures",
         "avg_total": "__TODO__ Avg. total",
         "avg_topic_relevance": "__TODO__ Avg. topic relevance",
-        "na": "__TODO__ N/A"
+        "na": "__TODO__ N/A",
+        "pending_reviews": "باقي جائزا",
+        "days_to_act": "عمل ۾ ڏينهن"
       }
     }
   },

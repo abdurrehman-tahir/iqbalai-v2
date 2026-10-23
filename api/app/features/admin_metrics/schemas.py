@@ -32,3 +32,7 @@ class TeacherMetricsRead(BaseModel):
     # main-lecture dimension averages above.
     mini_lecture_count: int = 0
     avg_mini_total: float | None = None
+    # T-206 (Flow 7 §3.8): next-day review follow-through for the same
+    # (teacher, subject, grade). Reviews never expire, so this is all-time.
+    pending_review_count: int = 0
+    avg_days_to_act: float | None = None
