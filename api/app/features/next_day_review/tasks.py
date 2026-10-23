@@ -24,6 +24,7 @@ from app.features.next_day_review.aggregation import (
     today_karachi,
 )
 from app.features.next_day_review.assembly import (
+    alert_classification_failures,
     assemble_reviews,
     check_sla,
     notify_ready_reviews,
@@ -110,6 +111,10 @@ def classify_school(school_id: str, review_date: str) -> dict[str, Any]:
         buckets = await aggregate_school_day(session, school_id, day)
         clusters = await cluster_all_buckets(buckets)
         classified = await classify_clusters(session, school_id=school_id, clusters=clusters)
+        # T-207: Platform-Admin alert for clusters that hit the DLQ.
+        await alert_classification_failures(
+            session, school_id=school_id, review_date=day, count=classified.dlq_written
+        )
         # T-198: one mini-lecture per qualifying cluster (web fallback off).
         minis = await generate_minis_for_qualifying(
             session, school_id=school_id, clusters=classified.qualifying

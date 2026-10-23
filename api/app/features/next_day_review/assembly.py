@@ -283,6 +283,28 @@ async def assemble_reviews(
     return reviews
 
 
+DLQ_ALERT_TEMPLATE = "system.review_classification_failures"
+
+
+async def alert_classification_failures(
+    session: AsyncSession, *, school_id: str, review_date: date, count: int
+) -> None:
+    """Tell Platform Admins some clusters hit the DLQ (Flow 7 §7); the review still ships."""
+    if count <= 0:
+        return
+    try:
+        await notify_all_platform_admins(
+            session,
+            template_key=DLQ_ALERT_TEMPLATE,
+            params={"count": str(count), "date": review_date.isoformat()},
+            metadata={"school_id": school_id, "review_date": review_date.isoformat()},
+        )
+        await session.commit()
+    except Exception as exc:
+        # Best-effort alert: the DLQ rows themselves are already persisted.
+        logger.warning("review_dlq_alert_failed", school_id=school_id, error=str(exc))
+
+
 async def _schools_with_questions(session: AsyncSession, review_date: date) -> set[str]:
     start_utc, end_utc = karachi_day_bounds(review_date)
     result = await session.execute(
