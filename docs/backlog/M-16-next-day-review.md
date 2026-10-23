@@ -181,7 +181,8 @@ Closes the teaching loop. Overnight, the system aggregates the questions student
 **Layer:** 6
 **Milestone:** M-16
 **Estimate:** 1.5 days
-**Status:** todo
+**Status:** done
+**Commit:** `9e49fc9`
 
 ### Spec source
 - `flow-7-next-day-review.md` §3.5 (Flow 5 §3.6 7-dim scoring, Depth + Alignment ×1.5, max 60; originality vs global incl. other mini-lectures; excluded from independent tenant)
