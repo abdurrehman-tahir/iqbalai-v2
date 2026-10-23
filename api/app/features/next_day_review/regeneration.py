@@ -77,7 +77,7 @@ async def regenerate_review_mini(session: AsyncSession, *, review_id: str) -> di
         logger.warning("review_regenerate_missing", review_id=review_id)
         return None
     lecture = await session.get(SchoolLecture, review.lecture_id)
-    if lecture is None:
+    if lecture is None or not lecture.school_id:
         return None
     snapshots = [ReviewClusterSnapshot.model_validate(c) for c in review.clusters_jsonb or []]
     target = pick_cluster(snapshots, await skipped_refs(session, review_id))
