@@ -83,6 +83,47 @@ SYSTEM_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         }
     },
+    # M-16 next-day review (Flow 7 §7) — Platform-Admin pipeline health alerts.
+    "system.review_sla_breach": {
+        "default": {
+            "en": {
+                "title": "Daily review SLA missed",
+                "body": "{count} school(s) had no review card ready by 05:00 for {date}.",
+            },
+            "ur": {
+                "title": "روزانہ جائزے کی ڈیڈ لائن چھوٹ گئی",
+                "body": "{date} کے لیے {count} اسکول(وں) کا جائزہ کارڈ 05:00 تک تیار نہیں ہوا۔",
+            },
+            "sd": {
+                "title": "روزاني جائزي جي ڊيڊ لائن رهجي وئي",
+                "body": "{date} لاءِ {count} اسڪول(ن) جو جائزو ڪارڊ 05:00 تائين تيار نه ٿيو۔",
+            },
+            "ps": {
+                "title": "د ورځنۍ بیاکتنې وخت تېر شو",
+                "body": "د {date} لپاره د {count} ښوونځي(و) بیاکتنې کارت تر 05:00 پورې چمتو نه شو۔",
+            },
+        }
+    },
+    "system.review_classification_failures": {
+        "default": {
+            "en": {
+                "title": "Review clusters failed classification",
+                "body": "{count} question cluster(s) failed classification for {date} (see the DLQ).",
+            },
+            "ur": {
+                "title": "جائزے کے کلسٹرز کی درجہ بندی ناکام",
+                "body": "{date} کے لیے {count} سوالاتی کلسٹر(ز) کی درجہ بندی ناکام ہوئی (DLQ دیکھیں)۔",
+            },
+            "sd": {
+                "title": "جائزي جي ڪلسٽرن جي درجه بندي ناڪام",
+                "body": "{date} لاءِ {count} سوالي ڪلسٽر(ن) جي درجه بندي ناڪام ٿي (DLQ ڏسو)۔",
+            },
+            "ps": {
+                "title": "د بیاکتنې د کلسټرونو طبقه بندي ناکامه شوه",
+                "body": "د {date} لپاره د {count} پوښتنو کلسټر(ونو) طبقه بندي ناکامه شوه (DLQ وګورئ)۔",
+            },
+        }
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {

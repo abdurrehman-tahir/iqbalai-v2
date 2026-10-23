@@ -1,4 +1,5 @@
-"""Next-day review Celery tasks — T-196 aggregation + T-197 cluster/classify.
+"""Next-day review Celery tasks — T-196 aggregation, T-197 cluster/classify,
+T-200 card assembly + 05:00 SLA check + 06:00 teacher notify.
 
 Beat ``review.aggregate_nightly`` @ 23:00 Asia/Karachi fans out one isolated
 ``review.classify_school`` task per active school so a slow/failing school
@@ -22,6 +23,12 @@ from app.features.next_day_review.aggregation import (
     list_active_school_ids,
     today_karachi,
 )
+from app.features.next_day_review.assembly import (
+    assemble_reviews,
+    check_sla,
+    notify_ready_reviews,
+    previous_review_date,
+)
 from app.features.next_day_review.classification import classify_clusters
 from app.features.next_day_review.clustering import cluster_all_buckets
 from app.features.next_day_review.mini_generation import generate_minis_for_qualifying
@@ -32,6 +39,8 @@ logger = structlog.get_logger(__name__)
 AGGREGATE_NIGHTLY_TASK = "review.aggregate_nightly"
 AGGREGATE_SCHOOL_TASK = "review.aggregate_school"
 CLASSIFY_SCHOOL_TASK = "review.classify_school"
+CHECK_SLA_TASK = "review.check_sla"
+NOTIFY_READY_TASK = "review.notify_ready"
 
 
 @shared_task(  # type: ignore[misc]
@@ -103,6 +112,14 @@ def classify_school(school_id: str, review_date: str) -> dict[str, Any]:
         minis = await generate_minis_for_qualifying(
             session, school_id=school_id, clusters=classified.qualifying
         )
+        # T-200: one card per GSO; DLQ'd clusters still ship on frequency alone.
+        reviews = await assemble_reviews(
+            session,
+            school_id=school_id,
+            review_date=day,
+            clusters=classified.clusters,
+            minis=minis,
+        )
         return {
             "school_id": school_id,
             "review_date": day.isoformat(),
@@ -112,8 +129,43 @@ def classify_school(school_id: str, review_date: str) -> dict[str, Any]:
             "dlq_written": classified.dlq_written,
             "mini_lecture_count": len(minis),
             "mini_lectures": minis,
+            "review_ids": [r.id for r in reviews],
             "clusters": [c.to_dict() for c in classified.clusters],
             "qualifying_cluster_refs": [c.cluster_ref for c in classified.qualifying],
         }
+
+    return run_db(_run)
+
+
+@shared_task(  # type: ignore[misc]
+    name=CHECK_SLA_TASK,
+    queue="default",
+    acks_late=True,
+    soft_time_limit=120,
+    time_limit=180,
+)
+def check_review_sla(review_date: str | None = None) -> list[str]:
+    """05:00 Asia/Karachi: alert Platform Admins about schools with no card yet."""
+    day = date.fromisoformat(review_date) if review_date else previous_review_date()
+
+    async def _run(session: AsyncSession) -> list[str]:
+        return await check_sla(session, review_date=day)
+
+    return run_db(_run)
+
+
+@shared_task(  # type: ignore[misc]
+    name=NOTIFY_READY_TASK,
+    queue="default",
+    acks_late=True,
+    soft_time_limit=300,
+    time_limit=360,
+)
+def notify_ready(review_date: str | None = None) -> int:
+    """06:00 Asia/Karachi: notify teachers their review card is ready (never earlier)."""
+    day = date.fromisoformat(review_date) if review_date else previous_review_date()
+
+    async def _run(session: AsyncSession) -> int:
+        return await notify_ready_reviews(session, review_date=day)
 
     return run_db(_run)

@@ -88,4 +88,15 @@ BEAT_SCHEDULE: dict[str, object] = {
         "task": "review.aggregate_nightly",
         "schedule": crontab(hour=18, minute=0),  # 23:00 PKT
     },
+    # T-200 (Flow 7 §3.1): all cards due by 05:00 PKT, teachers notified at 06:00
+    # PKT — never earlier. Supersedes the stale ARCH §10.6 sample
+    # (``lessons.send_next_day_reviews`` @ 02:00 PKT); the flow spec wins.
+    "review-check-sla": {
+        "task": "review.check_sla",
+        "schedule": crontab(hour=0, minute=0),  # 05:00 PKT
+    },
+    "review-notify-ready": {
+        "task": "review.notify_ready",
+        "schedule": crontab(hour=1, minute=0),  # 06:00 PKT
+    },
 }

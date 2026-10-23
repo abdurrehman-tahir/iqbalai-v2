@@ -101,6 +101,21 @@ class LectureReview(AuditMixin, Base):
     acted_actions: Mapped[list[str]] = mapped_column(
         JSONB, nullable=False, default=list, server_default="[]"
     )
+    # T-200: snapshot of the classified clusters the card renders (High-Frequency /
+    # Critical columns, drill-down wording, T-204 recipients). Read together with
+    # the card and never filtered by inner fields, so JSONB (shape:
+    # ``ReviewClusterSnapshot`` in schemas.py) rather than a child table.
+    clusters_jsonb: Mapped[list[dict[str, Any]]] = mapped_column(
+        JSONB, nullable=False, default=list, server_default="[]"
+    )
+    # When the assembly finished; drives the 05:00 SLA check (Flow 7 §3.1).
+    generated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
+    # When the 06:00 teacher notification went out — makes the dispatcher idempotent.
+    notified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True, default=None
+    )
     # Optional mini-lecture published from this review; SET NULL if mini deleted.
     mini_lecture_id: Mapped[str | None] = mapped_column(
         String(36),
@@ -113,6 +128,8 @@ class LectureReview(AuditMixin, Base):
             kwargs["id"] = _uuid7()
         if "acted_actions" not in kwargs:
             kwargs["acted_actions"] = []
+        if "clusters_jsonb" not in kwargs:
+            kwargs["clusters_jsonb"] = []
         if "status" not in kwargs:
             kwargs["status"] = LectureReviewStatus.PENDING
         if "pending_action" not in kwargs:

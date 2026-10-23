@@ -205,6 +205,48 @@ LECTURE_TEMPLATES: dict[str, dict[str, dict[str, dict[str, str]]]] = {
             },
         },
     },
+    # M-16 next-day review (Flow 7 §7). Teacher card ready at 06:00 PKT; mini-lecture
+    # assignment goes only to the students whose questions triggered it (T-204).
+    "lectures.next_day_review_ready": {
+        "default": {
+            "en": {
+                "title": "Your daily review is ready",
+                "body": 'Yesterday\'s student questions on "{topic}" are summarised in your review card.',
+            },
+            "ur": {
+                "title": "آپ کا روزانہ جائزہ تیار ہے",
+                "body": '"{topic}" پر کل کے طلبہ کے سوالات کا خلاصہ آپ کے جائزہ کارڈ میں موجود ہے۔',
+            },
+            "sd": {
+                "title": "توهان جو روزانو جائزو تيار آهي",
+                "body": '"{topic}" تي ڪالهه جي شاگردن جي سوالن جو خلاصو توهان جي جائزي ڪارڊ ۾ آهي۔',
+            },
+            "ps": {
+                "title": "ستاسو ورځنۍ بیاکتنه چمتو ده",
+                "body": 'د "{topic}" په اړه د پرون د زده کوونکو پوښتنې ستاسو د بیاکتنې کارت کې لنډې شوې دي۔',
+            },
+        },
+    },
+    "lectures.mini_lecture_assigned": {
+        "student": {
+            "en": {
+                "title": "A short follow-up lecture for you",
+                "body": 'Your teacher shared a mini-lecture on "{topic}" to help with your question.',
+            },
+            "ur": {
+                "title": "آپ کے لیے ایک مختصر فالو اپ لیکچر",
+                "body": 'آپ کے سوال میں مدد کے لیے استاد نے "{topic}" پر ایک مختصر لیکچر بھیجا ہے۔',
+            },
+            "sd": {
+                "title": "توهان لاءِ هڪ مختصر فالو اپ ليڪچر",
+                "body": 'توهان جي سوال ۾ مدد لاءِ استاد "{topic}" تي هڪ مختصر ليڪچر موڪليو آهي۔',
+            },
+            "ps": {
+                "title": "ستاسو لپاره یو لنډ تعقیبي لیکچر",
+                "body": 'ستاسو د پوښتنې د مرستې لپاره ښوونکي د "{topic}" په اړه یو لنډ لیکچر شریک کړ۔',
+            },
+        },
+    },
 }
 
 TEMPLATE_CHANNELS: dict[str, frozenset[str]] = {

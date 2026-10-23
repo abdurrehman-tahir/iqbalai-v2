@@ -3,10 +3,41 @@
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
 from app.features.next_day_review.models import LectureReviewStatus
+
+
+class ReviewClusterQuestion(BaseModel):
+    """One student's exact question inside a cluster snapshot (Flow 7 §3.6)."""
+
+    question_id: str
+    student_user_id: str
+    question_text: str = ""
+    paragraph_id: str | None = None
+    source_chunk_id: str | None = None
+    occurred_at: str | None = None
+
+
+class ReviewClusterSnapshot(BaseModel):
+    """Shape of each ``lecture_reviews.clusters_jsonb`` element (ARCH §4.10).
+
+    ``column`` decides which card column renders it: a cluster that qualifies
+    on criticality goes to Critical, otherwise to High Frequency.
+    """
+
+    cluster_ref: str
+    lecture_id: str
+    column: Literal["critical", "high_frequency"]
+    question_count: int
+    unique_student_count: int
+    criticality: int | None = None
+    freq_score: float = 0.0
+    representative_question: str = ""
+    mini_lecture_id: str | None = None
+    questions: list[ReviewClusterQuestion] = Field(default_factory=list)
 
 
 class LectureReviewRead(BaseModel):
