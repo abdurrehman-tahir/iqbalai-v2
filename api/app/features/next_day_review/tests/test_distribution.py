@@ -10,6 +10,7 @@ import pytest
 from app.core.exceptions import PreconditionFailedError, ValidationError
 from app.features.audit.actions import REVIEW_MINI_PUBLISHED, REVIEW_OVERRIDE_ACTION
 from app.features.lectures.models import LectureStatus, LectureType
+from app.features.lectures.repository import LectureAssignmentRepository
 from app.features.lectures.schemas import LectureLinkCreate
 from app.features.lectures.service import LectureWizardService
 from app.features.next_day_review import distribution
@@ -50,7 +51,7 @@ async def test_unenrolled_students_are_dropped(
         distribution, "enrolled_recipients", AsyncMock(return_value={"stu-0", "stu-2"})
     )
     replace = AsyncMock()
-    monkeypatch.setattr(distribution.LectureAssignmentRepository, "replace_for_lecture", replace)
+    monkeypatch.setattr(LectureAssignmentRepository, "replace_for_lecture", replace)
     recipients = await assign_recipients(
         world.session(),
         mini=world.mini,
