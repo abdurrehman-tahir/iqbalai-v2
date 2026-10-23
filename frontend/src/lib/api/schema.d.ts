@@ -8399,6 +8399,8 @@ export interface components {
             avg_depth: number;
             /** Avg Engagement */
             avg_engagement: number;
+            /** Avg Mini Total */
+            avg_mini_total?: number | null;
             /** Avg Originality */
             avg_originality: number;
             /** Avg Topic Relevance Pct */
@@ -8411,6 +8413,11 @@ export interface components {
             grade_range: string;
             /** Lecture Count */
             lecture_count: number;
+            /**
+             * Mini Lecture Count
+             * @default 0
+             */
+            mini_lecture_count: number;
             /** School Id */
             school_id: string;
             /** School Name */

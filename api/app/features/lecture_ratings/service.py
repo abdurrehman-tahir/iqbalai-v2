@@ -22,9 +22,9 @@ from app.features.lecture_ratings.schemas import LectureRatingSummaryRead, MyLec
 from app.features.lectures.models import SchoolLecture
 from app.features.lectures.repository import LectureRepository, LectureVersionRepository
 from app.features.lectures.scoring import (
-    MAX_TOTAL_SCORE,
     STUDENT_RATING_WEIGHT,
     blended_quality_score,
+    max_score_for,
 )
 from app.features.lectures.service import LectureService
 from app.features.schools.models import School
@@ -135,8 +135,10 @@ class LectureRatingService:
             min_ratings_for_display=MIN_RATINGS_FOR_DISPLAY,
             average_rating=shown_average,
             ai_score=ai_total,
-            ai_score_max=MAX_TOTAL_SCORE,
-            quality_score=blended_quality_score(ai_total, shown_average),
+            ai_score_max=max_score_for(lecture.lecture_type),
+            quality_score=blended_quality_score(
+                ai_total, shown_average, max_score_for(lecture.lecture_type)
+            ),
             rating_weight=STUDENT_RATING_WEIGHT,
         )
 

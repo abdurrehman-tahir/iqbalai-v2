@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from dataclasses import replace
 from typing import Any
 
 import pytest
@@ -11,6 +12,7 @@ from app.core.tests.test_idempotency import FakeRedis
 from app.features.admin_metrics import service
 from app.features.admin_metrics.repository import TeacherMetricsRow
 from app.features.admin_metrics.service import MetricsFilters
+from app.features.lectures.models import LectureType
 
 
 class _FakeRepo:
@@ -225,3 +227,30 @@ async def test_second_call_is_served_from_cache_without_hitting_repo() -> None:
 
     assert first == second
     assert len(second) == 1
+
+
+@pytest.mark.asyncio
+async def test_mini_lectures_reported_separately_from_main_averages() -> None:
+    """T-199 (Flow 7 §3.5): admin distinguishes mini from main via lecture_type —
+    /60 minis never skew the main-lecture dimension averages."""
+    main = _row("t-1", 40.0, lecture_id="lec-1")
+    mini = replace(
+        _row("t-1", 54.0, lecture_id="mini-1"),
+        lecture_type=LectureType.MINI,
+        scores_jsonb={"depth": 15, "alignment": 15, "total": 54.0},
+    )
+    _FakeRepo.scored_versions = [main, mini]
+
+    rows = await service.get_teacher_metrics(
+        None,  # type: ignore[arg-type]
+        claims={},
+        caller_role="platform_admin",
+        filters=MetricsFilters(),
+    )
+
+    assert len(rows) == 1
+    assert rows[0].lecture_count == 1
+    assert rows[0].avg_total == 40.0
+    assert rows[0].avg_depth == 7.0
+    assert rows[0].mini_lecture_count == 1
+    assert rows[0].avg_mini_total == 54.0

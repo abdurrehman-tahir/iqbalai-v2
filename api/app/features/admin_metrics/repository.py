@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.features.grades.models import Grade
-from app.features.lectures.models import SchoolLecture, SchoolLectureVersion
+from app.features.lectures.models import LectureType, SchoolLecture, SchoolLectureVersion
 from app.features.offerings.models import GradeSubjectOffering
 from app.features.schools.models import School
 from app.features.subjects.models import Subject
@@ -35,6 +35,7 @@ class TeacherMetricsRow:
     lecture_id: str
     scores_jsonb: dict[str, object]
     topic_relevance_pct: float | None
+    lecture_type: LectureType = LectureType.MAIN
 
 
 class AdminTeacherMetricsRepository:
@@ -58,6 +59,7 @@ class AdminTeacherMetricsRepository:
                 SchoolLecture.id,
                 SchoolLectureVersion.scores_jsonb,
                 SchoolLectureVersion.topic_relevance_pct,
+                SchoolLecture.lecture_type,
             )
             .select_from(SchoolLectureVersion)
             .join(SchoolLecture, SchoolLecture.id == SchoolLectureVersion.lecture_id)
@@ -87,6 +89,7 @@ class AdminTeacherMetricsRepository:
             lecture_id,
             scores_jsonb,
             topic_relevance_pct,
+            lecture_type,
         ) in result.all():
             if teacher_user_id is None or school_id is None or not isinstance(scores_jsonb, dict):
                 continue
@@ -104,6 +107,7 @@ class AdminTeacherMetricsRepository:
                     topic_relevance_pct=(
                         float(topic_relevance_pct) if topic_relevance_pct is not None else None
                     ),
+                    lecture_type=lecture_type,
                 )
             )
         return rows

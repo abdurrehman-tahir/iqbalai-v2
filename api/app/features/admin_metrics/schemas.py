@@ -27,3 +27,8 @@ class TeacherMetricsRead(BaseModel):
     avg_ai_learning: float
     avg_total: float
     avg_topic_relevance_pct: float | None
+    # T-199 (Flow 7 §3.5): mini-lectures score /60 with weighted Depth +
+    # Alignment, so they are reported separately and never mixed into the
+    # main-lecture dimension averages above.
+    mini_lecture_count: int = 0
+    avg_mini_total: float | None = None

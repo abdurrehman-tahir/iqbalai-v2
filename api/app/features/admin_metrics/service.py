@@ -25,6 +25,7 @@ from app.core.dependencies import ROLE_HIERARCHY
 from app.core.exceptions import PermissionDeniedError
 from app.features.admin_metrics.repository import AdminTeacherMetricsRepository, TeacherMetricsRow
 from app.features.admin_metrics.schemas import TeacherMetricsRead
+from app.features.lectures.models import LectureType
 from app.infrastructure.cache.client import get_redis
 
 logger = structlog.get_logger(__name__)
@@ -84,8 +85,12 @@ def _aggregate(rows: list[TeacherMetricsRow]) -> list[TeacherMetricsRead]:
         return round(statistics.mean(values), 1) if values else None
 
     out: list[TeacherMetricsRead] = []
-    for (teacher_user_id, subject_id, grade_range), group in groups.items():
-        first = group[0]
+    for (teacher_user_id, subject_id, grade_range), all_rows in groups.items():
+        first = all_rows[0]
+        # T-199: minis are /60 with 1.5× Depth/Alignment — keep them out of the
+        # main-lecture dimension averages and report them on their own.
+        group = [r for r in all_rows if r.lecture_type != LectureType.MINI]
+        minis = [r for r in all_rows if r.lecture_type == LectureType.MINI]
         topic_values = [r.topic_relevance_pct for r in group if r.topic_relevance_pct is not None]
         out.append(
             TeacherMetricsRead(
@@ -108,6 +113,8 @@ def _aggregate(rows: list[TeacherMetricsRow]) -> list[TeacherMetricsRead]:
                 avg_topic_relevance_pct=(
                     round(statistics.mean(topic_values), 1) if topic_values else None
                 ),
+                mini_lecture_count=len({r.lecture_id for r in minis}),
+                avg_mini_total=_dim_avg(minis, "total"),
             )
         )
     out.sort(key=lambda r: r.avg_total, reverse=True)

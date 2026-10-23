@@ -21,15 +21,21 @@ from app.features.lectures.models import (
     IndependentLecture,
     IndependentLectureVersion,
     LectureStatus,
+    LectureType,
     SchoolLecture,
     SchoolLecturePlagiarismFlag,
     SchoolLectureVersion,
 )
 from app.features.lectures.originality import OriginalityResult
 from app.features.lectures.scoring import (
+    MAX_TOTAL_SCORE,
+    MINI_MAX_TOTAL_SCORE,
     _build_diff,
     _clamp,
     _score_version,
+    apply_mini_weighting,
+    blended_quality_score,
+    max_score_for,
     score_independent_lecture_version,
     score_school_lecture_version,
 )
@@ -592,3 +598,139 @@ def test_score_independent_lecture_version_task_never_raises_on_failure() -> Non
         result = score_independent_lecture_version_task.run(lecture_id="lec-1", version_id="ver-1")
 
     assert result == {"lecture_id": "lec-1", "version_id": "ver-1", "status": "failed"}
+
+
+# --- T-199: mini-lecture weighting (Flow 7 §3.5 #39) ------------------------
+
+
+def test_apply_mini_weighting_scales_depth_and_alignment_by_one_and_a_half() -> None:
+    raw: dict[str, object] = {
+        "originality": 7,
+        "depth": 8,
+        "cultural_relevance": 4,
+        "engagement": 3,
+        "alignment": 9,
+        "voice_quality": None,
+        "ai_learning": 0,
+        "total": 31,
+    }
+    weighted = apply_mini_weighting(raw)
+    assert weighted["depth"] == 12
+    # 9 × 1.5 = 13.5 → half-up → 14
+    assert weighted["alignment"] == 14
+    assert weighted["originality"] == 7
+    assert weighted["voice_quality"] is None
+    assert weighted["total"] == 7 + 12 + 4 + 3 + 14 + 0
+    assert weighted["max"] == MINI_MAX_TOTAL_SCORE == 60
+    assert weighted["lecture_type"] == "mini"
+    # Raw dict untouched — coaching keeps reading 0–10 dims.
+    assert raw["depth"] == 8
+
+
+def test_apply_mini_weighting_perfect_score_is_capped_at_sixty() -> None:
+    perfect: dict[str, object] = {
+        "originality": 10,
+        "depth": 10,
+        "cultural_relevance": 5,
+        "engagement": 5,
+        "alignment": 10,
+        "voice_quality": 5,
+        "ai_learning": 10,
+        "total": 55,
+    }
+    weighted = apply_mini_weighting(perfect)
+    assert weighted["depth"] == 15
+    assert weighted["alignment"] == 15
+    assert weighted["voice_quality"] is None
+    assert weighted["total"] == MINI_MAX_TOTAL_SCORE
+
+
+def test_max_score_for_lecture_type() -> None:
+    assert max_score_for(LectureType.MAIN) == MAX_TOTAL_SCORE == 55
+    assert max_score_for(LectureType.MINI) == 60
+
+
+def test_blended_quality_score_normalises_against_given_max() -> None:
+    assert blended_quality_score(60, None, MINI_MAX_TOTAL_SCORE) == 100.0
+    assert blended_quality_score(30, None, MINI_MAX_TOTAL_SCORE) == 50.0
+    # Default stays the main-lecture /55 scale.
+    assert blended_quality_score(55, None) == 100.0
+
+
+@pytest.mark.asyncio
+async def test_score_school_lecture_version_weights_mini_lecture(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Minis reuse the M-10 pipeline (acceptance #4) — same entry point, same
+    originality call against the global index (#3), weighted scores persisted (#1/#2)."""
+    mini = SchoolLecture(
+        id="mini-1",
+        school_id="school-1",
+        teacher_user_id="teacher-1",
+        title="Mini-lecture correcting: action-reaction",
+        topic="Mini-lecture correcting: action-reaction",
+        status=LectureStatus.READY_FOR_EDIT,
+        lecture_type=LectureType.MINI,
+        parent_lecture_id="lec-1",
+        current_version_id="mver-1",
+    )
+    version = SchoolLectureVersion(
+        id="mver-1", lecture_id="mini-1", version=1, body="Mini body.", edit_summary=None
+    )
+    session = _fake_school_session(mini, version, None, [])
+
+    class _FakeVersionRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        async def get_first_for_lecture(self, _lecture_id: str) -> SchoolLectureVersion:
+            return version
+
+    class _FakeEditSessionRepo:
+        def __init__(self, _session: Any) -> None:
+            pass
+
+        async def list_by_version_id(self, _version_id: str) -> list[Any]:
+            return []
+
+    originality = AsyncMock(return_value=_NOT_FLAGGED)
+    coaching = AsyncMock()
+    notify = AsyncMock()
+    monkeypatch.setattr("app.features.lectures.scoring.LectureVersionRepository", _FakeVersionRepo)
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.LectureEditSessionRepository", _FakeEditSessionRepo
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.chat", AsyncMock(return_value=_VALID_LLM_JSON)
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.check_and_index_school_originality", originality
+    )
+    monkeypatch.setattr(
+        "app.features.lectures.scoring.compute_topic_relevance",
+        AsyncMock(return_value=_TOPIC_RELEVANCE_MOCK),
+    )
+    monkeypatch.setattr("app.features.lectures.scoring.detect_and_track_weakness_school", coaching)
+    monkeypatch.setattr("app.features.lectures.scoring.notify_scoring_complete", notify)
+
+    await score_school_lecture_version(
+        session, lecture_id="mini-1", school_id="school-1", version_id="mver-1"
+    )
+
+    scores = version.scores_jsonb
+    assert scores is not None
+    # _VALID_LLM_JSON: depth 8 → 12, alignment 9 → 14; v1 ⇒ ai_learning 0; text ⇒ voice None.
+    assert scores["depth"] == 12
+    assert scores["alignment"] == 14
+    assert scores["voice_quality"] is None
+    assert scores["lecture_type"] == "mini"
+    assert scores["max"] == 60
+    assert scores["total"] == 7 + 12 + 4 + 3 + 14 + 0
+    originality.assert_awaited_once()
+    assert originality.await_args is not None
+    assert originality.await_args.kwargs["lecture_id"] == "mini-1"
+    # Coaching sees raw (unweighted) dims.
+    assert coaching.await_args is not None
+    assert coaching.await_args.kwargs["scores"]["depth"] == 8
+    assert notify.await_args is not None
+    assert notify.await_args.kwargs["max_score"] == 60

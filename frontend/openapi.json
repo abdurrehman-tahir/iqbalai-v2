@@ -10581,6 +10581,17 @@
             "title": "Avg Engagement",
             "type": "number"
           },
+          "avg_mini_total": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Avg Mini Total"
+          },
           "avg_originality": {
             "title": "Avg Originality",
             "type": "number"
@@ -10617,6 +10628,11 @@
           },
           "lecture_count": {
             "title": "Lecture Count",
+            "type": "integer"
+          },
+          "mini_lecture_count": {
+            "default": 0,
+            "title": "Mini Lecture Count",
             "type": "integer"
           },
           "school_id": {
